@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KE Salary Calculator & Payslip Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kind donations accepted via M-Pesa: 0702359618 or Airtel Money: 0752422013</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <h1>KE Salary Tools</h1>
+            
+            <div class="tab-container">
+                <button class="tab-button active" onclick="openTab('calculator')">Salary Calculator</button>
+                <button class="tab-button" onclick="openTab('payslip')">Payslip Generator</button>
+            </div>
+            
+            <!-- Salary Calculator Tab -->
+            <div id="calculator" class="tab-content" style="display: block;">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label for="grossPay">Gross Pay (KES)</label>
+                        <input type="number" id="grossPay" placeholder="Enter gross monthly salary">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="allowances">Allowances (KES)</label>
+                        <input type="number" id="allowances" placeholder="Enter total allowances">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="benefits">Other Taxable Benefits (KES)</label>
+                        <input type="number" id="benefits" placeholder="Enter other taxable benefits">
+                    </div>
+                    
+                    <button onclick="calculateSalary()">Calculate Net Pay</button>
+                </div>
+                
+                <div class="results-section" id="results" style="display: none;">
+                    <h2>Salary Breakdown</h2>
+                    
+                    <div class="result-item">
+                        <span>Total Taxable Income:</span>
+                        <span id="displayGross"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>PAYE (Income Tax):</span>
+                        <span id="paye"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>NSSF Contribution:</span>
+                        <span id="nssf"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>SHIF Contribution:</span>
+                        <span id="nhif"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>Housing Levy (1.5%):</span>
+                        <span id="housingLevy"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>Personal Relief:</span>
+                        <span id="personalRelief"></span>
+                    </div>
+                   
+                    <div class="total">
+                        <span>Net Pay:</span>
+                        <span id="netPay"></span>
+                    </div>
+                </div>
+
+                <div class="disclaimer">
+                    <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
+                </div>
+
+                <div class="donate-section">
+                    <button class="donate-toggle" onclick="toggleDonateInfo()">Support This Project</button>
+                    <div id="donateInfoCalc" class="donate-info" style="display: none;">
+                        <p>Send any amount to:</p>
+                        <div class="payment-method">
+                            <i class="fab fa-mpesa" style="color: #00A650; font-size: 24px;"></i>
+                            <span class="payment-number">0702359618 (Mpesa)</span>
+                        </div>
+                        <div class="payment-method">
+                            <i class="fab fa-airtel" style="color: #FF0000; font-size: 24px;"></i>
+                            <span class="payment-number">0752422013 (Airtel Money)</span>
+                        </div>
+                        <p>Thank you for supporting this free tool!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payslip Generator Tab -->
+            <div id="payslip" class="tab-content" style="display: none;">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label for="employeeName">Employee Name</label>
+                        <input type="text" id="employeeName" placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeID">Employee ID</label>
+                        <input type="text" id="employeeID" placeholder="EMP12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payPeriod">Pay Period</label>
+                        <input type="text" id="payPeriod" placeholder="May 2025">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grossPaySlip">Gross Salary (KES)</label>
+                        <input type="number" id="grossPaySlip" placeholder="e.g. 50000">
+                    </div>
+
+                    <button onclick="generatePayslip()">Create Payslip</button>
+                </div>
+
+                <div id="payslipOutput" class="payslip-container" style="display: none;">
+                    <div class="payslip-header">
+                        <div class="company-branding">
+                            <div class="logo-placeholder">
+                                <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="handleLogoUpload()">
+                                <button onclick="document.getElementById('logoUpload').click()">Upload Logo</button>
+                                <img id="companyLogo" src="" style="display: none; max-width: 80px; max-height: 80px;">
+                            </div>
+                            <div class="company-info">
+                                <input type="text" id="companyName" placeholder="Organization Name" class="company-name-input">
+                                <input type="text" id="companyAddress" placeholder="P.O. Box, City" class="company-detail-input">
+                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.go.ke" class="company-detail-input">
+                            </div>
+                        </div>
+                        <h2>PAYSLIP</h2>
+                        <div class="payslip-meta">
+                            <div class="meta-item">
+                                <span>Pay Period:</span>
+                                <span id="slipPeriod"></span>
+                            </div>
+                            <div class="meta-item">
+                                <span>Payslip No:</span>
+                                <span><input type="text" id="payslipNumber" placeholder="PSL-XXXX"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payslip-body">
+                        <div class="employee-details">
+                            <div class="detail-row">
+                                <span>Employee Name:</span>
+                                <span id="slipName" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Employee No:</span>
+                                <span id="slipID" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Department:</span>
+                                <span><input type="text" id="department" placeholder="Department" class="editable-field"></span>
+                            </div>
+                        </div>
+
+                        <div class="earnings-deductions">
+                            <div class="earnings-section">
+                                <h3>EARNINGS</h3>
+                                <table class="payslip-table">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount (KES)</th>
+                                    </tr>
+                                    <tr>
+                                        <td>Basic Salary</td>
+                                        <td id="slipGross"></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="deductions-section">
+                                <h3>DEDUCTIONS</h3>
+                                <table class="payslip-table">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount (KES)</th>
+                                    </tr>
+                                    <tr>
+                                        <td>PAYE</td>
+                                        <td id="slipPAYE"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>NSSF</td>
+                                        <td id="slipNSSF"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SHIF</td>
+                                        <td id="slipSHIF"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Housing Levy</td>
+                                        <td id="slipAHL"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Loan Deduction</td>
+                                        <td><input type="number" id="loanDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <table class="summary-table">
+                                <tr>
+                                    <th>TOTAL EARNINGS</th>
+                                    <td id="slipGrossSummary"></td>
+                                </tr>
+                                <tr>
+                                    <th>TOTAL DEDUCTIONS</th>
+                                    <td id="slipDeductionsSummary"></td>
+                                </tr>
+                                <tr class="net-pay-row">
+                                    <th>NET PAY</th>
+                                    <td id="slipNet"></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="signature-section">
+                            <div class="signature-line"></div>
+                            <div class="signature-labels">
+                                <div class="signature-input">
+                                    <input type="text" placeholder="Prepared by" class="signature-field">
+                                </div>
+                                <div class="signature-input">
+                                    <input type="text" placeholder="Approved by" class="signature-field">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payslip-footer">
+                        <p>This is a computer generated payslip and does not require a signature</p>
+                    </div>
+
+                    <div class="payslip-actions">
+                        <button onclick="resetPayslip()" class="no-print">Reset</button>
+                        <button onclick="printPayslip()" class="no-print">Print/Download</button>
+                    </div>
+                </div>
+
+                <div class="disclaimer">
+                    <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
+                </div>
+
+                <div class="donate-section">
+                    <button class="donate-toggle" onclick="toggleDonateInfo()">Support This Project</button>
+                    <div id="donateInfo" class="donate-info" style="display: none;">
+                        <p>Send any amount to:</p>
+                        <div class="payment-method">
+                            <i class="fab fa-mpesa" style="color: #00A650; font-size: 24px;"></i>
+                            <span class="payment-number">0702359618 (Mpesa)</span>
+                        </div>
+                        <div class="payment-method">
+                            <i class="fab fa-airtel" style="color: #FF0000; font-size: 24px;"></i>
+                            <span class="payment-number">0752422013 (Airtel Money)</span>
+                        </div>
+                        <p>Thank you for supporting this free tool!</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <div class="harambee-star">*</div>
+                Designed by <a href="https://jambotax.co.ke" target="_blank">Jambo-Tax</a>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

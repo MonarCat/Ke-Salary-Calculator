@@ -1,0 +1,579 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-image: url('by wirestock on Freepika.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+/* Dark overlay for better text readability */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(119, 179, 80, 0.7);
+    z-index: -1;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background: linear-gradient(to bottom right, #ffffff, #f0f0f0);
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e0e0e0;
+}
+
+h1 {
+    text-align: center;
+    color: #006600;
+    margin-bottom: 30px;
+    font-size: 2.2em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.flag-icon {
+    height: 1em;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 3px;
+}
+
+h1::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    right: 25%;
+    height: 3px;
+    background: linear-gradient(to right, #000000, #CC0000, #006600);
+}
+
+.input-section, .results-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #006600;
+}
+
+button {
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    width: auto;
+    min-width: 120px;
+    transition: all 0.3s;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+button:hover {
+    background: linear-gradient(to right, #004400, #007700);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
+}
+
+.results-section::before {
+    content: "";
+    display: block;
+    height: 8px;
+    background: linear-gradient(90deg, 
+        #000000 25%, 
+        #FFFFFF 25% 30%, 
+        #CC0000 30% 55%, 
+        #FFFFFF 55% 60%, 
+        #006600 60% 85%, 
+        #FFFFFF 85% 90%, 
+        #000000 90%);
+    margin: -25px -25px 20px -25px;
+    border-radius: 5px 5px 0 0;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.total {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #006600;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #CC0000;
+}
+
+.disclaimer {
+    font-size: 12px;
+    color: #555;
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    border-left: 3px solid #CC0000;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 15px;
+    font-size: 14px;
+    color: #666;
+    border-top: 1px solid #e0e0e0;
+}
+
+.harambee-star {
+    color: #CC0000;
+    display: inline-block;
+    margin: 0 5px;
+    font-size: 1.2em;
+    text-shadow: 0 0 3px rgba(0,0,0,0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+footer a {
+    color: #CC0000;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: #006600;
+    text-decoration: underline;
+}
+
+.input-highlight {
+    border: 1px solid #006600 !important;
+}
+
+.result-highlight {
+    color: #CC0000;
+    font-weight: bold;
+}
+
+/* Tab Styles */
+.tab-button {
+    padding: 8px 15px;
+    background: #f0f0f0;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    transition: all 0.3s;
+    border: 1px solid #ddd;
+    border-bottom: none;
+}
+
+.tab-button.active {
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    font-weight: bold;
+    border-color: #006600;
+}
+
+.tab-button:not(.active) {
+    background: white;
+    color: #333;
+}
+
+/* Payslip Styles */
+.payslip-container {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 25px;
+    margin-top: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 148mm;
+    min-height: 210mm;
+    padding: 10mm;
+    box-sizing: border-box;
+}
+
+.company-branding {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px dashed #006600;
+    padding-bottom: 15px;
+}
+
+.logo-placeholder {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border: 1px dashed #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    background-color: #f9f9f9;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.logo-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.logo-placeholder button {
+    position: absolute;
+    z-index: 2;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #006600;
+    color: #006600;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.logo-placeholder:hover button {
+    background: #006600;
+    color: white;
+}
+
+.company-info {
+    flex-grow: 1;
+}
+
+.company-name-input, .company-detail-input {
+    width: 100%;
+    border: none;
+    text-align: center;
+    font-size: 16px;
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+.company-name-input {
+    font-weight: bold;
+    font-size: 18px;
+    color: #006600;
+}
+
+.payslip-header h2 {
+    text-align: center;
+    color: #006600;
+    margin: 15px 0;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.payslip-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.meta-item span:first-child {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.employee-details {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.detail-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.detail-row span:first-child {
+    font-weight: bold;
+    width: 150px;
+}
+
+.earnings-deductions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5mm;
+    margin-bottom: 20px;
+}
+
+.earnings-section, .deductions-section {
+    flex: 1;
+    min-width: 60mm;
+}
+
+.payslip-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: fixed;
+}
+
+.payslip-table th {
+    background-color: #006600;
+    color: white;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.payslip-table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.summary-table th, .summary-table td {
+    padding: 10px;
+    text-align: left;
+}
+
+.summary-table th {
+    background-color: #f0f0f0;
+}
+
+.net-pay-row th, .net-pay-row td {
+    font-weight: bold;
+    font-size: 16px;
+    background-color: #e6f7e6;
+}
+
+.signature-section {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px dashed #999;
+}
+
+.signature-line {
+    height: 1px;
+    background-color: #000;
+    margin: 20px 0 5px;
+}
+
+.signature-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.signature-input {
+    display: inline-block;
+    width: 45%;
+}
+
+.signature-field {
+    border: none;
+    border-bottom: 1px solid #000;
+    text-align: center;
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+.payslip-footer {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 20px;
+    font-style: italic;
+}
+
+.editable-field {
+    border: 1px dashed #ccc;
+    padding: 3px;
+    background-color: #fff;
+    min-width: 200px;
+}
+
+.donate-toggle {
+    background: linear-gradient(to right, #000000, #CC0000, #006600);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 20px auto;
+    display: block;
+    width: fit-content;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+}
+
+.donate-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.donate-info {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 10px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+
+.payment-number {
+    font-weight: bold;
+    font-size: 18px;
+    color: #006600;
+}
+
+.payment-note {
+    font-style: italic;
+    margin-top: 15px;
+    color: #666;
+}
+
+.disclaimer-banner {
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.payslip-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}   
+
+.payslip-actions button {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* A5 Print Optimization */
+@media print {
+    @page {
+        size: A5 portrait;
+        margin: 5mm;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+    
+    .payslip-container, 
+    .payslip-container * {
+        visibility: visible;
+    }
+
+    .payslip-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 148mm !important;
+        min-height: 210mm;
+        margin: 0 !important;
+        padding: 5mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        font-size: 10pt;
+        background: white !important;
+    }
+
+    .company-branding {
+        padding-bottom: 3mm !important;
+        margin-bottom: 3mm !important;
+    }
+
+    .logo-placeholder {
+        width: 20mm !important;
+        height: 20mm !important;
+        margin-right: 5mm !important;
+    }
+
+    .payslip-header h2 {
+        font-size: 12pt !important;
+        margin: 2mm 0 !important;
+    }
+
+    .earnings-deductions {
+        flex-direction: column !important;
+        gap: 2mm !important;
+        margin-bottom: 3mm !important;
+    }
+
+    .payslip-table {
+        font-size: 9pt !important;
+    }
+
+    .payslip-table th, 
+    .payslip-table td {
+        padding: 1mm !important;
+        line-height: 1.2;
+    }
+
+    .signature-section {
+        margin-top: 5mm !important;
+        padding-top: 2mm !important;
+    }
+
+    .signature-line {
+        margin: 8mm 0 2mm !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}
