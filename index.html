@@ -113,6 +113,10 @@
                         <label for="employeeID">Employee ID</label>
                         <input type="text" id="employeeID" placeholder="EMP12345">
                     </div>
+                    <div class="form-group">
+                        <label for="kraPin">KRA PIN</label>
+                        <input type="text" id="kraPin" placeholder="A012345678F">
+                    </div>
 
                     <div class="form-group">
                         <label for="payPeriod">Pay Period</label>
@@ -132,13 +136,14 @@
                         <div class="company-branding">
                             <div class="logo-placeholder">
                                 <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="handleLogoUpload()">
-                                <button onclick="document.getElementById('logoUpload').click()">Upload Logo</button>
+                                <button onclick="document.getElementById('logoUpload').click()">Upload<br> Logo</button>
                                 <img id="companyLogo" src="" style="display: none; max-width: 80px; max-height: 80px;">
                             </div>
                             <div class="company-info">
                                 <input type="text" id="companyName" placeholder="Organization Name" class="company-name-input">
                                 <input type="text" id="companyAddress" placeholder="P.O. Box, City" class="company-detail-input">
-                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.go.ke" class="company-detail-input">
+                                <input type="text" id="companyKra" placeholder="P012345678N" class="company-detail-input">
+                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.co.ke" class="company-detail-input">
                             </div>
                         </div>
                         <h2>PAYSLIP</h2>
@@ -163,6 +168,10 @@
                             <div class="detail-row">
                                 <span>Employee No:</span>
                                 <span id="slipID" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>KRA PIN:</span>
+                                <span id="slipPin" class="detail-value"></span>
                             </div>
                             <div class="detail-row">
                                 <span>Department:</span>
@@ -277,9 +286,8 @@
                 </div>
             </div>
 
-            <footer>
-                <div class="harambee-star">*</div>
-                Designed by <a href="https://jambotax.co.ke" target="_blank">Jambo-Tax</a>
+            <footer style="text-align: center; padding: 10px; font-size: 12px; color: #666;">
+                Designed by <a href="https://jambotax.co.ke" target="_blank" rel="noopener noreferrer">Jambo-Tax</a>
             </footer>
         </div>
     </div>

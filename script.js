@@ -92,14 +92,20 @@ function displayResults(taxablePay, paye, nssf, shif, housingLevy, personalRelie
 function generatePayslip() {
     const name = document.getElementById('employeeName').value;
     const id = document.getElementById('employeeID').value;
+    const pin = document.getElementById('kraPin').value;
     const period = document.getElementById('payPeriod').value;
     const gross = parseFloat(document.getElementById('grossPaySlip').value) || 0;
     const company = document.getElementById('companyName').value || "Organization Name";
     const companyAddress = document.getElementById('companyAddress').value || "";
+    const companyKra = document.getElementById('companyKra').value || "";
     const companyContacts = document.getElementById('companyContacts').value || "";
     const department = document.getElementById('department').value || "";
     const payslipNumber = document.getElementById('payslipNumber').value || "";
     const loanDeduction = parseFloat(document.getElementById('loanDeduction').value) || 0;
+
+    localStorage.setItem('employeeData', JSON.stringify({
+    name, id, pin, period, gross, department, payslipNumber
+}));
 
     const nssf = calculateNSSF(gross);
     const shif = calculateSHIF(gross);
@@ -112,6 +118,7 @@ function generatePayslip() {
     // Update display
     document.getElementById('slipName').textContent = name;
     document.getElementById('slipID').textContent = id;
+    document.getElementById('slipPin').textContent = pin;
     document.getElementById('slipPeriod').textContent = period;
     document.getElementById('slipGross').textContent = formatKES(gross);
     document.getElementById('slipNSSF').textContent = formatKES(nssf);
@@ -129,6 +136,13 @@ function generatePayslip() {
     }
 
     document.getElementById('payslipOutput').style.display = 'block';
+    const pinRegex = /^[A-Z]{1}\d{9}[A-Z]{1}$/;
+    if (!pinRegex.test(pin)) {
+        alert ("Invalid KRA PIN format. Expected A12345678B");
+        return;
+    }
+    
+
 }
 
 // Logo Upload Function
@@ -150,91 +164,75 @@ function handleLogoUpload() {
 
 // Print Function
 function printPayslip() {
-    // Store original body class
     const originalBodyClass = document.body.className;
-    
-    // Add print class to body
     document.body.classList.add('printing');
-    
-    // Create print-specific styles
+
     const style = document.createElement('style');
     style.id = 'print-styles';
     style.innerHTML = `
-        @page { size: A5 portrait; margin: 5mm; }
+        .no-print { display: none !important; }
         body.printing * { visibility: hidden; }
         body.printing .payslip-container,
-        body.printing .payslip-container * { 
-            visibility: visible; 
+        body.printing .payslip-container * {
+            visibility: visible;
         }
         body.printing .payslip-container {
             position: absolute;
             left: 0;
             top: 0;
-            width: 148mm !important;
-            min-height: 210mm;
-            margin: 0 !important;
-            padding: 5mm !important;
-            box-shadow: none !important;
-            border: none !important;
-            background: white !important;
+            margin: auto;
+            width: 100%;
+            background: white;
+            box-shadow: none;
+            border: none;
+            padding: 20px;
         }
-        .no-print { display: none !important; }
     `;
     document.head.appendChild(style);
-    
-    // Print and clean up
+
     setTimeout(() => {
         window.print();
-        
-        // Restore original state
         document.body.classList.remove('printing');
         document.getElementById('print-styles')?.remove();
-        
-        // Small delay to ensure print completes
-        setTimeout(() => {
-            // Additional cleanup if needed
-        }, 500);
     }, 100);
 }
 
+
 // Reset Function
 function resetPayslip() {
-    // Clear all input fields
     document.getElementById('employeeName').value = '';
     document.getElementById('employeeID').value = '';
+    document.getElementById('kraPin').value = '';
     document.getElementById('payPeriod').value = '';
     document.getElementById('grossPaySlip').value = '';
     document.getElementById('companyName').value = '';
     document.getElementById('companyAddress').value = '';
+    document.getElementById('companyKra').value = '';
     document.getElementById('companyContacts').value = '';
     document.getElementById('department').value = '';
     document.getElementById('payslipNumber').value = '';
     document.getElementById('loanDeduction').value = '';
-    
-    // Clear signature fields
+
     const signatureFields = document.querySelectorAll('.signature-field');
     signatureFields.forEach(field => field.value = '');
-    
-    // Reset logo
+
     const logoImg = document.getElementById('companyLogo');
     if (logoImg) {
         logoImg.src = '';
         logoImg.style.display = 'none';
     }
+
     const uploadBtn = document.querySelector('.logo-placeholder button');
     if (uploadBtn) {
         uploadBtn.style.display = 'block';
     }
+
     document.getElementById('logoUpload').value = '';
-    
-    // Hide the payslip output
     document.getElementById('payslipOutput').style.display = 'none';
-    
-    // Reset the payslip header title
+
     const header = document.querySelector('.payslip-header h2');
     if (header) header.textContent = 'PAYSLIP';
-    
-    // Clear summary sections
+
     document.getElementById('slipGrossSummary').textContent = '';
     document.getElementById('slipDeductionsSummary').textContent = '';
 }
@@ -274,3 +272,15 @@ function toggleDonateInfo() {
 function formatKES(amount) {
     return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+window.onload = () => {
+    const saved = JSON.parse(localStorage.getItem('employeeData'));
+    if (saved) {
+        document.getElementById('employeeName').value = saved.name;
+        document.getElementById('employeeID').value = saved.id;
+        document.getElementById('kraPin').value = saved.pin;
+        document.getElementById('payPeriod').value = saved.period;
+        document.getElementById('grossPaySlip').value = saved.gross;
+        document.getElementById('department').value = saved.department;
+        document.getElementById('payslipNumber').value = saved.payslipNumber;
+    }
+};

@@ -209,7 +209,7 @@ footer a:hover {
 /* Payslip Styles */
 .payslip-container {
     background-color: #fff;
-    border: 1px solid #ddd;
+    border: 1px solid #491010;
     border-radius: 5px;
     padding: 25px;
     margin-top: 30px;
@@ -218,7 +218,7 @@ footer a:hover {
     margin-left: auto;
     margin-right: auto;
     width: 148mm;
-    min-height: 210mm;
+    min-height: 175mm;
     padding: 10mm;
     box-sizing: border-box;
 }
@@ -422,7 +422,9 @@ footer a:hover {
     border: 1px dashed #ccc;
     padding: 3px;
     background-color: #fff;
-    min-width: 200px;
+    min-width: auto;
+    width: 100%;
+    max-width: 100px;
 }
 
 .donate-toggle {
@@ -502,78 +504,21 @@ footer a:hover {
     font-weight: bold;
 }
 
-/* A5 Print Optimization */
-@media print {
-    @page {
-        size: A5 portrait;
-        margin: 5mm;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-    
-    .payslip-container, 
-    .payslip-container * {
-        visibility: visible;
-    }
-
-    .payslip-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 148mm !important;
-        min-height: 210mm;
-        margin: 0 !important;
-        padding: 5mm !important;
-        box-shadow: none !important;
-        border: none !important;
-        font-size: 10pt;
-        background: white !important;
-    }
-
-    .company-branding {
-        padding-bottom: 3mm !important;
-        margin-bottom: 3mm !important;
-    }
-
-    .logo-placeholder {
-        width: 20mm !important;
-        height: 20mm !important;
-        margin-right: 5mm !important;
-    }
-
-    .payslip-header h2 {
-        font-size: 12pt !important;
-        margin: 2mm 0 !important;
+@media (max-width: 600px) {
+    .container {
+        padding: 15px;
     }
 
     .earnings-deductions {
-        flex-direction: column !important;
-        gap: 2mm !important;
-        margin-bottom: 3mm !important;
+        flex-direction: column;
     }
 
-    .payslip-table {
-        font-size: 9pt !important;
+    .payslip-table th, .payslip-table td {
+        font-size: 12px;
+        padding: 6px;
     }
 
-    .payslip-table th, 
-    .payslip-table td {
-        padding: 1mm !important;
-        line-height: 1.2;
-    }
-
-    .signature-section {
-        margin-top: 5mm !important;
-        padding-top: 2mm !important;
-    }
-
-    .signature-line {
-        margin: 8mm 0 2mm !important;
-    }
-
-    .no-print {
-        display: none !important;
+    .editable-field {
+        max-width: 100%;
     }
 }
