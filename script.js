@@ -11,7 +11,14 @@ function openTab(tabName) {
     }
     
     document.getElementById(tabName).style.display = 'block';
-    event.currentTarget.classList.add('active');
+    
+    // Find and activate the corresponding button
+    for (let i = 0; i < tabButtons.length; i++) {
+        if (tabButtons[i].getAttribute('data-tab') === tabName) {
+            tabButtons[i].classList.add('active');
+            break;
+        }
+    }
 }
 
 // Salary Calculator Functions
@@ -273,6 +280,13 @@ function formatKES(amount) {
     return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 window.onload = () => {
+    // Check URL parameter for tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab === 'payslip') {
+        openTab('payslip');
+    }
+    
     const saved = JSON.parse(localStorage.getItem('employeeData'));
     if (saved) {
         document.getElementById('employeeName').value = saved.name;

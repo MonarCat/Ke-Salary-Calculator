@@ -59,6 +59,136 @@ h1::after {
     background: linear-gradient(to right, #000000, #CC0000, #006600);
 }
 
+/* Navigation Menu */
+.main-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0 30px 0;
+    flex-wrap: wrap;
+}
+
+.main-nav a {
+    color: #006600;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 2px solid #006600;
+    transition: all 0.3s;
+    font-weight: bold;
+    background-color: white;
+}
+
+.main-nav a:hover {
+    background-color: #006600;
+    color: white;
+}
+
+.main-nav a.active {
+    background-color: #006600;
+    color: white;
+}
+
+/* Intro Section */
+.intro-section {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    border-left: 4px solid #006600;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.intro-section p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.intro-section ul {
+    margin: 10px 0;
+    padding-left: 25px;
+}
+
+.intro-section li {
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+/* Info Sections */
+.info-section {
+    background-color: white;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    border-left: 4px solid #CC0000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.info-section h2 {
+    color: #006600;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.info-section ul {
+    margin: 10px 0;
+    padding-left: 25px;
+}
+
+.info-section li {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.info-section p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+/* Trust Signal */
+.trust-signal {
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.trust-signal p {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+/* Button Link Styling */
+.button-link {
+    display: inline-block;
+    margin-top: 10px;
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 120px;
+    transition: all 0.3s;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+}
+
+.button-link:hover {
+    background: linear-gradient(to right, #004400, #007700);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
+}
+
 .input-section, .results-section {
     margin-bottom: 30px;
     padding: 25px;
