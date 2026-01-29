@@ -163,6 +163,32 @@ h1::after {
     font-size: 1.1em;
 }
 
+/* Button Link Styling */
+.button-link {
+    display: inline-block;
+    margin-top: 10px;
+    background: linear-gradient(to right, #006600, #009900);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 120px;
+    transition: all 0.3s;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+}
+
+.button-link:hover {
+    background: linear-gradient(to right, #004400, #007700);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 102, 0, 0.2);
+}
+
 .input-section, .results-section {
     margin-bottom: 30px;
     padding: 25px;

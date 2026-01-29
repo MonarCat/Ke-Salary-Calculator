@@ -11,7 +11,14 @@ function openTab(tabName) {
     }
     
     document.getElementById(tabName).style.display = 'block';
-    event.currentTarget.classList.add('active');
+    
+    // Find and activate the corresponding button
+    for (let i = 0; i < tabButtons.length; i++) {
+        if (tabButtons[i].getAttribute('data-tab') === tabName) {
+            tabButtons[i].classList.add('active');
+            break;
+        }
+    }
 }
 
 // Salary Calculator Functions
@@ -277,7 +284,7 @@ window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
     if (tab === 'payslip') {
-        openTabByName('payslip');
+        openTab('payslip');
     }
     
     const saved = JSON.parse(localStorage.getItem('employeeData'));
@@ -291,21 +298,3 @@ window.onload = () => {
         document.getElementById('payslipNumber').value = saved.payslipNumber;
     }
 };
-
-// Function to open tab programmatically
-function openTabByName(tabName) {
-    const tabContents = document.getElementsByClassName('tab-content');
-    for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].style.display = 'none';
-    }
-    
-    const tabButtons = document.getElementsByClassName('tab-button');
-    for (let i = 0; i < tabButtons.length; i++) {
-        tabButtons[i].classList.remove('active');
-        if (tabButtons[i].getAttribute('onclick').includes(tabName)) {
-            tabButtons[i].classList.add('active');
-        }
-    }
-    
-    document.getElementById(tabName).style.display = 'block';
-}
