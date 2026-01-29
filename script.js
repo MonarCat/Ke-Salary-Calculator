@@ -273,6 +273,13 @@ function formatKES(amount) {
     return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 window.onload = () => {
+    // Check URL parameter for tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab === 'payslip') {
+        openTabByName('payslip');
+    }
+    
     const saved = JSON.parse(localStorage.getItem('employeeData'));
     if (saved) {
         document.getElementById('employeeName').value = saved.name;
@@ -284,3 +291,21 @@ window.onload = () => {
         document.getElementById('payslipNumber').value = saved.payslipNumber;
     }
 };
+
+// Function to open tab programmatically
+function openTabByName(tabName) {
+    const tabContents = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].style.display = 'none';
+    }
+    
+    const tabButtons = document.getElementsByClassName('tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+        if (tabButtons[i].getAttribute('onclick').includes(tabName)) {
+            tabButtons[i].classList.add('active');
+        }
+    }
+    
+    document.getElementById(tabName).style.display = 'block';
+}
