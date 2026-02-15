@@ -230,6 +230,10 @@ async function handleLogout() {
 
 // Check Authentication Status
 async function checkAuthStatus() {
+    if (!supabaseClient || !supabaseClient.auth) {
+        return null;
+    }
+    
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         
@@ -245,13 +249,17 @@ async function checkAuthStatus() {
 }
 
 // Initialize auth state listener
-supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN') {
-        console.log('User signed in:', session.user);
-    } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-    }
-});
+if (supabaseClient && supabaseClient.auth) {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN') {
+            console.log('User signed in:', session.user);
+        } else if (event === 'SIGNED_OUT') {
+            console.log('User signed out');
+        }
+    });
+} else {
+    console.warn('Supabase client not available. Auth state changes will not be monitored.');
+}
 
 // Check if user is logged in on page load (for protected pages)
 async function requireAuth() {

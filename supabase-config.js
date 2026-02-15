@@ -5,12 +5,23 @@
 const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
 
-// Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client with error handling
+let supabase = null;
+try {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.warn('Supabase library not loaded. Authentication features will be disabled.');
+    }
+} catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+}
 
 // Check if Supabase is properly configured
 function isSupabaseConfigured() {
-    return SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+    return supabase !== null && 
+           SUPABASE_URL !== 'YOUR_SUPABASE_URL' && 
+           SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
 }
 
 // Export for use in other files
