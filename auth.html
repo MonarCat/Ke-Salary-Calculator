@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In / Sign Up - Kenya Salary Calculator</title>
+    <meta name="description" content="Sign in or create an account to access Kenya Salary Calculator features.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary Calculator & Payslip Generator (Customise with your details):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <h1>Kenya Salary Calculator</h1>
+            
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+            </nav>
+
+            <!-- Auth Container -->
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Sign In</button>
+                    <button class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Sign Up</button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form-container" style="display: block;">
+                    <h2>Welcome Back!</h2>
+                    <p class="auth-subtitle">Sign in to save your calculations and payslips</p>
+                    
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" id="login-email" required placeholder="Enter your email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <input type="password" id="login-password" required placeholder="Enter your password">
+                        </div>
+                        
+                        <div class="form-options">
+                            <label class="remember-me">
+                                <input type="checkbox" id="remember-me">
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" onclick="handleForgotPassword()" class="forgot-password">Forgot Password?</a>
+                        </div>
+                        
+                        <button type="submit" class="auth-button">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                    </form>
+                    
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <button onclick="handleGoogleSignIn()" class="social-button google">
+                        <i class="fab fa-google"></i> Continue with Google
+                    </button>
+                    
+                    <div id="login-message" class="auth-message"></div>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signup-form" class="auth-form-container" style="display: none;">
+                    <h2>Create Account</h2>
+                    <p class="auth-subtitle">Join us to unlock all features</p>
+                    
+                    <form id="signupForm" onsubmit="handleSignup(event)">
+                        <div class="form-group">
+                            <label for="signup-name">
+                                <i class="fas fa-user"></i> Full Name
+                            </label>
+                            <input type="text" id="signup-name" required placeholder="Enter your full name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="signup-email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" id="signup-email" required placeholder="Enter your email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="signup-password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <input type="password" id="signup-password" required placeholder="Create a password (min 6 characters)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="signup-confirm-password">
+                                <i class="fas fa-lock"></i> Confirm Password
+                            </label>
+                            <input type="password" id="signup-confirm-password" required placeholder="Confirm your password">
+                        </div>
+                        
+                        <div class="form-options">
+                            <label class="remember-me">
+                                <input type="checkbox" id="terms-checkbox" required>
+                                <span>I agree to the <a href="#" onclick="showTerms()">Terms & Conditions</a></span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="auth-button">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </form>
+                    
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <button onclick="handleGoogleSignIn()" class="social-button google">
+                        <i class="fab fa-google"></i> Continue with Google
+                    </button>
+                    
+                    <div id="signup-message" class="auth-message"></div>
+                </div>
+            </div>
+
+            <footer class="page-footer">
+                Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer">a Patriotic Kenyan</a>
+            </footer>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>

@@ -6,7 +6,9 @@
     <title>Kenya Salary Calculator 2025 | PAYE, NSSF, SHIF & Housing Levy</title>
     <meta name="description" content="Free Kenya Salary Calculator. Instantly calculate PAYE, NSSF, SHIF, Housing Levy & net salary. Generate custom payslips for employees and employers.">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="disclaimer-banner">
@@ -22,6 +24,7 @@
                 <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
                 <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                 <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                <div id="auth-links" class="auth-links-container"></div>
             </nav>
 
             <!-- Intro Content -->
@@ -355,6 +358,8 @@
         </div>
     </div>
 
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

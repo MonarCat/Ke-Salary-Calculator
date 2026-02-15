@@ -1,0 +1,329 @@
+// Authentication Logic
+
+// Switch between login and signup tabs
+function switchAuthTab(tab) {
+    const tabs = document.querySelectorAll('.auth-tab');
+    const forms = document.querySelectorAll('.auth-form-container');
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    forms.forEach(f => f.style.display = 'none');
+    
+    const activeTab = document.querySelector(`[data-tab="${tab}"]`);
+    const activeForm = document.getElementById(`${tab}-form`);
+    
+    if (activeTab) activeTab.classList.add('active');
+    if (activeForm) activeForm.style.display = 'block';
+    
+    // Clear messages
+    clearAuthMessages();
+}
+
+// Clear all auth messages
+function clearAuthMessages() {
+    const messages = document.querySelectorAll('.auth-message');
+    messages.forEach(msg => {
+        msg.style.display = 'none';
+        msg.className = 'auth-message';
+        msg.textContent = '';
+    });
+}
+
+// Show message
+function showMessage(elementId, message, type) {
+    const messageEl = document.getElementById(elementId);
+    if (messageEl) {
+        messageEl.innerHTML = message;
+        messageEl.className = `auth-message ${type}`;
+        messageEl.style.display = 'block';
+    }
+}
+
+// Handle Login
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    if (!isSupabaseConfigured()) {
+        showMessage('login-message', 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
+        return;
+    }
+    
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    
+    // Show loading state
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
+    submitBtn.disabled = true;
+    
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+        
+        if (error) throw error;
+        
+        showMessage('login-message', 'Login successful! Redirecting...', 'success');
+        
+        // Redirect to home page after 1 second
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+        
+    } catch (error) {
+        showMessage('login-message', error.message || 'Login failed. Please check your credentials.', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+// Handle Signup
+async function handleSignup(event) {
+    event.preventDefault();
+    
+    if (!isSupabaseConfigured()) {
+        showMessage('signup-message', 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
+        return;
+    }
+    
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+        showMessage('signup-message', 'Passwords do not match!', 'error');
+        return;
+    }
+    
+    // Validate password length
+    if (password.length < 6) {
+        showMessage('signup-message', 'Password must be at least 6 characters long.', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
+    submitBtn.disabled = true;
+    
+    try {
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: name,
+                }
+            }
+        });
+        
+        if (error) throw error;
+        
+        showMessage('signup-message', 'Account created successfully! Please check your email to verify your account.', 'success');
+        
+        // Reset form
+        event.target.reset();
+        
+    } catch (error) {
+        showMessage('signup-message', error.message || 'Signup failed. Please try again.', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+// Handle Google Sign In
+async function handleGoogleSignIn() {
+    const activeTab = document.querySelector('.auth-tab.active').getAttribute('data-tab');
+    const messageId = activeTab === 'login' ? 'login-message' : 'signup-message';
+    
+    if (!isSupabaseConfigured()) {
+        showMessage(messageId, 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
+        return;
+    }
+    
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/'
+            }
+        });
+        
+        if (error) throw error;
+        
+    } catch (error) {
+        console.error('Google sign in error:', error);
+        showMessage(messageId, 'Failed to sign in with Google. Please try again.', 'error');
+    }
+}
+
+// Handle Forgot Password
+async function handleForgotPassword(event) {
+    if (event) event.preventDefault();
+    
+    if (!isSupabaseConfigured()) {
+        showMessage('login-message', 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
+        return;
+    }
+    
+    // Get email from login form if available
+    const emailInput = document.getElementById('login-email');
+    const email = emailInput ? emailInput.value : '';
+    
+    if (!email) {
+        showMessage('login-message', 'Please enter your email address first.', 'error');
+        return;
+    }
+    
+    try {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/auth.html',
+        });
+        
+        if (error) throw error;
+        
+        showMessage('login-message', 'Password reset email sent! Please check your inbox.', 'success');
+        
+    } catch (error) {
+        showMessage('login-message', 'Failed to send reset email: ' + error.message, 'error');
+    }
+}
+
+// Show Terms and Conditions
+function showTerms(event) {
+    if (event) event.preventDefault();
+    
+    const termsText = `
+        <h3>Terms & Conditions</h3>
+        <p>By using the Kenya Salary Calculator, you agree to:</p>
+        <ol>
+            <li>Use the calculator for informational purposes only</li>
+            <li>Understand that calculations are estimates</li>
+            <li>Consult with a qualified accountant for official computations</li>
+            <li>Protect your account credentials</li>
+            <li>Not misuse the service</li>
+        </ol>
+        <p>For more information, contact support@salarycalculator.co.ke</p>
+    `;
+    
+    showMessage('signup-message', termsText, 'info');
+}
+
+// Handle Logout
+async function handleLogout() {
+    try {
+        const { error } = await supabaseClient.auth.signOut();
+        
+        if (error) throw error;
+        
+        window.location.href = '/auth.html';
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+}
+
+// Check Authentication Status
+async function checkAuthStatus() {
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+            return session.user;
+        }
+        return null;
+        
+    } catch (error) {
+        console.error('Auth check error:', error);
+        return null;
+    }
+}
+
+// Initialize auth state listener
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session.user);
+    } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+    }
+});
+
+// Check if user is logged in on page load (for protected pages)
+async function requireAuth() {
+    const user = await checkAuthStatus();
+    
+    if (!user) {
+        // Redirect to login page if not authenticated
+        window.location.href = '/auth.html';
+    }
+    
+    return user;
+}
+
+// Update UI based on auth state
+async function updateAuthUI() {
+    const user = await checkAuthStatus();
+    const authLinks = document.getElementById('auth-links');
+    
+    if (authLinks) {
+        if (user) {
+            // User is logged in
+            const userName = user.user_metadata?.full_name || user.email.split('@')[0];
+            authLinks.innerHTML = `
+                <div class="user-profile">
+                    <div class="user-avatar" onclick="toggleUserDropdown()">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="user-dropdown-item">
+                            <i class="fas fa-user"></i> ${userName}
+                        </div>
+                        <div class="user-dropdown-item">
+                            <i class="fas fa-envelope"></i> ${user.email}
+                        </div>
+                        <div class="user-dropdown-item" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // User is not logged in
+            authLinks.innerHTML = `
+                <a href="/auth.html" class="auth-link">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+            `;
+        }
+    }
+}
+
+// Toggle user dropdown
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('active');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const userProfile = document.querySelector('.user-profile');
+    const dropdown = document.getElementById('user-dropdown');
+    
+    if (userProfile && dropdown && !userProfile.contains(event.target)) {
+        dropdown.classList.remove('active');
+    }
+});
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateAuthUI);
+} else {
+    updateAuthUI();
+}
