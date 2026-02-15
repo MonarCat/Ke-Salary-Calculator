@@ -73,7 +73,8 @@
 
 .auth-form-container input[type="text"],
 .auth-form-container input[type="email"],
-.auth-form-container input[type="password"] {
+.auth-form-container input[type="password"],
+.auth-form-container select {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e0e0e0;
@@ -85,10 +86,20 @@
 
 .auth-form-container input[type="text"]:focus,
 .auth-form-container input[type="email"]:focus,
-.auth-form-container input[type="password"]:focus {
+.auth-form-container input[type="password"]:focus,
+.auth-form-container select:focus {
     outline: none;
     border-color: #006600;
     box-shadow: 0 0 5px rgba(0, 102, 0, 0.2);
+}
+
+.account-type-select {
+    cursor: pointer;
+    background: white;
+}
+
+.account-type-select option {
+    padding: 10px;
 }
 
 .form-options {

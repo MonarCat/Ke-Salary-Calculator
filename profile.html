@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Kenya Salary Calculator</title>
+    <meta name="description" content="Manage your profile and subscription for Kenya Salary Calculator">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .profile-info h2 {
+            color: #006600;
+            margin: 0 0 5px 0;
+        }
+        .profile-info p {
+            color: #666;
+            margin: 0;
+        }
+        .subscription-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .subscription-badge.free {
+            background: #e0e0e0;
+            color: #666;
+        }
+        .subscription-badge.premium {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+        }
+        .subscription-badge.enterprise {
+            background: linear-gradient(135deg, #4169E1, #1E90FF);
+            color: white;
+        }
+        .profile-section h3 {
+            color: #006600;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .profile-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .profile-field label {
+            font-weight: 600;
+            color: #333;
+        }
+        .profile-field span {
+            color: #666;
+        }
+        .usage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-box .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #006600;
+        }
+        .stat-box .label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .upgrade-section {
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .upgrade-section h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        .upgrade-button {
+            padding: 12px 30px;
+            background: white;
+            color: #006600;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        .upgrade-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .action-button {
+            padding: 10px 20px;
+            border: 2px solid #006600;
+            background: white;
+            color: #006600;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .action-button:hover {
+            background: #006600;
+            color: white;
+        }
+        .action-button.danger {
+            border-color: #CC0000;
+            color: #CC0000;
+        }
+        .action-button.danger:hover {
+            background: #CC0000;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary Calculator & Payslip Generator (Customise with your details):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <h1>Kenya Salary Calculator</h1>
+            
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <div class="profile-container">
+                <!-- Profile Header -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profile-avatar">U</div>
+                        <div class="profile-info">
+                            <h2 id="profile-name">Loading...</h2>
+                            <p id="profile-email">Loading...</p>
+                            <span class="subscription-badge" id="subscription-badge">Free</span>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="profile-section">
+                        <h3><i class="fas fa-user"></i> Account Information</h3>
+                        <div class="profile-field">
+                            <label>Account Type:</label>
+                            <span id="account-type">Loading...</span>
+                        </div>
+                        <div class="profile-field" id="org-name-field" style="display: none;">
+                            <label>Organization Name:</label>
+                            <span id="organization-name">-</span>
+                        </div>
+                        <div class="profile-field">
+                            <label>Member Since:</label>
+                            <span id="member-since">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Statistics -->
+                <div class="profile-card">
+                    <div class="profile-section">
+                        <h3><i class="fas fa-chart-bar"></i> Usage Statistics</h3>
+                        <div class="usage-stats">
+                            <div class="stat-box">
+                                <div class="number" id="downloads-count">0</div>
+                                <div class="label">Payslip Downloads This Month</div>
+                                <div class="label" style="font-size: 12px; margin-top: 5px; color: #999;" id="downloads-limit">Limit: 2/month</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="number" id="saved-calcs">0</div>
+                                <div class="label">Saved Calculations</div>
+                            </div>
+                            <div class="stat-box" id="employees-stat" style="display: none;">
+                                <div class="number" id="employees-count">0</div>
+                                <div class="label">Employees</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Management -->
+                <div class="profile-card">
+                    <div class="profile-section">
+                        <h3><i class="fas fa-crown"></i> Subscription</h3>
+                        <div class="profile-field">
+                            <label>Current Plan:</label>
+                            <span id="current-plan">Free</span>
+                        </div>
+                        <div class="profile-field" id="subscription-end-field" style="display: none;">
+                            <label>Next Billing Date:</label>
+                            <span id="subscription-end">-</span>
+                        </div>
+                    </div>
+
+                    <div id="upgrade-section" class="upgrade-section">
+                        <h3>🚀 Upgrade to Premium</h3>
+                        <p>Unlock unlimited downloads, employee management, and more!</p>
+                        <button class="upgrade-button" onclick="window.location.href='/subscription.html'">
+                            <i class="fas fa-star"></i> View Plans & Upgrade
+                        </button>
+                    </div>
+
+                    <div id="manage-subscription-section" style="display: none; margin-top: 20px;">
+                        <button class="action-button danger" onclick="cancelSubscription()">
+                            <i class="fas fa-times"></i> Cancel Subscription
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="profile-card">
+                    <div class="profile-section">
+                        <h3><i class="fas fa-cog"></i> Account Actions</h3>
+                        <div class="action-buttons">
+                            <button class="action-button" onclick="window.location.href='/index.html'">
+                                <i class="fas fa-calculator"></i> Go to Calculator
+                            </button>
+                            <button class="action-button" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Load user profile on page load
+        async function loadUserProfile() {
+            const user = await checkAuthStatus();
+            
+            if (!user) {
+                window.location.href = '/auth.html';
+                return;
+            }
+
+            // Update profile display
+            const name = user.user_metadata?.full_name || 'User';
+            const accountType = user.user_metadata?.account_type || 'individual';
+            const organizationName = user.user_metadata?.organization_name;
+            
+            document.getElementById('profile-name').textContent = name;
+            document.getElementById('profile-email').textContent = user.email;
+            document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase();
+            
+            // Account type
+            const accountTypeDisplay = accountType === 'employer' ? 'Employer/Organization' : 'Individual';
+            document.getElementById('account-type').textContent = accountTypeDisplay;
+            
+            if (accountType === 'employer' && organizationName) {
+                document.getElementById('org-name-field').style.display = 'flex';
+                document.getElementById('organization-name').textContent = organizationName;
+            }
+            
+            // Member since
+            const memberSince = new Date(user.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('member-since').textContent = memberSince;
+            
+            // For now, show free tier stats (hardcoded until we implement database)
+            // In production, fetch from user_profiles table
+            const subscriptionTier = 'free'; // Would come from database
+            const downloadsCount = 0; // Would come from database
+            
+            document.getElementById('downloads-count').textContent = downloadsCount;
+            
+            if (subscriptionTier === 'free') {
+                document.getElementById('downloads-limit').textContent = `Limit: ${downloadsCount}/2 per month`;
+                document.getElementById('upgrade-section').style.display = 'block';
+                document.getElementById('manage-subscription-section').style.display = 'none';
+            } else {
+                document.getElementById('downloads-limit').textContent = 'Unlimited';
+                document.getElementById('subscription-badge').textContent = subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1);
+                document.getElementById('subscription-badge').className = `subscription-badge ${subscriptionTier}`;
+                document.getElementById('current-plan').textContent = subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1);
+                document.getElementById('upgrade-section').style.display = 'none';
+                document.getElementById('manage-subscription-section').style.display = 'block';
+                document.getElementById('subscription-end-field').style.display = 'flex';
+            }
+            
+            // Show employee stat for employers
+            if (accountType === 'employer') {
+                document.getElementById('employees-stat').style.display = 'block';
+            }
+        }
+
+        async function cancelSubscription() {
+            if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.')) {
+                return;
+            }
+            
+            alert('Subscription cancellation will be implemented with Paystack integration.');
+        }
+
+        // Load profile on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadUserProfile);
+        } else {
+            loadUserProfile();
+        }
+    </script>
+</body>
+</html>
