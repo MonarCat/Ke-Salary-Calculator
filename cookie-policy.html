@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Policy - Kenya Salary Calculator</title>
+    <meta name="description" content="Cookie Policy for Kenya Salary Calculator - Learn about how we use cookies on our website.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .legal-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            line-height: 1.8;
+        }
+        .legal-content h1 {
+            color: #006600;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .legal-content h2 {
+            color: #006600;
+            font-size: 1.8em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .legal-content h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .legal-content p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .legal-content ul, .legal-content ol {
+            margin-bottom: 15px;
+            padding-left: 30px;
+        }
+        .legal-content li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .last-updated {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .cookie-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .cookie-table th,
+        .cookie-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .cookie-table th {
+            background-color: #006600;
+            color: white;
+        }
+        .cookie-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary Calculator & Payslip Generator (Customise with your details):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <h1>Kenya Salary Calculator</h1>
+            
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <div class="legal-content">
+                <h1>Cookie Policy</h1>
+                <p class="last-updated">Last Updated: February 15, 2026</p>
+
+                <h2>1. What Are Cookies?</h2>
+                <p>Cookies are small text files that are placed on your device when you visit a website. They are widely used to make websites work more efficiently, provide a better user experience, and provide information to the website owners.</p>
+
+                <h2>2. How We Use Cookies</h2>
+                <p>Kenya Salary Calculator uses cookies to enhance your experience, provide our services, and understand how you use our website. We use cookies for the following purposes:</p>
+
+                <h3>2.1 Essential Cookies</h3>
+                <p>These cookies are necessary for the website to function properly. They enable basic functions like page navigation, access to secure areas, and maintaining your session when you log in.</p>
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li>Authentication cookies (to keep you logged in)</li>
+                    <li>Session management cookies</li>
+                    <li>Security cookies</li>
+                </ul>
+
+                <h3>2.2 Functional Cookies</h3>
+                <p>These cookies enable enhanced functionality and personalization, such as remembering your preferences and settings.</p>
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li>Language preferences</li>
+                    <li>Recent calculations</li>
+                    <li>User interface preferences</li>
+                </ul>
+
+                <h3>2.3 Analytics Cookies</h3>
+                <p>These cookies help us understand how visitors interact with our website by collecting and reporting information anonymously. This helps us improve our service.</p>
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li>Google Analytics cookies (if implemented)</li>
+                    <li>Page view tracking</li>
+                    <li>Feature usage statistics</li>
+                </ul>
+
+                <h3>2.4 Advertising Cookies</h3>
+                <p>We currently do not use advertising cookies. If this changes in the future, we will update this policy and seek your consent.</p>
+
+                <h2>3. Types of Cookies We Use</h2>
+                
+                <table class="cookie-table">
+                    <thead>
+                        <tr>
+                            <th>Cookie Name</th>
+                            <th>Purpose</th>
+                            <th>Type</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>sb-access-token</td>
+                            <td>Authentication token for Supabase</td>
+                            <td>Essential</td>
+                            <td>Session</td>
+                        </tr>
+                        <tr>
+                            <td>sb-refresh-token</td>
+                            <td>Refresh token for maintaining login session</td>
+                            <td>Essential</td>
+                            <td>30 days</td>
+                        </tr>
+                        <tr>
+                            <td>user-preferences</td>
+                            <td>Stores user interface preferences</td>
+                            <td>Functional</td>
+                            <td>1 year</td>
+                        </tr>
+                        <tr>
+                            <td>recent-calculations</td>
+                            <td>Stores recent salary calculations</td>
+                            <td>Functional</td>
+                            <td>30 days</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>4. Third-Party Cookies</h2>
+                <p>In addition to our own cookies, we may use third-party cookies from:</p>
+
+                <h3>4.1 Supabase</h3>
+                <p>We use Supabase for authentication and data storage. Supabase may set cookies to manage your login session and maintain secure access to your account.</p>
+
+                <h3>4.2 Paystack</h3>
+                <p>When you make a payment, Paystack may set cookies to process your transaction securely.</p>
+
+                <h3>4.3 Google OAuth</h3>
+                <p>If you sign in using Google, Google may set cookies to authenticate your account and maintain your session.</p>
+
+                <h2>5. How to Control Cookies</h2>
+                <p>You have the right to decide whether to accept or reject cookies. You can control cookies through:</p>
+
+                <h3>5.1 Browser Settings</h3>
+                <p>Most web browsers allow you to control cookies through their settings. You can:</p>
+                <ul>
+                    <li>View what cookies are stored on your device</li>
+                    <li>Delete existing cookies</li>
+                    <li>Block cookies from being set</li>
+                    <li>Set preferences for specific websites</li>
+                </ul>
+
+                <p>Here's how to manage cookies in popular browsers:</p>
+                <ul>
+                    <li><strong>Chrome:</strong> Settings > Privacy and security > Cookies and other site data</li>
+                    <li><strong>Firefox:</strong> Settings > Privacy & Security > Cookies and Site Data</li>
+                    <li><strong>Safari:</strong> Preferences > Privacy > Manage Website Data</li>
+                    <li><strong>Edge:</strong> Settings > Cookies and site permissions > Cookies and site data</li>
+                </ul>
+
+                <h3>5.2 Browser Add-ons</h3>
+                <p>You can also use browser add-ons or extensions to manage cookies and tracking:</p>
+                <ul>
+                    <li>Privacy Badger</li>
+                    <li>uBlock Origin</li>
+                    <li>Cookie AutoDelete</li>
+                </ul>
+
+                <h2>6. Impact of Disabling Cookies</h2>
+                <p>If you choose to disable cookies, some features of our website may not function properly:</p>
+                <ul>
+                    <li>You will not be able to stay logged in to your account</li>
+                    <li>Your preferences will not be saved</li>
+                    <li>Some features may not work correctly</li>
+                    <li>You may need to re-enter information more frequently</li>
+                </ul>
+
+                <h2>7. Local Storage and Session Storage</h2>
+                <p>In addition to cookies, we also use browser local storage and session storage to:</p>
+                <ul>
+                    <li>Store your recent calculations temporarily</li>
+                    <li>Cache frequently accessed data for better performance</li>
+                    <li>Maintain your session state</li>
+                </ul>
+                <p>Like cookies, you can clear local storage and session storage through your browser settings.</p>
+
+                <h2>8. Do Not Track Signals</h2>
+                <p>Some browsers have a "Do Not Track" (DNT) feature that signals websites that you do not want to be tracked. Currently, there is no industry standard for how to respond to DNT signals. We do not currently respond to DNT signals, but we respect your privacy choices and provide you with options to control cookies.</p>
+
+                <h2>9. Updates to This Cookie Policy</h2>
+                <p>We may update this Cookie Policy from time to time to reflect changes in our practices or legal requirements. We will notify you of any significant changes by posting the updated policy on this page with a new "Last Updated" date.</p>
+
+                <h2>10. Cookies and Mobile Apps</h2>
+                <p>If we develop mobile applications in the future, those apps may use similar technologies to cookies (such as device identifiers) to provide similar functionality. We will update this policy to reflect those practices.</p>
+
+                <h2>11. International Users</h2>
+                <p>If you are accessing our website from outside Kenya, please note that cookies may be transferred to and stored on servers in different countries. By using our website, you consent to this transfer.</p>
+
+                <h2>12. Your Consent</h2>
+                <p>By continuing to use our website, you consent to our use of cookies as described in this Cookie Policy. When you first visit our website, you will see a cookie banner that provides information about our use of cookies and allows you to accept or customize your cookie preferences.</p>
+
+                <h2>13. Questions About Cookies</h2>
+                <p>If you have any questions about our use of cookies or this Cookie Policy, please contact us at:</p>
+                <ul>
+                    <li><strong>Email:</strong> privacy@salarycalculator.co.ke</li>
+                    <li><strong>Phone:</strong> +254 702 359 618</li>
+                    <li><strong>Address:</strong> Nairobi, Kenya</li>
+                </ul>
+
+                <h2>14. Related Policies</h2>
+                <p>For more information about how we protect your privacy, please review:</p>
+                <ul>
+                    <li><a href="/privacy-policy.html">Privacy Policy</a> - How we collect, use, and protect your personal information</li>
+                    <li><a href="/terms-of-service.html">Terms of Service</a> - The terms governing your use of our service</li>
+                </ul>
+            </div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p>
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>

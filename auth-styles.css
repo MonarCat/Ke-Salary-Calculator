@@ -188,35 +188,50 @@
 
 .social-button {
     width: 100%;
-    padding: 12px;
+    padding: 14px 20px;
     border: 2px solid #e0e0e0;
-    border-radius: 6px;
+    border-radius: 8px;
     background: white;
     color: #333;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .social-button i {
-    margin-right: 10px;
-    font-size: 18px;
+    margin-right: 12px;
+    font-size: 20px;
+}
+
+.social-button.google {
+    background: linear-gradient(to bottom, #ffffff, #f8f8f8);
+    border-color: #dadce0;
 }
 
 .social-button.google:hover {
-    background-color: #f8f8f8;
-    border-color: #ccc;
+    background: linear-gradient(to bottom, #f8f8f8, #f0f0f0);
+    border-color: #4285f4;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(66, 133, 244, 0.2);
+}
+
+.social-button.google:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .social-button.google i {
-    color: #DB4437;
+    background: linear-gradient(to bottom, #EA4335 0%, #FBBC05 25%, #34A853 50%, #4285F4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .auth-message {
