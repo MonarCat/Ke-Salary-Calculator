@@ -46,7 +46,7 @@ In your Google Cloud Console, under **APIs & Services** > **Credentials** > Your
 
 Add these Authorized Redirect URIs:
 ```
-https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback
+https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback
 http://localhost:8080/auth/v1/callback
 http://localhost:3000/auth/v1/callback
 ```
@@ -56,7 +56,7 @@ http://localhost:3000/auth/v1/callback
 https://YOUR-SUPABASE-PROJECT-REF.supabase.co/auth/v1/callback
 ```
 
-Replace `YOUR-SUPABASE-PROJECT-REF` with your actual Supabase project reference ID.
+Replace `YOUR-SUPABASE-PROJECT-REF` with your actual Supabase project reference ID from your SUPABASE_URL in `supabase-config.js`.
 
 ### 3. Supabase Google Provider Setup
 
@@ -166,18 +166,18 @@ Before going live, verify:
 - [ ] Test flow works on localhost
 - [ ] Test flow works on production domain
 
-## Current Configuration
+## How to Find Your Configuration
 
-Based on your `supabase-config.js`, your Supabase project is:
+Your Supabase project reference is in your `supabase-config.js` file in the SUPABASE_URL.
 
-**Project URL:** `https://wznopthjoaqusalqoyru.supabase.co`
+Example format: `https://YOUR-PROJECT-REF.supabase.co`
 
-**Required Google Redirect URI:**
+**Required Google Redirect URI format:**
 ```
-https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback
+https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback
 ```
 
-Make sure this exact URL is in your Google Cloud Console authorized redirect URIs.
+Extract YOUR-PROJECT-REF from your SUPABASE_URL and use it in Google Cloud Console authorized redirect URIs.
 
 ## Support
 

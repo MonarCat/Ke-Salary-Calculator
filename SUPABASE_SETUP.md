@@ -58,8 +58,7 @@ To enable Google sign-in:
    - Create OAuth credentials (Web application)
    - Add authorized redirect URIs (CRITICAL - must match exactly):
      - `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`
-     - Replace YOUR-PROJECT-REF with your actual Supabase project reference
-     - For this project, use: `https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback`
+     - Replace YOUR-PROJECT-REF with your actual Supabase project reference (from your SUPABASE_URL)
    - Copy the Client ID and Client Secret
 4. Back in Supabase, paste your Google Client ID and Client Secret
 5. Click **Save**
