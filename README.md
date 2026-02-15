@@ -75,7 +75,8 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
    # Using Node.js http-server
    npx http-server -p 8000
    ```
-   Then visit `http://localhost:8000/landing.html` in your browser.  
+   Then visit `http://localhost:8000/` in your browser to see the landing page.
+   The calculator is available at `http://localhost:8000/calculator.html`.  
 
    For production deployment:
    - **Netlify**: Connect your GitHub repo and deploy
@@ -87,7 +88,7 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 ### Getting Started
 
 1. **Visit the Landing Page:**
-   - Navigate to `landing.html` to see the feature overview and pricing
+   - Navigate to the home page `/` (index.html) to see the feature overview and pricing
    - Click "Try Free Calculator" or "Sign Up Free"
 
 2. **Create an Account:**

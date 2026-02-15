@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenya Salary Calculator 2025 | PAYE, NSSF, SHIF & Housing Levy</title>
+    <meta name="description" content="Free Kenya Salary Calculator. Instantly calculate PAYE, NSSF, SHIF, Housing Levy & net salary. Generate custom payslips for employees and employers.">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary Calculator & Payslip Generator (Customise with your details):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <h1>Kenya Salary Calculator (PAYE, NSSF, SHIF & Housing Levy)</h1>
+            
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/calculator.html" class="active">Calculator</a>
+                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <!-- Intro Content -->
+            <div class="intro-section">
+                <p>Kenya Salary Calculator helps employees, employers, HR professionals, and accountants instantly calculate net salary, PAYE, and statutory deductions based on the latest Kenyan tax laws.</p>
+                
+                <p>Our calculator automatically applies:</p>
+                <ul>
+                    <li>PAYE tax bands</li>
+                    <li>NSSF Tier I & II deductions</li>
+                    <li>SHIF contributions (NHIF replacement)</li>
+                    <li>Housing Levy</li>
+                    <li>Personal relief and applicable tax reliefs</li>
+                </ul>
+                
+                <p>Whether you're paid monthly or negotiating salary, this tool gives you accurate take-home pay in seconds.</p>
+            </div>
+            
+            <div class="tab-container">
+                <button class="tab-button active" data-tab="calculator" onclick="openTab('calculator')">Salary Calculator</button>
+                <button class="tab-button" data-tab="payslip" onclick="openTab('payslip')">Payslip Generator</button>
+            </div>
+            
+            <!-- Salary Calculator Tab -->
+            <div id="calculator" class="tab-content" style="display: block;">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label for="grossPay">Gross Pay (KES)</label>
+                        <input type="number" id="grossPay" placeholder="Enter gross monthly salary">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="allowances">Allowances (KES)</label>
+                        <input type="number" id="allowances" placeholder="Enter total allowances">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="benefits">Other Taxable Benefits (KES)</label>
+                        <input type="number" id="benefits" placeholder="Enter other taxable benefits">
+                    </div>
+                    
+                    <button onclick="calculateSalary()">Calculate Net Pay</button>
+                </div>
+                
+                <div class="results-section" id="results" style="display: none;">
+                    <h2>Salary Breakdown</h2>
+                    
+                    <div class="result-item">
+                        <span>Total Taxable Income:</span>
+                        <span id="displayGross"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>PAYE (Income Tax):</span>
+                        <span id="paye"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>NSSF Contribution:</span>
+                        <span id="nssf"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>SHIF Contribution:</span>
+                        <span id="nhif"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>Housing Levy (1.5%):</span>
+                        <span id="housingLevy"></span>
+                    </div>
+                    
+                    <div class="result-item">
+                        <span>Personal Relief:</span>
+                        <span id="personalRelief"></span>
+                    </div>
+                   
+                    <div class="total">
+                        <span>Net Pay:</span>
+                        <span id="netPay"></span>
+                    </div>
+                </div>
+
+                <!-- What This Salary Calculator Does -->
+                <div class="info-section">
+                    <h2>What This Salary Calculator Does</h2>
+                    <ul>
+                        <li>Converts gross salary to net salary</li>
+                        <li>Calculates PAYE in Kenya</li>
+                        <li>Applies NSSF, SHIF & Housing Levy</li>
+                        <li>Generates custom payslips</li>
+                        <li>Supports employees & employers</li>
+                        <li>Updated for current Kenyan tax laws</li>
+                    </ul>
+                </div>
+
+                <!-- Who Should Use This Tool -->
+                <div class="info-section">
+                    <h2>Who Should Use This Tool</h2>
+                    <ul>
+                        <li>Employees checking take-home pay</li>
+                        <li>Employers preparing payroll</li>
+                        <li>HR & payroll officers</li>
+                        <li>Accountants & consultants</li>
+                        <li>Job seekers negotiating salaries</li>
+                    </ul>
+                </div>
+
+                <!-- Gross Salary vs Net Salary -->
+                <div class="info-section">
+                    <h2>Gross Salary vs Net Salary in Kenya</h2>
+                    <p>Gross salary is your total pay before deductions.<br>
+                    Net salary is what you actually receive after PAYE and statutory deductions.</p>
+                    <p>Kenya Salary Calculator bridges this gap instantly, clearly showing every deduction line-by-line.</p>
+                </div>
+
+                <!-- Trust Signal -->
+                <div class="trust-signal">
+                    <p>Built specifically for Kenya 🇰🇪 using official KRA, NSSF & SHIF guidelines.</p>
+                </div>
+
+                <div class="disclaimer">
+                    <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
+                </div>
+
+                <div class="donate-section">
+                    <button class="donate-toggle" onclick="toggleDonateInfo()">Support This Project</button>
+                    <div id="donateInfoCalc" class="donate-info" style="display: none;">
+                        <p>Send any amount to:</p>
+                        <div class="payment-method">
+                            <i class="fab fa-mpesa" style="color: #00A650; font-size: 24px;"></i>
+                            <span class="payment-number">0702359618 (Mpesa)</span>
+                        </div>
+                        <div class="payment-method">
+                            <i class="fab fa-airtel" style="color: #FF0000; font-size: 24px;"></i>
+                            <span class="payment-number">0752422013 (Airtel Money)</span>
+                        </div>
+                        <p>Thank you for supporting this free tool!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payslip Generator Tab -->
+            <div id="payslip" class="tab-content" style="display: none;">
+                <div class="input-section">
+                    <div class="form-group">
+                        <label for="employeeName">Employee Name</label>
+                        <input type="text" id="employeeName" placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employeeID">Employee ID</label>
+                        <input type="text" id="employeeID" placeholder="EMP12345">
+                    </div>
+                    <div class="form-group">
+                        <label for="kraPin">KRA PIN</label>
+                        <input type="text" id="kraPin" placeholder="A012345678F">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payPeriod">Pay Period</label>
+                        <input type="text" id="payPeriod" placeholder="May 2025">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="grossPaySlip">Gross Salary (KES)</label>
+                        <input type="number" id="grossPaySlip" placeholder="e.g. 50000">
+                    </div>
+
+                    <button onclick="generatePayslip()">Create Payslip</button>
+                </div>
+
+                <div id="payslipOutput" class="payslip-container" style="display: none;">
+                    <div class="payslip-header">
+                        <div class="company-branding">
+                            <div class="logo-placeholder">
+                                <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="handleLogoUpload()">
+                                <button onclick="document.getElementById('logoUpload').click()">Upload<br> Logo</button>
+                                <img id="companyLogo" src="" style="display: none; max-width: 80px; max-height: 80px;">
+                            </div>
+                            <div class="company-info">
+                                <input type="text" id="companyName" placeholder="Organization Name" class="company-name-input">
+                                <input type="text" id="companyAddress" placeholder="P.O. Box, City" class="company-detail-input">
+                                <input type="text" id="companyKra" placeholder="P012345678N" class="company-detail-input">
+                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.co.ke" class="company-detail-input">
+                            </div>
+                        </div>
+                        <h2>PAYSLIP</h2>
+                        <div class="payslip-meta">
+                            <div class="meta-item">
+                                <span>Pay Period:</span>
+                                <span id="slipPeriod"></span>
+                            </div>
+                            <div class="meta-item">
+                                <span>Payslip No:</span>
+                                <span><input type="text" id="payslipNumber" placeholder="PSL-XXXX"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payslip-body">
+                        <div class="employee-details">
+                            <div class="detail-row">
+                                <span>Employee Name:</span>
+                                <span id="slipName" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Employee No:</span>
+                                <span id="slipID" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>KRA PIN:</span>
+                                <span id="slipPin" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Department:</span>
+                                <span><input type="text" id="department" placeholder="Department" class="editable-field"></span>
+                            </div>
+                        </div>
+
+                        <div class="earnings-deductions">
+                            <div class="earnings-section">
+                                <h3>EARNINGS</h3>
+                                <table class="payslip-table">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount (KES)</th>
+                                    </tr>
+                                    <tr>
+                                        <td>Basic Salary</td>
+                                        <td id="slipGross"></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div class="deductions-section">
+                                <h3>DEDUCTIONS</h3>
+                                <table class="payslip-table">
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Amount (KES)</th>
+                                    </tr>
+                                    <tr>
+                                        <td>PAYE</td>
+                                        <td id="slipPAYE"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>NSSF</td>
+                                        <td id="slipNSSF"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>SHIF</td>
+                                        <td id="slipSHIF"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Housing Levy</td>
+                                        <td id="slipAHL"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Loan Deduction</td>
+                                        <td><input type="number" id="loanDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <table class="summary-table">
+                                <tr>
+                                    <th>TOTAL EARNINGS</th>
+                                    <td id="slipGrossSummary"></td>
+                                </tr>
+                                <tr>
+                                    <th>TOTAL DEDUCTIONS</th>
+                                    <td id="slipDeductionsSummary"></td>
+                                </tr>
+                                <tr class="net-pay-row">
+                                    <th>NET PAY</th>
+                                    <td id="slipNet"></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="signature-section">
+                            <div class="signature-line"></div>
+                            <div class="signature-labels">
+                                <div class="signature-input">
+                                    <input type="text" placeholder="Prepared by" class="signature-field">
+                                </div>
+                                <div class="signature-input">
+                                    <input type="text" placeholder="Approved by" class="signature-field">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payslip-footer">
+                        <p>This is a computer generated payslip and does not require a signature</p>
+                    </div>
+
+                    <div class="payslip-actions">
+                        <button onclick="resetPayslip()" class="no-print">Reset</button>
+                        <button onclick="printPayslip()" class="no-print">Print/Download</button>
+                    </div>
+                </div>
+
+                <div class="disclaimer">
+                    <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
+                </div>
+
+                <div class="donate-section">
+                    <button class="donate-toggle" onclick="toggleDonateInfo()">Support This Project</button>
+                    <div id="donateInfo" class="donate-info" style="display: none;">
+                        <p>Send any amount to:</p>
+                        <div class="payment-method">
+                            <i class="fab fa-mpesa" style="color: #00A650; font-size: 24px;"></i>
+                            <span class="payment-number">0702359618 (Mpesa)</span>
+                        </div>
+                        <div class="payment-method">
+                            <i class="fab fa-airtel" style="color: #FF0000; font-size: 24px;"></i>
+                            <span class="payment-number">0752422013 (Airtel Money)</span>
+                        </div>
+                        <p>Thank you for supporting this free tool!</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
