@@ -79,7 +79,7 @@ function insertAdUnit(containerId, adSlot, adFormat = 'auto', fullWidth = true) 
     
     // Push ad
     try {
-        (adsbygoogle = window.adsbygoogle || []).push({});
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (e) {
         console.error('AdSense error:', e);
     }
@@ -94,6 +94,7 @@ function initializeAds() {
     loadAdSenseScript();
     
     // Initialize ads based on available containers
+    // Delay allows DOM to fully render and ensures proper ad placement
     setTimeout(() => {
         if (document.getElementById('adsense-header-banner')) {
             insertAdUnit('adsense-header-banner', AD_UNITS.HEADER_BANNER, 'horizontal');

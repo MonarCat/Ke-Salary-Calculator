@@ -13,7 +13,7 @@
     border: 1px solid #e0e0e0;
     border-radius: 5px;
     text-align: center;
-    min-height: 100px;
+    min-height: 60px; /* Flexible min-height for various ad sizes */
 }
 
 .adsense-container::before {
@@ -30,30 +30,35 @@
 #adsense-header-banner {
     margin: 15px 0;
     max-width: 100%;
+    min-height: 90px; /* Suitable for 728x90 banners */
 }
 
 /* Sidebar Ad */
 #adsense-sidebar {
     margin: 20px 0;
     max-width: 300px;
+    min-height: 250px; /* Suitable for 300x250 rectangles */
 }
 
 /* In-Content Ad */
 #adsense-in-content {
     margin: 30px auto;
     max-width: 100%;
+    min-height: 90px; /* Flexible for responsive ads */
 }
 
 /* Footer Ad */
 #adsense-footer {
     margin: 20px 0;
     max-width: 100%;
+    min-height: 90px; /* Suitable for 728x90 banners */
 }
 
 /* Mobile Ad */
 #adsense-mobile {
     display: none;
     margin: 15px 0;
+    min-height: 50px; /* Suitable for 320x50 mobile banners */
 }
 
 /* Responsive Design */
