@@ -115,6 +115,14 @@
     cursor: pointer;
 }
 
+/* Page Footer */
+.page-footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    color: #666;
+}
+
 .forgot-password {
     color: #006600;
     text-decoration: none;
@@ -239,6 +247,22 @@
     color: #0066cc;
     border: 1px solid #0066cc;
     display: block;
+    text-align: left;
+}
+
+.auth-message h3 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.auth-message ol,
+.auth-message ul {
+    margin: 10px 0;
+    padding-left: 25px;
+}
+
+.auth-message li {
+    margin: 5px 0;
 }
 
 /* User Profile Dropdown (for logged in state) */

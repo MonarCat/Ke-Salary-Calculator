@@ -32,7 +32,7 @@ function clearAuthMessages() {
 function showMessage(elementId, message, type) {
     const messageEl = document.getElementById(elementId);
     if (messageEl) {
-        messageEl.textContent = message;
+        messageEl.innerHTML = message;
         messageEl.className = `auth-message ${type}`;
         messageEl.style.display = 'block';
     }
@@ -65,9 +65,6 @@ async function handleLogin(event) {
         if (error) throw error;
         
         showMessage('login-message', 'Login successful! Redirecting...', 'success');
-        
-        // Store user session
-        localStorage.setItem('user', JSON.stringify(data.user));
         
         // Redirect to home page after 1 second
         setTimeout(() => {
@@ -141,8 +138,11 @@ async function handleSignup(event) {
 
 // Handle Google Sign In
 async function handleGoogleSignIn() {
+    const activeTab = document.querySelector('.auth-tab.active').getAttribute('data-tab');
+    const messageId = activeTab === 'login' ? 'login-message' : 'signup-message';
+    
     if (!isSupabaseConfigured()) {
-        alert('Supabase is not configured. Please update supabase-config.js with your project credentials.');
+        showMessage(messageId, 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
         return;
     }
     
@@ -158,20 +158,27 @@ async function handleGoogleSignIn() {
         
     } catch (error) {
         console.error('Google sign in error:', error);
-        alert('Failed to sign in with Google. Please try again.');
+        showMessage(messageId, 'Failed to sign in with Google. Please try again.', 'error');
     }
 }
 
 // Handle Forgot Password
-async function handleForgotPassword() {
+async function handleForgotPassword(event) {
+    if (event) event.preventDefault();
+    
     if (!isSupabaseConfigured()) {
-        alert('Supabase is not configured. Please update supabase-config.js with your project credentials.');
+        showMessage('login-message', 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
         return;
     }
     
-    const email = prompt('Enter your email address to reset password:');
+    // Get email from login form if available
+    const emailInput = document.getElementById('login-email');
+    const email = emailInput ? emailInput.value : '';
     
-    if (!email) return;
+    if (!email) {
+        showMessage('login-message', 'Please enter your email address first.', 'error');
+        return;
+    }
     
     try {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
@@ -180,16 +187,31 @@ async function handleForgotPassword() {
         
         if (error) throw error;
         
-        alert('Password reset email sent! Please check your inbox.');
+        showMessage('login-message', 'Password reset email sent! Please check your inbox.', 'success');
         
     } catch (error) {
-        alert('Failed to send reset email: ' + error.message);
+        showMessage('login-message', 'Failed to send reset email: ' + error.message, 'error');
     }
 }
 
 // Show Terms and Conditions
-function showTerms() {
-    alert('Terms & Conditions\n\nBy using the Kenya Salary Calculator, you agree to:\n\n1. Use the calculator for informational purposes only\n2. Understand that calculations are estimates\n3. Consult with a qualified accountant for official computations\n4. Protect your account credentials\n5. Not misuse the service\n\nFor more information, contact support@salarycalculator.co.ke');
+function showTerms(event) {
+    if (event) event.preventDefault();
+    
+    const termsText = `
+        <h3>Terms & Conditions</h3>
+        <p>By using the Kenya Salary Calculator, you agree to:</p>
+        <ol>
+            <li>Use the calculator for informational purposes only</li>
+            <li>Understand that calculations are estimates</li>
+            <li>Consult with a qualified accountant for official computations</li>
+            <li>Protect your account credentials</li>
+            <li>Not misuse the service</li>
+        </ol>
+        <p>For more information, contact support@salarycalculator.co.ke</p>
+    `;
+    
+    showMessage('signup-message', termsText, 'info');
 }
 
 // Handle Logout
@@ -199,12 +221,10 @@ async function handleLogout() {
         
         if (error) throw error;
         
-        localStorage.removeItem('user');
         window.location.href = '/auth.html';
         
     } catch (error) {
         console.error('Logout error:', error);
-        alert('Failed to logout. Please try again.');
     }
 }
 

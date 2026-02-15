@@ -92,6 +92,10 @@ h1::after {
     color: white;
 }
 
+.auth-links-container {
+    margin-left: auto;
+}
+
 /* Intro Section */
 .intro-section {
     background-color: white;
