@@ -63,12 +63,14 @@ h1::after {
 .main-nav {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 15px;
     margin: 20px 0 30px 0;
     flex-wrap: wrap;
 }
 
-.main-nav a {
+.main-nav a,
+.main-nav .auth-link {
     color: #006600;
     text-decoration: none;
     padding: 10px 20px;
@@ -79,7 +81,8 @@ h1::after {
     background-color: white;
 }
 
-.main-nav a:hover {
+.main-nav a:hover,
+.main-nav .auth-link:hover {
     background-color: #006600;
     color: white;
 }

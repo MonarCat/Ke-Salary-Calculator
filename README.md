@@ -15,41 +15,46 @@ A web-based tool for calculating salaries and generating payslips for employees.
 
 - 🧮 **Salary Calculation**: Automatically computes gross pay, deductions (tax, NHIF, NSSF), and net salary.  
 - 📄 **Payslip Generation**: Generates downloadable and printable payslips in PDF format.  
+- 🔐 **User Authentication**: Secure sign up and login with Supabase authentication.
+- 👤 **User Profiles**: Save calculations and access personalized features.
 - 🔧 **Customizable Settings**: Adjust tax rates, allowances, and deductions as per company policies.  
-- 📊 **Employee Management**: Store and manage employee details for quick access.  
 
 ## Installation  
 
 ### Prerequisites  
-- Node.js (v14 or later)  
-- npm or yarn  
-- MongoDB (for storing employee data)  
+- A web browser (Chrome, Firefox, Safari, or Edge)
+- A Supabase account (free tier available at [supabase.com](https://supabase.com))
 
 ### Setup  
 1. Clone the repository:  
    ```bash  
-   git clone https://github.com/yourusername/ke-salary-calculator.git  
-   cd ke-salary-calculator  
+   git clone https://github.com/MonarCat/Ke-Salary-Calculator.git  
+   cd Ke-Salary-Calculator  
    ```  
-2. Install dependencies:  
-   ```bash  
-   npm install  
-   ```  
-3. Set up environment variables (create a `.env` file):  
-   ```env  
-   MONGODB_URI=your_mongodb_connection_string  
-   PORT=3000  
-   ```  
-4. Run the application:  
-   ```bash  
-   npm start  
-   ```  
-   The app will be available at `http://localhost:3000`.  
+2. Configure Supabase authentication:
+   - Follow the detailed setup guide in [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
+   - Update `supabase-config.js` with your Supabase credentials
+
+3. Deploy or run locally:
+   - For local testing: Open `index.html` in your browser or use a local server
+   - For production: Deploy to your hosting service (Netlify, Vercel, GitHub Pages, etc.)
+
+   Using a local server (recommended):
+   ```bash
+   # Using Python 3
+   python -m http.server 8000
+   
+   # Using Node.js http-server
+   npx http-server -p 8000
+   ```
+   Then visit `http://localhost:8000` in your browser.  
 
 ## Usage  
 
-1. **Add an Employee**:  
-   - Navigate to the "Employees" section and fill in the employee details (name, ID, basic salary, allowances).  
+1. **Sign Up / Sign In**:
+   - Navigate to the authentication page via the "Sign In" link in the navigation
+   - Create a new account or log in with existing credentials
+   - Optional: Use Google OAuth for quick authentication
 
 2. **Calculate Salary**:  
    - Enter the month and year, then click "Calculate Salary" to see the breakdown (PAYE, NHIF, NSSF, net pay).  
@@ -59,7 +64,18 @@ A web-based tool for calculating salaries and generating payslips for employees.
 
 ## Configuration  
 
-Modify tax rates, NHIF, and NSSF deductions in `config/deductions.js`:  
+### Supabase Authentication Setup
+
+See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions on setting up authentication.
+
+Quick steps:
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Get your Project URL and anon key from the API settings
+3. Update `supabase-config.js` with your credentials
+
+### Tax Rates and Deductions
+
+Modify tax rates, NHIF, and NSSF deductions in `script.js`:  
 
 ```javascript  
 module.exports = {  
