@@ -170,7 +170,51 @@ function handleLogoUpload() {
 }
 
 // Print Function
-function printPayslip() {
+async function printPayslip() {
+    // Check if user is logged in and has download quota
+    if (typeof checkAuthStatus === 'function' && typeof supabaseClient !== 'undefined') {
+        const user = await checkAuthStatus();
+        
+        if (user) {
+            // In production, check download limits from database
+            // For now, use localStorage to track downloads
+            const downloadsKey = `downloads_${new Date().getMonth()}_${new Date().getFullYear()}`;
+            const downloads = parseInt(localStorage.getItem(downloadsKey) || '0');
+            const subscriptionTier = 'free'; // Would come from database in production
+            
+            // Check download limit for free users
+            if (subscriptionTier === 'free' && downloads >= 2) {
+                const upgrade = confirm(
+                    'You have reached your monthly download limit (2/month for free users).\n\n' +
+                    'Upgrade to Premium for unlimited downloads!\n\n' +
+                    'Click OK to view pricing plans.'
+                );
+                
+                if (upgrade) {
+                    window.location.href = '/subscription.html';
+                }
+                return;
+            }
+            
+            // Increment download count for free users
+            if (subscriptionTier === 'free') {
+                localStorage.setItem(downloadsKey, (downloads + 1).toString());
+                
+                // Show remaining downloads
+                const remaining = 2 - downloads - 1;
+                if (remaining > 0) {
+                    setTimeout(() => {
+                        alert(`Download successful! You have ${remaining} download(s) remaining this month.`);
+                    }, 1000);
+                } else if (remaining === 0) {
+                    setTimeout(() => {
+                        alert('Download successful! This was your last free download this month. Upgrade to Premium for unlimited downloads.');
+                    }, 1000);
+                }
+            }
+        }
+    }
+    
     const originalBodyClass = document.body.className;
     document.body.classList.add('printing');
 
