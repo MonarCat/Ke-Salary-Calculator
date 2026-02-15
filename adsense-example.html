@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSense Implementation Example</title>
+    <link rel="stylesheet" href="adsense-styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .example-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #006600;
+            text-align: center;
+        }
+        h2 {
+            color: #006600;
+            border-bottom: 2px solid #006600;
+            padding-bottom: 10px;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid #006600;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>📢 Google AdSense Implementation Example</h1>
+
+    <div class="example-section">
+        <h2>Step 1: Replace Placeholder Values</h2>
+        <p>Open <code>adsense-config.js</code> and replace the placeholder values with your actual AdSense codes:</p>
+        
+        <div class="warning">
+            <strong>⚠️ Important:</strong> The current implementation uses placeholder values. You MUST replace them with your actual Google AdSense codes for ads to display.
+        </div>
+
+        <h3>Publisher ID Example:</h3>
+        <pre>// Before (Placeholder)
+const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+
+// After (Your actual ID)
+const ADSENSE_PUBLISHER_ID = 'ca-pub-1234567890123456';</pre>
+
+        <h3>Ad Unit IDs Example:</h3>
+        <pre>// Before (Placeholder)
+const AD_UNITS = {
+    HEADER_BANNER: 'XXXXXXXXXX',
+    SIDEBAR_AD: 'XXXXXXXXXX',
+    IN_CONTENT_AD: 'XXXXXXXXXX',
+    FOOTER_AD: 'XXXXXXXXXX',
+    MOBILE_AD: 'XXXXXXXXXX'
+};
+
+// After (Your actual ad unit IDs)
+const AD_UNITS = {
+    HEADER_BANNER: '1234567890',
+    SIDEBAR_AD: '0987654321',
+    IN_CONTENT_AD: '1122334455',
+    FOOTER_AD: '5544332211',
+    MOBILE_AD: '6677889900'
+};</pre>
+    </div>
+
+    <div class="example-section">
+        <h2>Step 2: Alternative Manual Implementation</h2>
+        <p>If you prefer to paste AdSense code directly into HTML files instead of using the JavaScript configuration, here's how:</p>
+
+        <h3>Example: Manual AdSense Code</h3>
+        <p>Replace the ad container divs with actual AdSense code from your AdSense account:</p>
+
+        <pre>&lt;!-- Replace this: --&gt;
+&lt;div id="adsense-header-banner" class="adsense-container"&gt;&lt;/div&gt;
+
+&lt;!-- With this (example AdSense code from your account): --&gt;
+&lt;script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+     crossorigin="anonymous"&gt;&lt;/script&gt;
+&lt;ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+     data-ad-slot="YYYYYYYYYY"
+     data-ad-format="auto"
+     data-full-width-responsive="true"&gt;&lt;/ins&gt;
+&lt;script&gt;
+     (adsbygoogle = window.adsbygoogle || []).push({});
+&lt;/script&gt;</pre>
+
+        <div class="info">
+            <strong>ℹ️ Note:</strong> If using manual implementation, you can remove the <code>adsense-config.js</code> script reference from your HTML files.
+        </div>
+    </div>
+
+    <div class="example-section">
+        <h2>Step 3: Getting Your AdSense Code</h2>
+        <ol>
+            <li>Sign in to your <strong>Google AdSense account</strong></li>
+            <li>Go to <strong>Ads</strong> → <strong>By ad unit</strong></li>
+            <li>Click <strong>"+ New ad unit"</strong> or select an existing one</li>
+            <li>Choose ad type (Display ads recommended)</li>
+            <li>Configure ad size and settings</li>
+            <li>Click <strong>"Create"</strong> and copy the generated code</li>
+            <li>Paste the code values into <code>adsense-config.js</code></li>
+        </ol>
+
+        <h3>Finding Your Publisher ID:</h3>
+        <ul>
+            <li>In AdSense, go to <strong>Account</strong> → <strong>Settings</strong></li>
+            <li>Your Publisher ID is listed (format: ca-pub-XXXXXXXXXXXXXXXX)</li>
+        </ul>
+
+        <h3>Finding Ad Unit IDs:</h3>
+        <ul>
+            <li>In AdSense, go to <strong>Ads</strong> → <strong>By ad unit</strong></li>
+            <li>Click on an ad unit to see its ID (10-digit number)</li>
+            <li>Or copy from the ad code snippet (data-ad-slot value)</li>
+        </ul>
+    </div>
+
+    <div class="example-section">
+        <h2>Step 4: Test Your Implementation</h2>
+        
+        <div class="warning">
+            <strong>⚠️ Testing Notes:</strong>
+            <ul style="margin: 10px 0;">
+                <li>Ads may not show on localhost - test on a live domain</li>
+                <li>Disable ad blockers during testing</li>
+                <li>It may take a few hours for new ad units to start serving</li>
+                <li>Never click your own ads (policy violation)</li>
+            </ul>
+        </div>
+
+        <h3>Verification Checklist:</h3>
+        <ul>
+            <li>✅ AdSense account is approved and active</li>
+            <li>✅ Publisher ID is correctly set in adsense-config.js</li>
+            <li>✅ All ad unit IDs are correctly set</li>
+            <li>✅ adsense-styles.css is linked in HTML</li>
+            <li>✅ adsense-config.js is loaded before closing body tag</li>
+            <li>✅ Ad containers exist in HTML with correct IDs</li>
+            <li>✅ Site is deployed to a live domain (not localhost)</li>
+            <li>✅ No JavaScript errors in browser console</li>
+        </ul>
+    </div>
+
+    <div class="example-section">
+        <h2>Example Ad Placements on This Page</h2>
+        <p>Below are the ad container examples. Once you add your AdSense codes, ads will appear here:</p>
+
+        <!-- Header Banner Example -->
+        <h3>Header Banner Ad</h3>
+        <div id="adsense-header-banner" class="adsense-container"></div>
+
+        <!-- In-Content Ad Example -->
+        <h3>In-Content Ad</h3>
+        <div id="adsense-in-content" class="adsense-container"></div>
+
+        <!-- Sidebar Ad Example (if using sidebar layout) -->
+        <h3>Sidebar Ad</h3>
+        <div id="adsense-sidebar" class="adsense-container"></div>
+
+        <!-- Footer Ad Example -->
+        <h3>Footer Ad</h3>
+        <div id="adsense-footer" class="adsense-container"></div>
+
+        <div class="info">
+            <strong>ℹ️ Current Status:</strong> Ad containers are displayed with placeholder styling. Replace the AdSense configuration values to display actual ads.
+        </div>
+    </div>
+
+    <div class="example-section">
+        <h2>Need Help?</h2>
+        <p>For detailed instructions and troubleshooting, see <code>ADSENSE_SETUP.md</code></p>
+        
+        <h3>Common Issues:</h3>
+        <ul>
+            <li><strong>Ads not showing:</strong> Check console for errors, verify IDs are correct</li>
+            <li><strong>Blank spaces:</strong> Normal during initial setup, may take hours to populate</li>
+            <li><strong>Policy violations:</strong> Review AdSense policies and ensure compliance</li>
+            <li><strong>Low revenue:</strong> Optimize ad placement and increase quality traffic</li>
+        </ul>
+    </div>
+
+    <!-- Load AdSense Configuration -->
+    <script src="adsense-config.js"></script>
+</body>
+</html>

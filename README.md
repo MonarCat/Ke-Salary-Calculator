@@ -191,6 +191,20 @@ See [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md) for:
 - Testing payments
 - Production deployment checklist
 
+## Monetization with Google AdSense
+
+The site is integrated with Google AdSense for monetization. Ads are strategically placed to generate revenue while maintaining excellent user experience.
+
+See [ADSENSE_SETUP.md](ADSENSE_SETUP.md) for:
+- Complete setup instructions
+- Ad placement strategy
+- Configuration guide
+- Best practices and policies
+- Performance optimization tips
+- Troubleshooting guide
+
+**Note**: Premium users can enjoy an ad-free experience as part of their subscription benefits.
+
 ## Legal Pages
 
 The application includes comprehensive legal documentation:
