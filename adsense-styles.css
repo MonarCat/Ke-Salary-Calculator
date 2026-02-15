@@ -1,0 +1,150 @@
+/**
+ * Google AdSense Styling
+ * 
+ * Styles for AdSense ad containers to ensure proper display
+ * and integration with the site design
+ */
+
+/* General Ad Container Styling */
+.adsense-container {
+    margin: 20px 0;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    text-align: center;
+    min-height: 100px;
+}
+
+.adsense-container::before {
+    content: 'Advertisement';
+    display: block;
+    font-size: 10px;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+/* Header Banner Ad */
+#adsense-header-banner {
+    margin: 15px 0;
+    max-width: 100%;
+}
+
+/* Sidebar Ad */
+#adsense-sidebar {
+    margin: 20px 0;
+    max-width: 300px;
+}
+
+/* In-Content Ad */
+#adsense-in-content {
+    margin: 30px auto;
+    max-width: 100%;
+}
+
+/* Footer Ad */
+#adsense-footer {
+    margin: 20px 0;
+    max-width: 100%;
+}
+
+/* Mobile Ad */
+#adsense-mobile {
+    display: none;
+    margin: 15px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .adsense-container {
+        margin: 15px 0;
+        padding: 8px;
+    }
+    
+    /* Hide desktop ads on mobile */
+    #adsense-header-banner,
+    #adsense-sidebar {
+        display: none;
+    }
+    
+    /* Show mobile-specific ad */
+    #adsense-mobile {
+        display: block;
+    }
+}
+
+/* Premium User Styling (Optional) */
+.premium-user .adsense-container {
+    display: none;
+}
+
+/* Print Styling - Hide ads when printing */
+@media print {
+    .adsense-container,
+    .adsbygoogle {
+        display: none !important;
+    }
+}
+
+/* AdSense specific styling */
+.adsbygoogle {
+    display: block;
+    min-width: 250px;
+    max-width: 100%;
+}
+
+/* Ensure ads don't break layout */
+ins.adsbygoogle {
+    text-decoration: none;
+}
+
+/* Loading state for ads */
+.adsense-container.loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Integration with existing site styles */
+.container .adsense-container {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 102, 0, 0.1);
+}
+
+/* Sidebar layout for ads */
+.content-with-sidebar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+.sidebar-content {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+    .content-with-sidebar {
+        flex-direction: column;
+    }
+    
+    .sidebar-content {
+        width: 100%;
+    }
+}
