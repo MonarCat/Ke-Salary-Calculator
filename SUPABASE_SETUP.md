@@ -56,22 +56,32 @@ To enable Google sign-in:
    - Create a new project or select an existing one
    - Enable the Google+ API
    - Create OAuth credentials (Web application)
-   - Add authorized redirect URIs:
+   - Add authorized redirect URIs (CRITICAL - must match exactly):
      - `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`
+     - Replace YOUR-PROJECT-REF with your actual Supabase project reference
+     - For this project, use: `https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback`
    - Copy the Client ID and Client Secret
 4. Back in Supabase, paste your Google Client ID and Client Secret
 5. Click **Save**
+
+**Note:** If you experience OAuth denial issues, see `OAUTH_CONFIGURATION.md` for detailed troubleshooting steps.
 
 ## Step 5: Configure Site URL and Redirect URLs
 
 1. In Supabase dashboard, go to **Authentication** > **URL Configuration**
 2. Set the **Site URL** to your production domain: `https://salarycalculator.co.ke`
-3. Add **Redirect URLs**:
+3. Add **Redirect URLs** (add all of these):
    - `https://salarycalculator.co.ke`
+   - `https://salarycalculator.co.ke/`
    - `https://salarycalculator.co.ke/auth.html`
+   - `https://salarycalculator.co.ke/calculator.html`
+   - `http://localhost:8080` (for local testing)
+   - `http://localhost:8080/` (for local testing)
    - `http://localhost:3000` (for local testing)
-   - `http://localhost:3000/auth.html` (for local testing)
+   - `http://localhost:3000/` (for local testing)
 4. Click **Save**
+
+**Important:** Include both URLs with and without trailing slashes for best compatibility.
 
 ## Step 6: Configure Email Templates (Optional)
 
