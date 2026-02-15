@@ -6,7 +6,9 @@
     <title>PAYE Calculator Kenya 2025 | Accurate KRA PAYE Computation</title>
     <meta name="description" content="Free PAYE Calculator Kenya. Accurately compute KRA PAYE tax using current tax bands and personal relief. Ideal for employees and employers.">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="disclaimer-banner">
@@ -22,6 +24,7 @@
                 <a href="/paye-calculator-kenya.html" class="active">PAYE Calculator</a>
                 <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                 <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                <div id="auth-links" class="auth-links-container"></div>
             </nav>
 
             <!-- Content Section -->
@@ -67,5 +70,8 @@
             </footer>
         </div>
     </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
 </body>
 </html>
