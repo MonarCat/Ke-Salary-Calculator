@@ -176,11 +176,13 @@ async function printPayslip() {
         const user = await checkAuthStatus();
         
         if (user) {
-            // In production, check download limits from database
-            // For now, use localStorage to track downloads
+            // TODO: Replace localStorage with database queries in production
+            // This localStorage implementation is for demo purposes only
+            // In production, use check_download_limit() and increment_download_count() functions
+            // from DATABASE_SCHEMA.md to track downloads server-side
             const downloadsKey = `downloads_${new Date().getMonth()}_${new Date().getFullYear()}`;
             const downloads = parseInt(localStorage.getItem(downloadsKey) || '0');
-            const subscriptionTier = 'free'; // Would come from database in production
+            const subscriptionTier = 'free'; // TODO: Fetch from user_profiles table in production
             
             // Check download limit for free users
             if (subscriptionTier === 'free' && downloads >= 2) {

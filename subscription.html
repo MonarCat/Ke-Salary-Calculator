@@ -383,6 +383,9 @@
     <script src="auth.js"></script>
     <script>
         // Paystack public key (Replace with your actual Paystack public key)
+        // TODO: Move to environment variable or configuration file before production deployment
+        // For testing, use: pk_test_xxxxx
+        // For production, use: pk_live_xxxxx
         const PAYSTACK_PUBLIC_KEY = 'pk_test_your_paystack_public_key_here';
 
         // Check if user is logged in
