@@ -91,6 +91,20 @@ async function handleSignup(event) {
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const accountType = document.getElementById('account-type').value;
+    const organizationName = document.getElementById('organization-name').value;
+    
+    // Validate account type
+    if (!accountType) {
+        showMessage('signup-message', 'Please select an account type.', 'error');
+        return;
+    }
+    
+    // Validate organization name for employer accounts
+    if (accountType === 'employer' && !organizationName) {
+        showMessage('signup-message', 'Please enter your organization name.', 'error');
+        return;
+    }
     
     // Validate password match
     if (password !== confirmPassword) {
@@ -117,6 +131,8 @@ async function handleSignup(event) {
             options: {
                 data: {
                     full_name: name,
+                    account_type: accountType,
+                    organization_name: organizationName || null
                 }
             }
         });
@@ -127,12 +143,29 @@ async function handleSignup(event) {
         
         // Reset form
         event.target.reset();
+        document.getElementById('organization-fields').style.display = 'none';
         
     } catch (error) {
         showMessage('signup-message', error.message || 'Signup failed. Please try again.', 'error');
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+    }
+}
+
+// Toggle organization fields based on account type
+function toggleOrganizationFields() {
+    const accountType = document.getElementById('account-type').value;
+    const organizationFields = document.getElementById('organization-fields');
+    const organizationNameInput = document.getElementById('organization-name');
+    
+    if (accountType === 'employer') {
+        organizationFields.style.display = 'block';
+        organizationNameInput.required = true;
+    } else {
+        organizationFields.style.display = 'none';
+        organizationNameInput.required = false;
+        organizationNameInput.value = '';
     }
 }
 
@@ -293,6 +326,9 @@ async function updateAuthUI() {
                         </div>
                         <div class="user-dropdown-item">
                             <i class="fas fa-envelope"></i> ${user.email}
+                        </div>
+                        <div class="user-dropdown-item" onclick="window.location.href='/profile.html'">
+                            <i class="fas fa-id-card"></i> My Profile
                         </div>
                         <div class="user-dropdown-item" onclick="handleLogout()">
                             <i class="fas fa-sign-out-alt"></i> Logout

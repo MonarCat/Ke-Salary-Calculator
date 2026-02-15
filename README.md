@@ -1,45 +1,73 @@
 # KE Salary Calculator & Payslip Generator  
 
-A web-based tool for calculating salaries and generating payslips for employees. This project helps HR departments and employees quickly compute net pay, deductions, and taxes while generating professional payslips.  
+A comprehensive web-based tool for calculating salaries and generating payslips for Kenyan employees. This project helps HR departments, employers, and employees quickly compute net pay, statutory deductions, and generate professional payslips with customizable branding.
 
 ## Table of Contents  
 
 - [Features](#features)  
 - [Installation](#installation)  
 - [Usage](#usage)  
+- [Subscription Plans](#subscription-plans)
 - [Configuration](#configuration)  
+- [Database Setup](#database-setup)
+- [Payment Integration](#payment-integration)
 - [Contributing](#contributing)  
 - [License](#license)  
 
 ## Features  
 
-- 🧮 **Salary Calculation**: Automatically computes gross pay, deductions (tax, NHIF, NSSF), and net salary.  
-- 📄 **Payslip Generation**: Generates downloadable and printable payslips in PDF format.  
-- 🔐 **User Authentication**: Secure sign up and login with Supabase authentication.
-- 👤 **User Profiles**: Save calculations and access personalized features.
-- 🔧 **Customizable Settings**: Adjust tax rates, allowances, and deductions as per company policies.  
+### Core Features
+- 🧮 **Salary Calculator**: Accurately computes gross pay, PAYE, NSSF, SHIF, Housing Levy, and net salary
+- 📄 **Payslip Generator**: Creates professional, customizable payslips with company branding
+- 🔐 **User Authentication**: Secure sign-up and login with Supabase (email/password and Google OAuth)
+- 👤 **User Profiles**: Save calculations, manage subscriptions, and track usage
+- 🏢 **Account Types**: 
+  - Individual accounts for personal salary calculations
+  - Employer/Organization accounts for employee management
+
+### Premium Features (Subscription Required)
+- 👥 **Employee Management**: Add unlimited employees with full CRUD operations
+- 📧 **Email Distribution**: Send payslips directly to employee emails
+- 📊 **Bulk Generation**: Generate multiple payslips at once
+- 🎨 **Custom Branding**: Add company logo and details to payslips
+- ♾️ **Unlimited Downloads**: No monthly download limits
+
+### Free Tier Features
+- ✅ Unlimited salary calculations
+- ✅ PAYE and statutory deduction calculations
+- ✅ 2 payslip downloads per month
+- ✅ Save calculations
+- ❌ No employee management
+- ❌ Limited downloads
 
 ## Installation  
 
 ### Prerequisites  
 - A web browser (Chrome, Firefox, Safari, or Edge)
 - A Supabase account (free tier available at [supabase.com](https://supabase.com))
+- (Optional) Paystack account for payment processing ([paystack.com](https://paystack.com))
 
 ### Setup  
-1. Clone the repository:  
+
+1. **Clone the repository:**  
    ```bash  
    git clone https://github.com/MonarCat/Ke-Salary-Calculator.git  
    cd Ke-Salary-Calculator  
    ```  
-2. Configure Supabase authentication:
+
+2. **Configure Supabase authentication:**
    - Follow the detailed setup guide in [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
    - Update `supabase-config.js` with your Supabase credentials
+   - Set up the database schema using [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)
 
-3. Deploy or run locally:
-   - For local testing: Open `index.html` in your browser or use a local server
-   - For production: Deploy to your hosting service (Netlify, Vercel, GitHub Pages, etc.)
+3. **Configure Paystack (Optional):**
+   - Follow the integration guide in [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md)
+   - Update subscription.html with your Paystack public key
+   - Set up webhook endpoints for subscription management
 
-   Using a local server (recommended):
+4. **Deploy or run locally:**
+   
+   For local testing, use a local server:
    ```bash
    # Using Python 3
    python -m http.server 8000
@@ -47,66 +75,158 @@ A web-based tool for calculating salaries and generating payslips for employees.
    # Using Node.js http-server
    npx http-server -p 8000
    ```
-   Then visit `http://localhost:8000` in your browser.  
+   Then visit `http://localhost:8000/landing.html` in your browser.  
+
+   For production deployment:
+   - **Netlify**: Connect your GitHub repo and deploy
+   - **Vercel**: Import your GitHub project
+   - **GitHub Pages**: Enable in repository settings
 
 ## Usage  
 
-1. **Sign Up / Sign In**:
-   - Navigate to the authentication page via the "Sign In" link in the navigation
-   - Create a new account or log in with existing credentials
-   - Optional: Use Google OAuth for quick authentication
+### Getting Started
 
-2. **Calculate Salary**:  
-   - Enter the month and year, then click "Calculate Salary" to see the breakdown (PAYE, NHIF, NSSF, net pay).  
+1. **Visit the Landing Page:**
+   - Navigate to `landing.html` to see the feature overview and pricing
+   - Click "Try Free Calculator" or "Sign Up Free"
 
-3. **Generate Payslip**:  
-   - Click "Generate Payslip" to download a PDF payslip for the selected employee.  
+2. **Create an Account:**
+   - Choose account type (Individual or Employer/Organization)
+   - Sign up with email/password or Google OAuth
+   - Verify your email address
+
+3. **Calculate Salary:**  
+   - Enter gross salary, allowances, and benefits
+   - Click "Calculate Net Pay" to see detailed breakdown
+   - View PAYE, NSSF, SHIF, Housing Levy, and net salary
+
+4. **Generate Payslips:**  
+   - Switch to "Payslip Generator" tab
+   - Enter employee details and salary information
+   - Customize with company branding
+   - Print or download (subject to monthly limits for free users)
+
+### For Employers (Premium)
+
+1. **Manage Employees:**
+   - Navigate to the Employees page
+   - Add employee details (name, ID, KRA PIN, salary, etc.)
+   - Edit or delete employee records as needed
+
+2. **Bulk Payslip Generation:**
+   - Select multiple employees
+   - Generate payslips for all at once
+   - Email directly to employees
+
+## Subscription Plans
+
+### Free Plan (KES 0/month)
+- Unlimited salary calculations
+- PAYE & statutory deduction calculations
+- 2 payslip downloads per month
+- Save your calculations
+- No employee management
+
+### Premium Plan (KES 499/month) - Most Popular
+- Everything in Free
+- Add unlimited employees
+- Unlimited payslip downloads
+- Bulk payslip generation
+- Email payslips to employees
+- Custom company branding
+- Priority email support
+
+### Enterprise Plan (KES 999/month)
+- Everything in Premium
+- API access
+- Advanced reporting & analytics
+- Multi-user accounts
+- Custom integrations
+- Dedicated account manager
+- 24/7 priority support
+
+Visit `/subscription.html` to view plans and subscribe.
 
 ## Configuration  
 
 ### Supabase Authentication Setup
 
-See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions on setting up authentication.
+See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions.
 
 Quick steps:
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Get your Project URL and anon key from the API settings
 3. Update `supabase-config.js` with your credentials
 
+### Database Setup
+
+The application requires the following database tables:
+- `user_profiles` - User account information and subscription status
+- `employees` - Employee records for employer accounts
+- `payslip_history` - Track generated payslips and downloads
+- `subscription_transactions` - Payment transaction history
+- `saved_calculations` - User's saved salary calculations
+
+Follow the complete schema and setup instructions in [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
+
 ### Tax Rates and Deductions
 
-Modify tax rates, NHIF, and NSSF deductions in `script.js`:  
+Current tax rates are configured in `script.js` based on Kenyan law:
 
-```javascript  
-module.exports = {  
-  PAYE_RATES: [  
-    { min: 0, max: 24000, rate: 0.1 },  
-    { min: 24001, max: 32333, rate: 0.25 },  
-    // ...  
-  ],  
-  NHIF_RATES: {  
-    6000: 150,  
-    8000: 300,  
-    // ...  
-  },  
-  NSSF_RATE: 0.06  
-};  
-```  
+- **PAYE**: Progressive tax from 10% to 35%
+- **NSSF**: 6% (Tier I & II combined, capped)
+- **SHIF**: 2.75% of gross salary
+- **Housing Levy**: 1.5% of gross salary
+- **Personal Relief**: KES 2,400
+
+## Payment Integration
+
+The application uses Paystack for secure payment processing.
+
+See [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md) for:
+- Setting up Paystack account
+- Configuring API keys
+- Setting up webhooks
+- Testing payments
+- Production deployment checklist
+
+## Legal Pages
+
+The application includes comprehensive legal documentation:
+- `/privacy-policy.html` - Data protection and privacy practices
+- `/terms-of-service.html` - Terms, conditions, and subscription details
+- `/cookie-policy.html` - Cookie usage and tracking
 
 ## Contributing  
 
 We welcome contributions! Follow these steps:  
 
-1. Fork the repository.  
-2. Create a new branch (`git checkout -b feature/new-feature`).  
-3. Commit your changes (`git commit -m "Add new feature"`).  
-4. Push to the branch (`git push origin feature/new-feature`).  
-5. Open a Pull Request.  
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -m "Add new feature"`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
 ### Guidelines:  
-- Follow consistent code style (ESLint enforced).  
-- Write tests for new features.  
-- Update documentation if needed.  
+- Follow consistent code style
+- Test your changes thoroughly
+- Update documentation as needed
+- Ensure mobile responsiveness
+- Follow accessibility best practices
+
+## Security
+
+- All user data is encrypted in transit and at rest
+- Passwords are hashed using Supabase Auth
+- Payment information is handled securely by Paystack
+- Row Level Security (RLS) enabled on all database tables
+- Regular security audits and updates
+
+## Support
+
+- 📧 **Email**: support@salarycalculator.co.ke
+- 🐛 **Bug Reports**: [Open an issue](https://github.com/MonarCat/Ke-Salary-Calculator/issues)
+- 💬 **Feature Requests**: [Submit a request](https://github.com/MonarCat/Ke-Salary-Calculator/issues)
 
 ## License  
 
@@ -114,10 +234,23 @@ This project is licensed under the **MIT License** – see [LICENSE](LICENSE) fo
 
 ---  
 
-💡 **Need Help?** Open an issue or contact us at `support@kesalarycalculator.com`.  
+## Tech Stack
 
-🚀 **Live Demo**: [https://kesalarycalculator.demo](https://kesalarycalculator.demo) *(if applicable)*  
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
+- **Payments**: Paystack
+- **Hosting**: Netlify / Vercel / GitHub Pages
 
----  
+## Roadmap
 
-Feel free to customize further based on your tech stack (e.g., React, Django) or additional features like email notifications!
+- [ ] Mobile app (iOS & Android)
+- [ ] Excel export for bulk data
+- [ ] Advanced reporting and analytics
+- [ ] Integration with accounting software
+- [ ] API for third-party integrations
+- [ ] Multi-language support
+
+---
+
+Built with ❤️ in Kenya 🇰🇪 for Kenyan businesses and employees.
