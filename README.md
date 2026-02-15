@@ -195,13 +195,16 @@ See [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md) for:
 
 The site is integrated with Google AdSense for monetization. Ads are strategically placed to generate revenue while maintaining excellent user experience.
 
-See [ADSENSE_SETUP.md](ADSENSE_SETUP.md) for:
-- Complete setup instructions
-- Ad placement strategy
-- Configuration guide
-- Best practices and policies
-- Performance optimization tips
-- Troubleshooting guide
+### Documentation:
+- [ADSENSE_VERIFICATION.md](ADSENSE_VERIFICATION.md) - **START HERE**: Site verification setup guide
+- [ADSENSE_VERIFICATION_QUICKSTART.md](ADSENSE_VERIFICATION_QUICKSTART.md) - Quick reference for verification
+- [ADSENSE_SETUP.md](ADSENSE_SETUP.md) - Complete ad implementation guide
+- [ADSENSE_QUICKSTART.md](ADSENSE_QUICKSTART.md) - Quick setup for ads
+
+### Key Files:
+- `ads.txt` - Declares authorized digital sellers (required by Google)
+- `robots.txt` - Allows AdSense crawlers to access the site
+- All HTML files include AdSense verification meta tag
 
 **Note**: Premium users can enjoy an ad-free experience as part of their subscription benefits.
 
