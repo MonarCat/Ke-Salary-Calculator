@@ -219,9 +219,70 @@ The implementation includes several optimizations:
 
 - **New Sites**: May take time to generate significant revenue
 - **Free Users**: Ads provide revenue while offering free service
-- **Premium Users**: Can optionally remove ads as a premium benefit
+- **Premium Users**: Ads are automatically hidden for premium/enterprise subscribers
 - **Traffic Matters**: More unique visitors = more potential revenue
 - **Niche Value**: Financial/salary calculators often have good CPM
+
+## Premium User Ad Filtering
+
+**✅ IMPLEMENTED**: The system automatically hides ads for premium and enterprise users.
+
+### How It Works
+
+1. **Automatic Detection**: When a page loads, `adsense-config.js` checks the user's subscription tier
+2. **Database Query**: Fetches `subscription_tier` from the `user_profiles` table in Supabase
+3. **Ad Suppression**: If user has `premium` or `enterprise` tier, no ads are loaded or displayed
+4. **CSS Class**: Adds `premium-user` class to `<body>` to hide ad containers via CSS
+5. **Graceful Degradation**: If database query fails or user is not logged in, ads are shown (safe default)
+
+### Implementation Details
+
+```javascript
+// Function in adsense-config.js checks user's subscription tier
+async function isPremiumUser() {
+    // Query user_profiles table for subscription_tier
+    // Returns true if user is premium or enterprise
+    // Returns false for free users, non-logged-in users, or errors
+}
+
+// Ads only initialize if user is not premium
+async function initializeAds() {
+    const userIsPremium = await isPremiumUser();
+    if (userIsPremium) {
+        // Hide ads by adding premium-user class to body
+        document.body.classList.add('premium-user');
+        return;
+    }
+    // Load and display ads for free users
+    loadAdSenseScript();
+    // ... insert ad units
+}
+```
+
+### CSS Styling
+
+```css
+/* In adsense-styles.css */
+.premium-user .adsense-container {
+    display: none;
+}
+```
+
+### Benefits
+
+- **No ads for premium users**: Provides better user experience for paying customers
+- **Automatic**: No manual intervention needed when user upgrades/downgrades
+- **Reliable**: Fails safe by showing ads if subscription status cannot be determined
+- **Privacy-Friendly**: Only checks subscription tier, no additional tracking
+
+### Testing
+
+To test premium ad filtering:
+1. Create a test user account
+2. Update their `subscription_tier` to `premium` in Supabase `user_profiles` table
+3. Log in as that user
+4. Verify ads are not visible on any page
+5. Check browser console for "Premium user detected - ads will not be displayed" message
 
 ## Support
 
