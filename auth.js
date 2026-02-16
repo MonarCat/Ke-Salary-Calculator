@@ -1,5 +1,8 @@
 // Authentication Logic
 
+// Constants
+const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
+
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
     const tabs = document.querySelectorAll('.auth-tab');
@@ -180,8 +183,6 @@ async function handleGoogleSignIn() {
     }
     
     try {
-        // Get the current page's full URL (including protocol and port)
-        const currentUrl = window.location.href;
         // Extract the base URL (origin + pathname without query/hash)
         const baseUrl = window.location.origin + window.location.pathname;
         
@@ -306,7 +307,7 @@ if (supabaseClient && supabaseClient.auth) {
                     console.log('OAuth callback detected, redirecting to home page');
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 1000);
+                    }, OAUTH_REDIRECT_DELAY_MS);
                 }
             }
         } else if (event === 'SIGNED_OUT') {
