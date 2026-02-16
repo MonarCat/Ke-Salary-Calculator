@@ -154,7 +154,21 @@ After going live:
 4. **Test Placements**: A/B test different ad positions
 5. **Be Patient**: Revenue grows over time as Google learns your audience
 6. **Stay Compliant**: Always follow AdSense policies
-7. **Premium Option**: Consider ad-free experience for premium users
+7. **Premium Users**: Ads are automatically hidden for premium/enterprise subscribers
+
+---
+
+## Premium User Ad Filtering
+
+**✅ IMPLEMENTED**: Premium and Enterprise users will not see any ads on the site.
+
+The system automatically:
+- Checks user's subscription tier from the `user_profiles` table
+- Hides all ad containers if user has `premium` or `enterprise` subscription
+- Shows ads to free users and non-logged-in visitors
+- Gracefully handles errors by defaulting to showing ads
+
+**No additional configuration needed** - premium filtering works out of the box!
 
 ---
 
