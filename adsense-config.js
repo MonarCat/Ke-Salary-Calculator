@@ -86,10 +86,68 @@ function insertAdUnit(containerId, adSlot, adFormat = 'auto', fullWidth = true) 
 }
 
 /**
+ * Check if the current user is a premium subscriber
+ * Premium users should not see ads
+ * @returns {Promise<boolean>} True if user is premium, false otherwise
+ */
+async function isPremiumUser() {
+    // Check if Supabase is configured
+    if (!window.supabaseClient || !window.isSupabaseConfigured || !window.isSupabaseConfigured()) {
+        // If Supabase is not configured, show ads (default behavior)
+        return false;
+    }
+    
+    try {
+        // Get current user session
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        
+        if (!session || !session.user) {
+            // No logged in user, show ads
+            return false;
+        }
+        
+        // Fetch user profile to check subscription tier
+        const { data: profile, error } = await window.supabaseClient
+            .from('user_profiles')
+            .select('subscription_tier')
+            .eq('id', session.user.id)
+            .single();
+        
+        if (error) {
+            console.warn('Could not fetch user profile, showing ads:', error);
+            return false;
+        }
+        
+        // User is premium or enterprise if subscription_tier is set to premium or enterprise
+        const isPremium = profile && (profile.subscription_tier === 'premium' || profile.subscription_tier === 'enterprise');
+        
+        return isPremium;
+    } catch (error) {
+        console.error('Error checking premium status:', error);
+        // Default to showing ads if there's an error
+        return false;
+    }
+}
+
+/**
  * Initialize all ads on the page
  * Call this after the DOM is loaded
+ * Premium users will not see ads
  */
-function initializeAds() {
+async function initializeAds() {
+    // Check if user is premium
+    const userIsPremium = await isPremiumUser();
+    
+    if (userIsPremium) {
+        console.log('Premium user detected - ads will not be displayed');
+        // Add premium-user class to body to hide ad containers
+        document.body.classList.add('premium-user');
+        return;
+    }
+    
+    // User is not premium, load and display ads
+    console.log('Free user - initializing ads');
+    
     // Load AdSense script
     loadAdSenseScript();
     
