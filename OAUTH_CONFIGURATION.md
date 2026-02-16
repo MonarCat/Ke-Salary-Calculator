@@ -164,6 +164,13 @@ In Supabase Dashboard, go to **Authentication** > **Providers** > **Google**:
 
 ### Local Testing (localhost:8080)
 
+**Prerequisites:**
+1. Ensure you have properly configured Supabase credentials in `supabase-config.js`
+2. Verify Google OAuth is enabled in your Supabase Dashboard
+3. Confirm all redirect URLs are added to Supabase (see configuration section above)
+
+**Steps:**
+
 1. Start local server:
    ```bash
    python3 -m http.server 8080
@@ -171,13 +178,34 @@ In Supabase Dashboard, go to **Authentication** > **Providers** > **Google**:
 
 2. Open browser to `http://localhost:8080`
 
-3. Click "Sign Up" or "Sign In"
+3. Navigate to `http://localhost:8080/auth.html`
 
-4. Click "Continue with Google"
+4. Click "Sign Up" or "Sign In" tab
 
-5. You should be redirected to Google sign-in
+5. Click "Continue with Google" button
 
-6. After signing in, you should be redirected back to the home page
+6. You should be redirected to Google sign-in page
+
+7. After signing in with Google:
+   - Supabase will authenticate your Google credentials
+   - You'll be redirected back to `http://localhost:8080/auth.html` (with hash parameters in URL)
+   - The auth state listener will detect the OAuth callback
+   - After 1 second, you'll be automatically redirected to the home page (`/`)
+
+8. Verify you are logged in by checking for your profile icon in the navigation
+
+**Expected Behavior:**
+- ✅ Google OAuth popup/redirect opens successfully
+- ✅ After Google authentication, returns to auth.html with hash parameters
+- ✅ User is automatically redirected to home page after 1 second
+- ✅ User profile shows in navigation bar
+- ✅ No "localhost refused to connect" errors
+
+**Common Issues During Testing:**
+- If you see "localhost refused to connect", ensure the local server is running
+- Check browser console for any JavaScript errors
+- Verify the redirect URL in Supabase includes `http://localhost:8080/auth.html`
+- Clear browser cache and cookies if experiencing persistent issues
 
 ### Production Testing
 
