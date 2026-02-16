@@ -29,8 +29,10 @@ https://salarycalculator.co.ke/calculator.html
 https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback
 http://localhost:8080
 http://localhost:8080/
+http://localhost:8080/auth.html
 http://localhost:3000
 http://localhost:3000/
+http://localhost:3000/auth.html
 ```
 
 **Important Notes:**
@@ -122,6 +124,41 @@ In Supabase Dashboard, go to **Authentication** > **Providers** > **Google**:
 1. Add production domain to Google Cloud Console authorized redirect URIs
 2. Add production domain to Supabase redirect URLs
 3. Ensure Site URL in Supabase matches your production domain
+
+### Issue 6: "localhost refused to connect" or ERR_CONNECTION_REFUSED
+
+**Cause:** The OAuth callback is trying to redirect to a localhost URL that is not properly configured or accessible.
+
+**Solution:**
+1. Ensure you have a local development server running:
+   ```bash
+   # Start a local server on port 8080
+   python3 -m http.server 8080
+   # Or on port 3000
+   python3 -m http.server 3000
+   ```
+
+2. Add all localhost URLs to Supabase Dashboard > Authentication > URL Configuration > Redirect URLs:
+   ```
+   http://localhost:8080
+   http://localhost:8080/
+   http://localhost:8080/auth.html
+   http://localhost:3000
+   http://localhost:3000/
+   http://localhost:3000/auth.html
+   ```
+
+3. Ensure the callback URL format in Google Cloud Console includes:
+   ```
+   https://wznopthjoaqusalqoyru.supabase.co/auth/v1/callback
+   ```
+   (Replace with your actual Supabase project reference)
+
+4. Clear browser cache and cookies, then try again
+
+5. Check browser console for specific error messages that can help diagnose the issue
+
+6. Verify that the local server is actually running and accessible by visiting `http://localhost:8080` directly
 
 ## Testing OAuth Flow
 
