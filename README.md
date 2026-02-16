@@ -242,7 +242,7 @@ We welcome contributions! Follow these steps:
 
 ## Support
 
-- 📧 **Email**: support@salarycalculator.co.ke
+- 📧 **Email**: kesalarycalculator@gmail.com
 - 🐛 **Bug Reports**: [Open an issue](https://github.com/MonarCat/Ke-Salary-Calculator/issues)
 - 💬 **Feature Requests**: [Submit a request](https://github.com/MonarCat/Ke-Salary-Calculator/issues)
 
