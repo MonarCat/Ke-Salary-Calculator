@@ -106,7 +106,7 @@ async function isPremiumUser() {
     }
     
     // Check if Supabase is configured
-    if (!window.supabaseClient || !window.isSupabaseConfigured?.()) {
+    if (!window.supabaseClient || typeof window.isSupabaseConfigured !== 'function' || !window.isSupabaseConfigured()) {
         // If Supabase is not configured, show ads (default behavior)
         return false;
     }
