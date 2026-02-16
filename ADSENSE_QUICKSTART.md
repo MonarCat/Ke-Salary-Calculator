@@ -19,7 +19,7 @@ Once approved, in your AdSense dashboard:
 
 ### Step 3: Get Your Codes
 From each ad unit, you'll need:
-- **Publisher ID**: Found in ad code as `ca-pub-XXXXXXXXXXXXXXXX`
+- **Publisher ID**: Found in ad code as `ca-pub-6832553346534070`
 - **Ad Unit ID**: Found in ad code as `data-ad-slot="YYYYYYYYYY"`
 
 ### Step 4: Update Configuration

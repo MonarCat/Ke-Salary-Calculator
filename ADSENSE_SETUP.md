@@ -54,7 +54,7 @@ Open `adsense-config.js` and replace the placeholder values:
 
 ```javascript
 // Replace with your AdSense Publisher ID
-const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+const ADSENSE_PUBLISHER_ID = 'ca-pub-6832553346534070';
 
 // Replace with your actual Ad Unit IDs
 const AD_UNITS = {

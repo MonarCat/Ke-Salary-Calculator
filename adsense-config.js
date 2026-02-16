@@ -12,7 +12,7 @@
  */
 
 // AdSense Publisher ID (data-ad-client)
-const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+const ADSENSE_PUBLISHER_ID = 'ca-pub-6832553346534070';
 
 // Ad Unit IDs
 const AD_UNITS = {

@@ -23,9 +23,9 @@ This document explains the changes made to help Google AdSense verify your site 
 
 ### 3. Added Google AdSense Verification Meta Tag
 - **Location**: All HTML files in the `<head>` section
-- **Format**: `<meta name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX">`
+- **Format**: `<meta name="google-adsense-account" content="ca-pub-6832553346534070">`
 - **What you need to do**: 
-  - In all HTML files, replace `ca-pub-XXXXXXXXXXXXXXXX` with your actual Publisher ID
+  - In all HTML files, replace `ca-pub-6832553346534070` with your actual Publisher ID
   - Files updated:
     - index.html
     - calculator.html
@@ -54,11 +54,11 @@ This document explains the changes made to help Google AdSense verify your site 
 1. Go to [Google AdSense](https://www.google.com/adsense/)
 2. Sign in to your account
 3. Go to **Account** → **Account information**
-4. Copy your **Publisher ID** (format: `ca-pub-XXXXXXXXXXXXXXXX`)
+4. Copy your **Publisher ID** (format: `ca-pub-6832553346534070`)
 
 ### Step 2: Update Files with Your Publisher ID
 
-Replace `ca-pub-XXXXXXXXXXXXXXXX` in these files:
+Replace `ca-pub-6832553346534070` in these files:
 
 1. **ads.txt** - Line 2:
    ```
@@ -71,7 +71,7 @@ Replace `ca-pub-XXXXXXXXXXXXXXXX` in these files:
 
 2. **All HTML files** - In the `<head>` section:
    ```html
-   <meta name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX">
+   <meta name="google-adsense-account" content="ca-pub-6832553346534070">
    ```
    Should become (example):
    ```html
@@ -80,7 +80,7 @@ Replace `ca-pub-XXXXXXXXXXXXXXXX` in these files:
 
 3. **adsense-config.js** - Line 15:
    ```javascript
-   const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
+   const ADSENSE_PUBLISHER_ID = 'ca-pub-6832553346534070';
    ```
    Should become (example):
    ```javascript
@@ -176,18 +176,18 @@ To speed up the process, you can use these commands:
 ### Using sed (Linux/Mac):
 ```bash
 # Replace Publisher ID in all HTML files
-find . -name "*.html" -type f -exec sed -i 's/ca-pub-XXXXXXXXXXXXXXXX/ca-pub-YOUR_ACTUAL_ID/g' {} +
+find . -name "*.html" -type f -exec sed -i 's/ca-pub-6832553346534070/ca-pub-YOUR_ACTUAL_ID/g' {} +
 
 # Replace in ads.txt
 sed -i 's/pub-XXXXXXXXXXXXXXXX/pub-YOUR_ACTUAL_ID/g' ads.txt
 
 # Replace in adsense-config.js
-sed -i 's/ca-pub-XXXXXXXXXXXXXXXX/ca-pub-YOUR_ACTUAL_ID/g' adsense-config.js
+sed -i 's/ca-pub-6832553346534070/ca-pub-YOUR_ACTUAL_ID/g' adsense-config.js
 ```
 
 ### Using VS Code:
 1. Press `Ctrl+Shift+H` (Windows/Linux) or `Cmd+Shift+H` (Mac)
-2. Find: `ca-pub-XXXXXXXXXXXXXXXX`
+2. Find: `ca-pub-6832553346534070`
 3. Replace: `ca-pub-YOUR_ACTUAL_ID`
 4. Click "Replace All"
 
