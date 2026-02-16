@@ -1,5 +1,8 @@
 // Authentication Logic
 
+// Constants
+const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
+
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
     const tabs = document.querySelectorAll('.auth-tab');
@@ -180,10 +183,14 @@ async function handleGoogleSignIn() {
     }
     
     try {
+        // Extract the base URL (origin + pathname without query/hash)
+        const baseUrl = window.location.origin + window.location.pathname;
+        
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/'
+                // Redirect back to the current auth page to handle the OAuth callback
+                redirectTo: baseUrl
             }
         });
         
@@ -286,6 +293,23 @@ if (supabaseClient && supabaseClient.auth) {
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
             console.log('User signed in:', session.user);
+            
+            // If we're on the auth page and user just signed in (e.g., via OAuth callback),
+            // redirect to home page
+            if (window.location.pathname === '/auth.html' || window.location.pathname.endsWith('/auth.html')) {
+                // Check if this is an OAuth callback (URL will have hash parameters)
+                const isOAuthCallback = window.location.hash && (
+                    window.location.hash.includes('access_token') || 
+                    window.location.hash.includes('error')
+                );
+                
+                if (isOAuthCallback) {
+                    console.log('OAuth callback detected, redirecting to home page');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, OAUTH_REDIRECT_DELAY_MS);
+                }
+            }
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out');
         }
