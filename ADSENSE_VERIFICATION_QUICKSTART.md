@@ -27,7 +27,7 @@ Google couldn't verify your site because it was missing three critical component
 
 ### Step 2: Quick Find & Replace
 Use your code editor's find and replace feature:
-- **Find:** `ca-pub-XXXXXXXXXXXXXXXX`
+- **Find:** `ca-pub-6832553346534070`
 - **Replace:** `ca-pub-YOUR_ACTUAL_ID`
 - **Files to update:** All HTML files + `ads.txt` + `adsense-config.js`
 
