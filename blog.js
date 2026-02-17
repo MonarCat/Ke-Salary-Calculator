@@ -1,5 +1,13 @@
 // Blog JavaScript Functions
 
+// Helper function to check if Supabase is configured
+function isSupabaseConfigured() {
+    return window.supabaseClient !== null && 
+           window.supabaseClient !== undefined &&
+           typeof window.isSupabaseConfigured === 'function' &&
+           window.isSupabaseConfigured();
+}
+
 // Scroll to Top Button
 function initScrollButton() {
     const scrollBtn = document.getElementById('scrollToTop');
