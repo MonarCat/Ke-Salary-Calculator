@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post - Kenya Salary Calculator</title>
+    <meta name="description" content="Read the latest financial news and insights from Kenya Salary Calculator">
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="blog-styles.css">
+    <link rel="stylesheet" href="adsense-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>🇰🇪 Kenya Salary Calculator & Financial News Blog</p>
+    </div>
+    
+    <div class="overlay">
+        <div class="container" style="max-width: 1200px;">
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/calculator.html">Calculator</a>
+                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                <a href="/statutory-deductions-kenya.html">Deductions</a>
+                <a href="/blog.html">Blog</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <!-- AdSense Header Banner -->
+            <div id="adsense-header-banner" class="adsense-container"></div>
+
+            <!-- Blog Post Container -->
+            <div id="blogPostContainer">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading post...</p>
+                </div>
+            </div>
+
+            <!-- Back to Blog -->
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="/blog.html" style="color: #006600; text-decoration: none; font-size: 1.1em; font-weight: bold;">
+                    <i class="fas fa-arrow-left"></i> Back to All Posts
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification"></div>
+
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="blog.js"></script>
+    <script src="adsense-config.js"></script>
+</body>
+</html>
