@@ -690,6 +690,39 @@ footer a:hover {
     color: #006600;
 }
 
+.paypal-donate-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #0070ba;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    margin: 15px 0;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.paypal-donate-btn:hover {
+    background: #005ea6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.paypal-donate-btn i {
+    font-size: 20px;
+}
+
+.donate-note {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+}
+
 .payment-note {
     font-style: italic;
     margin-top: 15px;
