@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - Kenya Salary Calculator</title>
-    <meta name="description" content="Manage your profile and subscription for Kenya Salary Calculator">
+    <meta name="description" content="Manage your profile for Kenya Salary Calculator">
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
@@ -50,26 +50,6 @@
         .profile-info p {
             color: #666;
             margin: 0;
-        }
-        .subscription-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .subscription-badge.free {
-            background: #e0e0e0;
-            color: #666;
-        }
-        .subscription-badge.premium {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: white;
-        }
-        .subscription-badge.enterprise {
-            background: linear-gradient(135deg, #4169E1, #1E90FF);
-            color: white;
         }
         .profile-section h3 {
             color: #006600;
@@ -194,7 +174,6 @@
                         <div class="profile-info">
                             <h2 id="profile-name">Loading...</h2>
                             <p id="profile-email">Loading...</p>
-                            <span class="subscription-badge" id="subscription-badge">Free</span>
                         </div>
                     </div>
 
@@ -224,7 +203,6 @@
                             <div class="stat-box">
                                 <div class="number" id="downloads-count">0</div>
                                 <div class="label">Payslip Downloads This Month</div>
-                                <div class="label" style="font-size: 12px; margin-top: 5px; color: #999;" id="downloads-limit">Limit: 2/month</div>
                             </div>
                             <div class="stat-box">
                                 <div class="number" id="saved-calcs">0</div>
@@ -235,35 +213,6 @@
                                 <div class="label">Employees</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Subscription Management -->
-                <div class="profile-card">
-                    <div class="profile-section">
-                        <h3><i class="fas fa-crown"></i> Subscription</h3>
-                        <div class="profile-field">
-                            <label>Current Plan:</label>
-                            <span id="current-plan">Free</span>
-                        </div>
-                        <div class="profile-field" id="subscription-end-field" style="display: none;">
-                            <label>Next Billing Date:</label>
-                            <span id="subscription-end">-</span>
-                        </div>
-                    </div>
-
-                    <div id="upgrade-section" class="upgrade-section">
-                        <h3>🚀 Upgrade to Premium</h3>
-                        <p>Unlock unlimited downloads, employee management, and more!</p>
-                        <button class="upgrade-button" onclick="window.location.href='/subscription.html'">
-                            <i class="fas fa-star"></i> View Plans & Upgrade
-                        </button>
-                    </div>
-
-                    <div id="manage-subscription-section" style="display: none; margin-top: 20px;">
-                        <button class="action-button danger" onclick="cancelSubscription()">
-                            <i class="fas fa-times"></i> Cancel Subscription
-                        </button>
                     </div>
                 </div>
 
@@ -332,39 +281,15 @@
             });
             document.getElementById('member-since').textContent = memberSince;
             
-            // For now, show free tier stats (hardcoded until we implement database)
-            // In production, fetch from user_profiles table
-            const subscriptionTier = 'free'; // Would come from database
+            // Display user statistics
             const downloadsCount = 0; // Would come from database
             
             document.getElementById('downloads-count').textContent = downloadsCount;
-            
-            if (subscriptionTier === 'free') {
-                document.getElementById('downloads-limit').textContent = `Limit: ${downloadsCount}/2 per month`;
-                document.getElementById('upgrade-section').style.display = 'block';
-                document.getElementById('manage-subscription-section').style.display = 'none';
-            } else {
-                document.getElementById('downloads-limit').textContent = 'Unlimited';
-                document.getElementById('subscription-badge').textContent = subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1);
-                document.getElementById('subscription-badge').className = `subscription-badge ${subscriptionTier}`;
-                document.getElementById('current-plan').textContent = subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1);
-                document.getElementById('upgrade-section').style.display = 'none';
-                document.getElementById('manage-subscription-section').style.display = 'block';
-                document.getElementById('subscription-end-field').style.display = 'flex';
-            }
             
             // Show employee stat for employers
             if (accountType === 'employer') {
                 document.getElementById('employees-stat').style.display = 'block';
             }
-        }
-
-        async function cancelSubscription() {
-            if (!confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.')) {
-                return;
-            }
-            
-            alert('Subscription cancellation will be implemented with Paystack integration.');
         }
 
         // Load profile on page load

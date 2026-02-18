@@ -1,6 +1,6 @@
-# Database Schema for User Profiles and Subscriptions
+# Database Schema for User Profiles and Employee Data
 
-This document outlines the database schema needed for user profiles, subscription management, and employee data.
+This document outlines the database schema needed for user profiles and employee data.
 
 ## Tables
 
@@ -16,10 +16,6 @@ CREATE TABLE user_profiles (
   organization_name TEXT,
   organization_kra TEXT,
   phone_number TEXT,
-  subscription_tier TEXT DEFAULT 'free' CHECK (subscription_tier IN ('free', 'premium', 'enterprise')),
-  subscription_status TEXT DEFAULT 'active' CHECK (subscription_status IN ('active', 'cancelled', 'expired')),
-  subscription_start_date TIMESTAMPTZ,
-  subscription_end_date TIMESTAMPTZ,
   payslip_downloads_count INTEGER DEFAULT 0,
   downloads_reset_date TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -44,7 +40,7 @@ CREATE POLICY "Users can insert own profile" ON user_profiles
 
 ### 2. employees
 
-Stores employee data for employer accounts (Premium feature).
+Stores employee data for employer accounts.
 
 ```sql
 CREATE TABLE employees (
@@ -86,7 +82,7 @@ CREATE POLICY "Employers can delete own employees" ON employees
 
 ### 3. payslip_history
 
-Stores generated payslips for tracking and download limits.
+Stores generated payslips for tracking.
 
 ```sql
 CREATE TABLE payslip_history (
@@ -122,35 +118,7 @@ CREATE POLICY "Users can update own payslip history" ON payslip_history
   FOR UPDATE USING (auth.uid() = user_id);
 ```
 
-### 4. subscription_transactions
-
-Stores payment transaction history.
-
-```sql
-CREATE TABLE subscription_transactions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  transaction_reference TEXT UNIQUE NOT NULL,
-  amount NUMERIC(10, 2) NOT NULL,
-  currency TEXT DEFAULT 'KES',
-  payment_method TEXT,
-  payment_status TEXT CHECK (payment_status IN ('pending', 'success', 'failed', 'refunded')),
-  subscription_tier TEXT CHECK (subscription_tier IN ('premium', 'enterprise')),
-  subscription_period INTEGER DEFAULT 1, -- in months
-  paystack_reference TEXT,
-  metadata JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable Row Level Security
-ALTER TABLE subscription_transactions ENABLE ROW LEVEL SECURITY;
-
--- Policy: Users can view their own transactions
-CREATE POLICY "Users can view own transactions" ON subscription_transactions
-  FOR SELECT USING (auth.uid() = user_id);
-```
-
-### 5. saved_calculations
+### 4. saved_calculations
 
 Stores saved salary calculations for users.
 
@@ -193,70 +161,7 @@ CREATE POLICY "Users can delete own calculations" ON saved_calculations
 
 ## Functions
 
-### Function: Reset monthly download count
-
-```sql
-CREATE OR REPLACE FUNCTION reset_monthly_downloads()
-RETURNS void AS $$
-BEGIN
-  UPDATE user_profiles
-  SET payslip_downloads_count = 0,
-      downloads_reset_date = NOW()
-  WHERE downloads_reset_date < NOW() - INTERVAL '1 month'
-    AND subscription_tier = 'free';
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-### Function: Check download limit
-
-```sql
-CREATE OR REPLACE FUNCTION check_download_limit(p_user_id UUID)
-RETURNS BOOLEAN AS $$
-DECLARE
-  v_subscription_tier TEXT;
-  v_downloads_count INTEGER;
-  v_reset_date TIMESTAMPTZ;
-BEGIN
-  SELECT subscription_tier, payslip_downloads_count, downloads_reset_date
-  INTO v_subscription_tier, v_downloads_count, v_reset_date
-  FROM user_profiles
-  WHERE id = p_user_id;
-
-  -- Premium and enterprise users have unlimited downloads
-  IF v_subscription_tier IN ('premium', 'enterprise') THEN
-    RETURN TRUE;
-  END IF;
-
-  -- Reset count if a month has passed
-  IF v_reset_date < NOW() - INTERVAL '1 month' THEN
-    UPDATE user_profiles
-    SET payslip_downloads_count = 0,
-        downloads_reset_date = NOW()
-    WHERE id = p_user_id;
-    
-    RETURN TRUE;
-  END IF;
-
-  -- Check if free user has reached limit (2 downloads per month)
-  RETURN v_downloads_count < 2;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-### Function: Increment download count
-
-```sql
-CREATE OR REPLACE FUNCTION increment_download_count(p_user_id UUID)
-RETURNS void AS $$
-BEGIN
-  UPDATE user_profiles
-  SET payslip_downloads_count = payslip_downloads_count + 1
-  WHERE id = p_user_id
-    AND subscription_tier = 'free';
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
+None currently defined.
 
 ## Indexes
 
@@ -265,10 +170,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE INDEX idx_employees_employer_id ON employees(employer_id);
 CREATE INDEX idx_payslip_history_user_id ON payslip_history(user_id);
 CREATE INDEX idx_saved_calculations_user_id ON saved_calculations(user_id);
-CREATE INDEX idx_subscription_transactions_user_id ON subscription_transactions(user_id);
-
--- Optimize subscription queries
-CREATE INDEX idx_user_profiles_subscription ON user_profiles(subscription_tier, subscription_status);
 ```
 
 ## Triggers
@@ -306,14 +207,10 @@ To set up the database, run these SQL commands in order in your Supabase SQL edi
 
 1. Create all tables
 2. Enable RLS policies
-3. Create functions
-4. Create indexes
-5. Create triggers
+3. Create indexes
+4. Create triggers
 
 ## Notes
 
 - All monetary values use NUMERIC(10, 2) for precision
 - Row Level Security (RLS) is enabled on all tables to ensure users can only access their own data
-- The `check_download_limit` function should be called before allowing payslip downloads
-- The `increment_download_count` function should be called after a successful download
-- Premium and enterprise users bypass download limits
