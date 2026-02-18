@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Management - Kenya Salary Calculator</title>
-    <meta name="description" content="Manage your employees and generate payslips - Premium Feature">
+    <meta name="description" content="Manage your employees and generate payslips">
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
@@ -202,19 +202,8 @@
             </nav>
 
             <div class="employees-container">
-                <!-- Premium Required Message (shown for free users) -->
-                <div id="premium-required" class="premium-required" style="display: none;">
-                    <i class="fas fa-crown" style="font-size: 3em; margin-bottom: 20px;"></i>
-                    <h3>Premium Feature</h3>
-                    <p>Employee management is available for Premium and Enterprise subscribers.</p>
-                    <p>Upgrade now to add unlimited employees, generate bulk payslips, and send them via email!</p>
-                    <button class="upgrade-btn" onclick="window.location.href='/subscription.html'">
-                        <i class="fas fa-star"></i> Upgrade to Premium
-                    </button>
-                </div>
-
-                <!-- Employees Section (shown for premium users) -->
-                <div id="employees-section" style="display: none;">
+                <!-- Employees Section -->
+                <div id="employees-section">
                     <div class="employees-header">
                         <h2><i class="fas fa-users"></i> My Employees</h2>
                         <button class="add-employee-btn" onclick="openAddEmployeeModal()">
@@ -319,7 +308,7 @@
         let employees = []; // In production, this would come from the database
         let currentEmployeeId = null;
 
-        // Check if user has premium access
+        // Check if user is authenticated
         async function checkPremiumAccess() {
             const user = await checkAuthStatus();
             
@@ -328,18 +317,7 @@
                 return;
             }
 
-            // In production, check subscription tier from database
-            // For now, we'll show the premium required message
-            const subscriptionTier = 'free'; // Would come from database
-            
-            if (subscriptionTier === 'free') {
-                document.getElementById('premium-required').style.display = 'block';
-                document.getElementById('employees-section').style.display = 'none';
-            } else {
-                document.getElementById('premium-required').style.display = 'none';
-                document.getElementById('employees-section').style.display = 'block';
-                loadEmployees();
-            }
+            loadEmployees();
         }
 
         // Load employees from database
