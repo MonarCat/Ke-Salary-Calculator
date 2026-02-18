@@ -1,6 +1,8 @@
 # Implementation Summary
 
-## Project: Kenya Salary Calculator - Monetization & User Management System
+**NOTE: This document describes historical implementation. The subscription and Paystack features described below have been removed as the site is now completely free to use.**
+
+## Project: Kenya Salary Calculator - User Management System
 
 ### Date: February 15, 2026
 ### Status: ✅ COMPLETE

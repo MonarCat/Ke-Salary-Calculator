@@ -7,10 +7,8 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 - [Features](#features)  
 - [Installation](#installation)  
 - [Usage](#usage)  
-- [Subscription Plans](#subscription-plans)
 - [Configuration](#configuration)  
 - [Database Setup](#database-setup)
-- [Payment Integration](#payment-integration)
 - [Contributing](#contributing)  
 - [License](#license)  
 
@@ -20,32 +18,21 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 - 🧮 **Salary Calculator**: Accurately computes gross pay, PAYE, NSSF, SHIF, Housing Levy, and net salary
 - 📄 **Payslip Generator**: Creates professional, customizable payslips with company branding
 - 🔐 **User Authentication**: Secure sign-up and login with Supabase (email/password and Google OAuth)
-- 👤 **User Profiles**: Save calculations, manage subscriptions, and track usage
+- 👤 **User Profiles**: Save calculations and track usage
 - 🏢 **Account Types**: 
   - Individual accounts for personal salary calculations
   - Employer/Organization accounts for employee management
-
-### Premium Features (Subscription Required)
 - 👥 **Employee Management**: Add unlimited employees with full CRUD operations
 - 📧 **Email Distribution**: Send payslips directly to employee emails
 - 📊 **Bulk Generation**: Generate multiple payslips at once
 - 🎨 **Custom Branding**: Add company logo and details to payslips
-- ♾️ **Unlimited Downloads**: No monthly download limits
-
-### Free Tier Features
-- ✅ Unlimited salary calculations
-- ✅ PAYE and statutory deduction calculations
-- ✅ 2 payslip downloads per month
-- ✅ Save calculations
-- ❌ No employee management
-- ❌ Limited downloads
+- ♾️ **Unlimited Downloads**: No download limits
 
 ## Installation  
 
 ### Prerequisites  
 - A web browser (Chrome, Firefox, Safari, or Edge)
 - A Supabase account (free tier available at [supabase.com](https://supabase.com))
-- (Optional) Paystack account for payment processing ([paystack.com](https://paystack.com))
 
 ### Setup  
 
@@ -60,12 +47,7 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
    - Update `supabase-config.js` with your Supabase credentials
    - Set up the database schema using [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)
 
-3. **Configure Paystack (Optional):**
-   - Follow the integration guide in [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md)
-   - Update subscription.html with your Paystack public key
-   - Set up webhook endpoints for subscription management
-
-4. **Deploy or run locally:**
+3. **Deploy or run locally:**
    
    For local testing, use a local server:
    ```bash
@@ -88,7 +70,7 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 ### Getting Started
 
 1. **Visit the Landing Page:**
-   - Navigate to the home page `/` (index.html) to see the feature overview and pricing
+   - Navigate to the home page `/` (index.html) to see the feature overview
    - Click "Try Free Calculator" or "Sign Up Free"
 
 2. **Create an Account:**
@@ -105,9 +87,9 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
    - Switch to "Payslip Generator" tab
    - Enter employee details and salary information
    - Customize with company branding
-   - Print or download (subject to monthly limits for free users)
+   - Print or download payslips
 
-### For Employers (Premium)
+### For Employers
 
 1. **Manage Employees:**
    - Navigate to the Employees page
@@ -118,35 +100,6 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
    - Select multiple employees
    - Generate payslips for all at once
    - Email directly to employees
-
-## Subscription Plans
-
-### Free Plan (KES 0/month)
-- Unlimited salary calculations
-- PAYE & statutory deduction calculations
-- 2 payslip downloads per month
-- Save your calculations
-- No employee management
-
-### Premium Plan (KES 499/month) - Most Popular
-- Everything in Free
-- Add unlimited employees
-- Unlimited payslip downloads
-- Bulk payslip generation
-- Email payslips to employees
-- Custom company branding
-- Priority email support
-
-### Enterprise Plan (KES 999/month)
-- Everything in Premium
-- API access
-- Advanced reporting & analytics
-- Multi-user accounts
-- Custom integrations
-- Dedicated account manager
-- 24/7 priority support
-
-Visit `/subscription.html` to view plans and subscribe.
 
 ## Configuration  
 
@@ -162,10 +115,9 @@ Quick steps:
 ### Database Setup
 
 The application requires the following database tables:
-- `user_profiles` - User account information and subscription status
+- `user_profiles` - User account information
 - `employees` - Employee records for employer accounts
 - `payslip_history` - Track generated payslips and downloads
-- `subscription_transactions` - Payment transaction history
 - `saved_calculations` - User's saved salary calculations
 
 Follow the complete schema and setup instructions in [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
@@ -179,17 +131,6 @@ Current tax rates are configured in `script.js` based on Kenyan law:
 - **SHIF**: 2.75% of gross salary
 - **Housing Levy**: 1.5% of gross salary
 - **Personal Relief**: KES 2,400
-
-## Payment Integration
-
-The application uses Paystack for secure payment processing.
-
-See [PAYSTACK_INTEGRATION.md](PAYSTACK_INTEGRATION.md) for:
-- Setting up Paystack account
-- Configuring API keys
-- Setting up webhooks
-- Testing payments
-- Production deployment checklist
 
 ## Monetization with Google AdSense
 
@@ -206,13 +147,11 @@ The site is integrated with Google AdSense for monetization. Ads are strategical
 - `robots.txt` - Allows AdSense crawlers to access the site
 - All HTML files include AdSense verification meta tag
 
-**Note**: Premium users can enjoy an ad-free experience as part of their subscription benefits.
-
 ## Legal Pages
 
 The application includes comprehensive legal documentation:
 - `/privacy-policy.html` - Data protection and privacy practices
-- `/terms-of-service.html` - Terms, conditions, and subscription details
+- `/terms-of-service.html` - Terms and conditions
 - `/cookie-policy.html` - Cookie usage and tracking
 
 ## Contributing  
@@ -236,7 +175,6 @@ We welcome contributions! Follow these steps:
 
 - All user data is encrypted in transit and at rest
 - Passwords are hashed using Supabase Auth
-- Payment information is handled securely by Paystack
 - Row Level Security (RLS) enabled on all database tables
 - Regular security audits and updates
 
@@ -257,7 +195,6 @@ This project is licensed under the **MIT License** – see [LICENSE](LICENSE) fo
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Authentication**: Supabase Auth
 - **Database**: Supabase (PostgreSQL)
-- **Payments**: Paystack
 - **Hosting**: Netlify / Vercel / GitHub Pages
 
 ## Roadmap
