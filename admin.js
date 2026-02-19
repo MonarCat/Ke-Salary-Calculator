@@ -4,6 +4,13 @@ let currentUser = null;
 let isAdmin = false;
 let editingPostId = null;
 
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Initialize admin dashboard
 async function initAdminDashboard() {
     const loadingState = document.getElementById('loadingState');
@@ -129,7 +136,7 @@ async function loadRecentPosts() {
         data.forEach(post => {
             html += `
                 <tr>
-                    <td>${post.title}</td>
+                    <td>${escapeHtml(post.title)}</td>
                     <td><span class="status-badge status-${post.status}">${post.status}</span></td>
                     <td>${post.views_count || 0}</td>
                     <td>${new Date(post.created_at).toLocaleDateString()}</td>
@@ -168,7 +175,7 @@ async function loadAllPosts() {
         data.forEach(post => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${post.title}</td>
+                <td>${escapeHtml(post.title)}</td>
                 <td><span class="status-badge status-${post.status}">${post.status}</span></td>
                 <td>${post.views_count || 0}</td>
                 <td>${new Date(post.created_at).toLocaleDateString()}</td>
@@ -176,7 +183,7 @@ async function loadAllPosts() {
                     <button class="btn btn-small" onclick="editPost('${post.id}')">
                         <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="btn btn-small btn-danger" onclick="deletePost('${post.id}', '${post.title.replace(/'/g, "\\'")}')">
+                    <button class="btn btn-small btn-danger" data-post-id="${post.id}" data-post-title="${escapeHtml(post.title)}" onclick="deletePostFromButton(this)">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </td>
@@ -248,6 +255,13 @@ async function deletePost(postId, title) {
     }
 }
 
+// Wrapper function for delete button with data attributes
+function deletePostFromButton(button) {
+    const postId = button.getAttribute('data-post-id');
+    const title = button.getAttribute('data-post-title');
+    deletePost(postId, title);
+}
+
 // Save post (create or update)
 async function savePost(event) {
     event.preventDefault();
@@ -266,7 +280,7 @@ async function savePost(event) {
         featured_image_url: document.getElementById('post-image').value,
         status: document.getElementById('post-status').value,
         author_id: currentUser.id,
-        author_name: currentUser.user_metadata?.name || 'Admin',
+        author_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         updated_at: new Date().toISOString()
     };
     
@@ -379,9 +393,9 @@ async function loadComments() {
             
             html += `
                 <tr>
-                    <td>${postTitle}</td>
-                    <td>${comment.user_name}</td>
-                    <td>${comment.comment_text.substring(0, 100)}${comment.comment_text.length > 100 ? '...' : ''}</td>
+                    <td>${escapeHtml(postTitle)}</td>
+                    <td>${escapeHtml(comment.user_name)}</td>
+                    <td>${escapeHtml(comment.comment_text.substring(0, 100))}${comment.comment_text.length > 100 ? '...' : ''}</td>
                     <td><span class="status-badge ${statusClass}">${approved}</span></td>
                     <td>${new Date(comment.created_at).toLocaleDateString()}</td>
                     <td class="action-buttons">
