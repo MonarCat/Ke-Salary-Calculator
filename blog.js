@@ -84,6 +84,82 @@ function getUserInitials(name) {
     return name.substring(0, 2).toUpperCase();
 }
 
+// Fallback blog posts when database is unavailable
+const fallbackBlogPosts = [
+    {
+        id: 'post-1',
+        title: 'Kenya Treasury Hints at Tax Abolition for Low-Income Earners Below KES 30,000',
+        slug: 'kenya-tax-abolition-below-30000',
+        excerpt: 'The Kenya National Treasury and the Presidency are considering a significant policy shift that could see individuals earning below KES 30,000 per month exempted from income tax.',
+        content: '<h2>A New Dawn for Low-Income Earners in Kenya</h2><p>In a significant policy development that could reshape Kenya\'s tax landscape, the National Treasury and the Office of the President have hinted at a groundbreaking proposal to abolish income tax for individuals earning below KES 30,000 per month.</p><p>This potential reform comes at a critical time when many Kenyans are grappling with the rising cost of living and economic pressures.</p>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 1250,
+        published_at: '2025-01-15T10:00:00Z',
+        status: 'published'
+    },
+    {
+        id: 'post-2',
+        title: 'Understanding NSSF New Rates 2025: What Kenyan Workers Need to Know',
+        slug: 'nssf-new-rates-2025',
+        excerpt: 'The National Social Security Fund (NSSF) has implemented new contribution rates for 2025. Learn how these changes affect your salary and retirement savings.',
+        content: '<h2>NSSF Rate Changes Explained</h2><p>Starting January 2025, Kenyan workers will see changes in their NSSF deductions. The new system features a two-tier structure designed to enhance retirement savings while remaining affordable for all workers.</p><p><strong>Tier I:</strong> 6% of the first KES 7,000 (capped at KES 420)</p><p><strong>Tier II:</strong> 6% of earnings between KES 7,001 and KES 36,000 (capped at KES 1,740)</p><p>Combined maximum contribution: KES 2,160 per month.</p>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 980,
+        published_at: '2025-01-20T14:30:00Z',
+        status: 'published'
+    },
+    {
+        id: 'post-3',
+        title: 'SHIF Replaces NHIF: Complete Guide to Kenya\'s New Health Insurance',
+        slug: 'shif-replaces-nhif-guide',
+        excerpt: 'The Social Health Insurance Fund (SHIF) has officially replaced NHIF. Discover what this means for your healthcare coverage and salary deductions.',
+        content: '<h2>SHIF: Kenya\'s New Healthcare System</h2><p>The transition from NHIF to SHIF marks a significant shift in Kenya\'s healthcare financing. SHIF aims to provide more comprehensive and equitable healthcare coverage for all Kenyans.</p><h3>Key Changes:</h3><ul><li><strong>Contribution Rate:</strong> 2.75% of gross salary (more progressive than flat NHIF rates)</li><li><strong>Coverage:</strong> Expanded benefits including chronic diseases and emergency care</li><li><strong>Access:</strong> Nationwide network of healthcare facilities</li><li><strong>Family Coverage:</strong> Automatic coverage for dependents</li></ul>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 1560,
+        published_at: '2025-02-01T09:15:00Z',
+        status: 'published'
+    },
+    {
+        id: 'post-4',
+        title: 'Housing Levy Kenya 2025: Everything Employers and Employees Should Know',
+        slug: 'housing-levy-kenya-2025',
+        excerpt: 'The Affordable Housing Levy is now mandatory for all Kenyan workers. Learn about contribution rates, benefits, and how to access affordable housing.',
+        content: '<h2>Understanding the Housing Levy</h2><p>Kenya\'s Affordable Housing Levy, introduced as part of the government\'s Big Four Agenda, aims to provide affordable housing to millions of Kenyans.</p><h3>Contribution Details:</h3><ul><li><strong>Rate:</strong> 1.5% of gross salary from both employee and employer</li><li><strong>Combined:</strong> 3% total contribution per employee</li><li><strong>Cap:</strong> No upper limit currently</li></ul><h3>Benefits:</h3><p>Contributors will have priority access to affordable housing units being constructed across Kenya. The program targets building 250,000 housing units annually.</p>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 890,
+        published_at: '2025-02-05T11:45:00Z',
+        status: 'published'
+    },
+    {
+        id: 'post-5',
+        title: 'Kenya PAYE Calculator 2025: How to Calculate Your Take-Home Salary',
+        slug: 'kenya-paye-calculator-2025',
+        excerpt: 'Master the art of calculating your net salary with our comprehensive guide to Kenya\'s PAYE tax system, deductions, and reliefs.',
+        content: '<h2>Understanding PAYE in Kenya</h2><p>Pay As You Earn (PAYE) is the tax deducted from your salary by your employer. Understanding how it\'s calculated helps you plan your finances better.</p><h3>PAYE Tax Bands 2025:</h3><ul><li>Up to KES 24,000: 10%</li><li>KES 24,001 - 32,333: 25%</li><li>KES 32,334 - 500,000: 30%</li><li>KES 500,001 - 800,000: 32.5%</li><li>Above KES 800,000: 35%</li></ul><h3>Tax Relief:</h3><p>Personal relief of KES 2,400 per month is deducted from your PAYE, reducing your tax burden.</p><p><em>Use our free <a href="/calculator.html" style="color: #006600;">Kenya Salary Calculator</a> to instantly calculate your net pay.</em></p>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 2100,
+        published_at: '2025-02-10T08:00:00Z',
+        status: 'published'
+    },
+    {
+        id: 'post-6',
+        title: 'KRA PIN Registration: Step-by-Step Guide for Kenyan Employees',
+        slug: 'kra-pin-registration-guide',
+        excerpt: 'Your KRA PIN is essential for employment in Kenya. Learn how to register, verify, and use your KRA PIN for tax compliance.',
+        content: '<h2>Why You Need a KRA PIN</h2><p>A KRA Personal Identification Number (PIN) is mandatory for all Kenyan taxpayers. It\'s required for employment, opening bank accounts, and various government services.</p><h3>Registration Process:</h3><ol><li>Visit <a href="https://itax.kra.go.ke" target="_blank" rel="noopener">iTax Portal</a></li><li>Click "New PIN Registration"</li><li>Fill in personal details (ID/Passport number, email, phone)</li><li>Submit and verify via email/SMS</li><li>Download your PIN certificate</li></ol><h3>Important Tips:</h3><ul><li>Keep your PIN confidential</li><li>Update your details when they change</li><li>File your tax returns annually, even if unemployed</li><li>Check your tax compliance status regularly</li></ul>',
+        featured_image_url: 'kenyan-economy-coins.jpg',
+        author_name: 'Admin',
+        views_count: 1680,
+        published_at: '2025-02-12T10:30:00Z',
+        status: 'published'
+    }
+];
+
 // Blog Posts Management
 async function loadBlogPosts() {
     const container = document.getElementById('blogGrid');
@@ -92,13 +168,30 @@ async function loadBlogPosts() {
     try {
         container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading posts...</p></div>';
 
-        const { data: posts, error } = await supabaseClient
-            .from('blog_posts')
-            .select('*')
-            .eq('status', 'published')
-            .order('published_at', { ascending: false });
+        let posts = [];
+        
+        // Try loading from database first
+        if (supabaseClient && isSupabaseConfigured()) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('blog_posts')
+                    .select('*')
+                    .eq('status', 'published')
+                    .order('published_at', { ascending: false });
 
-        if (error) throw error;
+                if (!error && data && data.length > 0) {
+                    posts = data;
+                }
+            } catch (dbError) {
+                console.log('Database unavailable, using fallback posts:', dbError);
+            }
+        }
+        
+        // Use fallback posts if database didn't return posts
+        if (posts.length === 0) {
+            console.log('Using fallback blog posts');
+            posts = fallbackBlogPosts;
+        }
 
         if (!posts || posts.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #666;">No blog posts available yet.</p>';
@@ -112,7 +205,12 @@ async function loadBlogPosts() {
         });
     } catch (error) {
         console.error('Error loading blog posts:', error);
-        container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading posts. Please try again later.</p>';
+        // Try fallback posts on error
+        container.innerHTML = '';
+        fallbackBlogPosts.forEach(post => {
+            const card = createBlogCard(post);
+            container.appendChild(card);
+        });
     }
 }
 
@@ -124,7 +222,7 @@ function createBlogCard(post) {
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
     
     card.innerHTML = `
-        <img src="${imageUrl}" alt="${post.title}" class="blog-card-image" onerror="this.src='kenyan-economy-coins.jpg'">
+        <img src="${imageUrl}" alt="${post.title}" class="blog-card-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
         <div class="blog-card-content">
             <h2 class="blog-card-title">${post.title}</h2>
             <p class="blog-card-excerpt">${post.excerpt || ''}</p>
@@ -159,31 +257,59 @@ async function loadBlogPost() {
     try {
         container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading post...</p></div>';
 
-        // Get the post
-        const { data: post, error } = await supabaseClient
-            .from('blog_posts')
-            .select('*')
-            .eq('slug', slug)
-            .eq('status', 'published')
-            .single();
+        let post = null;
+        let reactions = {};
+        let comments = [];
 
-        if (error) throw error;
+        // Try loading from database first
+        if (supabaseClient && isSupabaseConfigured()) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('blog_posts')
+                    .select('*')
+                    .eq('slug', slug)
+                    .eq('status', 'published')
+                    .single();
 
-        // Increment view count
-        await incrementPostViews(post.id);
+                if (!error && data) {
+                    post = data;
+                    
+                    // Increment view count
+                    await incrementPostViews(post.id);
 
-        // Load reactions
-        const reactions = await loadReactions(post.id);
+                    // Load reactions and comments
+                    reactions = await loadReactions(post.id);
+                    comments = await loadComments(post.id);
+                }
+            } catch (dbError) {
+                console.log('Database unavailable, using fallback post:', dbError);
+            }
+        }
         
-        // Load comments
-        const comments = await loadComments(post.id);
+        // Use fallback post if database didn't return a post
+        if (!post) {
+            post = fallbackBlogPosts.find(p => p.slug === slug);
+            if (!post) {
+                container.innerHTML = '<p style="text-align: center; color: #CC0000;">Post not found.</p>';
+                return;
+            }
+            // For fallback posts, reactions and comments remain empty
+            reactions = {};
+            comments = [];
+        }
 
         // Render the post
         renderBlogPost(post, reactions, comments);
 
     } catch (error) {
         console.error('Error loading blog post:', error);
-        container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading post. Please try again later.</p>';
+        // Try fallback
+        const post = fallbackBlogPosts.find(p => p.slug === slug);
+        if (post) {
+            renderBlogPost(post, {}, []);
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading post. Please try again later.</p>';
+        }
     }
 }
 
@@ -218,7 +344,7 @@ function renderBlogPost(post, reactions, comments) {
                 </div>
             </div>
             
-            <img src="${imageUrl}" alt="${post.title}" class="blog-post-featured-image" onerror="this.src='kenyan-economy-coins.jpg'">
+            <img src="${imageUrl}" alt="${post.title}" class="blog-post-featured-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
             
             <div class="blog-post-content">
                 ${post.content}
