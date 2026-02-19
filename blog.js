@@ -294,8 +294,13 @@ async function loadBlogPost() {
                 return;
             }
             // For fallback posts, reactions and comments remain empty
-            reactions = {};
+            reactions = { counts: {}, userReaction: null };
             comments = [];
+        }
+        
+        // Ensure reactions has proper structure
+        if (!reactions.counts) {
+            reactions = { counts: reactions || {}, userReaction: null };
         }
 
         // Render the post
@@ -306,7 +311,7 @@ async function loadBlogPost() {
         // Try fallback
         const post = fallbackBlogPosts.find(p => p.slug === slug);
         if (post) {
-            renderBlogPost(post, {}, []);
+            renderBlogPost(post, { counts: {}, userReaction: null }, []);
         } else {
             container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading post. Please try again later.</p>';
         }
@@ -452,7 +457,7 @@ function renderBlogPost(post, reactions, comments) {
     }
 }
 
-function renderReactions(reactions, postId) {
+function renderReactions(reactions, postId, userReaction = null) {
     const reactionTypes = [
         { type: 'like', emoji: '👍', label: 'Like' },
         { type: 'love', emoji: '❤️', label: 'Love' },
@@ -463,8 +468,9 @@ function renderReactions(reactions, postId) {
 
     return reactionTypes.map(rt => {
         const count = reactions[rt.type] || 0;
+        const isActive = userReaction === rt.type ? 'active' : '';
         return `
-            <button class="reaction-button" data-type="${rt.type}" onclick="handleReaction('${postId}', '${rt.type}')">
+            <button class="reaction-button ${isActive}" data-type="${rt.type}" onclick="handleReaction('${postId}', '${rt.type}')">
                 <span class="emoji">${rt.emoji}</span>
                 <span class="label">${rt.label}</span>
                 <span class="count">${count > 0 ? count : ''}</span>
@@ -495,22 +501,38 @@ function renderComments(comments) {
 // Reactions
 async function loadReactions(postId) {
     try {
+        // Get all reactions for this post
         const { data, error } = await supabaseClient
             .from('blog_reactions')
-            .select('reaction_type')
+            .select('reaction_type, user_id')
             .eq('post_id', postId);
-
+        
         if (error) throw error;
 
-        const reactions = {};
+        // Count reactions by type
+        const counts = {};
         data.forEach(r => {
-            reactions[r.reaction_type] = (reactions[r.reaction_type] || 0) + 1;
+            counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1;
         });
+        
+        // Check if current user has reacted
+        let userReaction = null;
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                const userReactionData = data.find(r => r.user_id === user.id);
+                if (userReactionData) {
+                    userReaction = userReactionData.reaction_type;
+                }
+            }
+        } catch (authError) {
+            // User not logged in - that's okay
+        }
 
-        return reactions;
+        return { counts, userReaction };
     } catch (error) {
         console.error('Error loading reactions:', error);
-        return {};
+        return { counts: {}, userReaction: null };
     }
 }
 
@@ -574,9 +596,12 @@ async function handleReaction(postId, reactionType) {
             showToast('Reaction added', 'success');
         }
 
-        // Reload reactions
-        const reactions = await loadReactions(postId);
-        document.getElementById('reactionsSection').innerHTML = renderReactions(reactions, postId);
+        // Reload reactions with user's current reaction
+        const reactionsData = await loadReactions(postId);
+        const reactionsSection = document.getElementById('reactionsSection');
+        if (reactionsSection) {
+            reactionsSection.innerHTML = renderReactions(reactionsData.counts, postId, reactionsData.userReaction);
+        }
 
     } catch (error) {
         console.error('Error handling reaction:', error);

@@ -217,6 +217,7 @@ async function editPost(postId) {
         document.getElementById('post-excerpt').value = data.excerpt || '';
         document.getElementById('post-content').value = data.content;
         document.getElementById('post-image').value = data.featured_image_url || '';
+        document.getElementById('post-author').value = data.author_name || 'Admin';
         document.getElementById('post-status').value = data.status;
         
         // Update form title
@@ -278,9 +279,9 @@ async function savePost(event) {
         excerpt: document.getElementById('post-excerpt').value,
         content: document.getElementById('post-content').value,
         featured_image_url: document.getElementById('post-image').value,
+        author_name: document.getElementById('post-author').value || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         status: document.getElementById('post-status').value,
         author_id: currentUser.id,
-        author_name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         updated_at: new Date().toISOString()
     };
     
