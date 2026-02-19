@@ -278,8 +278,7 @@ async function loadBlogPost() {
                     await incrementPostViews(post.id);
 
                     // Load reactions and comments
-                    const reactionsData = await loadReactions(post.id);
-                    reactions = reactionsData.counts;
+                    reactions = await loadReactions(post.id);
                     comments = await loadComments(post.id);
                 }
             } catch (dbError) {
@@ -298,6 +297,11 @@ async function loadBlogPost() {
             reactions = { counts: {}, userReaction: null };
             comments = [];
         }
+        
+        // Ensure reactions has proper structure
+        if (!reactions.counts) {
+            reactions = { counts: reactions || {}, userReaction: null };
+        }
 
         // Render the post
         renderBlogPost(post, reactions, comments);
@@ -307,7 +311,7 @@ async function loadBlogPost() {
         // Try fallback
         const post = fallbackBlogPosts.find(p => p.slug === slug);
         if (post) {
-            renderBlogPost(post, {}, []);
+            renderBlogPost(post, { counts: {}, userReaction: null }, []);
         } else {
             container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading post. Please try again later.</p>';
         }
