@@ -726,6 +726,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Navigation dropdown functionality
+// Note: These functions are duplicated from script.js because blog pages
+// don't include script.js - they only load blog.js for blog-specific functionality
 function initDropdowns() {
     const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
     dropdownToggles.forEach(toggle => {
