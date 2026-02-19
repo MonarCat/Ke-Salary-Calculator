@@ -339,6 +339,23 @@ async function updateAuthUI() {
         if (user) {
             // User is logged in
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
+            
+            // Check if user is admin
+            let isAdmin = false;
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { data } = await supabaseClient
+                        .from('admin_users')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .single();
+                    isAdmin = !!data;
+                } catch (error) {
+                    // Not an admin or table doesn't exist yet
+                    isAdmin = false;
+                }
+            }
+            
             authLinks.innerHTML = `
                 <div class="user-profile">
                     <div class="user-avatar" onclick="toggleUserDropdown()">
@@ -354,6 +371,11 @@ async function updateAuthUI() {
                         <div class="user-dropdown-item" onclick="window.location.href='/profile.html'">
                             <i class="fas fa-id-card"></i> My Profile
                         </div>
+                        ${isAdmin ? `
+                        <div class="user-dropdown-item" onclick="window.location.href='/admin.html'" style="background: #006600; color: white; font-weight: bold;">
+                            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+                        </div>
+                        ` : ''}
                         <div class="user-dropdown-item" onclick="handleLogout()">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </div>

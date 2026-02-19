@@ -28,6 +28,16 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 - 🎨 **Custom Branding**: Add company logo and details to payslips
 - ♾️ **Unlimited Downloads**: No download limits
 
+### Blog Features
+- 📰 **Financial News Blog**: Keep up with Kenya's latest tax and salary news
+- ✍️ **Admin Dashboard**: Full-featured content management for kesalarycalculator@gmail.com
+- 💬 **User Comments**: Authenticated users can comment on blog posts
+- ❤️ **Reactions**: Five reaction types (Like, Love, Insightful, Celebrate, Support)
+- 👁️ **Real-Time View Tracking**: Live view count updates using Supabase Realtime
+- 🔗 **Social Sharing**: Share articles on Facebook, Twitter, LinkedIn, WhatsApp
+- 🎯 **Google AdSense**: Monetize blog content with strategically placed ads
+- 📱 **Responsive Design**: Optimized for all devices
+
 ## Installation  
 
 ### Prerequisites  
@@ -119,8 +129,33 @@ The application requires the following database tables:
 - `employees` - Employee records for employer accounts
 - `payslip_history` - Track generated payslips and downloads
 - `saved_calculations` - User's saved salary calculations
+- `blog_posts` - Blog articles with images and metadata
+- `blog_comments` - User comments on blog posts
+- `blog_reactions` - User reactions to blog posts
+- `admin_users` - Admin access control for blog management
 
-Follow the complete schema and setup instructions in [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
+Follow the complete schema and setup instructions:
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - Core application database
+- [BLOG_SCHEMA.md](BLOG_SCHEMA.md) - Blog feature database
+- [ADMIN_SETUP_GUIDE.md](ADMIN_SETUP_GUIDE.md) - Admin dashboard setup
+
+### Blog Admin Dashboard
+
+Admin user (kesalarycalculator@gmail.com) has access to:
+1. **Post Management**: Create, edit, delete blog posts
+2. **Analytics Dashboard**: View statistics (posts, views, comments, reactions)
+3. **Comment Moderation**: Approve or delete user comments
+4. **Real-Time Monitoring**: See live view counts and engagement
+
+To set up admin access:
+```bash
+# 1. Sign up at /auth.html with kesalarycalculator@gmail.com
+# 2. Run admin-setup.sql in Supabase SQL Editor
+# 3. Grant admin privileges via SQL (see ADMIN_SETUP_GUIDE.md)
+# 4. Access dashboard at /admin.html
+```
+
+See [ADMIN_SETUP_GUIDE.md](ADMIN_SETUP_GUIDE.md) for complete instructions.
 
 ### Tax Rates and Deductions
 

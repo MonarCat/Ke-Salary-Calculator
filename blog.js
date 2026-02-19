@@ -104,7 +104,7 @@ const fallbackBlogPosts = [
         slug: 'maximize-take-home-pay-strategies-2026',
         excerpt: 'In a world where living costs in Kenya are skyrocketing, who wouldn\'t want to squeeze every extra shilling from their salary? Discover seven actionable strategies to boost your take-home pay without breaking the law.',
         content: '<p>In a world where living costs in Kenya are skyrocketing—from matatu fares in Nairobi to unga prices in Kisumu—who wouldn\'t want to squeeze every extra shilling from their salary? Your gross pay is just the starting line; the real race is to the net amount hitting your M-Pesa. Buckle up as we unveil seven catchy, actionable strategies to boost your take-home pay without breaking a sweat (or the law).</p><h3>1. Master Tax Reliefs Like a Pro</h3><p>Kenya\'s tax code is packed with hidden gems. Claim personal relief (KSh 28,800 annually), insurance relief (up to KSh 60,000 for health premiums), and even savings relief for deposits in registered schemes. Example: If you\'re paying KSh 5,000 monthly for medical insurance, that\'s KSh 750 back in your pocket via reduced PAYE. Use our <a href="/calculator.html" style="color: #006600;">calculator</a> to simulate savings!</p><h3>2. Negotiate Smart Salary Packages</h3><p>Don\'t just accept the base salary—ask for tax-friendly perks. Housing allowances (up to KSh 3,000 tax-free), car benefits, or meal vouchers can pad your net without inflating taxes. In 2026, with remote work booming, negotiate internet reimbursements too. Pro tip: Research industry averages on sites like Glassdoor to back your ask.</p><h3>3. Contribute to Retirement Funds</h3><p>Pumping money into NSSF or private pensions isn\'t just future-proofing; it\'s tax-deductible up to KSh 20,000 monthly. That\'s instant savings on PAYE. Imagine deferring taxes while building a nest egg—win-win!</p><h3>4. Track and Deduct Business Expenses</h3><p>Freelancers and side-hustlers, rejoice! Home office setups, travel costs, and professional development can be deducted if self-employed. Keep receipts and file accurately via iTax to reclaim what\'s yours.</p><h3>5. Optimize Deduction Timing</h3><p>Time bonuses or allowances to fall in lower tax brackets. For high earners, spreading income across years can drop you from 30% to 25% bands.</p><h3>6. Stay Ahead of Statutory Changes</h3><p>2026 brings SHIF fully online, potentially altering deductions. Subscribe to KRA updates or our blog for alerts. Knowledge is power—and extra pay!</p><h3>7. Use Tech Tools for Precision</h3><p>Ditch spreadsheets; our free <a href="/payslip-generator-kenya.html" style="color: #006600;">payslip generator</a> and <a href="/calculator.html" style="color: #006600;">salary calculator</a> ensure error-free computations, spotting over-deductions instantly.</p><p>Implementing these could add thousands to your monthly net. Take Jane, a teacher in Mombasa: By claiming reliefs and restructuring her package, she boosted her take-home by 15%. Your turn—calculate your potential at salarycalculator.co.ke and start maximizing today!</p>',
-        featured_image_url: 'kenyan-economy-coins.jpg',
+        featured_image_url: 'by wirestock on Freepik.jpg',
         author_name: 'Admin',
         views_count: 2340,
         published_at: '2026-02-16T10:30:00Z',
@@ -116,7 +116,7 @@ const fallbackBlogPosts = [
         slug: '2026-tax-law-updates-kenya',
         excerpt: 'Tax laws in Kenya evolve faster than Nairobi traffic. With Finance Bill tweaks, new levies, and digital shifts in 2026, staying updated isn\'t just smart—it\'s profitable.',
         content: '<p>Tax laws in Kenya evolve faster than Nairobi traffic, and 2026 is no exception. With Finance Bill tweaks, new levies, and digital shifts, staying updated isn\'t just smart—it\'s profitable. This article breaks down the must-know changes, their impact on your salary, and how to adapt for a smoother financial ride.</p><h3>Key Changes in the 2026 Finance Act</h3><ul><li><strong>PAYE Bands Adjustment</strong>: Thresholds rise slightly to account for inflation—first band now up to KSh 25,000 at 10%, easing burden on low earners. Proposed expansions to KSh 30,000 at 10% and a new 25% for up to KSh 50,000.</li><li><strong>SHIF Rollout</strong>: Replacing NHIF, contributions start at 2.75% of gross salary, capped at KSh 5,000 monthly, with better benefits like outpatient coverage.</li><li><strong>Housing Levy Tweaks</strong>: Now 1.5% matched, but exemptions for low-income housing loans.</li><li><strong>Digital Tax Services</strong>: Mandatory e-filing for all, with AI audits for discrepancies via eTIMS validation starting January 2026.</li></ul><h3>Impact on Your Paycheck</h3><p>For an average KSh 60,000 earner:</p><ul><li>Old NHIF: KSh 1,200.</li><li>New SHIF: ~KSh 1,650.</li><li>But expanded reliefs offset this for many.</li></ul><p>High earners face stiffer penalties for non-compliance, up to KSh 100,000 fines.</p><h3>How to Prepare and Save</h3><ol><li><strong>Update Your Details</strong>: Link your PIN to SHIF portal ASAP.</li><li><strong>Review Contracts</strong>: Ensure employers adjust for new bands.</li><li><strong>Seek Professional Advice</strong>: For complex cases, consult a tax expert.</li><li><strong>Leverage Tools</strong>: Our <a href="/paye-calculator-kenya.html" style="color: #006600;">PAYE calculator</a> incorporates all 2026 updates—test scenarios free!</li></ol><p>These changes aim for equity and efficiency, funding infrastructure like the SGR extensions. Don\'t get caught off-guard; plug in your details at <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a> and sail through tax season unscathed.</p>',
-        featured_image_url: 'kenyan-economy-coins.jpg',
+        featured_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
         views_count: 1920,
         published_at: '2026-02-17T09:15:00Z',
@@ -128,7 +128,7 @@ const fallbackBlogPosts = [
         slug: 'salary-negotiation-tips-kenya-2026',
         excerpt: 'In Kenya\'s cutthroat job scene, nailing salary negotiations can transform your career trajectory. Empower yourself with these tips to demand what you\'re worth in 2026.',
         content: '<p>In Kenya\'s cutthroat job scene, where talent is abundant but opportunities are golden, nailing salary negotiations can transform your career trajectory. Gone are the days of accepting the first offer—empower yourself with these catchy tips to demand (and get) what you\'re worth in 2026.</p><h3>Prep Like a Boss</h3><p>Research is key: Use platforms like MyJobMag or BrighterMonday for salary benchmarks. Know your value—factor in experience, skills, and location (Nairobi pays 20% more than rural areas).</p><h3>Timing is Everything</h3><p>Negotiate after a job offer, not during interviews. Leverage performance reviews for raises.</p><h3>Craft Your Pitch</h3><ul><li>Highlight achievements: "I increased sales by 30%—that\'s worth KSh X more."</li><li>Bundle requests: Salary + benefits like flexible hours.</li><li>Be flexible: If no to cash, yes to training or bonuses.</li></ul><h3>Handle Objections Gracefully</h3><p>If they say "budget constraints," counter with "What about performance-based incentives?"</p><h3>Cultural Nuances in Kenya</h3><p>Build rapport—Kenyans value relationships. Use polite language: "I\'d appreciate if we could discuss..."</p><p>Success story: Alex, an IT specialist, negotiated a 25% hike by presenting data. You can too! Simulate your ideal salary with our <a href="/calculator.html" style="color: #006600;">calculator</a> at salarycalculator.co.ke and step into negotiations armed and confident.</p>',
-        featured_image_url: 'kenyan-economy-coins.jpg',
+        featured_image_url: 'JT Banner Gemini_Generated_Image_.png',
         author_name: 'Admin',
         views_count: 1750,
         published_at: '2026-02-18T11:00:00Z',
@@ -317,8 +317,45 @@ async function incrementPostViews(postId) {
     try {
         const { error } = await supabaseClient.rpc('increment_post_views', { p_post_id: postId });
         if (error) console.error('Error incrementing views:', error);
+        
+        // Setup real-time subscription for view count updates
+        setupViewCountSubscription(postId);
     } catch (error) {
         console.error('Error incrementing views:', error);
+    }
+}
+
+// Setup real-time subscription for view count updates
+function setupViewCountSubscription(postId) {
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+    
+    try {
+        const subscription = supabaseClient
+            .channel(`post-${postId}-views`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'blog_posts',
+                    filter: `id=eq.${postId}`
+                },
+                (payload) => {
+                    // Update view count in real-time
+                    const viewElement = document.querySelector('.blog-post-views');
+                    if (viewElement && payload.new.views_count) {
+                        viewElement.innerHTML = `<i class="fas fa-eye"></i> ${payload.new.views_count} views`;
+                    }
+                }
+            )
+            .subscribe();
+        
+        // Cleanup subscription when page unloads
+        window.addEventListener('beforeunload', () => {
+            subscription.unsubscribe();
+        });
+    } catch (error) {
+        console.error('Error setting up realtime subscription:', error);
     }
 }
 

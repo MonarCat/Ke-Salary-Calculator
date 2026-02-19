@@ -1,0 +1,237 @@
+-- Admin Setup Script for Blog Management
+-- This script adds admin role functionality and policies for kesalarycalculator@gmail.com
+
+-- 1. Create admin_users table to track admin users
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  email TEXT NOT NULL UNIQUE,
+  is_super_admin BOOLEAN DEFAULT FALSE,
+  granted_at TIMESTAMPTZ DEFAULT NOW(),
+  granted_by UUID REFERENCES auth.users(id)
+);
+
+-- Enable RLS on admin_users
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can check if they are admin (needed for UI)
+DROP POLICY IF EXISTS "Users can check own admin status" ON admin_users;
+CREATE POLICY "Users can check own admin status" ON admin_users
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Policy: Super admins can view all admins
+DROP POLICY IF EXISTS "Super admins can view all admins" ON admin_users;
+CREATE POLICY "Super admins can view all admins" ON admin_users
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM admin_users 
+      WHERE user_id = auth.uid() AND is_super_admin = TRUE
+    )
+  );
+
+-- Policy: Super admins can grant admin access
+DROP POLICY IF EXISTS "Super admins can grant admin" ON admin_users;
+CREATE POLICY "Super admins can grant admin" ON admin_users
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM admin_users 
+      WHERE user_id = auth.uid() AND is_super_admin = TRUE
+    )
+  );
+
+-- 2. Create helper function to check if user is admin
+CREATE OR REPLACE FUNCTION is_admin(check_user_id UUID DEFAULT NULL)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- Use provided user_id or current authenticated user
+  v_user_id := COALESCE(check_user_id, auth.uid());
+  
+  -- Check if user exists in admin_users table
+  RETURN EXISTS (
+    SELECT 1 FROM admin_users 
+    WHERE user_id = v_user_id
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 3. Update blog_posts policies to allow admin full access
+DROP POLICY IF EXISTS "Admins can update any post" ON blog_posts;
+CREATE POLICY "Admins can update any post" ON blog_posts
+  FOR UPDATE USING (
+    is_admin() OR auth.uid() = author_id
+  );
+
+DROP POLICY IF EXISTS "Admins can delete any post" ON blog_posts;
+CREATE POLICY "Admins can delete any post" ON blog_posts
+  FOR DELETE USING (
+    is_admin() OR auth.uid() = author_id
+  );
+
+DROP POLICY IF EXISTS "Admins can view all posts" ON blog_posts;
+CREATE POLICY "Admins can view all posts" ON blog_posts
+  FOR SELECT USING (
+    status = 'published' OR is_admin() OR auth.uid() = author_id
+  );
+
+-- 4. Update blog_comments policies for admin moderation
+DROP POLICY IF EXISTS "Admins can view all comments" ON blog_comments;
+CREATE POLICY "Admins can view all comments" ON blog_comments
+  FOR SELECT USING (
+    is_approved = TRUE OR is_admin() OR auth.uid() = user_id
+  );
+
+DROP POLICY IF EXISTS "Admins can moderate comments" ON blog_comments;
+CREATE POLICY "Admins can moderate comments" ON blog_comments
+  FOR UPDATE USING (
+    is_admin() OR auth.uid() = user_id
+  );
+
+DROP POLICY IF EXISTS "Admins can delete any comment" ON blog_comments;
+CREATE POLICY "Admins can delete any comment" ON blog_comments
+  FOR DELETE USING (
+    is_admin() OR auth.uid() = user_id
+  );
+
+-- 5. Add admin email (needs to be run AFTER user signs up)
+-- IMPORTANT: The user kesalarycalculator@gmail.com must sign up first through the auth.html page
+-- Then run this query with the actual user_id from auth.users table:
+--
+-- INSERT INTO admin_users (user_id, email, is_super_admin)
+-- VALUES (
+--   (SELECT id FROM auth.users WHERE email = 'kesalarycalculator@gmail.com'),
+--   'kesalarycalculator@gmail.com',
+--   TRUE
+-- )
+-- ON CONFLICT (email) DO NOTHING;
+
+-- 6. Create function to grant admin access (for super admin use)
+CREATE OR REPLACE FUNCTION grant_admin_access(admin_email TEXT)
+RETURNS TEXT AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  -- Check if caller is super admin
+  IF NOT EXISTS (
+    SELECT 1 FROM admin_users 
+    WHERE user_id = auth.uid() AND is_super_admin = TRUE
+  ) THEN
+    RETURN 'ERROR: Only super admins can grant admin access';
+  END IF;
+  
+  -- Get user_id for the email
+  SELECT id INTO v_user_id
+  FROM auth.users
+  WHERE email = admin_email;
+  
+  IF v_user_id IS NULL THEN
+    RETURN 'ERROR: User with email ' || admin_email || ' not found';
+  END IF;
+  
+  -- Insert admin user
+  INSERT INTO admin_users (user_id, email, is_super_admin, granted_by)
+  VALUES (v_user_id, admin_email, FALSE, auth.uid())
+  ON CONFLICT (email) DO NOTHING;
+  
+  RETURN 'SUCCESS: Admin access granted to ' || admin_email;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 7. Create analytics functions for admin dashboard
+CREATE OR REPLACE FUNCTION get_blog_stats()
+RETURNS TABLE(
+  total_posts BIGINT,
+  total_comments BIGINT,
+  total_reactions BIGINT,
+  total_views BIGINT,
+  posts_this_month BIGINT,
+  comments_this_month BIGINT
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    (SELECT COUNT(*) FROM blog_posts WHERE status = 'published') as total_posts,
+    (SELECT COUNT(*) FROM blog_comments WHERE is_approved = TRUE) as total_comments,
+    (SELECT COUNT(*) FROM blog_reactions) as total_reactions,
+    (SELECT COALESCE(SUM(views_count), 0) FROM blog_posts) as total_views,
+    (SELECT COUNT(*) FROM blog_posts 
+     WHERE created_at >= date_trunc('month', NOW())) as posts_this_month,
+    (SELECT COUNT(*) FROM blog_comments 
+     WHERE created_at >= date_trunc('month', NOW())) as comments_this_month;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. Create function to get pending comments (for moderation)
+CREATE OR REPLACE FUNCTION get_pending_comments()
+RETURNS TABLE(
+  id UUID,
+  post_id UUID,
+  post_title TEXT,
+  user_name TEXT,
+  comment_text TEXT,
+  created_at TIMESTAMPTZ
+) AS $$
+BEGIN
+  -- Only admins can view pending comments
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Admin access required';
+  END IF;
+  
+  RETURN QUERY
+  SELECT 
+    bc.id,
+    bc.post_id,
+    bp.title as post_title,
+    bc.user_name,
+    bc.comment_text,
+    bc.created_at
+  FROM blog_comments bc
+  JOIN blog_posts bp ON bc.post_id = bp.id
+  WHERE bc.is_approved = FALSE
+  ORDER BY bc.created_at DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 9. Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_user_id ON admin_users(user_id);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_author_id ON blog_posts(author_id);
+
+-- 10. Create view count realtime update function
+CREATE OR REPLACE FUNCTION increment_post_views_realtime(p_post_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  v_new_count INTEGER;
+BEGIN
+  UPDATE blog_posts
+  SET views_count = views_count + 1,
+      updated_at = NOW()
+  WHERE id = p_post_id
+  RETURNING views_count INTO v_new_count;
+  
+  RETURN COALESCE(v_new_count, 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Success message
+DO $$
+BEGIN
+  RAISE NOTICE '===========================================';
+  RAISE NOTICE 'Admin setup completed successfully!';
+  RAISE NOTICE '===========================================';
+  RAISE NOTICE 'Next steps:';
+  RAISE NOTICE '1. Have kesalarycalculator@gmail.com sign up via auth.html';
+  RAISE NOTICE '2. Run this SQL to grant admin access:';
+  RAISE NOTICE '';
+  RAISE NOTICE 'INSERT INTO admin_users (user_id, email, is_super_admin)';
+  RAISE NOTICE 'VALUES (';
+  RAISE NOTICE '  (SELECT id FROM auth.users WHERE email = ''kesalarycalculator@gmail.com''),';
+  RAISE NOTICE '  ''kesalarycalculator@gmail.com'',';
+  RAISE NOTICE '  TRUE';
+  RAISE NOTICE ')';
+  RAISE NOTICE 'ON CONFLICT (email) DO NOTHING;';
+  RAISE NOTICE '';
+  RAISE NOTICE '3. Access admin dashboard at /admin.html';
+  RAISE NOTICE '===========================================';
+END $$;

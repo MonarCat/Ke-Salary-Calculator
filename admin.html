@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Kenya Salary Calculator</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link rel="stylesheet" href="blog-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .admin-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+        
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .admin-tab {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #ddd;
+            border-bottom: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .admin-tab:hover {
+            background: #f5f5f5;
+        }
+        
+        .admin-tab.active {
+            background: #006600;
+            color: white;
+            border-color: #006600;
+        }
+        
+        .admin-panel {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-panel.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+        
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .form-group textarea.content-editor {
+            min-height: 400px;
+            font-family: monospace;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background: #006600;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #009900;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-danger {
+            background: #CC0000;
+        }
+        
+        .btn-danger:hover {
+            background: #990000;
+        }
+        
+        .btn-secondary {
+            background: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #888;
+        }
+        
+        .posts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .posts-table th,
+        .posts-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .posts-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .posts-table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-published {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-archived {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .access-denied {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .access-denied i {
+            font-size: 4em;
+            color: #CC0000;
+            margin-bottom: 20px;
+        }
+        
+        .slug-preview {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-tabs {
+                overflow-x: auto;
+            }
+            
+            .admin-tab {
+                white-space: nowrap;
+            }
+            
+            .posts-table {
+                font-size: 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>🇰🇪 Admin Dashboard - Kenya Salary Calculator</p>
+    </div>
+    
+    <div class="overlay">
+        <div class="admin-container">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading admin dashboard...</p>
+            </div>
+            
+            <!-- Access Denied State -->
+            <div id="accessDenied" class="access-denied" style="display: none;">
+                <i class="fas fa-lock"></i>
+                <h2>Access Denied</h2>
+                <p>You need admin privileges to access this page.</p>
+                <p><a href="/auth.html" class="btn">Sign In</a></p>
+            </div>
+            
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" style="display: none;">
+                <div class="admin-header">
+                    <h1><i class="fas fa-tachometer-alt"></i> Blog Admin Dashboard</h1>
+                    <p>Manage blog posts, comments, and analytics</p>
+                </div>
+                
+                <!-- Admin Tabs -->
+                <div class="admin-tabs">
+                    <div class="admin-tab active" onclick="switchTab('dashboard')">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </div>
+                    <div class="admin-tab" onclick="switchTab('posts')">
+                        <i class="fas fa-newspaper"></i> Manage Posts
+                    </div>
+                    <div class="admin-tab" onclick="switchTab('create')">
+                        <i class="fas fa-plus-circle"></i> Create Post
+                    </div>
+                    <div class="admin-tab" onclick="switchTab('comments')">
+                        <i class="fas fa-comments"></i> Comments
+                    </div>
+                </div>
+                
+                <!-- Dashboard Panel -->
+                <div id="panel-dashboard" class="admin-panel active">
+                    <h2>Analytics Overview</h2>
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <h3 id="stat-posts">-</h3>
+                            <p>Total Posts</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="stat-views">-</h3>
+                            <p>Total Views</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="stat-comments">-</h3>
+                            <p>Total Comments</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="stat-reactions">-</h3>
+                            <p>Total Reactions</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Recent Posts</h3>
+                    <div id="recentPosts"></div>
+                </div>
+                
+                <!-- Manage Posts Panel -->
+                <div id="panel-posts" class="admin-panel">
+                    <h2>Manage Blog Posts</h2>
+                    <div id="postsMessage"></div>
+                    <table class="posts-table" id="postsTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Views</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postsTableBody">
+                            <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Create/Edit Post Panel -->
+                <div id="panel-create" class="admin-panel">
+                    <h2 id="createFormTitle">Create New Blog Post</h2>
+                    <div id="createMessage"></div>
+                    
+                    <form id="postForm" onsubmit="savePost(event)">
+                        <input type="hidden" id="post-id" value="">
+                        
+                        <div class="form-group">
+                            <label for="post-title">Title *</label>
+                            <input type="text" id="post-title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-slug">URL Slug *</label>
+                            <input type="text" id="post-slug" required>
+                            <div class="slug-preview">Preview: /blog-post.html?slug=<span id="slug-preview">your-post-slug</span></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-excerpt">Excerpt</label>
+                            <textarea id="post-excerpt" placeholder="Brief summary of the post (150-200 characters)"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-content">Content (HTML) *</label>
+                            <textarea id="post-content" class="content-editor" required placeholder="<p>Your blog post content in HTML...</p>"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-image">Featured Image URL *</label>
+                            <input type="text" id="post-image" required placeholder="image-filename.jpg">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-status">Status</label>
+                            <select id="post-status">
+                                <option value="draft">Draft</option>
+                                <option value="published" selected>Published</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn">
+                                <i class="fas fa-save"></i> Save Post
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetPostForm()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Comments Panel -->
+                <div id="panel-comments" class="admin-panel">
+                    <h2>Comment Moderation</h2>
+                    <div id="commentsMessage"></div>
+                    <div id="commentsList"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="/blog.html" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Blog
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast-notification"></div>
+    
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="blog.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
