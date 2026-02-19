@@ -5,13 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator</title>
     <meta name="description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
+    <meta name="keywords" content="Kenya salary calculator, PAYE calculator Kenya, NSSF calculator, SHIF calculator, Housing Levy, payslip generator, net salary Kenya, KRA tax calculator">
+    <meta name="author" content="Kenya Salary Calculator">
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/">
+    <meta property="og:title" content="Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator">
+    <meta property="og:description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://salarycalculator.co.ke/">
+    <meta property="twitter:title" content="Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator">
+    <meta property="twitter:description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
+    <meta property="twitter:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="blog-styles.css">
     <link rel="stylesheet" href="adsense-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Kenya Salary Calculator",
+      "url": "https://salarycalculator.co.ke/",
+      "description": "Free online salary calculator for Kenya. Calculate PAYE, NSSF, SHIF, Housing Levy and net salary instantly.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KES"
+      }
+    }
+    </script>
     <style>
         .hero-section {
             text-align: center;
@@ -218,14 +257,39 @@
     <div class="overlay">
         <div class="container">
             <!-- Navigation Menu -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <nav class="main-nav">
                 <a href="/" class="active">Home</a>
-                <a href="/calculator.html">Calculator</a>
-                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                <a href="/statutory-deductions-kenya.html">Deductions</a>
+                
+                <!-- Calculators Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                    </div>
+                </div>
+                
                 <a href="/blog.html">Blog</a>
-                <a href="/about-us.html">About Us</a>
-                <a href="/contact-us.html">Contact Us</a>
+                
+                <!-- More Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        More <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/about-us.html">About Us</a>
+                        <a href="/contact-us.html">Contact Us</a>
+                        <a href="/employees.html">Manage Employees</a>
+                    </div>
+                </div>
+                
                 <div id="auth-links" class="auth-links-container"></div>
             </nav>
 

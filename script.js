@@ -298,3 +298,44 @@ window.onload = () => {
         document.getElementById('payslipNumber').value = saved.payslipNumber;
     }
 };
+
+// Navigation dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle dropdown toggles
+    const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = this.closest('.nav-dropdown');
+            
+            // Close other dropdowns
+            document.querySelectorAll('.nav-dropdown').forEach(d => {
+                if (d !== dropdown) {
+                    d.classList.remove('open');
+                }
+            });
+            
+            // Toggle current dropdown
+            dropdown.classList.toggle('open');
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-dropdown')) {
+            document.querySelectorAll('.nav-dropdown').forEach(d => {
+                d.classList.remove('open');
+            });
+        }
+    });
+    
+    // Mobile menu toggle
+    const mobileToggle = document.querySelector('.mobile-menu-toggle');
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const nav = document.querySelector('.main-nav');
+            nav.classList.toggle('mobile-open');
+        });
+    }
+});

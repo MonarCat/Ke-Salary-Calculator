@@ -21,12 +21,40 @@
             <h1>Kenya Salary Calculator</h1>
             
             <!-- Navigation Menu -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <nav class="main-nav">
                 <a href="/">Home</a>
-                <a href="/calculator.html">Calculator</a>
-                <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                
+                <!-- Calculators Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                    </div>
+                </div>
+                
+                <a href="/blog.html">Blog</a>
+                
+                <!-- More Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        More <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/about-us.html">About Us</a>
+                        <a href="/contact-us.html">Contact Us</a>
+                        <a href="/employees.html">Manage Employees</a>
+                    </div>
+                </div>
+                
+                <div id="auth-links" class="auth-links-container"></div>
             </nav>
 
             <!-- Auth Container -->
