@@ -319,7 +319,7 @@
             </div>
 
             <!-- Stats Section -->
-            <div class="stats-section">
+            <div class="stats-section auth-only-section" style="display:none;">
                 <div class="stat-item">
                     <span class="stat-number">10K+</span>
                     <span class="stat-label">Active Users</span>
@@ -335,10 +335,10 @@
             </div>
 
             <!-- AdSense In-Content Ad -->
-            <div id="adsense-in-content" class="adsense-container"></div>
+            <div id="adsense-in-content" class="adsense-container auth-only-section" style="display:none;"></div>
 
             <!-- Features Grid -->
-            <div class="features-grid">
+            <div class="features-grid auth-only-section" style="display:none;">
                 <div class="feature-card">
                     <i class="fas fa-calculator"></i>
                     <h3>Accurate Calculations</h3>
@@ -372,7 +372,7 @@
             </div>
 
             <!-- Who Should Use This -->
-            <div class="info-section">
+            <div class="info-section auth-only-section" style="display:none;">
                 <h2>Who Uses Kenya Salary Calculator?</h2>
                 <div class="features-grid" style="margin-top: 30px;">
                     <div class="feature-card">
@@ -399,7 +399,7 @@
             </div>
 
             <!-- Trust Signals -->
-            <div style="text-align: center; margin: 40px 0; padding: 30px; background: white; border-radius: 10px;">
+            <div class="auth-only-section" style="text-align: center; margin: 40px 0; padding: 30px; background: white; border-radius: 10px; display:none;">
                 <h2 style="color: #006600; margin-bottom: 20px;">Why Trust Us?</h2>
                 <div class="features-grid" style="max-width: 800px; margin: 0 auto;">
                     <div style="text-align: center;">
@@ -459,5 +459,22 @@
     <script src="auth.js"></script>
     <script src="blog.js"></script>
     <script src="adsense-config.js"></script>
+    <script>
+        // Show additional sections only when user is logged in
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (supabaseClient && supabaseClient.auth) {
+                try {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session) {
+                        document.querySelectorAll('.auth-only-section').forEach(function(el) {
+                            el.style.display = 'block';
+                        });
+                    }
+                } catch (e) {
+                    // Supabase unavailable - keep sections hidden
+                }
+            }
+        });
+    </script>
 </body>
 </html>

@@ -124,6 +124,7 @@ h1::after {
     cursor: pointer;
     display: inline-block;
     position: relative;
+    text-align: center;
 }
 
 .main-nav a:hover,
@@ -280,13 +281,13 @@ h1::after {
 }
 
 .auth-links-container {
-    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 /* User Profile Dropdown */
 .user-profile {
     position: relative;
-    margin-left: auto;
 }
 
 .user-avatar {

@@ -1,5 +1,10 @@
 // Blog JavaScript Functions
 
+// Current user ID for comment editing
+let _currentUserId = null;
+// Current post comments cache for re-rendering after auth resolves
+let _currentPostComments = [];
+
 // Helper function to check if Supabase is configured
 function isSupabaseConfigured() {
     return window.supabaseClient !== null && 
@@ -378,6 +383,9 @@ function renderBlogPost(post, reactions, comments) {
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
     const secondaryImageUrl = post.secondary_image_url || 'nairobi_wh10.jpg';
 
+    // Cache comments for re-rendering after auth resolves
+    _currentPostComments = comments || [];
+
     // Split content at the midpoint (after first </h3> or </p> past the halfway mark)
     const rawContent = post.content || '';
     const mid = Math.floor(rawContent.length / 2);
@@ -516,8 +524,13 @@ function renderComments(comments) {
         return '<p style="text-align: center; color: #999;">No comments yet. Be the first to comment!</p>';
     }
 
-    return comments.map(comment => `
-        <div class="comment">
+    return comments.map(comment => {
+        const canEdit = _currentUserId && comment.user_id === _currentUserId;
+        const editBtn = canEdit
+            ? `<button class="comment-action-btn" onclick="startEditComment('${comment.id}')" title="Edit comment"><i class="fas fa-edit"></i> Edit</button>`
+            : '';
+        return `
+        <div class="comment" id="comment-${comment.id}">
             <div class="comment-header">
                 <div class="comment-author">
                     <div class="comment-avatar">${getUserInitials(comment.user_name)}</div>
@@ -525,9 +538,10 @@ function renderComments(comments) {
                 </div>
                 <span class="comment-date">${formatRelativeTime(comment.created_at)}</span>
             </div>
-            <div class="comment-text">${comment.comment_text}</div>
-        </div>
-    `).join('');
+            <div class="comment-text" id="comment-text-${comment.id}">${comment.comment_text}</div>
+            <div class="comment-actions">${editBtn}</div>
+        </div>`;
+    }).join('');
 }
 
 // Reactions
@@ -685,19 +699,27 @@ async function initCommentForm(postId) {
 
         const userName = profile?.full_name || user.email?.split('@')[0] || 'Anonymous';
 
+        _currentUserId = user.id;
+
         formContent.innerHTML = `
             <div class="form-group">
                 <label>Name</label>
                 <input type="text" id="commentName" value="${userName}" readonly style="background: #f0f0f0;">
             </div>
             <div class="form-group">
-                <label>Comment</label>
-                <textarea id="commentText" placeholder="Share your thoughts..." required></textarea>
+                <label for="commentText">Write your comment</label>
+                <textarea id="commentText" placeholder="Share your thoughts on this article..." required style="min-height:140px; border:2px solid #006600; font-size:1em;"></textarea>
             </div>
             <button type="button" class="submit-comment-btn" onclick="submitComment('${postId}')">
-                Post Comment
+                <i class="fas fa-paper-plane"></i> Post Comment
             </button>
         `;
+
+        // Re-render comments list now that we know the current user (to show edit buttons)
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList && _currentPostComments.length > 0) {
+            commentsList.innerHTML = renderComments(_currentPostComments);
+        }
     } catch (error) {
         console.error('Error initializing comment form:', error);
         formContent.innerHTML = '<p style="text-align: center;"><a href="auth.html">Sign in</a> to leave a comment</p>';
@@ -729,7 +751,7 @@ async function submitComment(postId) {
 
         const btn = document.querySelector('.submit-comment-btn');
         btn.disabled = true;
-        btn.textContent = 'Posting...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
 
         const { error } = await supabaseClient
             .from('blog_comments')
@@ -760,8 +782,97 @@ async function submitComment(postId) {
         const btn = document.querySelector('.submit-comment-btn');
         if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Post Comment';
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
         }
+    }
+}
+
+// Start inline editing for a comment
+function startEditComment(commentId) {
+    const textEl = document.getElementById(`comment-text-${commentId}`);
+    if (!textEl) return;
+
+    // Get the current text from the cached comments data (avoids XSS via innerHTML)
+    const cached = _currentPostComments.find(c => c.id === commentId);
+    const currentText = cached ? cached.comment_text : textEl.textContent.trim();
+
+    // Build edit UI safely
+    const wrapper = document.createElement('div');
+
+    const textarea = document.createElement('textarea');
+    textarea.id = `edit-textarea-${commentId}`;
+    textarea.value = currentText;
+    textarea.style.cssText = 'width:100%; min-height:100px; border:2px solid #006600; border-radius:5px; padding:8px; font-size:1em; font-family:inherit; resize:vertical;';
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'margin-top:8px; display:flex; gap:10px;';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'submit-comment-btn';
+    saveBtn.style.cssText = 'padding:8px 18px; font-size:0.9em;';
+    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save';
+    saveBtn.onclick = () => saveEditComment(commentId);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'comment-action-btn';
+    cancelBtn.style.cssText = 'padding:8px 14px; border:1px solid #ccc; border-radius:5px; background:#f5f5f5; font-size:0.9em;';
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
+    cancelBtn.onclick = () => cancelEditComment(commentId, currentText);
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(cancelBtn);
+    wrapper.appendChild(textarea);
+    wrapper.appendChild(btnRow);
+
+    textEl.innerHTML = '';
+    textEl.appendChild(wrapper);
+    textarea.focus();
+}
+
+// Cancel editing and restore original text safely
+function cancelEditComment(commentId, originalText) {
+    const textEl = document.getElementById(`comment-text-${commentId}`);
+    if (textEl) {
+        textEl.innerHTML = '';
+        textEl.textContent = originalText;
+    }
+}
+
+// Save edited comment to the database
+async function saveEditComment(commentId) {
+    const textarea = document.getElementById(`edit-textarea-${commentId}`);
+    if (!textarea) return;
+    const newText = textarea.value.trim();
+    if (!newText) {
+        showToast('Comment cannot be empty', 'error');
+        return;
+    }
+    if (!supabaseClient || !isSupabaseConfigured()) {
+        showToast('Unable to save: not connected', 'error');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient
+            .from('blog_comments')
+            .update({ comment_text: newText })
+            .eq('id', commentId)
+            .eq('user_id', _currentUserId);
+        if (error) throw error;
+
+        // Update cached data
+        const cached = _currentPostComments.find(c => c.id === commentId);
+        if (cached) cached.comment_text = newText;
+
+        // Restore display safely using textContent
+        const textEl = document.getElementById(`comment-text-${commentId}`);
+        if (textEl) {
+            textEl.innerHTML = '';
+            textEl.textContent = newText;
+        }
+        showToast('Comment updated', 'success');
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        showToast('Error updating comment', 'error');
     }
 }
 
