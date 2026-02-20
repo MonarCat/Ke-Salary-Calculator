@@ -296,7 +296,7 @@ async function checkAuthStatus() {
 if (supabaseClient && supabaseClient.auth) {
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
-            console.log('User signed in:', session.user);
+            console.log('User signed in:', session.user?.email);
             
             // If we're on the auth page and user signed in, redirect away
             if (window.location.pathname === '/auth.html' || window.location.pathname.endsWith('/auth.html')) {
@@ -393,13 +393,13 @@ async function updateAuthUI() {
             let isAdmin = false;
             if (supabaseClient && isSupabaseConfigured()) {
                 try {
-                    const { data } = await supabaseClient
+                    const { data, error } = await supabaseClient
                         .from('admin_users')
-                        .select('*')
+                        .select('id')
                         .eq('user_id', user.id)
-                        .single();
-                    isAdmin = !!data;
-                } catch (error) {
+                        .maybeSingle();
+                    isAdmin = !error && !!data;
+                } catch (e) {
                     // Not an admin or table doesn't exist yet
                     isAdmin = false;
                 }
