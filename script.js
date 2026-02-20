@@ -1,3 +1,61 @@
+// Tax rates by year
+const TAX_RATES = {
+    '2026': {
+        label: 'Rates updated Feb 2025',
+        personalRelief: 2400,
+        nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
+        shifRate: 0.0275,
+        housingLevyRate: 0.015,
+        payeBands: [
+            { limit: 24000, rate: 0.10, base: 0 },
+            { limit: 32333, rate: 0.25, base: 2400 },
+            { limit: 500000, rate: 0.30, base: 4483.25 },
+            { limit: 800000, rate: 0.325, base: 140983.25 },
+            { limit: Infinity, rate: 0.35, base: 238483.25 },
+        ],
+        payePrev: [24000, 32333, 500000, 800000]
+    },
+    '2025': {
+        label: 'Rates updated Feb 2025',
+        personalRelief: 2400,
+        nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
+        shifRate: 0.0275,
+        housingLevyRate: 0.015,
+        payeBands: [
+            { limit: 24000, rate: 0.10, base: 0 },
+            { limit: 32333, rate: 0.25, base: 2400 },
+            { limit: 500000, rate: 0.30, base: 4483.25 },
+            { limit: 800000, rate: 0.325, base: 140983.25 },
+            { limit: Infinity, rate: 0.35, base: 238483.25 },
+        ],
+        payePrev: [24000, 32333, 500000, 800000]
+    },
+    '2024': {
+        label: 'Rates 2024',
+        personalRelief: 2400,
+        nssfLower: 7000, nssfUpper: 36000, nssfRate: 0.06,
+        shifRate: 0.0275,
+        housingLevyRate: 0.015,
+        payeBands: [
+            { limit: 24000, rate: 0.10, base: 0 },
+            { limit: 32333, rate: 0.25, base: 2400 },
+            { limit: 500000, rate: 0.30, base: 4483.25 },
+            { limit: 800000, rate: 0.325, base: 140983.25 },
+            { limit: Infinity, rate: 0.35, base: 238483.25 },
+        ],
+        payePrev: [24000, 32333, 500000, 800000]
+    }
+};
+
+function getSelectedYear(selectId) {
+    const el = document.getElementById(selectId);
+    return el ? el.value : '2026';
+}
+
+function getRates(year) {
+    return TAX_RATES[year] || TAX_RATES['2026'];
+}
+
 // Tab functionality
 function openTab(tabName) {
     const tabContents = document.getElementsByClassName('tab-content');
@@ -26,19 +84,25 @@ function calculateSalary() {
     const grossPay = parseFloat(document.getElementById('grossPay').value) || 0;
     const allowances = parseFloat(document.getElementById('allowances').value) || 0;
     const benefits = parseFloat(document.getElementById('benefits').value) || 0;
+    const year = getSelectedYear('taxYear');
+    const rates = getRates(year);
+
+    // Update badge
+    const badge = document.getElementById('ratesBadge');
+    if (badge) badge.textContent = rates.label;
 
     const totalIncome = grossPay + allowances + benefits;
 
-    const nssf = calculateNSSF(grossPay);
-    const housingLevy = calculateHousingLevy(grossPay);
-    const shif = calculateSHIF(grossPay);
+    const nssf = calculateNSSF(grossPay, rates);
+    const housingLevy = totalIncome * rates.housingLevyRate;
+    const shif = totalIncome * rates.shifRate;
 
     const deductionsBeforeTax = nssf + housingLevy + shif;
     const taxablePay = totalIncome - deductionsBeforeTax;
 
-    const paye = calculatePAYE(taxablePay);
+    const paye = calculatePAYE(taxablePay, rates);
 
-    const personalRelief = 2400;
+    const personalRelief = rates.personalRelief;
     const netPay = totalIncome - (paye + deductionsBeforeTax);
 
     displayResults(
@@ -47,52 +111,263 @@ function calculateSalary() {
     );
 
     document.getElementById('results').style.display = 'block';
+    renderDeductionsChart('deductionsChart', paye, nssf, shif, housingLevy, netPay);
 }
 
-function calculatePAYE(taxablePay) {
+function calculatePAYE(taxablePay, rates) {
+    if (!rates) rates = getRates('2026');
+    const bands = rates.payeBands;
+    const prev = rates.payePrev;
     let paye = 0;
-    if (taxablePay <= 24000) {
-        paye = taxablePay * 0.10;
-    } else if (taxablePay <= 32333) {
-        paye = 2400 + (taxablePay - 24000) * 0.25;
-    } else if (taxablePay <= 500000) {
-        paye = 4483.25 + (taxablePay - 32333) * 0.30;
-    } else if (taxablePay <= 800000) {
-        paye = 140983.25 + (taxablePay - 500000) * 0.325;
+    if (taxablePay <= prev[0]) {
+        paye = taxablePay * bands[0].rate;
+    } else if (taxablePay <= prev[1]) {
+        paye = bands[1].base + (taxablePay - prev[0]) * bands[1].rate;
+    } else if (taxablePay <= prev[2]) {
+        paye = bands[2].base + (taxablePay - prev[1]) * bands[2].rate;
+    } else if (taxablePay <= prev[3]) {
+        paye = bands[3].base + (taxablePay - prev[2]) * bands[3].rate;
     } else {
-        paye = 238483.25 + (taxablePay - 800000) * 0.35;
+        paye = bands[4].base + (taxablePay - prev[3]) * bands[4].rate;
     }
-    return Math.max(paye - 2400, 0);
+    return Math.max(paye - rates.personalRelief, 0);
 }
 
-function calculateNSSF(grossPay) {
-    const lowerLimit = 8000;
-    const upperLimit = 72000;
-    const tier1 = Math.min(grossPay, lowerLimit) * 0.06;
-    
+function calculateNSSF(grossPay, rates) {
+    if (!rates) rates = getRates('2026');
+    const lowerLimit = rates.nssfLower;
+    const upperLimit = rates.nssfUpper;
+    const tier1 = Math.min(grossPay, lowerLimit) * rates.nssfRate;
     if (grossPay > lowerLimit) {
         const capped = Math.min(grossPay, upperLimit);
-        return tier1 + ((capped - lowerLimit) * 0.06);
+        return tier1 + ((capped - lowerLimit) * rates.nssfRate);
     }
     return tier1;
 }
 
-function calculateSHIF(grossPay) {
-    return grossPay * 0.0275;
+function calculateSHIF(grossPay, rates) {
+    if (!rates) rates = getRates('2026');
+    return grossPay * rates.shifRate;
 }
 
-function calculateHousingLevy(grossPay) {
-    return grossPay * 0.015;
+function calculateHousingLevy(grossPay, rates) {
+    if (!rates) rates = getRates('2026');
+    return grossPay * rates.housingLevyRate;
 }
 
 function displayResults(taxablePay, paye, nssf, shif, housingLevy, personalRelief, netPay) {
-    document.getElementById('displayGross').textContent = formatKES(taxablePay);
-    document.getElementById('paye').textContent = formatKES(paye);
-    document.getElementById('nssf').textContent = formatKES(nssf);
-    document.getElementById('nhif').textContent = formatKES(shif);
-    document.getElementById('housingLevy').textContent = formatKES(housingLevy);
-    document.getElementById('personalRelief').textContent = formatKES(personalRelief);
-    document.getElementById('netPay').textContent = formatKES(netPay);
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+    setText('displayGross', formatKES(taxablePay));
+    setText('displayGrossAnnual', formatKES(taxablePay * 12));
+    setText('paye', formatKES(paye));
+    setText('payeAnnual', formatKES(paye * 12));
+    setText('nssf', formatKES(nssf));
+    setText('nssfAnnual', formatKES(nssf * 12));
+    setText('nhif', formatKES(shif));
+    setText('nhifAnnual', formatKES(shif * 12));
+    setText('housingLevy', formatKES(housingLevy));
+    setText('housingLevyAnnual', formatKES(housingLevy * 12));
+    setText('personalRelief', formatKES(personalRelief));
+    setText('personalReliefAnnual', formatKES(personalRelief * 12));
+    setText('netPay', formatKES(netPay));
+    setText('netPayAnnual', formatKES(netPay * 12));
+}
+
+// Chart.js deductions pie chart — keyed by canvas ID for safe instance management
+const chartInstances = { deductionsChart: null, grossupChart: null, comparisonChart: null };
+
+function renderDeductionsChart(canvasId, paye, nssf, shif, housingLevy, netPay) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    chartInstances[canvasId] = new Chart(canvas, {
+        type: 'pie',
+        data: {
+            labels: ['Net Pay', 'PAYE', 'NSSF', 'SHIF', 'Housing Levy'],
+            datasets: [{
+                data: [
+                    Math.max(netPay, 0).toFixed(2),
+                    paye.toFixed(2),
+                    nssf.toFixed(2),
+                    shif.toFixed(2),
+                    housingLevy.toFixed(2)
+                ],
+                backgroundColor: ['#006600', '#CC0000', '#1a56a0', '#e07b00', '#6a1fa0'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.label + ': KES ' + Number(ctx.parsed).toLocaleString('en-KE', {minimumFractionDigits:2});
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Gross-Up / Reverse Calculator
+function calculateGrossUp() {
+    const desiredNet = parseFloat(document.getElementById('desiredNet').value) || 0;
+    const year = getSelectedYear('taxYearGrossup');
+    const rates = getRates(year);
+
+    if (desiredNet <= 0) return;
+
+    // Binary search for the gross salary that yields the desired net pay.
+    // 60 iterations converges to sub-cent accuracy (2^-60 of initial range).
+    const MAX_BINARY_SEARCH_ITERATIONS = 60;
+    let lo = desiredNet, hi = desiredNet * 5;
+    for (let i = 0; i < MAX_BINARY_SEARCH_ITERATIONS; i++) {
+        const mid = (lo + hi) / 2;
+        const nssf = calculateNSSF(mid, rates);
+        const shif = mid * rates.shifRate;
+        const levy = mid * rates.housingLevyRate;
+        const taxable = mid - nssf - shif - levy;
+        const paye = calculatePAYE(taxable, rates);
+        const net = mid - paye - nssf - shif - levy;
+        if (Math.abs(net - desiredNet) < 0.01) break;
+        if (net < desiredNet) lo = mid; else hi = mid;
+    }
+
+    const gross = (lo + hi) / 2;
+    const nssf = calculateNSSF(gross, rates);
+    const shif = gross * rates.shifRate;
+    const levy = gross * rates.housingLevyRate;
+    const taxable = gross - nssf - shif - levy;
+    const paye = calculatePAYE(taxable, rates);
+    const net = gross - paye - nssf - shif - levy;
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+    setText('guGross', formatKES(gross));
+    setText('guGrossAnnual', formatKES(gross * 12));
+    setText('guPaye', formatKES(paye));
+    setText('guPayeAnnual', formatKES(paye * 12));
+    setText('guNssf', formatKES(nssf));
+    setText('guNssfAnnual', formatKES(nssf * 12));
+    setText('guShif', formatKES(shif));
+    setText('guShifAnnual', formatKES(shif * 12));
+    setText('guLevy', formatKES(levy));
+    setText('guLevyAnnual', formatKES(levy * 12));
+    setText('guNet', formatKES(net));
+    setText('guNetAnnual', formatKES(net * 12));
+
+    document.getElementById('grossupResults').style.display = 'block';
+    renderDeductionsChart('grossupChart', paye, nssf, shif, levy, net);
+}
+
+// Salary Comparison
+function compareSalaries() {
+    const grossA = parseFloat(document.getElementById('compGrossA').value) || 0;
+    const grossB = parseFloat(document.getElementById('compGrossB').value) || 0;
+    const labelA = document.getElementById('compLabelA').value || 'Salary A';
+    const labelB = document.getElementById('compLabelB').value || 'Salary B';
+    const year = getSelectedYear('taxYearComp');
+    const rates = getRates(year);
+
+    function calcBreakdown(gross) {
+        const nssf = calculateNSSF(gross, rates);
+        const shif = gross * rates.shifRate;
+        const levy = gross * rates.housingLevyRate;
+        const taxable = gross - nssf - shif - levy;
+        const paye = calculatePAYE(taxable, rates);
+        const net = gross - paye - nssf - shif - levy;
+        return { gross, paye, nssf, shif, levy, net };
+    }
+
+    const a = calcBreakdown(grossA);
+    const b = calcBreakdown(grossB);
+
+    function diffText(valA, valB) {
+        const d = valB - valA;
+        const sign = d >= 0 ? '+' : '';
+        return sign + formatKES(d);
+    }
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    // Update column headers
+    const headA = document.getElementById('compHeadA');
+    const headB = document.getElementById('compHeadB');
+    if (headA) headA.textContent = labelA + ' (Monthly)';
+    if (headB) headB.textContent = labelB + ' (Monthly)';
+
+    setText('cGrossA', formatKES(a.gross));
+    setText('cGrossB', formatKES(b.gross));
+    setText('cGrossDiff', diffText(a.gross, b.gross));
+    setText('cPayeA', formatKES(a.paye));
+    setText('cPayeB', formatKES(b.paye));
+    setText('cPayeDiff', diffText(a.paye, b.paye));
+    setText('cNssfA', formatKES(a.nssf));
+    setText('cNssfB', formatKES(b.nssf));
+    setText('cNssfDiff', diffText(a.nssf, b.nssf));
+    setText('cShifA', formatKES(a.shif));
+    setText('cShifB', formatKES(b.shif));
+    setText('cShifDiff', diffText(a.shif, b.shif));
+    setText('cLevyA', formatKES(a.levy));
+    setText('cLevyB', formatKES(b.levy));
+    setText('cLevyDiff', diffText(a.levy, b.levy));
+    setText('cNetA', formatKES(a.net));
+    setText('cNetB', formatKES(b.net));
+    setText('cNetDiff', diffText(a.net, b.net));
+
+    // Color diff cell
+    const netDiffEl = document.getElementById('cNetDiff');
+    if (netDiffEl) {
+        netDiffEl.style.color = (b.net >= a.net) ? '#006600' : '#CC0000';
+        netDiffEl.style.fontWeight = 'bold';
+    }
+
+    document.getElementById('comparisonResults').style.display = 'block';
+
+    // Bar chart comparing net pay
+    const canvas = document.getElementById('comparisonChart');
+    if (canvas && typeof Chart !== 'undefined') {
+        if (chartInstances.comparisonChart) chartInstances.comparisonChart.destroy();
+        chartInstances.comparisonChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: [labelA, labelB],
+                datasets: [
+                    { label: 'Net Pay', data: [a.net, b.net], backgroundColor: ['#006600', '#1a56a0'] },
+                    { label: 'PAYE', data: [a.paye, b.paye], backgroundColor: ['#CC0000', '#e07b00'] },
+                    { label: 'NSSF', data: [a.nssf, b.nssf], backgroundColor: ['#6a1fa0', '#007b7b'] }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => 'KES ' + Number(v).toLocaleString()
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // Payslip Generator Functions

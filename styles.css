@@ -69,7 +69,7 @@ h1::after {
 }
 
 .logo-container img {
-    max-height: 60px;
+    max-height: 130px;
     width: auto;
     object-fit: contain;
 }
@@ -956,5 +956,118 @@ footer a:hover {
 
     .editable-field {
         max-width: 100%;
+    }
+}
+
+/* ── Year selector & rates badge ── */
+.rates-year-group select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.rates-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rates-badge {
+    background: #e8f5e9;
+    color: #006600;
+    border: 1px solid #a5d6a7;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ── Monthly / Annual breakdown table ── */
+.breakdown-table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.breakdown-table th {
+    background: #006600;
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.breakdown-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.breakdown-table tr:nth-child(even) td {
+    background: #f9f9f9;
+}
+
+.breakdown-table .deduction-row td {
+    color: #CC0000;
+}
+
+.breakdown-table .net-row td {
+    background: #e8f5e9;
+    color: #006600;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+/* ── Deductions chart ── */
+.chart-container {
+    margin: 30px auto;
+    max-width: 340px;
+    text-align: center;
+}
+
+.chart-container h3 {
+    color: #006600;
+    margin-bottom: 15px;
+}
+
+/* ── Salary Comparison inputs ── */
+.comparison-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.comparison-col {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid #e0e0e0;
+}
+
+.comparison-col h3 {
+    color: #006600;
+    margin-bottom: 12px;
+    font-size: 1.1em;
+}
+
+.comparison-result-table .highlight-diff {
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    .comparison-inputs {
+        grid-template-columns: 1fr;
     }
 }

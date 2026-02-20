@@ -76,12 +76,26 @@
     box-shadow: 0 3px 15px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     cursor: pointer;
+    border-top: 5px solid #006600;
 }
 
 .blog-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.2);
 }
+
+/* Color accent variants for blog cards */
+.blog-card.accent-red    { border-top-color: #CC0000; }
+.blog-card.accent-blue   { border-top-color: #1a56a0; }
+.blog-card.accent-orange { border-top-color: #e07b00; }
+.blog-card.accent-purple { border-top-color: #6a1fa0; }
+.blog-card.accent-teal   { border-top-color: #007b7b; }
+
+.blog-card.accent-red    .blog-card-title { color: #CC0000; }
+.blog-card.accent-blue   .blog-card-title { color: #1a56a0; }
+.blog-card.accent-orange .blog-card-title { color: #e07b00; }
+.blog-card.accent-purple .blog-card-title { color: #6a1fa0; }
+.blog-card.accent-teal   .blog-card-title { color: #007b7b; }
 
 .blog-card-image {
     width: 100%;
@@ -213,6 +227,20 @@
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 30px;
+}
+
+.blog-post-secondary-image {
+    margin: 30px 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.blog-post-secondary-image img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
 }
 
 .blog-post-content {
