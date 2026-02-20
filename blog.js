@@ -501,7 +501,7 @@ function renderReactions(reactions, postId, userReaction = null) {
             <button class="reaction-button ${isActive}" data-type="${rt.type}" onclick="handleReaction('${postId}', '${rt.type}')">
                 <span class="emoji">${rt.emoji}</span>
                 <span class="label">${rt.label}</span>
-                <span class="count">${count > 0 ? count : ''}</span>
+                <span class="count">${count}</span>
             </button>
         `;
     }).join('');

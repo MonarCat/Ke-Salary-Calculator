@@ -112,6 +112,69 @@ function calculateSalary() {
 
     document.getElementById('results').style.display = 'block';
     renderDeductionsChart('deductionsChart', paye, nssf, shif, housingLevy, netPay);
+
+    // Voluntary / additional deductions
+    const helb = parseFloat(document.getElementById('helbRepayment')?.value) || 0;
+    const sacco = parseFloat(document.getElementById('saccoContribution')?.value) || 0;
+    const pension = parseFloat(document.getElementById('pensionTopUp')?.value) || 0;
+    const insurance = parseFloat(document.getElementById('insurancePremium')?.value) || 0;
+    const childCare = parseFloat(document.getElementById('childCare')?.value) || 0;
+    const commuter = parseFloat(document.getElementById('commuterAllowanceDeduction')?.value) || 0;
+    const totalVoluntary = helb + sacco + pension + insurance + childCare + commuter;
+
+    function showVolRow(rowId, valId, annualId, val) {
+        const row = document.getElementById(rowId);
+        if (!row) return;
+        if (val > 0) {
+            row.style.display = '';
+            document.getElementById(valId).textContent = formatKES(val);
+            document.getElementById(annualId).textContent = formatKES(val * 12);
+        } else {
+            row.style.display = 'none';
+        }
+    }
+    showVolRow('row-helb', 'dispHelb', 'dispHelbAnnual', helb);
+    showVolRow('row-sacco', 'dispSacco', 'dispSaccoAnnual', sacco);
+    showVolRow('row-pension', 'dispPension', 'dispPensionAnnual', pension);
+    showVolRow('row-insurance', 'dispInsurance', 'dispInsuranceAnnual', insurance);
+    showVolRow('row-childcare', 'dispChildCare', 'dispChildCareAnnual', childCare);
+    showVolRow('row-commuter', 'dispCommuter', 'dispCommuterAnnual', commuter);
+
+    const takeHomeRow = document.getElementById('row-takehome');
+    if (takeHomeRow) {
+        if (totalVoluntary > 0) {
+            const takeHome = netPay - totalVoluntary;
+            takeHomeRow.style.display = '';
+            document.getElementById('dispTakeHome').textContent = formatKES(takeHome);
+            document.getElementById('dispTakeHomeAnnual').textContent = formatKES(takeHome * 12);
+        } else {
+            takeHomeRow.style.display = 'none';
+        }
+    }
+
+    // Employer cost section
+    const empNssf = calculateNSSF(grossPay, rates); // employer matches employee NSSF
+    const empShif = totalIncome * rates.shifRate;
+    const empLevy = totalIncome * rates.housingLevyRate;
+    const totalCostToCompany = totalIncome + empNssf + empShif + empLevy;
+
+    const empSection = document.getElementById('employerCostSection');
+    if (empSection && grossPay > 0) {
+        empSection.style.display = 'block';
+        document.getElementById('empGross').textContent = formatKES(totalIncome);
+        document.getElementById('empGrossAnnual').textContent = formatKES(totalIncome * 12);
+        document.getElementById('empNssf').textContent = formatKES(empNssf);
+        document.getElementById('empNssfAnnual').textContent = formatKES(empNssf * 12);
+        document.getElementById('empShif').textContent = formatKES(empShif);
+        document.getElementById('empShifAnnual').textContent = formatKES(empShif * 12);
+        document.getElementById('empLevy').textContent = formatKES(empLevy);
+        document.getElementById('empLevyAnnual').textContent = formatKES(empLevy * 12);
+        document.getElementById('empTotal').textContent = formatKES(totalCostToCompany);
+        document.getElementById('empTotalAnnual').textContent = formatKES(totalCostToCompany * 12);
+    }
+
+    // Share / save link
+    generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pension, insurance, childCare, commuter);
 }
 
 function calculatePAYE(taxablePay, rates) {
@@ -572,6 +635,9 @@ window.onload = () => {
         document.getElementById('department').value = saved.department;
         document.getElementById('payslipNumber').value = saved.payslipNumber;
     }
+
+    // Load calculation from URL params (shared link)
+    loadCalculationFromURL();
 };
 
 // Navigation dropdown functionality
@@ -614,3 +680,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Generate a shareable URL with calculation parameters
+function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pension, insurance, childCare, commuter) {
+    const shareSection = document.getElementById('shareSection');
+    if (!shareSection) return;
+
+    const params = new URLSearchParams();
+    if (grossPay)  params.set('gross', grossPay);
+    if (allowances) params.set('allowances', allowances);
+    if (benefits)  params.set('benefits', benefits);
+    if (year)      params.set('year', year);
+    if (helb)      params.set('helb', helb);
+    if (sacco)     params.set('sacco', sacco);
+    if (pension)   params.set('pension', pension);
+    if (insurance) params.set('insurance', insurance);
+    if (childCare) params.set('childcare', childCare);
+    if (commuter)  params.set('commuter', commuter);
+
+    const url = window.location.origin + window.location.pathname + '?' + params.toString();
+    const shareLinkInput = document.getElementById('shareLink');
+    if (shareLinkInput) shareLinkInput.value = url;
+    shareSection.style.display = 'block';
+}
+
+// Copy the share link to clipboard
+function copyShareLink() {
+    const shareLinkInput = document.getElementById('shareLink');
+    if (!shareLinkInput) return;
+    shareLinkInput.select();
+    shareLinkInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(shareLinkInput.value).catch(() => {
+        document.execCommand('copy');
+    });
+    const copied = document.getElementById('shareLinkCopied');
+    if (copied) {
+        copied.style.display = 'block';
+        setTimeout(() => { copied.style.display = 'none'; }, 2500);
+    }
+}
+
+// Load calculation parameters from URL (for shared links)
+function loadCalculationFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('gross')) return; // not a shared link
+
+    function setVal(id, paramName) {
+        const el = document.getElementById(id);
+        if (el && params.get(paramName)) el.value = params.get(paramName);
+    }
+
+    setVal('grossPay', 'gross');
+    setVal('allowances', 'allowances');
+    setVal('benefits', 'benefits');
+    setVal('helbRepayment', 'helb');
+    setVal('saccoContribution', 'sacco');
+    setVal('pensionTopUp', 'pension');
+    setVal('insurancePremium', 'insurance');
+    setVal('childCare', 'childcare');
+    setVal('commuterAllowanceDeduction', 'commuter');
+
+    const yearEl = document.getElementById('taxYear');
+    if (yearEl && params.get('year')) yearEl.value = params.get('year');
+
+    // Auto-calculate after loading params
+    calculateSalary();
+}

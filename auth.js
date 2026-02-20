@@ -142,7 +142,9 @@ async function handleSignup(event) {
         
         if (error) throw error;
         
-        showMessage('signup-message', 'Account created successfully! Please check your email to verify your account.', 'success');
+        showMessage('signup-message', `Account created successfully! 📧 Please check your email to verify your account.<br><br>
+            <small><strong>Tip:</strong> If you don't see our email in your inbox, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" to ensure links work properly.<br>
+            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
         
         // Reset form
         event.target.reset();
@@ -227,7 +229,9 @@ async function handleForgotPassword(event) {
         
         if (error) throw error;
         
-        showMessage('login-message', 'Password reset email sent! Please check your inbox.', 'success');
+        showMessage('login-message', `Password reset email sent! 📧 Please check your inbox.<br><br>
+            <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
+            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
         
     } catch (error) {
         showMessage('login-message', 'Failed to send reset email: ' + error.message, 'error');
@@ -310,12 +314,64 @@ if (supabaseClient && supabaseClient.auth) {
                     }, OAUTH_REDIRECT_DELAY_MS);
                 }
             }
+        } else if (event === 'PASSWORD_RECOVERY') {
+            // Show the password reset form
+            showPasswordResetForm();
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out');
         }
     });
 } else {
     console.warn('Supabase client not available. Auth state changes will not be monitored.');
+}
+
+// Show password reset form when user clicks reset link from email
+function showPasswordResetForm() {
+    const authContainer = document.querySelector('.auth-container');
+    if (!authContainer) return;
+    authContainer.innerHTML = `
+        <div class="auth-form-container" style="display:block;">
+            <h2>🔑 Set New Password</h2>
+            <p class="auth-subtitle">Enter your new password below.</p>
+            <form onsubmit="handlePasswordUpdate(event)">
+                <div class="form-group">
+                    <label for="new-password"><i class="fas fa-lock"></i> New Password</label>
+                    <input type="password" id="new-password" required placeholder="Enter new password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-new-password"><i class="fas fa-lock"></i> Confirm Password</label>
+                    <input type="password" id="confirm-new-password" required placeholder="Confirm new password" minlength="6">
+                </div>
+                <div id="reset-update-message" class="auth-message" style="display:none;"></div>
+                <button type="submit" class="auth-button"><i class="fas fa-save"></i> Update Password</button>
+            </form>
+        </div>
+    `;
+}
+
+// Handle password update after clicking reset link
+async function handlePasswordUpdate(event) {
+    event.preventDefault();
+    const newPwd = document.getElementById('new-password').value;
+    const confirmPwd = document.getElementById('confirm-new-password').value;
+    if (newPwd !== confirmPwd) {
+        showMessage('reset-update-message', 'Passwords do not match.', 'error');
+        return;
+    }
+    const btn = event.target.querySelector('button[type="submit"]');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="loading-spinner"></span> Updating...';
+    btn.disabled = true;
+    try {
+        const { error } = await supabaseClient.auth.updateUser({ password: newPwd });
+        if (error) throw error;
+        showMessage('reset-update-message', 'Password updated successfully! Redirecting...', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 2000);
+    } catch (err) {
+        showMessage('reset-update-message', err.message || 'Failed to update password.', 'error');
+        btn.innerHTML = orig;
+        btn.disabled = false;
+    }
 }
 
 // Check if user is logged in on page load (for protected pages)
@@ -413,7 +469,23 @@ document.addEventListener('click', function(event) {
 
 // Initialize on page load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateAuthUI);
+    document.addEventListener('DOMContentLoaded', () => {
+        updateAuthUI();
+        redirectIfLoggedIn();
+    });
 } else {
     updateAuthUI();
+    redirectIfLoggedIn();
+}
+
+// Redirect away from auth page if already logged in
+async function redirectIfLoggedIn() {
+    if (!window.location.pathname.includes('auth.html')) return;
+    const user = await checkAuthStatus();
+    if (user) {
+        // Already logged in — send to homepage
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get('redirect') || '/';
+        window.location.href = redirectTo;
+    }
 }
