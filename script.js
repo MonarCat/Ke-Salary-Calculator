@@ -708,15 +708,31 @@ function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pe
 function copyShareLink() {
     const shareLinkInput = document.getElementById('shareLink');
     if (!shareLinkInput) return;
-    shareLinkInput.select();
-    shareLinkInput.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(shareLinkInput.value).catch(() => {
-        document.execCommand('copy');
-    });
+    const text = shareLinkInput.value;
     const copied = document.getElementById('shareLinkCopied');
-    if (copied) {
-        copied.style.display = 'block';
-        setTimeout(() => { copied.style.display = 'none'; }, 2500);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (copied) {
+                copied.style.display = 'block';
+                setTimeout(() => { copied.style.display = 'none'; }, 2500);
+            }
+        }).catch(() => {
+            alert('Could not copy automatically. Please copy the link manually.');
+        });
+    } else {
+        // Fallback for older browsers
+        shareLinkInput.select();
+        shareLinkInput.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            if (copied) {
+                copied.style.display = 'block';
+                setTimeout(() => { copied.style.display = 'none'; }, 2500);
+            }
+        } catch (e) {
+            alert('Could not copy automatically. Please copy the link manually.');
+        }
     }
 }
 

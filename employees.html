@@ -501,30 +501,43 @@
                 emptyState.style.display = 'block';
                 return;
             }
+
+            // Helper to escape HTML (prevents XSS)
+            function esc(str) {
+                const d = document.createElement('div');
+                d.textContent = str || '';
+                return d.innerHTML;
+            }
+
+            // Helper to format KES amounts
+            function fmtKES(val) {
+                return 'KES ' + val.toLocaleString(undefined, {maximumFractionDigits: 0});
+            }
             
             emptyState.style.display = 'none';
             list.innerHTML = employees.map(emp => {
                 const gross = Number(emp.salary) || 0;
                 const deductions = calcDeductions(gross);
+                const safeId = encodeURIComponent(emp.id);
                 return `
                 <div class="table-row">
-                    <div><strong>${emp.name}</strong><br><small style="color:#666;">${emp.position || ''}</small></div>
-                    <div>${emp.employeeId}</div>
-                    <div>${emp.email || '-'}</div>
+                    <div><strong>${esc(emp.name)}</strong><br><small style="color:#666;">${esc(emp.position)}</small></div>
+                    <div>${esc(emp.employeeId)}</div>
+                    <div>${esc(emp.email) || '-'}</div>
                     <div>KES ${gross.toLocaleString()}</div>
-                    <div class="deduction-cell">KES ${deductions.paye.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-                    <div class="deduction-cell">KES ${deductions.nssf.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-                    <div class="deduction-cell">KES ${deductions.shif.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-                    <div class="deduction-cell">KES ${deductions.ahl.toLocaleString(undefined, {maximumFractionDigits:0})}</div>
-                    <div class="net-cell"><strong>KES ${deductions.net.toLocaleString(undefined, {maximumFractionDigits:0})}</strong></div>
+                    <div class="deduction-cell">${fmtKES(deductions.paye)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.nssf)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.shif)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.ahl)}</div>
+                    <div class="net-cell"><strong>${fmtKES(deductions.net)}</strong></div>
                     <div class="employee-actions">
-                        <span class="action-icon payslip" onclick="generatePayslipForEmployee('${emp.id}')" title="Generate Payslip">
+                        <span class="action-icon payslip" onclick="generatePayslipForEmployee(${JSON.stringify(emp.id)})" title="Generate Payslip">
                             <i class="fas fa-file-invoice"></i>
                         </span>
-                        <span class="action-icon edit" onclick="editEmployee('${emp.id}')" title="Edit">
+                        <span class="action-icon edit" onclick="editEmployee(${JSON.stringify(emp.id)})" title="Edit">
                             <i class="fas fa-edit"></i>
                         </span>
-                        <span class="action-icon delete" onclick="deleteEmployee('${emp.id}')" title="Delete">
+                        <span class="action-icon delete" onclick="deleteEmployee(${JSON.stringify(emp.id)})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </span>
                     </div>
