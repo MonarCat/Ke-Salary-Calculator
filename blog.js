@@ -93,6 +93,7 @@ const fallbackBlogPosts = [
         excerpt: 'In the bustling economic landscape of Kenya, where every shilling counts, navigating the intricacies of Pay As You Earn (PAYE) can feel like decoding a secret language. Master PAYE to ensure financial clarity and compliance in 2026.',
         content: '<p>In the bustling economic landscape of Kenya, where every shilling counts, navigating the intricacies of Pay As You Earn (PAYE) can feel like decoding a secret language. But fear not! Whether you\'re an ambitious employee eyeing your next paycheck or a savvy employer streamlining payroll, mastering PAYE is your ticket to financial clarity and compliance. Let\'s dive deep into what PAYE really means, how it\'s calculated, and why it\'s a game-changer for your wallet in 2026.</p><h3>What is PAYE and Why Does It Matter?</h3><p>PAYE, or Pay As You Earn, is Kenya\'s income tax system administered by the Kenya Revenue Authority (KRA). It\'s not just a deduction—it\'s a structured way to ensure taxes are paid progressively based on your earnings. Introduced to promote fairness, PAYE ensures that higher earners contribute more, while providing relief for lower-income brackets. In 2026, with economic shifts like inflation and new levies, understanding PAYE isn\'t optional; it\'s essential for avoiding penalties and maximizing your net salary.</p><p>Imagine this: You\'re a mid-level manager in Nairobi earning KSh 100,000 monthly. Without grasping PAYE, you might be shocked by deductions eating into your take-home pay. But with knowledge, you can plan ahead, claim reliefs, and even negotiate better packages.</p><h3>Breaking Down the PAYE Tax Bands for 2026</h3><p>KRA updates tax bands periodically to reflect economic realities. Here\'s the latest scoop for 2026, including proposed changes:</p><ul><li><strong>Up to KSh 24,000 monthly</strong>: 10% tax rate (after personal relief).</li><li><strong>KSh 24,001 to KSh 32,333</strong>: 25%.</li><li><strong>KSh 32,334 to KSh 500,000 annually</strong>: 30%.</li><li><strong>KSh 500,001 to KSh 800,000</strong>: 32.5%.</li><li><strong>Over KSh 800,000</strong>: 35%.</li></ul><p>A new proposal aims to expand the lowest band to KSh 30,000 at 10%, introduce 25% for KSh 30,001-50,000, and keep 30% above, potentially increasing personal relief to KSh 3,000 monthly. Don\'t forget the current personal relief of KSh 2,400 per month, which reduces your taxable income. For instance, if your gross is KSh 50,000:</p><ul><li>Taxable income: KSh 50,000 - KSh 2,400 = KSh 47,600.</li><li>Tax: 10% on first KSh 24,000 = KSh 2,400; 25% on next KSh 8,333 = KSh 2,083; 30% on remaining KSh 15,267 ≈ KSh 4,580.</li><li>Total PAYE: Around KSh 9,063.</li></ul><p><strong>Pro tip:</strong> Use our free PAYE calculator on <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a> to crunch these numbers instantly—no math degree required!</p><h3>Other Deductions That Dance with PAYE</h3><p>PAYE doesn\'t party alone. It mingles with:</p><ul><li><strong>NSSF (National Social Security Fund)</strong>: Tier I (KSh 400 employee + employer) and Tier II (up to 6% of pensionable pay).</li><li><strong>NHIF (National Hospital Insurance Fund)</strong>: Scaled from KSh 150 to KSh 1,700 based on salary.</li><li><strong>Housing Levy</strong>: 1.5% from employee and employer, aimed at affordable housing initiatives.</li><li><strong>SHIF (Social Health Insurance Fund)</strong>: The new kid on the block, replacing NHIF with broader coverage at 2.75% of gross, capped at KSh 5,000.</li></ul><p>These add up, but they\'re investments in your future—pensions, health, and housing security.</p><h3>Tips to Minimize PAYE Legally</h3><p>Want to keep more in your pocket? Here\'s how:</p><ol><li><strong>Claim All Reliefs</strong>: Insurance relief (up to 15% of premiums), mortgage interest relief, and disability exemptions.</li><li><strong>Pension Contributions</strong>: Voluntary schemes like RBA-approved funds reduce taxable income.</li><li><strong>Salary Structuring</strong>: Opt for allowances (e.g., housing, transport) that might be tax-exempt.</li><li><strong>Stay Updated</strong>: KRA\'s iTax portal is your best friend for filing returns and avoiding underpayments.</li></ol><p>Employers, automate this with our <a href="/payslip-generator-kenya.html" style="color: #006600;">payslip generator</a> to ensure 100% compliance and happy teams.</p><h3>Common PAYE Pitfalls and How to Avoid Them</h3><ul><li><strong>Under-declaration</strong>: Leads to hefty fines—up to 200% of the tax due.</li><li><strong>Ignoring Deadlines</strong>: Monthly remittances by the 9th; annual returns by June 30th.</li><li><strong>Miscalculating Reliefs</strong>: Always double-check with tools like ours.</li></ul><p>In a nutshell, PAYE is the backbone of Kenya\'s tax system, ensuring equitable contributions while funding national development. By staying informed and using smart tools, you can turn tax season from a headache into a high-five moment. Ready to calculate yours? Head to <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a> and let\'s make your salary work harder for you!</p>',
         featured_image_url: 'kenyan-economy-coins.jpg',
+        secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
         views_count: 2850,
         published_at: '2026-02-15T08:00:00Z',
@@ -105,6 +106,7 @@ const fallbackBlogPosts = [
         excerpt: 'In a world where living costs in Kenya are skyrocketing, who wouldn\'t want to squeeze every extra shilling from their salary? Discover seven actionable strategies to boost your take-home pay without breaking the law.',
         content: '<p>In a world where living costs in Kenya are skyrocketing—from matatu fares in Nairobi to unga prices in Kisumu—who wouldn\'t want to squeeze every extra shilling from their salary? Your gross pay is just the starting line; the real race is to the net amount hitting your M-Pesa. Buckle up as we unveil seven catchy, actionable strategies to boost your take-home pay without breaking a sweat (or the law).</p><h3>1. Master Tax Reliefs Like a Pro</h3><p>Kenya\'s tax code is packed with hidden gems. Claim personal relief (KSh 28,800 annually), insurance relief (up to KSh 60,000 for health premiums), and even savings relief for deposits in registered schemes. Example: If you\'re paying KSh 5,000 monthly for medical insurance, that\'s KSh 750 back in your pocket via reduced PAYE. Use our <a href="/calculator.html" style="color: #006600;">calculator</a> to simulate savings!</p><h3>2. Negotiate Smart Salary Packages</h3><p>Don\'t just accept the base salary—ask for tax-friendly perks. Housing allowances (up to KSh 3,000 tax-free), car benefits, or meal vouchers can pad your net without inflating taxes. In 2026, with remote work booming, negotiate internet reimbursements too. Pro tip: Research industry averages on sites like Glassdoor to back your ask.</p><h3>3. Contribute to Retirement Funds</h3><p>Pumping money into NSSF or private pensions isn\'t just future-proofing; it\'s tax-deductible up to KSh 20,000 monthly. That\'s instant savings on PAYE. Imagine deferring taxes while building a nest egg—win-win!</p><h3>4. Track and Deduct Business Expenses</h3><p>Freelancers and side-hustlers, rejoice! Home office setups, travel costs, and professional development can be deducted if self-employed. Keep receipts and file accurately via iTax to reclaim what\'s yours.</p><h3>5. Optimize Deduction Timing</h3><p>Time bonuses or allowances to fall in lower tax brackets. For high earners, spreading income across years can drop you from 30% to 25% bands.</p><h3>6. Stay Ahead of Statutory Changes</h3><p>2026 brings SHIF fully online, potentially altering deductions. Subscribe to KRA updates or our blog for alerts. Knowledge is power—and extra pay!</p><h3>7. Use Tech Tools for Precision</h3><p>Ditch spreadsheets; our free <a href="/payslip-generator-kenya.html" style="color: #006600;">payslip generator</a> and <a href="/calculator.html" style="color: #006600;">salary calculator</a> ensure error-free computations, spotting over-deductions instantly.</p><p>Implementing these could add thousands to your monthly net. Take Jane, a teacher in Mombasa: By claiming reliefs and restructuring her package, she boosted her take-home by 15%. Your turn—calculate your potential at salarycalculator.co.ke and start maximizing today!</p>',
         featured_image_url: 'by wirestock on Freepik.jpg',
+        secondary_image_url: 'kenyan-economy-coins.jpg',
         author_name: 'Admin',
         views_count: 2340,
         published_at: '2026-02-16T10:30:00Z',
@@ -117,6 +119,7 @@ const fallbackBlogPosts = [
         excerpt: 'Tax laws in Kenya evolve faster than Nairobi traffic. With Finance Bill tweaks, new levies, and digital shifts in 2026, staying updated isn\'t just smart—it\'s profitable.',
         content: '<p>Tax laws in Kenya evolve faster than Nairobi traffic, and 2026 is no exception. With Finance Bill tweaks, new levies, and digital shifts, staying updated isn\'t just smart—it\'s profitable. This article breaks down the must-know changes, their impact on your salary, and how to adapt for a smoother financial ride.</p><h3>Key Changes in the 2026 Finance Act</h3><ul><li><strong>PAYE Bands Adjustment</strong>: Thresholds rise slightly to account for inflation—first band now up to KSh 25,000 at 10%, easing burden on low earners. Proposed expansions to KSh 30,000 at 10% and a new 25% for up to KSh 50,000.</li><li><strong>SHIF Rollout</strong>: Replacing NHIF, contributions start at 2.75% of gross salary, capped at KSh 5,000 monthly, with better benefits like outpatient coverage.</li><li><strong>Housing Levy Tweaks</strong>: Now 1.5% matched, but exemptions for low-income housing loans.</li><li><strong>Digital Tax Services</strong>: Mandatory e-filing for all, with AI audits for discrepancies via eTIMS validation starting January 2026.</li></ul><h3>Impact on Your Paycheck</h3><p>For an average KSh 60,000 earner:</p><ul><li>Old NHIF: KSh 1,200.</li><li>New SHIF: ~KSh 1,650.</li><li>But expanded reliefs offset this for many.</li></ul><p>High earners face stiffer penalties for non-compliance, up to KSh 100,000 fines.</p><h3>How to Prepare and Save</h3><ol><li><strong>Update Your Details</strong>: Link your PIN to SHIF portal ASAP.</li><li><strong>Review Contracts</strong>: Ensure employers adjust for new bands.</li><li><strong>Seek Professional Advice</strong>: For complex cases, consult a tax expert.</li><li><strong>Leverage Tools</strong>: Our <a href="/paye-calculator-kenya.html" style="color: #006600;">PAYE calculator</a> incorporates all 2026 updates—test scenarios free!</li></ol><p>These changes aim for equity and efficiency, funding infrastructure like the SGR extensions. Don\'t get caught off-guard; plug in your details at <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a> and sail through tax season unscathed.</p>',
         featured_image_url: 'nairobi_wh10.jpg',
+        secondary_image_url: 'giraffe-wild.jpg',
         author_name: 'Admin',
         views_count: 1920,
         published_at: '2026-02-17T09:15:00Z',
@@ -129,6 +132,7 @@ const fallbackBlogPosts = [
         excerpt: 'In Kenya\'s cutthroat job scene, nailing salary negotiations can transform your career trajectory. Empower yourself with these tips to demand what you\'re worth in 2026.',
         content: '<p>In Kenya\'s cutthroat job scene, where talent is abundant but opportunities are golden, nailing salary negotiations can transform your career trajectory. Gone are the days of accepting the first offer—empower yourself with these catchy tips to demand (and get) what you\'re worth in 2026.</p><h3>Prep Like a Boss</h3><p>Research is key: Use platforms like MyJobMag or BrighterMonday for salary benchmarks. Know your value—factor in experience, skills, and location (Nairobi pays 20% more than rural areas).</p><h3>Timing is Everything</h3><p>Negotiate after a job offer, not during interviews. Leverage performance reviews for raises.</p><h3>Craft Your Pitch</h3><ul><li>Highlight achievements: "I increased sales by 30%—that\'s worth KSh X more."</li><li>Bundle requests: Salary + benefits like flexible hours.</li><li>Be flexible: If no to cash, yes to training or bonuses.</li></ul><h3>Handle Objections Gracefully</h3><p>If they say "budget constraints," counter with "What about performance-based incentives?"</p><h3>Cultural Nuances in Kenya</h3><p>Build rapport—Kenyans value relationships. Use polite language: "I\'d appreciate if we could discuss..."</p><p>Success story: Alex, an IT specialist, negotiated a 25% hike by presenting data. You can too! Simulate your ideal salary with our <a href="/calculator.html" style="color: #006600;">calculator</a> at salarycalculator.co.ke and step into negotiations armed and confident.</p>',
         featured_image_url: 'JT Banner Gemini_Generated_Image_.png',
+        secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
         views_count: 1750,
         published_at: '2026-02-18T11:00:00Z',
@@ -141,6 +145,7 @@ const fallbackBlogPosts = [
         excerpt: 'From bustling startups in Westlands to established firms in Industrial Area, payroll mishaps can derail your success. Discover why a payslip generator is indispensable in 2026.',
         content: '<p>In the fast-paced world of Kenyan entrepreneurship, from bustling startups in Westlands to established firms in Industrial Area, payroll mishaps can derail your success. Enter the payslip generator: your secret weapon for compliance, efficiency, and employee satisfaction. Discover why it\'s indispensable and how ours at salarycalculator.co.ke revolutionizes your operations.</p><h3>The Pain of Manual Payroll</h3><p>Errors in calculations lead to disputes, fines (KRA penalties up to 25%), and low morale. Manual processes waste hours better spent growing your business.</p><h3>Benefits of Automation</h3><ul><li><strong>Accuracy</strong>: Auto-computes PAYE, NSSF, SHIF—always up-to-date.</li><li><strong>Compliance</strong>: Generates KRA-compliant slips, reducing audit risks with eTIMS integration.</li><li><strong>Efficiency</strong>: Batch processing for teams; email delivery.</li><li><strong>Insights</strong>: Analytics on labor costs for better budgeting.</li></ul><h3>Real-World Wins</h3><p>A Nairobi retailer cut payroll time by 70% using our tool, saving KSh 50,000 annually.</p><h3>Getting Started</h3><p>Free to use, customizable, and secure. Integrate with HR software for seamless ops.</p><p>Don\'t let payroll bog you down—elevate your business with our <a href="/payslip-generator-kenya.html" style="color: #006600;">generator</a> today at salarycalculator.co.ke. Your team (and bottom line) will thank you!</p>',
         featured_image_url: 'kenyan-economy-coins.jpg',
+        secondary_image_url: 'by wirestock on Freepik.jpg',
         author_name: 'Admin',
         views_count: 1580,
         published_at: '2026-02-18T14:45:00Z',
@@ -153,6 +158,7 @@ const fallbackBlogPosts = [
         excerpt: 'Treasury CS John Mbadi has proposed exempting PAYE for individuals earning less than KSh 30,000 monthly. This reform could put more money back into the pockets of over 1.5 million low-wage earners.',
         content: '<p>In a bold move to alleviate financial pressures on Kenya\'s working class, Treasury Cabinet Secretary John Mbadi has proposed exempting PAYE for individuals earning less than KSh 30,000 monthly. Announced in early February 2026 and backed by President William Ruto, this reform aims to put more money back into the pockets of over 1.5 million low-wage earners amid rising living costs. But what does it really mean, and will it pass Parliament? Let\'s unpack the details.</p><h3>The Core of the Proposal</h3><p>Under the Tax Laws (Amendment) Bill 2026, workers earning KSh 30,000 or below would pay zero PAYE, effectively increasing their take-home pay by up to KSh 731 per month for those at the threshold. Additionally, those in the KSh 30,001-50,000 bracket would see their tax rate drop from 30% to 25%, adding about KSh 2,500 monthly to their net salary. The personal relief could also rise from KSh 2,400 to KSh 3,000, further cushioning the blow.</p><p>This initiative, as stated by CS Mbadi, targets equitable taxation: "Anybody earning KSh 30,000 and below in Kenya should not pay PAYE. You pay zero." President Ruto has emphasized its role in easing the cost of living, with the proposal set for parliamentary debate soon.</p><h3>Potential Impacts and Benefits</h3><ul><li><strong>For Employees</strong>: Low earners could see a net increase of KSh 1,361 after offsets like NSSF hikes, providing relief for essentials like food and transport.</li><li><strong>For the Economy</strong>: More disposable income could boost consumer spending, stimulating small businesses and growth.</li><li><strong>Challenges</strong>: Critics argue it might not fully offset other deductions, and revenue loss could strain government budgets, potentially leading to higher taxes elsewhere.</li></ul><h3>How to Prepare</h3><p>Monitor KRA updates via iTax. If passed, employers must adjust payroll systems—use our <a href="/payslip-generator-kenya.html" style="color: #006600;">payslip generator</a> for seamless compliance. Calculate your potential savings with our free tool at <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a>.</p><p>This proposal signals a shift toward progressive taxation, but its success hinges on legislative approval. Stay tuned, and let\'s hope it delivers real relief for Kenya\'s hustlers!</p>',
         featured_image_url: 'kenyan-economy-coins.jpg',
+        secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
         views_count: 3120,
         published_at: '2026-02-19T08:30:00Z',
@@ -199,24 +205,27 @@ async function loadBlogPosts() {
         }
 
         container.innerHTML = '';
-        posts.forEach(post => {
-            const card = createBlogCard(post);
+        posts.forEach((post, index) => {
+            const card = createBlogCard(post, index);
             container.appendChild(card);
         });
     } catch (error) {
         console.error('Error loading blog posts:', error);
         // Try fallback posts on error
         container.innerHTML = '';
-        fallbackBlogPosts.forEach(post => {
-            const card = createBlogCard(post);
+        fallbackBlogPosts.forEach((post, index) => {
+            const card = createBlogCard(post, index);
             container.appendChild(card);
         });
     }
 }
 
-function createBlogCard(post) {
+const CARD_ACCENTS = ['accent-red', 'accent-blue', 'accent-orange', 'accent-purple', 'accent-teal', 'accent-red'];
+
+function createBlogCard(post, index = 0) {
     const card = document.createElement('div');
-    card.className = 'blog-card';
+    const accent = CARD_ACCENTS[index % CARD_ACCENTS.length];
+    card.className = `blog-card ${accent}`;
     card.onclick = () => window.location.href = `blog-post.html?slug=${post.slug}`;
 
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
@@ -367,6 +376,23 @@ function setupViewCountSubscription(postId) {
 function renderBlogPost(post, reactions, comments) {
     const container = document.getElementById('blogPostContainer');
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
+    const secondaryImageUrl = post.secondary_image_url || 'nairobi_wh10.jpg';
+
+    // Split content at the midpoint (after first </h3> or </p> past the halfway mark)
+    const rawContent = post.content || '';
+    const mid = Math.floor(rawContent.length / 2);
+    const splitIdx = rawContent.indexOf('</p>', mid);
+    let contentPart1 = rawContent;
+    let contentPart2 = '';
+    if (splitIdx !== -1) {
+        contentPart1 = rawContent.slice(0, splitIdx + 4);
+        contentPart2 = rawContent.slice(splitIdx + 4);
+    }
+
+    const secondaryImageHtml = `
+        <figure class="blog-post-secondary-image">
+            <img src="${secondaryImageUrl}" alt="${post.title} - additional image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
+        </figure>`;
 
     container.innerHTML = `
         <article class="blog-post">
@@ -389,7 +415,9 @@ function renderBlogPost(post, reactions, comments) {
             <img src="${imageUrl}" alt="${post.title}" class="blog-post-featured-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
             
             <div class="blog-post-content">
-                ${post.content}
+                ${contentPart1}
+                ${secondaryImageHtml}
+                ${contentPart2}
             </div>
 
             <!-- Reactions -->

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="adsense-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -85,12 +86,25 @@
             
             <div class="tab-container">
                 <button class="tab-button active" data-tab="calculator" onclick="openTab('calculator')">Salary Calculator</button>
+                <button class="tab-button" data-tab="grossup" onclick="openTab('grossup')">Gross-Up Calculator</button>
+                <button class="tab-button" data-tab="comparison" onclick="openTab('comparison')">Salary Comparison</button>
                 <button class="tab-button" data-tab="payslip" onclick="openTab('payslip')">Payslip Generator</button>
             </div>
             
             <!-- Salary Calculator Tab -->
             <div id="calculator" class="tab-content" style="display: block;">
                 <div class="input-section">
+                    <div class="form-group rates-year-group">
+                        <label for="taxYear">Tax Year / Rates</label>
+                        <div class="rates-selector-row">
+                            <select id="taxYear" onchange="calculateSalary()">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                            <span class="rates-badge" id="ratesBadge">Rates updated Feb 2025</span>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="grossPay">Gross Pay (KES)</label>
                         <input type="number" id="grossPay" placeholder="Enter gross monthly salary">
@@ -111,40 +125,61 @@
                 
                 <div class="results-section" id="results" style="display: none;">
                     <h2>Salary Breakdown</h2>
-                    
-                    <div class="result-item">
-                        <span>Total Taxable Income:</span>
-                        <span id="displayGross"></span>
+
+                    <!-- Monthly / Annual side-by-side -->
+                    <div class="breakdown-table-wrapper">
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Monthly (KES)</th>
+                                    <th>Annual (KES)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Gross Income</td>
+                                    <td id="displayGross"></td>
+                                    <td id="displayGrossAnnual"></td>
+                                </tr>
+                                <tr class="deduction-row">
+                                    <td>PAYE (Income Tax)</td>
+                                    <td id="paye"></td>
+                                    <td id="payeAnnual"></td>
+                                </tr>
+                                <tr class="deduction-row">
+                                    <td>NSSF Contribution</td>
+                                    <td id="nssf"></td>
+                                    <td id="nssfAnnual"></td>
+                                </tr>
+                                <tr class="deduction-row">
+                                    <td>SHIF Contribution</td>
+                                    <td id="nhif"></td>
+                                    <td id="nhifAnnual"></td>
+                                </tr>
+                                <tr class="deduction-row">
+                                    <td>Housing Levy (1.5%)</td>
+                                    <td id="housingLevy"></td>
+                                    <td id="housingLevyAnnual"></td>
+                                </tr>
+                                <tr>
+                                    <td>Personal Relief</td>
+                                    <td id="personalRelief"></td>
+                                    <td id="personalReliefAnnual"></td>
+                                </tr>
+                                <tr class="net-row">
+                                    <td><strong>Net Pay</strong></td>
+                                    <td id="netPay"><strong></strong></td>
+                                    <td id="netPayAnnual"><strong></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    <div class="result-item">
-                        <span>PAYE (Income Tax):</span>
-                        <span id="paye"></span>
-                    </div>
-                    
-                    <div class="result-item">
-                        <span>NSSF Contribution:</span>
-                        <span id="nssf"></span>
-                    </div>
-                    
-                    <div class="result-item">
-                        <span>SHIF Contribution:</span>
-                        <span id="nhif"></span>
-                    </div>
-                    
-                    <div class="result-item">
-                        <span>Housing Levy (1.5%):</span>
-                        <span id="housingLevy"></span>
-                    </div>
-                    
-                    <div class="result-item">
-                        <span>Personal Relief:</span>
-                        <span id="personalRelief"></span>
-                    </div>
-                   
-                    <div class="total">
-                        <span>Net Pay:</span>
-                        <span id="netPay"></span>
+
+                    <!-- Deductions Pie Chart -->
+                    <div class="chart-container">
+                        <h3>Where Your Money Goes</h3>
+                        <canvas id="deductionsChart" width="300" height="300"></canvas>
                     </div>
                 </div>
 
@@ -208,6 +243,121 @@
                             Donate with PayPal
                         </a>
                         <p class="donate-note">Thank you for supporting this free tool!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gross-Up / Reverse Calculator Tab -->
+            <div id="grossup" class="tab-content" style="display: none;">
+                <div class="input-section">
+                    <p style="color:#555; margin-bottom:15px;">Enter your desired <strong>net take-home pay</strong> and we'll calculate the <strong>gross salary</strong> needed to achieve it.</p>
+                    <div class="form-group">
+                        <label for="desiredNet">Desired Net Pay (KES/month)</label>
+                        <input type="number" id="desiredNet" placeholder="e.g. 80000">
+                    </div>
+                    <div class="form-group rates-year-group">
+                        <label for="taxYearGrossup">Tax Year</label>
+                        <div class="rates-selector-row">
+                            <select id="taxYearGrossup">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                            <span class="rates-badge">Rates updated Feb 2025</span>
+                        </div>
+                    </div>
+                    <button onclick="calculateGrossUp()">Calculate Required Gross</button>
+                </div>
+                <div class="results-section" id="grossupResults" style="display: none;">
+                    <h2>Gross-Up Result</h2>
+                    <div class="breakdown-table-wrapper">
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr><th>Item</th><th>Monthly (KES)</th><th>Annual (KES)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Required Gross Salary</td><td id="guGross"></td><td id="guGrossAnnual"></td></tr>
+                                <tr class="deduction-row"><td>PAYE (Income Tax)</td><td id="guPaye"></td><td id="guPayeAnnual"></td></tr>
+                                <tr class="deduction-row"><td>NSSF Contribution</td><td id="guNssf"></td><td id="guNssfAnnual"></td></tr>
+                                <tr class="deduction-row"><td>SHIF Contribution</td><td id="guShif"></td><td id="guShifAnnual"></td></tr>
+                                <tr class="deduction-row"><td>Housing Levy (1.5%)</td><td id="guLevy"></td><td id="guLevyAnnual"></td></tr>
+                                <tr class="net-row"><td><strong>Net Take-Home</strong></td><td id="guNet"></td><td id="guNetAnnual"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Deductions Breakdown</h3>
+                        <canvas id="grossupChart" width="300" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Comparison Tab -->
+            <div id="comparison" class="tab-content" style="display: none;">
+                <div class="input-section">
+                    <p style="color:#555; margin-bottom:15px;">Compare two salaries side-by-side — ideal for modelling a <strong>promotion, raise, or job offer</strong>.</p>
+                    <div class="comparison-inputs">
+                        <div class="comparison-col">
+                            <h3>Salary A</h3>
+                            <div class="form-group">
+                                <label for="compLabelA">Label (optional)</label>
+                                <input type="text" id="compLabelA" placeholder="e.g. Current Salary" value="Salary A">
+                            </div>
+                            <div class="form-group">
+                                <label for="compGrossA">Gross Pay (KES)</label>
+                                <input type="number" id="compGrossA" placeholder="e.g. 80000">
+                            </div>
+                        </div>
+                        <div class="comparison-col">
+                            <h3>Salary B</h3>
+                            <div class="form-group">
+                                <label for="compLabelB">Label (optional)</label>
+                                <input type="text" id="compLabelB" placeholder="e.g. New Offer" value="Salary B">
+                            </div>
+                            <div class="form-group">
+                                <label for="compGrossB">Gross Pay (KES)</label>
+                                <input type="number" id="compGrossB" placeholder="e.g. 110000">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group rates-year-group" style="max-width:300px; margin: 0 auto 15px;">
+                        <label for="taxYearComp">Tax Year</label>
+                        <div class="rates-selector-row">
+                            <select id="taxYearComp">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                            <span class="rates-badge">Rates updated Feb 2025</span>
+                        </div>
+                    </div>
+                    <button onclick="compareSalaries()">Compare Salaries</button>
+                </div>
+                <div class="results-section" id="comparisonResults" style="display: none;">
+                    <h2>Side-by-Side Comparison</h2>
+                    <div class="breakdown-table-wrapper">
+                        <table class="breakdown-table comparison-result-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th id="compHeadA">Salary A (Monthly)</th>
+                                    <th id="compHeadB">Salary B (Monthly)</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Gross Income</td><td id="cGrossA"></td><td id="cGrossB"></td><td id="cGrossDiff"></td></tr>
+                                <tr class="deduction-row"><td>PAYE</td><td id="cPayeA"></td><td id="cPayeB"></td><td id="cPayeDiff"></td></tr>
+                                <tr class="deduction-row"><td>NSSF</td><td id="cNssfA"></td><td id="cNssfB"></td><td id="cNssfDiff"></td></tr>
+                                <tr class="deduction-row"><td>SHIF</td><td id="cShifA"></td><td id="cShifB"></td><td id="cShifDiff"></td></tr>
+                                <tr class="deduction-row"><td>Housing Levy</td><td id="cLevyA"></td><td id="cLevyB"></td><td id="cLevyDiff"></td></tr>
+                                <tr class="net-row"><td><strong>Net Pay</strong></td><td id="cNetA"></td><td id="cNetB"></td><td id="cNetDiff" class="highlight-diff"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Net Pay Comparison</h3>
+                        <canvas id="comparisonChart" width="400" height="200"></canvas>
                     </div>
                 </div>
             </div>
