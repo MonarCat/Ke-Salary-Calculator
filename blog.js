@@ -220,7 +220,7 @@ async function loadBlogPosts() {
     }
 }
 
-const CARD_ACCENTS = ['accent-red', 'accent-blue', 'accent-orange', 'accent-purple', 'accent-teal', 'accent-red'];
+const CARD_ACCENTS = ['accent-red', 'accent-blue', 'accent-orange', 'accent-purple', 'accent-teal'];
 
 function createBlogCard(post, index = 0) {
     const card = document.createElement('div');

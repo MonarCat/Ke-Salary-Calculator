@@ -176,23 +176,18 @@ function displayResults(taxablePay, paye, nssf, shif, housingLevy, personalRelie
     setText('netPayAnnual', formatKES(netPay * 12));
 }
 
-// Chart.js deductions pie chart
-let deductionsChartInstance = null;
-let grossupChartInstance = null;
-let comparisonChartInstance = null;
+// Chart.js deductions pie chart — keyed by canvas ID for safe instance management
+const chartInstances = { deductionsChart: null, grossupChart: null, comparisonChart: null };
 
 function renderDeductionsChart(canvasId, paye, nssf, shif, housingLevy, netPay) {
     const canvas = document.getElementById(canvasId);
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const instanceVar = canvasId === 'deductionsChart' ? 'deductionsChartInstance'
-                      : canvasId === 'grossupChart'    ? 'grossupChartInstance'
-                      : 'comparisonChartInstance';
-    if (window[instanceVar]) {
-        window[instanceVar].destroy();
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
     }
 
-    window[instanceVar] = new Chart(canvas, {
+    chartInstances[canvasId] = new Chart(canvas, {
         type: 'pie',
         data: {
             labels: ['Net Pay', 'PAYE', 'NSSF', 'SHIF', 'Housing Levy'],
@@ -233,9 +228,11 @@ function calculateGrossUp() {
 
     if (desiredNet <= 0) return;
 
-    // Binary search for gross that yields the desired net
+    // Binary search for the gross salary that yields the desired net pay.
+    // 60 iterations converges to sub-cent accuracy (2^-60 of initial range).
+    const MAX_BINARY_SEARCH_ITERATIONS = 60;
     let lo = desiredNet, hi = desiredNet * 5;
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < MAX_BINARY_SEARCH_ITERATIONS; i++) {
         const mid = (lo + hi) / 2;
         const nssf = calculateNSSF(mid, rates);
         const shif = mid * rates.shifRate;
@@ -315,12 +312,24 @@ function compareSalaries() {
     if (headA) headA.textContent = labelA + ' (Monthly)';
     if (headB) headB.textContent = labelB + ' (Monthly)';
 
-    setText('cGrossA', formatKES(a.gross)); setText('cGrossB', formatKES(b.gross)); setText('cGrossDiff', diffText(a.gross, b.gross));
-    setText('cPayeA', formatKES(a.paye));   setText('cPayeB', formatKES(b.paye));   setText('cPayeDiff', diffText(a.paye, b.paye));
-    setText('cNssfA', formatKES(a.nssf));   setText('cNssfB', formatKES(b.nssf));   setText('cNssfDiff', diffText(a.nssf, b.nssf));
-    setText('cShifA', formatKES(a.shif));   setText('cShifB', formatKES(b.shif));   setText('cShifDiff', diffText(a.shif, b.shif));
-    setText('cLevyA', formatKES(a.levy));   setText('cLevyB', formatKES(b.levy));   setText('cLevyDiff', diffText(a.levy, b.levy));
-    setText('cNetA', formatKES(a.net));     setText('cNetB', formatKES(b.net));     setText('cNetDiff', diffText(a.net, b.net));
+    setText('cGrossA', formatKES(a.gross));
+    setText('cGrossB', formatKES(b.gross));
+    setText('cGrossDiff', diffText(a.gross, b.gross));
+    setText('cPayeA', formatKES(a.paye));
+    setText('cPayeB', formatKES(b.paye));
+    setText('cPayeDiff', diffText(a.paye, b.paye));
+    setText('cNssfA', formatKES(a.nssf));
+    setText('cNssfB', formatKES(b.nssf));
+    setText('cNssfDiff', diffText(a.nssf, b.nssf));
+    setText('cShifA', formatKES(a.shif));
+    setText('cShifB', formatKES(b.shif));
+    setText('cShifDiff', diffText(a.shif, b.shif));
+    setText('cLevyA', formatKES(a.levy));
+    setText('cLevyB', formatKES(b.levy));
+    setText('cLevyDiff', diffText(a.levy, b.levy));
+    setText('cNetA', formatKES(a.net));
+    setText('cNetB', formatKES(b.net));
+    setText('cNetDiff', diffText(a.net, b.net));
 
     // Color diff cell
     const netDiffEl = document.getElementById('cNetDiff');
@@ -334,8 +343,8 @@ function compareSalaries() {
     // Bar chart comparing net pay
     const canvas = document.getElementById('comparisonChart');
     if (canvas && typeof Chart !== 'undefined') {
-        if (comparisonChartInstance) comparisonChartInstance.destroy();
-        comparisonChartInstance = new Chart(canvas, {
+        if (chartInstances.comparisonChart) chartInstances.comparisonChart.destroy();
+        chartInstances.comparisonChart = new Chart(canvas, {
             type: 'bar',
             data: {
                 labels: [labelA, labelB],
