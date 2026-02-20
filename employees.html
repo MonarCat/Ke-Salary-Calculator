@@ -75,23 +75,28 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
         }
         .table-header {
             background: linear-gradient(135deg, #006600, #009900);
             color: white;
             padding: 15px 20px;
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr;
-            gap: 15px;
+            grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1fr;
+            gap: 10px;
             font-weight: bold;
+            font-size: 0.85em;
+            min-width: 900px;
         }
         .table-row {
             padding: 15px 20px;
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr;
-            gap: 15px;
+            grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1fr;
+            gap: 10px;
             border-bottom: 1px solid #f0f0f0;
             align-items: center;
+            font-size: 0.85em;
+            min-width: 900px;
         }
         .table-row:hover {
             background: #f9f9f9;
@@ -117,6 +122,51 @@
         }
         .action-icon.payslip {
             color: #0066CC;
+        }
+        .deduction-cell {
+            color: #CC0000;
+            font-size: 0.9em;
+        }
+        .net-cell {
+            color: #006600;
+        }
+        .compliance-summary {
+            background: #f0f7f0;
+            border: 1px solid #c8e6c9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .compliance-summary h3 {
+            color: #006600;
+            margin-bottom: 14px;
+        }
+        .compliance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .compliance-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #006600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .compliance-card h4 {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .compliance-card .amount {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #006600;
+        }
+        .compliance-card .label {
+            font-size: 0.8em;
+            color: #999;
         }
         .empty-state {
             text-align: center;
@@ -246,9 +296,14 @@
                     <div class="employees-table">
                         <div class="table-header">
                             <div>Employee Name</div>
-                            <div>Employee ID</div>
+                            <div>Emp ID</div>
                             <div>Email</div>
-                            <div>Gross Salary</div>
+                            <div>Gross (KES)</div>
+                            <div>PAYE (KES)</div>
+                            <div>NSSF (KES)</div>
+                            <div>SHIF (KES)</div>
+                            <div>Housing Levy</div>
+                            <div>Net Pay (KES)</div>
                             <div>Actions</div>
                         </div>
                         <div id="employees-list">
@@ -260,6 +315,43 @@
                         <i class="fas fa-user-friends"></i>
                         <h3>No employees yet</h3>
                         <p>Click "Add Employee" to get started</p>
+                    </div>
+
+                    <!-- Compliance Summary -->
+                    <div id="compliance-summary" class="compliance-summary" style="display:none;">
+                        <h3><i class="fas fa-clipboard-check"></i> Payroll Compliance Summary (Monthly)</h3>
+                        <div class="compliance-grid">
+                            <div class="compliance-card">
+                                <h4>Total Gross Payroll</h4>
+                                <div class="amount" id="totalGross">KES 0</div>
+                                <div class="label">All employees gross</div>
+                            </div>
+                            <div class="compliance-card">
+                                <h4>Total PAYE Due</h4>
+                                <div class="amount" id="totalPaye">KES 0</div>
+                                <div class="label">Remit to KRA by 9th</div>
+                            </div>
+                            <div class="compliance-card">
+                                <h4>Total NSSF Due</h4>
+                                <div class="amount" id="totalNssf">KES 0</div>
+                                <div class="label">Employee + Employer</div>
+                            </div>
+                            <div class="compliance-card">
+                                <h4>Total SHIF Due</h4>
+                                <div class="amount" id="totalShif">KES 0</div>
+                                <div class="label">Employee + Employer</div>
+                            </div>
+                            <div class="compliance-card">
+                                <h4>Total Housing Levy</h4>
+                                <div class="amount" id="totalAhl">KES 0</div>
+                                <div class="label">Employee + Employer</div>
+                            </div>
+                            <div class="compliance-card">
+                                <h4>Total Net Payroll</h4>
+                                <div class="amount" id="totalNet">KES 0</div>
+                                <div class="label">Amount to pay employees</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -340,6 +432,42 @@
         let employees = []; // In production, this would come from the database
         let currentEmployeeId = null;
 
+        // Calculate statutory deductions for a given gross salary (2026 rates)
+        function calcDeductions(gross) {
+            const nssfLower = 8000, nssfUpper = 72000, nssfRate = 0.06;
+            const shifRate = 0.0275, ahlRate = 0.015;
+            const personalRelief = 2400;
+            const payeBands = [
+                { limit: 24000, rate: 0.10, base: 0 },
+                { limit: 32333, rate: 0.25, base: 2400 },
+                { limit: 500000, rate: 0.30, base: 4483.25 },
+                { limit: 800000, rate: 0.325, base: 140983.25 },
+                { limit: Infinity, rate: 0.35, base: 238483.25 },
+            ];
+            const prev = [24000, 32333, 500000, 800000];
+
+            // NSSF
+            const tier1 = Math.min(gross, nssfLower) * nssfRate;
+            const nssf = gross > nssfLower
+                ? tier1 + (Math.min(gross, nssfUpper) - nssfLower) * nssfRate
+                : tier1;
+
+            const shif = gross * shifRate;
+            const ahl = gross * ahlRate;
+            const taxable = gross - nssf - shif - ahl;
+
+            let rawPaye = 0;
+            if (taxable <= prev[0]) rawPaye = taxable * payeBands[0].rate;
+            else if (taxable <= prev[1]) rawPaye = payeBands[1].base + (taxable - prev[0]) * payeBands[1].rate;
+            else if (taxable <= prev[2]) rawPaye = payeBands[2].base + (taxable - prev[1]) * payeBands[2].rate;
+            else if (taxable <= prev[3]) rawPaye = payeBands[3].base + (taxable - prev[2]) * payeBands[3].rate;
+            else rawPaye = payeBands[4].base + (taxable - prev[3]) * payeBands[4].rate;
+            const paye = Math.max(rawPaye - personalRelief, 0);
+
+            const net = gross - paye - nssf - shif - ahl;
+            return { paye, nssf, shif, ahl, net };
+        }
+
         // Check if user is authenticated
         async function checkPremiumAccess() {
             const user = await checkAuthStatus();
@@ -373,27 +501,71 @@
                 emptyState.style.display = 'block';
                 return;
             }
+
+            // Helper to escape HTML (prevents XSS)
+            function esc(str) {
+                const d = document.createElement('div');
+                d.textContent = str || '';
+                return d.innerHTML;
+            }
+
+            // Helper to format KES amounts
+            function fmtKES(val) {
+                return 'KES ' + val.toLocaleString(undefined, {maximumFractionDigits: 0});
+            }
             
             emptyState.style.display = 'none';
-            list.innerHTML = employees.map(emp => `
+            list.innerHTML = employees.map(emp => {
+                const gross = Number(emp.salary) || 0;
+                const deductions = calcDeductions(gross);
+                const safeId = encodeURIComponent(emp.id);
+                return `
                 <div class="table-row">
-                    <div><strong>${emp.name}</strong></div>
-                    <div>${emp.employeeId}</div>
-                    <div>${emp.email || '-'}</div>
-                    <div>KES ${Number(emp.salary).toLocaleString()}</div>
+                    <div><strong>${esc(emp.name)}</strong><br><small style="color:#666;">${esc(emp.position)}</small></div>
+                    <div>${esc(emp.employeeId)}</div>
+                    <div>${esc(emp.email) || '-'}</div>
+                    <div>KES ${gross.toLocaleString()}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.paye)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.nssf)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.shif)}</div>
+                    <div class="deduction-cell">${fmtKES(deductions.ahl)}</div>
+                    <div class="net-cell"><strong>${fmtKES(deductions.net)}</strong></div>
                     <div class="employee-actions">
-                        <span class="action-icon payslip" onclick="generatePayslipForEmployee('${emp.id}')" title="Generate Payslip">
+                        <span class="action-icon payslip" onclick="generatePayslipForEmployee(${JSON.stringify(emp.id)})" title="Generate Payslip">
                             <i class="fas fa-file-invoice"></i>
                         </span>
-                        <span class="action-icon edit" onclick="editEmployee('${emp.id}')" title="Edit">
+                        <span class="action-icon edit" onclick="editEmployee(${JSON.stringify(emp.id)})" title="Edit">
                             <i class="fas fa-edit"></i>
                         </span>
-                        <span class="action-icon delete" onclick="deleteEmployee('${emp.id}')" title="Delete">
+                        <span class="action-icon delete" onclick="deleteEmployee(${JSON.stringify(emp.id)})" title="Delete">
                             <i class="fas fa-trash"></i>
                         </span>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+
+            // Update compliance summary
+            const totals = employees.reduce((acc, emp) => {
+                const gross = Number(emp.salary) || 0;
+                const d = calcDeductions(gross);
+                acc.gross += gross;
+                acc.paye  += d.paye;
+                acc.nssf  += d.nssf * 2; // employee + employer match
+                acc.shif  += d.shif * 2;
+                acc.ahl   += d.ahl * 2;
+                acc.net   += d.net;
+                return acc;
+            }, { gross: 0, paye: 0, nssf: 0, shif: 0, ahl: 0, net: 0 });
+
+            const fmt = v => 'KES ' + v.toLocaleString(undefined, {maximumFractionDigits:0});
+            document.getElementById('totalGross').textContent = fmt(totals.gross);
+            document.getElementById('totalPaye').textContent  = fmt(totals.paye);
+            document.getElementById('totalNssf').textContent  = fmt(totals.nssf);
+            document.getElementById('totalShif').textContent  = fmt(totals.shif);
+            document.getElementById('totalAhl').textContent   = fmt(totals.ahl);
+            document.getElementById('totalNet').textContent   = fmt(totals.net);
+            document.getElementById('compliance-summary').style.display = 'block';
         }
 
         // Open add employee modal

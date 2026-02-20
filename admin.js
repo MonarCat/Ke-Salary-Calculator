@@ -216,6 +216,10 @@ async function editPost(postId) {
         document.getElementById('post-slug').value = data.slug;
         document.getElementById('post-excerpt').value = data.excerpt || '';
         document.getElementById('post-content').value = data.content;
+        // Also populate Quill editor if available
+        if (window.quillEditor) {
+            window.quillEditor.root.innerHTML = data.content || '';
+        }
         document.getElementById('post-image').value = data.featured_image_url || '';
         document.getElementById('post-author').value = data.author_name || 'Admin';
         document.getElementById('post-status').value = data.status;
@@ -277,7 +281,7 @@ async function savePost(event) {
         title: document.getElementById('post-title').value,
         slug: document.getElementById('post-slug').value,
         excerpt: document.getElementById('post-excerpt').value,
-        content: document.getElementById('post-content').value,
+        content: (window.getQuillContent ? window.getQuillContent() : document.getElementById('post-content').value),
         featured_image_url: document.getElementById('post-image').value,
         author_name: document.getElementById('post-author').value || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         status: document.getElementById('post-status').value,

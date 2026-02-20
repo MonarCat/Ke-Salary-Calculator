@@ -119,6 +119,37 @@
                         <label for="benefits">Other Taxable Benefits (KES)</label>
                         <input type="number" id="benefits" placeholder="Enter other taxable benefits">
                     </div>
+
+                    <!-- Voluntary / Additional Deductions -->
+                    <details class="voluntary-deductions-toggle">
+                        <summary><i class="fas fa-plus-circle"></i> Optional: Voluntary / Additional Deductions</summary>
+                        <div class="voluntary-deductions-grid">
+                            <div class="form-group">
+                                <label for="helbRepayment"><i class="fas fa-graduation-cap"></i> HELB Loan Repayment (KES)</label>
+                                <input type="number" id="helbRepayment" placeholder="e.g. 2000" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="saccoContribution"><i class="fas fa-handshake"></i> SACCO Contribution (KES)</label>
+                                <input type="number" id="saccoContribution" placeholder="e.g. 3000" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="pensionTopUp"><i class="fas fa-piggy-bank"></i> Pension Top-Up (KES)</label>
+                                <input type="number" id="pensionTopUp" placeholder="e.g. 5000" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="insurancePremium"><i class="fas fa-shield-alt"></i> Insurance Premium (KES)</label>
+                                <input type="number" id="insurancePremium" placeholder="e.g. 2500" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="childCare"><i class="fas fa-baby"></i> Child Care (KES)</label>
+                                <input type="number" id="childCare" placeholder="e.g. 1500" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="commuterAllowanceDeduction"><i class="fas fa-bus"></i> Commuter Allowance (KES)</label>
+                                <input type="number" id="commuterAllowanceDeduction" placeholder="e.g. 1000" min="0">
+                            </div>
+                        </div>
+                    </details>
                     
                     <button onclick="calculateSalary()">Calculate Net Pay</button>
                 </div>
@@ -172,8 +203,77 @@
                                     <td id="netPay"><strong></strong></td>
                                     <td id="netPayAnnual"><strong></strong></td>
                                 </tr>
+                                <!-- Voluntary deductions (shown only when filled) -->
+                                <tr id="row-helb" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>HELB Repayment</td>
+                                    <td id="dispHelb"></td>
+                                    <td id="dispHelbAnnual"></td>
+                                </tr>
+                                <tr id="row-sacco" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>SACCO Contribution</td>
+                                    <td id="dispSacco"></td>
+                                    <td id="dispSaccoAnnual"></td>
+                                </tr>
+                                <tr id="row-pension" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>Pension Top-Up</td>
+                                    <td id="dispPension"></td>
+                                    <td id="dispPensionAnnual"></td>
+                                </tr>
+                                <tr id="row-insurance" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>Insurance Premium</td>
+                                    <td id="dispInsurance"></td>
+                                    <td id="dispInsuranceAnnual"></td>
+                                </tr>
+                                <tr id="row-childcare" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>Child Care</td>
+                                    <td id="dispChildCare"></td>
+                                    <td id="dispChildCareAnnual"></td>
+                                </tr>
+                                <tr id="row-commuter" class="deduction-row voluntary-row" style="display:none;">
+                                    <td>Commuter Allowance</td>
+                                    <td id="dispCommuter"></td>
+                                    <td id="dispCommuterAnnual"></td>
+                                </tr>
+                                <tr id="row-takehome" class="net-row" style="display:none;">
+                                    <td><strong>Take-Home After All Deductions</strong></td>
+                                    <td id="dispTakeHome"><strong></strong></td>
+                                    <td id="dispTakeHomeAnnual"><strong></strong></td>
+                                </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Employer Cost Section -->
+                    <div id="employerCostSection" class="employer-cost-section" style="display:none;">
+                        <h3><i class="fas fa-building"></i> Total Cost to Company (Employer View)</h3>
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Monthly (KES)</th>
+                                    <th>Annual (KES)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Gross Salary</td><td id="empGross"></td><td id="empGrossAnnual"></td></tr>
+                                <tr class="deduction-row"><td>Employer NSSF</td><td id="empNssf"></td><td id="empNssfAnnual"></td></tr>
+                                <tr class="deduction-row"><td>Employer SHIF (2.75%)</td><td id="empShif"></td><td id="empShifAnnual"></td></tr>
+                                <tr class="deduction-row"><td>Employer Housing Levy (1.5%)</td><td id="empLevy"></td><td id="empLevyAnnual"></td></tr>
+                                <tr class="net-row"><td><strong>Total Cost to Company</strong></td><td id="empTotal"><strong></strong></td><td id="empTotalAnnual"><strong></strong></td></tr>
+                            </tbody>
+                        </table>
+                        <p class="employer-cost-note"><i class="fas fa-info-circle"></i> Useful for employers budgeting staff costs and for job seekers negotiating packages.</p>
+                    </div>
+
+                    <!-- Save / Share Calculation -->
+                    <div id="shareSection" class="share-calc-section" style="display:none;">
+                        <h3><i class="fas fa-share-alt"></i> Save &amp; Share This Calculation</h3>
+                        <p>Share this link with your HR or friends to show your salary breakdown:</p>
+                        <div class="share-link-row">
+                            <input type="text" id="shareLink" readonly class="share-link-input">
+                            <button onclick="copyShareLink()" class="copy-link-btn"><i class="fas fa-copy"></i> Copy</button>
+                        </div>
+                        <div id="shareLinkCopied" style="display:none; color:#006600; margin-top:6px;"><i class="fas fa-check"></i> Link copied to clipboard!</div>
                     </div>
 
                     <!-- Deductions Pie Chart -->

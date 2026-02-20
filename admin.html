@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="blog-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .admin-container {
@@ -410,8 +412,10 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="post-content">Content (HTML) *</label>
-                            <textarea id="post-content" class="content-editor" required placeholder="<p>Your blog post content in HTML...</p>"></textarea>
+                            <label>Content *</label>
+                            <div id="quill-editor" style="min-height:300px; background:white; border-radius:6px;"></div>
+                            <textarea id="post-content" class="content-editor" required style="display:none;"></textarea>
+                            <small style="color:#888;">Use the toolbar above to format text, add headings, images, links, and more.</small>
                         </div>
                         
                         <div class="form-group">
@@ -466,5 +470,60 @@
     <script src="auth.js"></script>
     <script src="blog.js"></script>
     <script src="admin.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script>
+        // Initialize Quill editor for blog post content
+        let quillEditor = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            const editorContainer = document.getElementById('quill-editor');
+            if (!editorContainer) return;
+
+            quillEditor = new Quill('#quill-editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, 4, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image', 'video'],
+                        ['clean']
+                    ]
+                },
+                placeholder: 'Write your blog post here...'
+            });
+
+            // Sync Quill content to hidden textarea before form submit
+            const form = document.getElementById('post-form') || document.querySelector('form[onsubmit*="savePost"]');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    const hiddenField = document.getElementById('post-content');
+                    if (hiddenField && quillEditor) {
+                        hiddenField.value = quillEditor.root.innerHTML;
+                    }
+                });
+            }
+        });
+
+        // Override populatePostForm to fill Quill editor when editing a post
+        const _origPopulate = window.populatePostForm;
+        window.populatePostFormWithQuill = function(post) {
+            if (_origPopulate) _origPopulate(post);
+            if (quillEditor && post && post.content) {
+                quillEditor.root.innerHTML = post.content;
+            }
+        };
+
+        // Patch getPostContent for savePost if it reads from the textarea
+        function getQuillContent() {
+            if (quillEditor) return quillEditor.root.innerHTML;
+            const el = document.getElementById('post-content');
+            return el ? el.value : '';
+        }
+        window.getQuillContent = getQuillContent;
+    </script>
 </body>
 </html>
