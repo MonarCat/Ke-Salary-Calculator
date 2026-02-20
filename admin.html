@@ -316,6 +316,21 @@
                 <h2>Access Denied</h2>
                 <p>You need admin privileges to access this page.</p>
                 <p><a href="/auth.html" class="btn">Sign In</a></p>
+                <details style="margin-top:20px;text-align:left;max-width:480px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:16px;">
+                    <summary style="cursor:pointer;font-weight:bold;color:#006600;"><i class="fas fa-info-circle"></i> How to get Admin Access</summary>
+                    <ol style="margin-top:10px;padding-left:18px;font-size:0.9em;line-height:1.7;">
+                        <li>Sign in to your account at <a href="/auth.html">/auth.html</a>.</li>
+                        <li>Open your <a href="https://supabase.com" target="_blank" rel="noopener">Supabase</a> project dashboard.</li>
+                        <li>Go to <strong>SQL Editor</strong> and run the following SQL (replace the email):
+                            <pre style="background:#eee;padding:8px;border-radius:4px;font-size:0.85em;overflow-x:auto;">INSERT INTO admin_users (user_id)
+SELECT id FROM auth.users
+WHERE email = 'your@email.com'
+ON CONFLICT DO NOTHING;</pre>
+                        </li>
+                        <li>Refresh this page and sign in again.</li>
+                    </ol>
+                    <p style="font-size:0.85em;color:#666;">For more details see <a href="/ADMIN_SETUP_GUIDE.md" target="_blank">ADMIN_SETUP_GUIDE.md</a>.</p>
+                </details>
             </div>
             
             <!-- Admin Dashboard -->

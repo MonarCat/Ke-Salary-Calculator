@@ -80,56 +80,107 @@
         .table-header {
             background: linear-gradient(135deg, #006600, #009900);
             color: white;
-            padding: 15px 20px;
+            padding: 12px 20px;
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1fr;
+            grid-template-columns: 2.5fr 1fr 1fr 1.2fr 1.2fr 1fr;
             gap: 10px;
             font-weight: bold;
             font-size: 0.85em;
-            min-width: 900px;
+            min-width: 700px;
         }
-        .table-row {
-            padding: 15px 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1.2fr 1fr;
-            gap: 10px;
+        .table-row-wrapper {
             border-bottom: 1px solid #f0f0f0;
+        }
+        .table-row-wrapper:last-child { border-bottom: none; }
+        .table-row {
+            padding: 12px 20px;
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1fr 1.2fr 1.2fr 1fr;
+            gap: 10px;
             align-items: center;
             font-size: 0.85em;
-            min-width: 900px;
+            min-width: 700px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
         .table-row:hover {
-            background: #f9f9f9;
+            background: #f5f9f5;
+        }
+        .table-row.expanded {
+            background: #f0f7f0;
+        }
+        .employee-details {
+            display: none;
+            padding: 16px 20px 20px 20px;
+            background: #f9fdf9;
+            border-top: 1px dashed #c8e6c9;
+            min-width: 700px;
+        }
+        .employee-details.open {
+            display: block;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .details-section-title {
+            font-weight: bold;
+            color: #006600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 12px 0 6px;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 4px;
+        }
+        .detail-item {
+            font-size: 0.85em;
+        }
+        .detail-item span.label {
+            color: #888;
+            font-size: 0.8em;
+            display: block;
+        }
+        .detail-item span.value {
+            color: #333;
+            font-weight: 500;
         }
         .employee-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            align-items: center;
         }
         .action-icon {
             cursor: pointer;
-            padding: 8px;
+            padding: 7px;
             border-radius: 5px;
             transition: all 0.3s;
+            font-size: 0.9em;
         }
         .action-icon:hover {
             background: #e0e0e0;
         }
-        .action-icon.edit {
-            color: #006600;
+        .action-icon.edit { color: #006600; }
+        .action-icon.delete { color: #CC0000; }
+        .action-icon.payslip { color: #0066CC; }
+        .deduction-cell { color: #CC0000; font-size: 0.9em; }
+        .net-cell { color: #006600; font-weight: bold; }
+        /* Work Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
         }
-        .action-icon.delete {
-            color: #CC0000;
-        }
-        .action-icon.payslip {
-            color: #0066CC;
-        }
-        .deduction-cell {
-            color: #CC0000;
-            font-size: 0.9em;
-        }
-        .net-cell {
-            color: #006600;
-        }
+        .status-active   { background: #e8f5e9; color: #2e7d32; }
+        .status-off      { background: #fff8e1; color: #f57f17; }
+        .status-suspended{ background: #fff3e0; color: #e65100; }
+        .status-terminated{ background: #ffebee; color: #c62828; }
+        /* Compliance Summary */
         .compliance-summary {
             background: #f0f7f0;
             border: 1px solid #c8e6c9;
@@ -145,6 +196,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
+            margin-bottom: 20px;
         }
         .compliance-card {
             background: white;
@@ -168,6 +220,79 @@
             font-size: 0.8em;
             color: #999;
         }
+        /* Statutory Bodies Links */
+        .statutory-links {
+            border-top: 1px solid #c8e6c9;
+            padding-top: 16px;
+            margin-top: 8px;
+        }
+        .statutory-links h4 {
+            color: #006600;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+        }
+        .statutory-logos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .statutory-logo-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            transition: all 0.2s;
+            min-width: 110px;
+        }
+        .statutory-logo-link:hover {
+            border-color: #006600;
+            box-shadow: 0 2px 8px rgba(0,102,0,0.15);
+            transform: translateY(-2px);
+        }
+        .statutory-logo-link .org-icon {
+            font-size: 1.5em;
+            margin-bottom: 4px;
+        }
+        .statutory-logo-link .org-name {
+            font-size: 0.78em;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+        .statutory-logo-link .org-desc {
+            font-size: 0.7em;
+            color: #888;
+            text-align: center;
+        }
+        /* Export buttons */
+        .export-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .export-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .export-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
+        .export-btn.csv   { background: #4CAF50; color: white; }
+        .export-btn.excel { background: #217346; color: white; }
+        .export-btn.pdf   { background: #CC0000; color: white; }
+        /* Modal */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -181,41 +306,38 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
         .modal-content {
             background: white;
-            padding: 40px;
+            padding: 30px 40px;
             border-radius: 15px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
+            max-width: 680px;
+            width: 95%;
+            max-height: 92vh;
             overflow-y: auto;
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
-        .modal-header h3 {
+        .modal-header h3 { color: #006600; margin: 0; }
+        .close-modal { cursor: pointer; font-size: 24px; color: #666; }
+        .form-section-title {
             color: #006600;
-            margin: 0;
-        }
-        .close-modal {
-            cursor: pointer;
-            font-size: 24px;
-            color: #666;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 6px;
+            margin: 20px 0 12px;
         }
         .form-row {
             display: grid;
@@ -223,12 +345,12 @@
             gap: 15px;
         }
         @media (max-width: 768px) {
+            .table-header, .table-row, .employee-details { min-width: unset; }
             .table-header, .table-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
+            .form-row { grid-template-columns: 1fr; }
+            .export-bar { gap: 6px; }
         }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
@@ -288,21 +410,30 @@
                 <div id="employees-section">
                     <div class="employees-header">
                         <h2><i class="fas fa-users"></i> My Employees</h2>
-                        <button class="add-employee-btn" onclick="openAddEmployeeModal()">
-                            <i class="fas fa-plus"></i> Add Employee
-                        </button>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                            <div class="export-bar" id="export-bar" style="display:none;">
+                                <button class="export-btn csv" onclick="exportCSV()" title="Export to CSV">
+                                    <i class="fas fa-file-csv"></i> CSV
+                                </button>
+                                <button class="export-btn excel" onclick="exportExcel()" title="Export to Excel">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                                <button class="export-btn pdf" onclick="exportPDF()" title="Export to PDF">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                            </div>
+                            <button class="add-employee-btn" onclick="openAddEmployeeModal()">
+                                <i class="fas fa-plus"></i> Add Employee
+                            </button>
+                        </div>
                     </div>
 
                     <div class="employees-table">
                         <div class="table-header">
                             <div>Employee Name</div>
                             <div>Emp ID</div>
-                            <div>Email</div>
+                            <div>Status</div>
                             <div>Gross (KES)</div>
-                            <div>PAYE (KES)</div>
-                            <div>NSSF (KES)</div>
-                            <div>SHIF (KES)</div>
-                            <div>Housing Levy</div>
                             <div>Net Pay (KES)</div>
                             <div>Actions</div>
                         </div>
@@ -352,6 +483,33 @@
                                 <div class="label">Amount to pay employees</div>
                             </div>
                         </div>
+
+                        <!-- Statutory Bodies Links -->
+                        <div class="statutory-links">
+                            <h4><i class="fas fa-link"></i> Remittance Portals — Pay your statutory deductions here:</h4>
+                            <div class="statutory-logos">
+                                <a href="https://itax.kra.go.ke/KRA-Portal/" target="_blank" rel="noopener noreferrer" class="statutory-logo-link" aria-label="KRA iTax Portal - Remit PAYE">
+                                    <span class="org-icon" aria-hidden="true">🏛️</span>
+                                    <span class="org-name">KRA iTax</span>
+                                    <span class="org-desc">Remit PAYE</span>
+                                </a>
+                                <a href="https://www.nssf.or.ke/" target="_blank" rel="noopener noreferrer" class="statutory-logo-link" aria-label="NSSF Portal - Pension contributions">
+                                    <span class="org-icon" aria-hidden="true">🛡️</span>
+                                    <span class="org-name">NSSF Portal</span>
+                                    <span class="org-desc">Pension contributions</span>
+                                </a>
+                                <a href="https://www.sha.go.ke/" target="_blank" rel="noopener noreferrer" class="statutory-logo-link" aria-label="SHA Portal - Remit SHIF">
+                                    <span class="org-icon" aria-hidden="true">🏥</span>
+                                    <span class="org-name">SHA Portal</span>
+                                    <span class="org-desc">Remit SHIF</span>
+                                </a>
+                                <a href="https://ahl.go.ke/" target="_blank" rel="noopener noreferrer" class="statutory-logo-link" aria-label="AHL Fund - Housing Levy">
+                                    <span class="org-icon" aria-hidden="true">🏠</span>
+                                    <span class="org-name">AHL Fund</span>
+                                    <span class="org-desc">Housing Levy</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -364,6 +522,8 @@
                         <span class="close-modal" onclick="closeEmployeeModal()">&times;</span>
                     </div>
                     <form id="employee-form" onsubmit="saveEmployee(event)">
+                        <!-- Basic Info -->
+                        <div class="form-section-title"><i class="fas fa-user"></i> Basic Information</div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="emp-name"><i class="fas fa-user"></i> Full Name *</label>
@@ -400,14 +560,69 @@
                                 <input type="text" id="emp-position" placeholder="Software Engineer">
                             </div>
                             <div class="form-group">
+                                <label for="emp-status"><i class="fas fa-circle"></i> Work Status *</label>
+                                <select id="emp-status" required>
+                                    <option value="Active">Active</option>
+                                    <option value="Off">Off</option>
+                                    <option value="Suspended">Suspended</option>
+                                    <option value="Terminated">Terminated</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Salary Info -->
+                        <div class="form-section-title"><i class="fas fa-money-bill-wave"></i> Salary Information</div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label for="emp-salary"><i class="fas fa-money-bill-wave"></i> Gross Salary (KES) *</label>
                                 <input type="number" id="emp-salary" required placeholder="50000">
                             </div>
+                            <div class="form-group">
+                                <label for="emp-allowances"><i class="fas fa-hand-holding-usd"></i> Allowances (KES)</label>
+                                <input type="number" id="emp-allowances" placeholder="5000">
+                            </div>
+                        </div>
+
+                        <!-- Bank / Payment Details -->
+                        <div class="form-section-title"><i class="fas fa-university"></i> Salary Payment / Bank Details</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="emp-bank-name"><i class="fas fa-university"></i> Bank Name</label>
+                                <input type="text" id="emp-bank-name" placeholder="e.g. Equity Bank">
+                            </div>
+                            <div class="form-group">
+                                <label for="emp-bank-branch"><i class="fas fa-map-marker-alt"></i> Branch</label>
+                                <input type="text" id="emp-bank-branch" placeholder="e.g. Nairobi CBD">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="emp-account-name"><i class="fas fa-user-circle"></i> Account Name</label>
+                                <input type="text" id="emp-account-name" placeholder="Account holder name">
+                            </div>
+                            <div class="form-group">
+                                <label for="emp-account-number"><i class="fas fa-hashtag"></i> Account Number</label>
+                                <input type="text" id="emp-account-number" placeholder="1234567890">
+                            </div>
+                        </div>
+
+                        <!-- Next of Kin -->
+                        <div class="form-section-title"><i class="fas fa-user-friends"></i> Next of Kin</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="emp-nok-name"><i class="fas fa-user"></i> Next of Kin Name</label>
+                                <input type="text" id="emp-nok-name" placeholder="Jane Doe">
+                            </div>
+                            <div class="form-group">
+                                <label for="emp-nok-relationship"><i class="fas fa-heart"></i> Relationship</label>
+                                <input type="text" id="emp-nok-relationship" placeholder="e.g. Spouse, Parent">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="emp-allowances"><i class="fas fa-hand-holding-usd"></i> Allowances (KES)</label>
-                            <input type="number" id="emp-allowances" placeholder="5000">
+                            <label for="emp-nok-phone"><i class="fas fa-phone"></i> Next of Kin Phone</label>
+                            <input type="tel" id="emp-nok-phone" placeholder="0712345678">
                         </div>
+
                         <button type="submit" class="auth-button" style="margin-top: 20px;">
                             <i class="fas fa-save"></i> Save Employee
                         </button>
@@ -429,7 +644,7 @@
     <script src="supabase-config.js"></script>
     <script src="auth.js"></script>
     <script>
-        let employees = []; // In production, this would come from the database
+        let employees = [];
         let currentEmployeeId = null;
 
         // Calculate statutory deductions for a given gross salary (2026 rates)
@@ -446,7 +661,6 @@
             ];
             const prev = [24000, 32333, 500000, 800000];
 
-            // NSSF
             const tier1 = Math.min(gross, nssfLower) * nssfRate;
             const nssf = gross > nssfLower
                 ? tier1 + (Math.min(gross, nssfUpper) - nssfLower) * nssfRate
@@ -471,23 +685,57 @@
         // Check if user is authenticated
         async function checkPremiumAccess() {
             const user = await checkAuthStatus();
-            
             if (!user) {
                 window.location.href = '/auth.html';
                 return;
             }
-
             loadEmployees();
         }
 
-        // Load employees from database
+        // Load employees from localStorage
         function loadEmployees() {
-            // In production, fetch from Supabase
-            // For now, use localStorage for demo
-            const savedEmployees = localStorage.getItem('employees');
-            if (savedEmployees) {
-                employees = JSON.parse(savedEmployees);
+            const saved = localStorage.getItem('employees');
+            if (saved) {
+                employees = JSON.parse(saved);
                 renderEmployees();
+            }
+        }
+
+        // Helper: escape HTML to prevent XSS
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        // Helper: format KES amounts
+        function fmtKES(val) {
+            return 'KES ' + Number(val).toLocaleString(undefined, {maximumFractionDigits: 0});
+        }
+
+        // Return status badge HTML
+        function statusBadge(status) {
+            const s = (status || 'Active');
+            const cls = {
+                'Active': 'status-active',
+                'Off': 'status-off',
+                'Suspended': 'status-suspended',
+                'Terminated': 'status-terminated'
+            }[s] || 'status-active';
+            return `<span class="status-badge ${cls}">${esc(s)}</span>`;
+        }
+
+        // Toggle expanded details for an employee row
+        function toggleDetails(id) {
+            const details = document.getElementById('details-' + id);
+            const row = document.getElementById('row-' + id);
+            if (!details) return;
+            const isOpen = details.classList.contains('open');
+            details.classList.toggle('open', !isOpen);
+            if (row) {
+                row.classList.toggle('expanded', !isOpen);
+                const chevron = row.querySelector('.chevron-icon');
+                if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
             }
         }
 
@@ -495,54 +743,87 @@
         function renderEmployees() {
             const list = document.getElementById('employees-list');
             const emptyState = document.getElementById('empty-state');
-            
+            const exportBar = document.getElementById('export-bar');
+
             if (employees.length === 0) {
                 list.innerHTML = '';
                 emptyState.style.display = 'block';
+                exportBar.style.display = 'none';
+                document.getElementById('compliance-summary').style.display = 'none';
                 return;
             }
 
-            // Helper to escape HTML (prevents XSS)
-            function esc(str) {
-                const d = document.createElement('div');
-                d.textContent = str || '';
-                return d.innerHTML;
-            }
-
-            // Helper to format KES amounts
-            function fmtKES(val) {
-                return 'KES ' + val.toLocaleString(undefined, {maximumFractionDigits: 0});
-            }
-            
             emptyState.style.display = 'none';
+            exportBar.style.display = 'flex';
+
             list.innerHTML = employees.map(emp => {
                 const gross = Number(emp.salary) || 0;
-                const deductions = calcDeductions(gross);
-                const safeId = encodeURIComponent(emp.id);
-                return `
-                <div class="table-row">
-                    <div><strong>${esc(emp.name)}</strong><br><small style="color:#666;">${esc(emp.position)}</small></div>
-                    <div>${esc(emp.employeeId)}</div>
-                    <div>${esc(emp.email) || '-'}</div>
-                    <div>KES ${gross.toLocaleString()}</div>
-                    <div class="deduction-cell">${fmtKES(deductions.paye)}</div>
-                    <div class="deduction-cell">${fmtKES(deductions.nssf)}</div>
-                    <div class="deduction-cell">${fmtKES(deductions.shif)}</div>
-                    <div class="deduction-cell">${fmtKES(deductions.ahl)}</div>
-                    <div class="net-cell"><strong>${fmtKES(deductions.net)}</strong></div>
-                    <div class="employee-actions">
-                        <span class="action-icon payslip" onclick="generatePayslipForEmployee(${JSON.stringify(emp.id)})" title="Generate Payslip">
-                            <i class="fas fa-file-invoice"></i>
-                        </span>
-                        <span class="action-icon edit" onclick="editEmployee(${JSON.stringify(emp.id)})" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </span>
-                        <span class="action-icon delete" onclick="deleteEmployee(${JSON.stringify(emp.id)})" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </span>
+                const d = calcDeductions(gross);
+                const safeId = String(emp.id).replace(/[^a-zA-Z0-9]/g, '_');
+
+                const detailsHtml = `
+                <div class="employee-details" id="details-${safeId}">
+                    <div class="details-section-title"><i class="fas fa-user"></i> Personal Details</div>
+                    <div class="details-grid">
+                        <div class="detail-item"><span class="label">Email</span><span class="value">${esc(emp.email) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Phone</span><span class="value">${esc(emp.phone) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">KRA PIN</span><span class="value">${esc(emp.kraPin) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Department</span><span class="value">${esc(emp.department) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Position</span><span class="value">${esc(emp.position) || '—'}</span></div>
                     </div>
-                </div>
-                `;
+
+                    <div class="details-section-title"><i class="fas fa-money-bill-wave"></i> Salary Breakdown</div>
+                    <div class="details-grid">
+                        <div class="detail-item"><span class="label">Gross Salary</span><span class="value">${fmtKES(gross)}</span></div>
+                        <div class="detail-item"><span class="label">Allowances</span><span class="value">${fmtKES(emp.allowances || 0)}</span></div>
+                        <div class="detail-item"><span class="label">PAYE</span><span class="value" style="color:#c00;">${fmtKES(d.paye)}</span></div>
+                        <div class="detail-item"><span class="label">NSSF</span><span class="value" style="color:#c00;">${fmtKES(d.nssf)}</span></div>
+                        <div class="detail-item"><span class="label">SHIF</span><span class="value" style="color:#c00;">${fmtKES(d.shif)}</span></div>
+                        <div class="detail-item"><span class="label">Housing Levy</span><span class="value" style="color:#c00;">${fmtKES(d.ahl)}</span></div>
+                        <div class="detail-item"><span class="label">Net Pay</span><span class="value" style="color:#006600;font-weight:bold;">${fmtKES(d.net)}</span></div>
+                    </div>
+
+                    <div class="details-section-title"><i class="fas fa-university"></i> Bank / Payment Details</div>
+                    <div class="details-grid">
+                        <div class="detail-item"><span class="label">Bank Name</span><span class="value">${esc(emp.bankName) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Branch</span><span class="value">${esc(emp.bankBranch) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Account Name</span><span class="value">${esc(emp.accountName) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Account Number</span><span class="value">${esc(emp.accountNumber) || '—'}</span></div>
+                    </div>
+
+                    <div class="details-section-title"><i class="fas fa-user-friends"></i> Next of Kin</div>
+                    <div class="details-grid">
+                        <div class="detail-item"><span class="label">Name</span><span class="value">${esc(emp.nokName) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Relationship</span><span class="value">${esc(emp.nokRelationship) || '—'}</span></div>
+                        <div class="detail-item"><span class="label">Phone</span><span class="value">${esc(emp.nokPhone) || '—'}</span></div>
+                    </div>
+                </div>`;
+
+                return `
+                <div class="table-row-wrapper">
+                    <div class="table-row" id="row-${safeId}" onclick="toggleDetails('${safeId}')" title="Click to expand/collapse details">
+                        <div>
+                            <strong>${esc(emp.name)}</strong>
+                            <small style="color:#888;margin-left:6px;"><i class="fas fa-chevron-down chevron-icon" style="font-size:0.7em;transition:transform 0.2s;"></i></small>
+                        </div>
+                        <div>${esc(emp.employeeId)}</div>
+                        <div>${statusBadge(emp.status)}</div>
+                        <div>${fmtKES(gross)}</div>
+                        <div class="net-cell">${fmtKES(d.net)}</div>
+                        <div class="employee-actions" onclick="event.stopPropagation()">
+                            <span class="action-icon payslip" onclick="generatePayslipForEmployee(${JSON.stringify(emp.id)})" title="Generate Payslip" role="button" aria-label="Generate Payslip for ${esc(emp.name)}">
+                                <i class="fas fa-file-invoice"></i>
+                            </span>
+                            <span class="action-icon edit" onclick="editEmployee(${JSON.stringify(emp.id)})" title="Edit" role="button" aria-label="Edit ${esc(emp.name)}">
+                                <i class="fas fa-edit"></i>
+                            </span>
+                            <span class="action-icon delete" onclick="deleteEmployee(${JSON.stringify(emp.id)})" title="Delete" role="button" aria-label="Delete ${esc(emp.name)}">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                        </div>
+                    </div>
+                    ${detailsHtml}
+                </div>`;
             }).join('');
 
             // Update compliance summary
@@ -551,20 +832,19 @@
                 const d = calcDeductions(gross);
                 acc.gross += gross;
                 acc.paye  += d.paye;
-                acc.nssf  += d.nssf * 2; // employee + employer match
+                acc.nssf  += d.nssf * 2;
                 acc.shif  += d.shif * 2;
                 acc.ahl   += d.ahl * 2;
                 acc.net   += d.net;
                 return acc;
             }, { gross: 0, paye: 0, nssf: 0, shif: 0, ahl: 0, net: 0 });
 
-            const fmt = v => 'KES ' + v.toLocaleString(undefined, {maximumFractionDigits:0});
-            document.getElementById('totalGross').textContent = fmt(totals.gross);
-            document.getElementById('totalPaye').textContent  = fmt(totals.paye);
-            document.getElementById('totalNssf').textContent  = fmt(totals.nssf);
-            document.getElementById('totalShif').textContent  = fmt(totals.shif);
-            document.getElementById('totalAhl').textContent   = fmt(totals.ahl);
-            document.getElementById('totalNet').textContent   = fmt(totals.net);
+            document.getElementById('totalGross').textContent = fmtKES(totals.gross);
+            document.getElementById('totalPaye').textContent  = fmtKES(totals.paye);
+            document.getElementById('totalNssf').textContent  = fmtKES(totals.nssf);
+            document.getElementById('totalShif').textContent  = fmtKES(totals.shif);
+            document.getElementById('totalAhl').textContent   = fmtKES(totals.ahl);
+            document.getElementById('totalNet').textContent   = fmtKES(totals.net);
             document.getElementById('compliance-summary').style.display = 'block';
         }
 
@@ -573,6 +853,7 @@
             currentEmployeeId = null;
             document.getElementById('modal-title').textContent = 'Add Employee';
             document.getElementById('employee-form').reset();
+            document.getElementById('emp-status').value = 'Active';
             document.getElementById('employee-modal').classList.add('active');
         }
 
@@ -584,7 +865,6 @@
         // Save employee
         function saveEmployee(event) {
             event.preventDefault();
-            
             const employee = {
                 id: currentEmployeeId || Date.now().toString(),
                 name: document.getElementById('emp-name').value,
@@ -594,76 +874,178 @@
                 kraPin: document.getElementById('emp-kra').value,
                 department: document.getElementById('emp-department').value,
                 position: document.getElementById('emp-position').value,
+                status: document.getElementById('emp-status').value,
                 salary: document.getElementById('emp-salary').value,
-                allowances: document.getElementById('emp-allowances').value || 0
+                allowances: document.getElementById('emp-allowances').value || 0,
+                bankName: document.getElementById('emp-bank-name').value,
+                bankBranch: document.getElementById('emp-bank-branch').value,
+                accountName: document.getElementById('emp-account-name').value,
+                accountNumber: document.getElementById('emp-account-number').value,
+                nokName: document.getElementById('emp-nok-name').value,
+                nokRelationship: document.getElementById('emp-nok-relationship').value,
+                nokPhone: document.getElementById('emp-nok-phone').value
             };
-            
+
             if (currentEmployeeId) {
-                // Update existing
                 const index = employees.findIndex(e => e.id === currentEmployeeId);
                 employees[index] = employee;
             } else {
-                // Add new
                 employees.push(employee);
             }
-            
-            // Save to localStorage (in production, save to Supabase)
+
             localStorage.setItem('employees', JSON.stringify(employees));
-            
             renderEmployees();
             closeEmployeeModal();
         }
 
         // Edit employee
         function editEmployee(id) {
-            const employee = employees.find(e => e.id === id);
-            if (!employee) return;
-            
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
             currentEmployeeId = id;
             document.getElementById('modal-title').textContent = 'Edit Employee';
-            document.getElementById('emp-name').value = employee.name;
-            document.getElementById('emp-id').value = employee.employeeId;
-            document.getElementById('emp-email').value = employee.email || '';
-            document.getElementById('emp-phone').value = employee.phone || '';
-            document.getElementById('emp-kra').value = employee.kraPin || '';
-            document.getElementById('emp-department').value = employee.department || '';
-            document.getElementById('emp-position').value = employee.position || '';
-            document.getElementById('emp-salary').value = employee.salary;
-            document.getElementById('emp-allowances').value = employee.allowances || 0;
-            
+            document.getElementById('emp-name').value = emp.name;
+            document.getElementById('emp-id').value = emp.employeeId;
+            document.getElementById('emp-email').value = emp.email || '';
+            document.getElementById('emp-phone').value = emp.phone || '';
+            document.getElementById('emp-kra').value = emp.kraPin || '';
+            document.getElementById('emp-department').value = emp.department || '';
+            document.getElementById('emp-position').value = emp.position || '';
+            document.getElementById('emp-status').value = emp.status || 'Active';
+            document.getElementById('emp-salary').value = emp.salary;
+            document.getElementById('emp-allowances').value = emp.allowances || 0;
+            document.getElementById('emp-bank-name').value = emp.bankName || '';
+            document.getElementById('emp-bank-branch').value = emp.bankBranch || '';
+            document.getElementById('emp-account-name').value = emp.accountName || '';
+            document.getElementById('emp-account-number').value = emp.accountNumber || '';
+            document.getElementById('emp-nok-name').value = emp.nokName || '';
+            document.getElementById('emp-nok-relationship').value = emp.nokRelationship || '';
+            document.getElementById('emp-nok-phone').value = emp.nokPhone || '';
             document.getElementById('employee-modal').classList.add('active');
         }
 
         // Delete employee
         function deleteEmployee(id) {
             if (!confirm('Are you sure you want to delete this employee?')) return;
-            
             employees = employees.filter(e => e.id !== id);
             localStorage.setItem('employees', JSON.stringify(employees));
             renderEmployees();
         }
 
-        // Generate payslip for employee
+        // Generate payslip for employee — saves data to localStorage and opens payslip generator
         function generatePayslipForEmployee(id) {
-            const employee = employees.find(e => e.id === id);
-            if (!employee) return;
-            
-            // Redirect to payslip generator with employee data
-            const params = new URLSearchParams({
-                name: employee.name,
-                empId: employee.employeeId,
-                kraPin: employee.kraPin || '',
-                salary: employee.salary
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+            // Save to localStorage so the payslip generator can pre-fill
+            localStorage.setItem('employeeData', JSON.stringify({
+                name: emp.name,
+                id: emp.employeeId,
+                pin: emp.kraPin || '',
+                period: '',
+                gross: emp.salary,
+                department: emp.department || ''
+            }));
+            window.location.href = '/index.html?tab=payslip';
+        }
+
+        // ── Export Functions ──────────────────────────────────────────────────────
+
+        function buildExportRows() {
+            return employees.map(emp => {
+                const gross = Number(emp.salary) || 0;
+                const d = calcDeductions(gross);
+                return {
+                    'Name': emp.name,
+                    'Employee ID': emp.employeeId,
+                    'Email': emp.email || '',
+                    'Phone': emp.phone || '',
+                    'KRA PIN': emp.kraPin || '',
+                    'Department': emp.department || '',
+                    'Position': emp.position || '',
+                    'Status': emp.status || 'Active',
+                    'Gross (KES)': gross,
+                    'PAYE (KES)': Math.round(d.paye),
+                    'NSSF (KES)': Math.round(d.nssf),
+                    'SHIF (KES)': Math.round(d.shif),
+                    'Housing Levy (KES)': Math.round(d.ahl),
+                    'Net Pay (KES)': Math.round(d.net),
+                    'Bank Name': emp.bankName || '',
+                    'Bank Branch': emp.bankBranch || '',
+                    'Account Name': emp.accountName || '',
+                    'Account Number': emp.accountNumber || '',
+                    'NOK Name': emp.nokName || '',
+                    'NOK Relationship': emp.nokRelationship || '',
+                    'NOK Phone': emp.nokPhone || ''
+                };
             });
-            
-            window.location.href = '/index.html?' + params.toString() + '#payslip';
+        }
+
+        function exportCSV() {
+            const rows = buildExportRows();
+            if (!rows.length) return alert('No employees to export.');
+            const headers = Object.keys(rows[0]);
+            const csvLines = [headers.join(',')].concat(
+                rows.map(r => headers.map(h => {
+                    const v = String(r[h] ?? '').replace(/"/g, '""');
+                    return /[,"\n]/.test(v) ? `"${v}"` : v;
+                }).join(','))
+            );
+            const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            triggerDownload(blob, 'employees.csv');
+        }
+
+        function exportExcel() {
+            const rows = buildExportRows();
+            if (!rows.length) return alert('No employees to export.');
+            const headers = Object.keys(rows[0]);
+            // Build a simple HTML table that Excel can open
+            let html = '<table><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+            rows.forEach(r => {
+                html += '<tr>' + headers.map(h => `<td>${r[h] ?? ''}</td>`).join('') + '</tr>';
+            });
+            html += '</table>';
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            triggerDownload(blob, 'employees.xls');
+        }
+
+        function exportPDF() {
+            const rows = buildExportRows();
+            if (!rows.length) return alert('No employees to export.');
+            // Open a print-friendly window with employee data
+            const headers = Object.keys(rows[0]);
+            let tableHtml = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%;">
+                <tr style="background:#006600;color:white;">${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            rows.forEach((r, i) => {
+                const bg = i % 2 === 0 ? '#fff' : '#f5f5f5';
+                tableHtml += `<tr style="background:${bg};">${headers.map(h => `<td>${r[h] ?? ''}</td>`).join('')}</tr>`;
+            });
+            tableHtml += '</table>';
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html><html><head><title>Employees Export</title>
+                <style>body{font-family:Arial,sans-serif;padding:20px;}h2{color:#006600;}@media print{button{display:none;}}</style>
+                </head><body>
+                <h2>Employee Payroll Report</h2>
+                <p>Generated: ${new Date().toLocaleDateString('en-KE', {day:'2-digit',month:'long',year:'numeric'})}</p>
+                ${tableHtml}
+                <br><button onclick="window.print()" style="padding:10px 20px;background:#006600;color:white;border:none;border-radius:5px;cursor:pointer;">Print / Save as PDF</button>
+                </body></html>`);
+            win.document.close();
+        }
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         // Close modal on outside click
         document.getElementById('employee-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEmployeeModal();
-            }
+            if (e.target === this) closeEmployeeModal();
         });
 
         // Check premium access on page load

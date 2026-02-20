@@ -298,21 +298,14 @@ if (supabaseClient && supabaseClient.auth) {
         if (event === 'SIGNED_IN') {
             console.log('User signed in:', session.user);
             
-            // If we're on the auth page and user just signed in (e.g., via OAuth callback),
-            // redirect to home page
+            // If we're on the auth page and user signed in, redirect away
             if (window.location.pathname === '/auth.html' || window.location.pathname.endsWith('/auth.html')) {
-                // Check if this is an OAuth callback (URL will have hash parameters)
-                const isOAuthCallback = window.location.hash && (
-                    window.location.hash.includes('access_token') || 
-                    window.location.hash.includes('error')
-                );
-                
-                if (isOAuthCallback) {
-                    console.log('OAuth callback detected, redirecting to home page');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, OAUTH_REDIRECT_DELAY_MS);
-                }
+                const params = new URLSearchParams(window.location.search);
+                const rawRedirect = params.get('redirect') || '/';
+                const redirectTo = (typeof rawRedirect === 'string' && rawRedirect.startsWith('/')) ? rawRedirect : '/';
+                setTimeout(() => {
+                    window.location.href = redirectTo;
+                }, OAUTH_REDIRECT_DELAY_MS);
             }
         } else if (event === 'PASSWORD_RECOVERY') {
             // Show the password reset form
@@ -485,7 +478,13 @@ async function redirectIfLoggedIn() {
     if (user) {
         // Already logged in — send to homepage
         const params = new URLSearchParams(window.location.search);
-        const redirectTo = params.get('redirect') || '/';
+        const rawRedirect = params.get('redirect') || '/';
+        // Only allow relative paths starting with '/' to prevent open-redirect attacks
+        const redirectTo = (typeof rawRedirect === 'string' && rawRedirect.startsWith('/')) ? rawRedirect : '/';
         window.location.href = redirectTo;
+    } else {
+        // Not logged in — show the auth container
+        const authContainer = document.querySelector('.auth-container');
+        if (authContainer) authContainer.classList.add('auth-ready');
     }
 }
