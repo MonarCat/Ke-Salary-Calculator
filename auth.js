@@ -75,11 +75,41 @@ async function handleLogin(event) {
         }, 1000);
         
     } catch (error) {
-        showMessage('login-message', error.message || 'Login failed. Please check your credentials.', 'error');
+        // Detect unverified email and offer resend link
+        if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
+            showMessage('login-message',
+                `Your email has not been verified yet. Please check your inbox (and <strong>Spam / Junk</strong> folder) for the confirmation link.<br><br>
+                <button onclick="resendVerificationEmail()" style="background:#006600;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:0.9em;">
+                    <i class="fas fa-envelope"></i> Resend Verification Email
+                </button>`, 'error');
+        } else {
+            showMessage('login-message', error.message || 'Login failed. Please check your credentials.', 'error');
+        }
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
 }
+
+// Resend email verification link
+async function resendVerificationEmail() {
+    const emailInput = document.getElementById('login-email');
+    const email = emailInput ? emailInput.value : '';
+    if (!email) {
+        showMessage('login-message', 'Please enter your email address first.', 'error');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient.auth.resend({
+            type: 'signup',
+            email: email,
+        });
+        if (error) throw error;
+        showMessage('login-message', `Verification email resent. Please check your inbox and Spam folder.`, 'success');
+    } catch (err) {
+        showMessage('login-message', 'Failed to resend verification email: ' + (err.message || 'Please try again.'), 'error');
+    }
+}
+window.resendVerificationEmail = resendVerificationEmail;
 
 // Handle Signup
 async function handleSignup(event) {

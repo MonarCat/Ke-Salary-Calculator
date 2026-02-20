@@ -422,7 +422,7 @@ function renderBlogPost(post, reactions, comments) {
 
             <!-- Reactions -->
             <div class="blog-reactions" id="reactionsSection">
-                ${renderReactions(reactions, post.id)}
+                ${renderReactions(reactions.counts, post.id, reactions.userReaction)}
             </div>
 
             <!-- AdSense Ad -->
@@ -494,17 +494,21 @@ function renderReactions(reactions, postId, userReaction = null) {
         { type: 'support', emoji: '🙌', label: 'Support' }
     ];
 
-    return reactionTypes.map(rt => {
+    // postId is a UUID (safe) and rt.type is from a hardcoded static list (safe);
+    // data attributes are used so no user-controlled data is interpolated into onclick.
+    const buttons = reactionTypes.map(rt => {
         const count = reactions[rt.type] || 0;
         const isActive = userReaction === rt.type ? 'active' : '';
         return `
-            <button class="reaction-button ${isActive}" data-type="${rt.type}" onclick="handleReaction('${postId}', '${rt.type}')">
+            <button class="reaction-button ${isActive}" data-post-id="${postId}" data-reaction-type="${rt.type}" title="${rt.label}${count > 0 ? ': ' + count : ''}">
                 <span class="emoji">${rt.emoji}</span>
                 <span class="label">${rt.label}</span>
-                <span class="count">${count}</span>
+                <span class="count">${count > 0 ? count : ''}</span>
             </button>
         `;
     }).join('');
+
+    return `<span class="reactions-label">React:</span>${buttons}`;
 }
 
 function renderComments(comments) {
@@ -813,6 +817,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize mobile menu
     initMobileMenu();
+
+    // Event delegation for reaction buttons (avoids inline onclick with interpolated data)
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.reaction-button[data-post-id]');
+        if (btn) {
+            const postId = btn.dataset.postId;
+            const reactionType = btn.dataset.reactionType;
+            if (postId && reactionType) {
+                handleReaction(postId, reactionType);
+            }
+        }
+    });
 });
 
 // Navigation dropdown functionality
