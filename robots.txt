@@ -4,6 +4,10 @@
 User-agent: *
 Allow: /
 
+# Disallow admin pages from being indexed
+Disallow: /admin.html
+Disallow: /admin-auth.html
+
 # Specifically allow Google AdSense crawler
 User-agent: Mediapartners-Google
 Allow: /

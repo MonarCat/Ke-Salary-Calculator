@@ -67,7 +67,8 @@ async function initAdminDashboard() {
 
 function showAccessDenied() {
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('accessDenied').style.display = 'block';
+    // Redirect to dedicated admin auth page instead of showing inline access denied
+    window.location.replace('/admin-auth.html');
 }
 
 // Switch between tabs
