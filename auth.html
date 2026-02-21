@@ -209,5 +209,26 @@
 
     <script src="supabase-config.js"></script>
     <script src="auth.js"></script>
+    <script>
+        // If redirected from admin with forgot password flag, trigger forgot password UI
+        if (sessionStorage.getItem('showForgotPassword') === '1') {
+            sessionStorage.removeItem('showForgotPassword');
+            document.addEventListener('DOMContentLoaded', function() {
+                const emailInput = document.getElementById('login-email');
+                if (emailInput) emailInput.focus();
+                const forgotLink = document.querySelector('.forgot-password');
+                if (forgotLink) {
+                    setTimeout(function() {
+                        const msg = document.getElementById('login-message');
+                        if (msg) {
+                            msg.innerHTML = 'Enter your email above and click <strong>Forgot Password?</strong> to receive a reset link.';
+                            msg.className = 'auth-message info';
+                            msg.style.display = 'block';
+                        }
+                    }, 300);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
