@@ -429,7 +429,7 @@ function renderBlogPost(post, reactions, comments) {
             </div>
 
             <!-- Reactions -->
-            <div class="blog-reactions" id="reactionsSection">
+            <div class="blog-reactions" id="reactionsSection" role="group" aria-label="Post reactions">
                 ${renderReactions(reactions.counts, post.id, reactions.userReaction)}
             </div>
 
@@ -507,16 +507,18 @@ function renderReactions(reactions, postId, userReaction = null) {
     const buttons = reactionTypes.map(rt => {
         const count = reactions[rt.type] || 0;
         const isActive = userReaction === rt.type ? 'active' : '';
+        const ariaLabel = `${rt.label}${count > 0 ? ': ' + count + ' reaction' + (count !== 1 ? 's' : '') : ''}`;
+        const ariaPressed = userReaction === rt.type ? 'true' : 'false';
         return `
-            <button class="reaction-button ${isActive}" data-post-id="${postId}" data-reaction-type="${rt.type}" title="${rt.label}${count > 0 ? ': ' + count : ''}">
-                <span class="emoji">${rt.emoji}</span>
+            <button class="reaction-button ${isActive}" data-post-id="${postId}" data-reaction-type="${rt.type}" title="${rt.label}${count > 0 ? ': ' + count : ''}" aria-label="${ariaLabel}" aria-pressed="${ariaPressed}">
+                <span class="emoji" aria-hidden="true">${rt.emoji}</span>
                 <span class="label">${rt.label}</span>
-                <span class="count">${count > 0 ? count : ''}</span>
+                <span class="count"${count > 0 ? '' : ' aria-hidden="true"'}>${count > 0 ? count : ''}</span>
             </button>
         `;
     }).join('');
 
-    return `<span class="reactions-label">React:</span>${buttons}`;
+    return `<span class="reactions-label" aria-label="Reactions">React:</span>${buttons}`;
 }
 
 function renderComments(comments) {
