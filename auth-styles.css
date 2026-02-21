@@ -291,6 +291,68 @@
     margin: 5px 0;
 }
 
+/* Sign In Button (shown when user is not logged in) */
+.sign-in-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: linear-gradient(to right, #006600, #009900);
+    color: white !important;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.sign-in-btn:hover {
+    background: linear-gradient(to right, #004400, #007700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 0, 0.35);
+    color: white !important;
+}
+
+/* Welcome button (shown when user is logged in) */
+.user-welcome-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    background: linear-gradient(to right, #006600, #009900);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.user-welcome-btn:hover {
+    background: linear-gradient(to right, #004400, #007700);
+    box-shadow: 0 4px 12px rgba(0, 102, 0, 0.35);
+}
+
+.user-welcome-btn .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.user-welcome-text {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    max-width: min(180px, 20vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-welcome-chevron {
+    color: white;
+    font-size: 11px;
+}
+
 /* User Profile Dropdown (for logged in state) */
 .user-profile {
     position: relative;

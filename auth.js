@@ -437,8 +437,12 @@ async function updateAuthUI() {
             
             authLinks.innerHTML = `
                 <div class="user-profile">
-                    <div class="user-avatar" onclick="toggleUserDropdown()">
-                        ${userName.charAt(0).toUpperCase()}
+                    <div class="user-welcome-btn" onclick="toggleUserDropdown()">
+                        <div class="user-avatar">
+                            ${userName.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="user-welcome-text">Welcome, ${userName}</span>
+                        <i class="fas fa-chevron-down user-welcome-chevron"></i>
                     </div>
                     <div class="user-dropdown" id="user-dropdown">
                         <div class="user-dropdown-item">
@@ -464,7 +468,7 @@ async function updateAuthUI() {
         } else {
             // User is not logged in
             authLinks.innerHTML = `
-                <a href="/auth.html" class="auth-link">
+                <a href="/auth.html" class="sign-in-btn">
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </a>
             `;
