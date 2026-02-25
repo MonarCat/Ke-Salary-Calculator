@@ -230,20 +230,30 @@ const CARD_ACCENTS = ['accent-red', 'accent-blue', 'accent-orange', 'accent-purp
 function createBlogCard(post, index = 0) {
     const card = document.createElement('div');
     const accent = CARD_ACCENTS[index % CARD_ACCENTS.length];
-    card.className = `blog-card ${accent}`;
+    const isFeatured = index === 0;
+    card.className = `blog-card ${accent}${isFeatured ? ' blog-card-featured' : ''}`;
     card.onclick = () => window.location.href = `blog-post.html?slug=${post.slug}`;
 
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
-    
+    const category = post.category || 'Finance';
+    const readTime = estimateReadTime(post.content || post.excerpt || '');
+    const authorInitial = (post.author_name || 'A').charAt(0).toUpperCase();
+
     card.innerHTML = `
-        <img src="${imageUrl}" alt="${post.title}" class="blog-card-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
+        <div class="blog-card-image-wrap">
+            <img src="${imageUrl}" alt="${post.title}" class="blog-card-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
+            <span class="blog-card-category-badge">${category}</span>
+        </div>
         <div class="blog-card-content">
             <h2 class="blog-card-title">${post.title}</h2>
             <p class="blog-card-excerpt">${post.excerpt || ''}</p>
             <div class="blog-card-meta">
                 <div class="blog-card-author">
-                    <i class="fas fa-user-circle"></i>
+                    <div class="blog-card-author-avatar">${authorInitial}</div>
                     <span>${post.author_name}</span>
+                </div>
+                <div class="blog-card-read-time">
+                    <i class="fas fa-clock"></i> ${readTime} min read
                 </div>
                 <div class="blog-card-stats">
                     <span><i class="fas fa-eye"></i> ${post.views_count || 0}</span>
@@ -253,6 +263,12 @@ function createBlogCard(post, index = 0) {
     `;
 
     return card;
+}
+
+// Estimate reading time (avg 200 words/min)
+function estimateReadTime(text) {
+    const words = text.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words / 200));
 }
 
 // Single Blog Post
@@ -382,6 +398,8 @@ function renderBlogPost(post, reactions, comments) {
     const container = document.getElementById('blogPostContainer');
     const imageUrl = post.featured_image_url || 'kenyan-economy-coins.jpg';
     const secondaryImageUrl = post.secondary_image_url || 'nairobi_wh10.jpg';
+    const category = post.category || 'Finance';
+    const readTime = estimateReadTime(post.content || post.excerpt || '');
 
     // Cache comments for re-rendering after auth resolves
     _currentPostComments = comments || [];
@@ -404,8 +422,19 @@ function renderBlogPost(post, reactions, comments) {
 
     container.innerHTML = `
         <article class="blog-post">
-            <div class="blog-post-header">
-                <h1 class="blog-post-title">${post.title}</h1>
+            <!-- Hero Image -->
+            <div class="blog-post-hero">
+                <img src="${imageUrl}" alt="${post.title}" class="blog-post-hero-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
+            </div>
+
+            <div class="blog-post-inner">
+                <!-- Category badge -->
+                <span class="blog-post-category-badge">${category}</span>
+
+                <div class="blog-post-header">
+                    <h1 class="blog-post-title">${post.title}</h1>
+                </div>
+
                 <div class="blog-post-meta">
                     <div class="blog-post-author-info">
                         <div class="blog-post-author-avatar">${getUserInitials(post.author_name)}</div>
@@ -414,73 +443,72 @@ function renderBlogPost(post, reactions, comments) {
                             <span class="blog-post-date">${formatDate(post.published_at)}</span>
                         </div>
                     </div>
-                    <div class="blog-post-views">
-                        <i class="fas fa-eye"></i> ${post.views_count + 1} views
+                    <div class="blog-post-meta-right">
+                        <span class="blog-post-read-time"><i class="fas fa-clock"></i> ${readTime} min read</span>
+                        <span class="blog-post-views"><i class="fas fa-eye"></i> ${(post.views_count || 0) + 1}</span>
                     </div>
                 </div>
-            </div>
-            
-            <img src="${imageUrl}" alt="${post.title}" class="blog-post-featured-image" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
-            
-            <div class="blog-post-content">
-                ${contentPart1}
-                ${secondaryImageHtml}
-                ${contentPart2}
-            </div>
-
-            <!-- Reactions -->
-            <div class="blog-reactions" id="reactionsSection" role="group" aria-label="Post reactions">
-                ${renderReactions(reactions.counts, post.id, reactions.userReaction)}
-            </div>
-
-            <!-- AdSense Ad -->
-            <div class="blog-adsense">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-format="fluid"
-                     data-ad-layout-key="-6t+ed+2i-1n-4w"
-                     data-ad-client="ca-pub-6832553346534070"
-                     data-ad-slot="1234567890"></ins>
-            </div>
-
-            <!-- Share Section -->
-            <div class="blog-share">
-                <span class="blog-share-title">Share this article:</span>
-                <button class="share-button facebook" onclick="shareOnFacebook()" title="Share on Facebook">
-                    <i class="fab fa-facebook-f"></i>
-                </button>
-                <button class="share-button twitter" onclick="shareOnTwitter()" title="Share on Twitter">
-                    <i class="fab fa-twitter"></i>
-                </button>
-                <button class="share-button linkedin" onclick="shareOnLinkedIn()" title="Share on LinkedIn">
-                    <i class="fab fa-linkedin-in"></i>
-                </button>
-                <button class="share-button whatsapp" onclick="shareOnWhatsApp()" title="Share on WhatsApp">
-                    <i class="fab fa-whatsapp"></i>
-                </button>
-                <button class="share-button copy" onclick="copyLink()" title="Copy Link">
-                    <i class="fas fa-link"></i>
-                </button>
-            </div>
-
-            <!-- Comments Section -->
-            <div class="blog-comments">
-                <div class="comments-header">
-                    <h2 class="comments-title">Comments</h2>
-                    <span class="comments-count">(${comments.length})</span>
+                
+                <div class="blog-post-content">
+                    ${contentPart1}
+                    ${secondaryImageHtml}
+                    ${contentPart2}
                 </div>
 
-                <!-- Comment Form -->
-                <div class="comment-form" id="commentForm">
-                    <h3>Leave a Comment</h3>
-                    <div id="commentFormContent"></div>
+                <!-- Reactions -->
+                <div class="blog-reactions" id="reactionsSection" role="group" aria-label="Post reactions">
+                    ${renderReactions(reactions.counts, post.id, reactions.userReaction)}
                 </div>
 
-                <!-- Comments List -->
-                <div class="comments-list" id="commentsList">
-                    ${renderComments(comments)}
+                <!-- Share Section -->
+                <div class="blog-share">
+                    <span class="blog-share-title">Share:</span>
+                    <button class="share-button facebook" onclick="shareOnFacebook()" title="Share on Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </button>
+                    <button class="share-button twitter" onclick="shareOnTwitter()" title="Share on X (Twitter)">
+                        <i class="fab fa-twitter"></i>
+                    </button>
+                    <button class="share-button linkedin" onclick="shareOnLinkedIn()" title="Share on LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </button>
+                    <button class="share-button whatsapp" onclick="shareOnWhatsApp()" title="Share on WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>
+                    <button class="share-button copy" onclick="copyLink()" title="Copy Link">
+                        <i class="fas fa-link"></i>
+                    </button>
                 </div>
-            </div>
+
+                <!-- AdSense Ad -->
+                <div class="blog-adsense">
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-format="fluid"
+                         data-ad-layout-key="-6t+ed+2i-1n-4w"
+                         data-ad-client="ca-pub-6832553346534070"
+                         data-ad-slot="1234567890"></ins>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="blog-comments">
+                    <div class="comments-header">
+                        <h2 class="comments-title">Comments</h2>
+                        <span class="comments-count">(${comments.length})</span>
+                    </div>
+
+                    <!-- Comment Form -->
+                    <div class="comment-form" id="commentForm">
+                        <h3>Leave a Comment</h3>
+                        <div id="commentFormContent"></div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comments-list" id="commentsList">
+                        ${renderComments(comments)}
+                    </div>
+                </div>
+            </div><!-- /.blog-post-inner -->
         </article>
     `;
 
@@ -984,6 +1012,12 @@ function initMobileMenu() {
         mobileToggle.addEventListener('click', function() {
             const nav = document.querySelector('.main-nav');
             nav.classList.toggle('mobile-open');
+            // Toggle icon between hamburger and close
+            const icon = mobileToggle.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            }
         });
     }
 }

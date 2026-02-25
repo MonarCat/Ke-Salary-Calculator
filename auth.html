@@ -12,9 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <style>
-        /* Hide auth container until auth check completes to avoid flash */
-        .auth-container { visibility: hidden; }
-        .auth-container.auth-ready { visibility: visible; }
+        /* Hide auth wrapper until auth check completes to avoid flash */
+        .auth-wrapper { visibility: hidden; }
+        .auth-wrapper.auth-ready { visibility: visible; }
     </style>
 </head>
 <body>
@@ -67,8 +67,23 @@
                 <div id="auth-links" class="auth-links-container"></div>
             </nav>
 
-            <!-- Auth Container -->
-            <div class="auth-container">
+    <!-- Auth Container -->
+            <div class="auth-wrapper">
+                <!-- Branding Panel -->
+                <div class="auth-branding-panel">
+                    <div class="brand-icon">🇰🇪</div>
+                    <h2>Kenya Salary Calculator</h2>
+                    <p>Manage your payroll, calculate PAYE and generate professional payslips — all in one place.</p>
+                    <ul class="auth-branding-features">
+                        <li><i class="fas fa-check-circle"></i> Accurate PAYE & deductions</li>
+                        <li><i class="fas fa-check-circle"></i> Professional payslips</li>
+                        <li><i class="fas fa-check-circle"></i> Employee management</li>
+                        <li><i class="fas fa-check-circle"></i> KRA-compliant rates</li>
+                        <li><i class="fas fa-check-circle"></i> 100% free to start</li>
+                    </ul>
+                </div>
+
+                <div class="auth-container">
                 <div class="auth-tabs">
                     <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Sign In</button>
                     <button class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">Sign Up</button>
@@ -91,7 +106,12 @@
                             <label for="login-password">
                                 <i class="fas fa-lock"></i> Password
                             </label>
-                            <input type="password" id="login-password" required placeholder="Enter your password">
+                            <div class="password-field-wrapper">
+                                <input type="password" id="login-password" required placeholder="Enter your password">
+                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('login-password', this)" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="form-options">
@@ -162,14 +182,28 @@
                             <label for="signup-password">
                                 <i class="fas fa-lock"></i> Password
                             </label>
-                            <input type="password" id="signup-password" required placeholder="Create a password (min 6 characters)">
+                            <div class="password-field-wrapper">
+                                <input type="password" id="signup-password" required placeholder="Create a password (min 6 characters)" oninput="checkPasswordStrength(this.value)">
+                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('signup-password', this)" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="password-strength">
+                                <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+                                <span class="strength-label" id="strength-label"></span>
+                            </div>
                         </div>
                         
                         <div class="form-group">
                             <label for="signup-confirm-password">
                                 <i class="fas fa-lock"></i> Confirm Password
                             </label>
-                            <input type="password" id="signup-confirm-password" required placeholder="Confirm your password">
+                            <div class="password-field-wrapper">
+                                <input type="password" id="signup-confirm-password" required placeholder="Confirm your password">
+                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('signup-confirm-password', this)" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="form-options">
@@ -194,7 +228,8 @@
                     
                     <div id="signup-message" class="auth-message"></div>
                 </div>
-            </div>
+                </div><!-- /.auth-container -->
+            </div><!-- /.auth-wrapper -->
 
             <footer class="page-footer" style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
                 <p style="margin-bottom: 10px;">
@@ -210,6 +245,55 @@
     <script src="supabase-config.js"></script>
     <script src="auth.js"></script>
     <script>
+        // Password show/hide toggle
+        function togglePasswordVisibility(fieldId, btn) {
+            const field = document.getElementById(fieldId);
+            if (!field) return;
+            if (field.type === 'password') {
+                field.type = 'text';
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                btn.setAttribute('aria-label', 'Hide password');
+            } else {
+                field.type = 'password';
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+                btn.setAttribute('aria-label', 'Show password');
+            }
+        }
+
+        // Password strength indicator
+        function checkPasswordStrength(val) {
+            const strengthEl = document.getElementById('password-strength');
+            const fillEl = document.getElementById('strength-fill');
+            const labelEl = document.getElementById('strength-label');
+            if (!strengthEl || !fillEl || !labelEl) return;
+
+            if (!val) {
+                strengthEl.classList.remove('visible');
+                return;
+            }
+            strengthEl.classList.add('visible');
+
+            let score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { label: 'Too short', cls: 'weak',   pct: '20%',  color: '#cc0000' },
+                { label: 'Weak',      cls: 'weak',   pct: '35%',  color: '#cc0000' },
+                { label: 'Fair',      cls: 'fair',   pct: '55%',  color: '#e07b00' },
+                { label: 'Good',      cls: 'good',   pct: '75%',  color: '#ccbb00' },
+                { label: 'Strong',    cls: 'strong', pct: '100%', color: '#006600' },
+            ];
+            const lvl = levels[Math.min(score, 4)];
+            fillEl.className = 'strength-fill ' + lvl.cls;
+            fillEl.style.width = lvl.pct;
+            labelEl.textContent = lvl.label;
+            labelEl.style.color = lvl.color;
+        }
+
         // If redirected from admin with forgot password flag, trigger forgot password UI
         if (sessionStorage.getItem('showForgotPassword') === '1') {
             sessionStorage.removeItem('showForgotPassword');

@@ -677,6 +677,12 @@ document.addEventListener('DOMContentLoaded', function() {
         mobileToggle.addEventListener('click', function() {
             const nav = document.querySelector('.main-nav');
             nav.classList.toggle('mobile-open');
+            // Toggle icon between hamburger and close
+            const icon = mobileToggle.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            }
         });
     }
 });
