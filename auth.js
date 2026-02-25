@@ -350,20 +350,26 @@ if (supabaseClient && supabaseClient.auth) {
 
 // Show password reset form when user clicks reset link from email
 function showPasswordResetForm() {
-    const authContainer = document.querySelector('.auth-container');
-    if (!authContainer) return;
-    authContainer.innerHTML = `
+    const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
+    if (!authWrapper) return;
+    authWrapper.innerHTML = `
         <div class="auth-form-container" style="display:block;">
             <h2>🔑 Set New Password</h2>
             <p class="auth-subtitle">Enter your new password below.</p>
             <form onsubmit="handlePasswordUpdate(event)">
                 <div class="form-group">
                     <label for="new-password"><i class="fas fa-lock"></i> New Password</label>
-                    <input type="password" id="new-password" required placeholder="Enter new password" minlength="6">
+                    <div class="password-field-wrapper">
+                        <input type="password" id="new-password" required placeholder="Enter new password" minlength="6">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new-password', this)" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="confirm-new-password"><i class="fas fa-lock"></i> Confirm Password</label>
-                    <input type="password" id="confirm-new-password" required placeholder="Confirm new password" minlength="6">
+                    <div class="password-field-wrapper">
+                        <input type="password" id="confirm-new-password" required placeholder="Confirm new password" minlength="6">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm-new-password', this)" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                    </div>
                 </div>
                 <div id="reset-update-message" class="auth-message" style="display:none;"></div>
                 <button type="submit" class="auth-button"><i class="fas fa-save"></i> Update Password</button>
@@ -518,7 +524,7 @@ async function redirectIfLoggedIn() {
         window.location.href = redirectTo;
     } else {
         // Not logged in — show the auth container
-        const authContainer = document.querySelector('.auth-container');
-        if (authContainer) authContainer.classList.add('auth-ready');
+        const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
+        if (authWrapper) authWrapper.classList.add('auth-ready');
     }
 }
