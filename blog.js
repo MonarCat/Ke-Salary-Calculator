@@ -509,6 +509,9 @@ function renderBlogPost(post, reactions, comments) {
                     </div>
                 </div>
             </div><!-- /.blog-post-inner -->
+
+            <!-- Related Posts -->
+            ${renderRelatedPosts(post)}
         </article>
     `;
 
@@ -547,6 +550,34 @@ function renderReactions(reactions, postId, userReaction = null) {
     }).join('');
 
     return `<span class="reactions-label" aria-label="Reactions">React:</span>${buttons}`;
+}
+
+function renderRelatedPosts(currentPost) {
+    const related = fallbackBlogPosts
+        .filter(p => p.slug !== currentPost.slug)
+        .slice(0, 3);
+    if (!related.length) return '';
+
+    const cards = related.map(p => {
+        const imgUrl = p.featured_image_url || 'kenyan-economy-coins.jpg';
+        const category = p.category || 'Finance';
+        return `
+            <div class="blog-related-card" onclick="window.location.href='blog-post.html?slug=${p.slug}'" style="cursor:pointer;">
+                <img src="${imgUrl}" alt="${p.title}" loading="lazy" onerror="this.src='kenyan-economy-coins.jpg'">
+                <div class="blog-related-card-body">
+                    <div class="blog-related-card-title">${p.title}</div>
+                    <div class="blog-related-card-date"><i class="fas fa-tag"></i> ${category}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="blog-related">
+            <h3><i class="fas fa-newspaper"></i> More Articles</h3>
+            <div class="blog-related-grid">${cards}</div>
+        </div>
+    `;
 }
 
 function renderComments(comments) {
