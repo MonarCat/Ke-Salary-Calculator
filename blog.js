@@ -4,6 +4,8 @@
 let _currentUserId = null;
 // Current post comments cache for re-rendering after auth resolves
 let _currentPostComments = [];
+// Reactions realtime subscription reference for cleanup
+let _reactionsSubscription = null;
 
 // Helper function to check if Supabase is configured
 function isSupabaseConfigured() {
@@ -310,6 +312,9 @@ async function loadBlogPost() {
                     // Load reactions and comments
                     reactions = await loadReactions(post.id);
                     comments = await loadComments(post.id);
+
+                    // Start real-time reactions subscription
+                    setupReactionsSubscription(post.id);
                 }
             } catch (dbError) {
                 console.log('Database unavailable, using fallback post:', dbError);
@@ -391,6 +396,48 @@ function setupViewCountSubscription(postId) {
         });
     } catch (error) {
         console.error('Error setting up realtime subscription:', error);
+    }
+}
+
+// Setup real-time subscription for reaction updates
+function setupReactionsSubscription(postId) {
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+
+    // Unsubscribe from any existing reactions subscription
+    if (_reactionsSubscription) {
+        _reactionsSubscription.unsubscribe();
+        _reactionsSubscription = null;
+    }
+
+    try {
+        _reactionsSubscription = supabaseClient
+            .channel(`post-${postId}-reactions`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'blog_reactions',
+                    filter: `post_id=eq.${postId}`
+                },
+                async () => {
+                    // Re-load and re-render reactions in real-time
+                    const reactionsData = await loadReactions(postId);
+                    const reactionsSection = document.getElementById('reactionsSection');
+                    if (reactionsSection) {
+                        reactionsSection.innerHTML = renderReactions(reactionsData.counts, postId, reactionsData.userReaction);
+                    }
+                }
+            )
+            .subscribe();
+
+        window.addEventListener('beforeunload', () => {
+            if (_reactionsSubscription) {
+                _reactionsSubscription.unsubscribe();
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up reactions realtime subscription:', error);
     }
 }
 
