@@ -3,9 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kenya Salary Calculator 2025 | PAYE, NSSF, SHIF & Housing Levy</title>
-    <meta name="description" content="Free Kenya Salary Calculator. Instantly calculate PAYE, NSSF, SHIF, Housing Levy & net salary. Generate custom payslips for employees and employers.">
+    <title>Kenya Net Salary Calculator 2025 | PAYE after Housing Levy, NSSF & SHIF</title>
+    <meta name="description" content="Free Kenya net salary calculator 2025. Instantly calculate PAYE after Housing Levy, NSSF, SHIF deductions. Updated for FY 2025/2026 KRA tax rates.">
+    <meta name="keywords" content="Kenya net salary calculator 2025, PAYE calculator after housing levy, Kenya salary calculator, NSSF SHIF calculator Kenya, KRA PAYE 2025">
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/calculator.html">
+    <meta property="og:title" content="Kenya Net Salary Calculator 2025 | PAYE, NSSF, SHIF & Housing Levy">
+    <meta property="og:description" content="Free Kenya net salary calculator updated for FY 2025/2026. Calculate PAYE after housing levy, NSSF, SHIF instantly.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kenya Net Salary Calculator 2025">
+    <meta name="twitter:description" content="Free Kenya net salary calculator updated for FY 2025/2026. Calculate PAYE after housing levy, NSSF, SHIF instantly.">
+    <meta name="twitter:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="blog-styles.css">
@@ -14,6 +26,128 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How is PAYE calculated in Kenya 2025?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PAYE in Kenya is calculated on taxable income after deducting NSSF, SHIF and Housing Levy. The tax bands are: 10% on the first KES 24,000; 25% on KES 24,001–32,333; 30% on KES 32,334–500,000; 32.5% on KES 500,001–800,000; and 35% above KES 800,000. A personal relief of KES 2,400 per month is then subtracted."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the NSSF contribution rate in Kenya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Under the NSSF Act 2013, employees contribute 6% of gross salary in two tiers: Tier I on the first KES 8,000 and Tier II on the next KES 64,000. Employers match the same contribution."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is SHIF and how much do I contribute?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SHIF (Social Health Insurance Fund) replaced NHIF in 2024. Employees contribute 2.75% of gross monthly salary with no cap. Employers also contribute 2.75%."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Affordable Housing Levy rate?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Affordable Housing Levy is 1.5% of gross salary, matched by the employer at 1.5%. It was introduced under the Finance Act 2023."
+          }
+        }
+      ]
+    }
+    </script>
+    <style>
+        /* Tooltip styles */
+        .tooltip-wrap { position: relative; display: inline-block; margin-left: 6px; cursor: help; }
+        .tooltip-wrap .tooltip-icon { color: #888; font-size: 0.85em; }
+        .tooltip-wrap .tooltip-box {
+            display: none;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.82em;
+            width: 240px;
+            line-height: 1.4;
+            z-index: 100;
+            white-space: normal;
+        }
+        .tooltip-wrap .tooltip-box a { color: #7dd3fc; }
+        .tooltip-wrap:hover .tooltip-box,
+        .tooltip-wrap:focus-within .tooltip-box { display: block; }
+        /* Trust badge */
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 0.85em;
+            color: #2e7d32;
+            margin: 8px 0 18px;
+        }
+        /* Dark mode */
+        .dark-mode-toggle {
+            background: none;
+            border: 2px solid #006600;
+            border-radius: 20px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #006600;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+        .dark-mode-toggle:hover { background: #006600; color: white; }
+        body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
+        body.dark-mode .overlay { background: #16213e; }
+        body.dark-mode .container { background: #1a1a2e; }
+        body.dark-mode .input-section,
+        body.dark-mode .results-section,
+        body.dark-mode .tab-container,
+        body.dark-mode .info-section { background: #16213e; color: #e0e0e0; }
+        body.dark-mode .breakdown-table th { background: #0f3460; }
+        body.dark-mode .breakdown-table td { color: #e0e0e0; }
+        body.dark-mode input, body.dark-mode select { background: #0f3460; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .dark-mode-toggle { border-color: #4caf50; color: #4caf50; }
+        body.dark-mode .dark-mode-toggle:hover { background: #4caf50; color: #1a1a2e; }
+        body.dark-mode .trust-badge { background: #0f3460; border-color: #4caf50; color: #4caf50; }
+        /* WhatsApp share */
+        .whatsapp-share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .whatsapp-share-btn:hover { background: #128C7E; }
+    </style>
 </head>
 <body>
     <div class="disclaimer-banner">
@@ -63,10 +197,16 @@
                 </div>
                 
                 <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
 
             <!-- AdSense Header Banner -->
             <div id="adsense-header-banner" class="adsense-container"></div>
+
+            <!-- Trust badge -->
+            <div style="text-align:center;">
+                <span class="trust-badge"><i class="fas fa-check-circle"></i> Updated for FY 2025/2026 &nbsp;|&nbsp; Last updated: February 2025 &nbsp;|&nbsp; Based on <a href="https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye" target="_blank" rel="noopener noreferrer" style="color:#2e7d32;">KRA PAYE guidelines</a></span>
+            </div>
 
             <!-- Intro Content -->
             <div class="intro-section">
@@ -107,17 +247,17 @@
                     </div>
                     <div class="form-group">
                         <label for="grossPay">Gross Pay (KES)</label>
-                        <input type="number" id="grossPay" placeholder="Enter gross monthly salary">
+                        <input type="number" id="grossPay" placeholder="Enter gross monthly salary" oninput="calculateSalaryDebounced()">
                     </div>
                     
                     <div class="form-group">
                         <label for="allowances">Allowances (KES)</label>
-                        <input type="number" id="allowances" placeholder="Enter total allowances">
+                        <input type="number" id="allowances" placeholder="Enter total allowances" oninput="calculateSalaryDebounced()">
                     </div>
                     
                     <div class="form-group">
                         <label for="benefits">Other Taxable Benefits (KES)</label>
-                        <input type="number" id="benefits" placeholder="Enter other taxable benefits">
+                        <input type="number" id="benefits" placeholder="Enter other taxable benefits" oninput="calculateSalaryDebounced()">
                     </div>
 
                     <!-- Voluntary / Additional Deductions -->
@@ -126,27 +266,27 @@
                         <div class="voluntary-deductions-grid">
                             <div class="form-group">
                                 <label for="helbRepayment"><i class="fas fa-graduation-cap"></i> HELB Loan Repayment (KES)</label>
-                                <input type="number" id="helbRepayment" placeholder="e.g. 2000" min="0">
+                                <input type="number" id="helbRepayment" placeholder="e.g. 2000" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                             <div class="form-group">
                                 <label for="saccoContribution"><i class="fas fa-handshake"></i> SACCO Contribution (KES)</label>
-                                <input type="number" id="saccoContribution" placeholder="e.g. 3000" min="0">
+                                <input type="number" id="saccoContribution" placeholder="e.g. 3000" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                             <div class="form-group">
                                 <label for="pensionTopUp"><i class="fas fa-piggy-bank"></i> Pension Top-Up (KES)</label>
-                                <input type="number" id="pensionTopUp" placeholder="e.g. 5000" min="0">
+                                <input type="number" id="pensionTopUp" placeholder="e.g. 5000" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                             <div class="form-group">
                                 <label for="insurancePremium"><i class="fas fa-shield-alt"></i> Insurance Premium (KES)</label>
-                                <input type="number" id="insurancePremium" placeholder="e.g. 2500" min="0">
+                                <input type="number" id="insurancePremium" placeholder="e.g. 2500" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                             <div class="form-group">
                                 <label for="childCare"><i class="fas fa-baby"></i> Child Care (KES)</label>
-                                <input type="number" id="childCare" placeholder="e.g. 1500" min="0">
+                                <input type="number" id="childCare" placeholder="e.g. 1500" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                             <div class="form-group">
                                 <label for="commuterAllowanceDeduction"><i class="fas fa-bus"></i> Commuter Allowance (KES)</label>
-                                <input type="number" id="commuterAllowanceDeduction" placeholder="e.g. 1000" min="0">
+                                <input type="number" id="commuterAllowanceDeduction" placeholder="e.g. 1000" min="0" oninput="calculateSalaryDebounced()">
                             </div>
                         </div>
                     </details>
@@ -174,27 +314,27 @@
                                     <td id="displayGrossAnnual"></td>
                                 </tr>
                                 <tr class="deduction-row">
-                                    <td>PAYE (Income Tax)</td>
+                                    <td>PAYE (Income Tax) <span class="tooltip-wrap" tabindex="0"><i class="fas fa-info-circle tooltip-icon"></i><span class="tooltip-box">Progressive income tax deducted by your employer. Rates: 10% (up to KES 24k), 25%, 30%, 32.5%, 35%. Personal relief of KES 2,400/month is subtracted. <a href="https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye" target="_blank" rel="noopener noreferrer">KRA source ↗</a></span></span></td>
                                     <td id="paye"></td>
                                     <td id="payeAnnual"></td>
                                 </tr>
                                 <tr class="deduction-row">
-                                    <td>NSSF Contribution</td>
+                                    <td>NSSF Contribution <span class="tooltip-wrap" tabindex="0"><i class="fas fa-info-circle tooltip-icon"></i><span class="tooltip-box">6% of gross salary in two tiers: Tier I on first KES 8,000 and Tier II on next KES 64,000. Employer matches your contribution. <a href="https://www.nssf.or.ke" target="_blank" rel="noopener noreferrer">NSSF source ↗</a></span></span></td>
                                     <td id="nssf"></td>
                                     <td id="nssfAnnual"></td>
                                 </tr>
                                 <tr class="deduction-row">
-                                    <td>SHIF Contribution</td>
+                                    <td>SHIF Contribution <span class="tooltip-wrap" tabindex="0"><i class="fas fa-info-circle tooltip-icon"></i><span class="tooltip-box">Social Health Insurance Fund (replaced NHIF in 2024). 2.75% of gross salary with no upper cap. Employer also contributes 2.75%. <a href="https://www.shif.go.ke" target="_blank" rel="noopener noreferrer">SHIF source ↗</a></span></span></td>
                                     <td id="nhif"></td>
                                     <td id="nhifAnnual"></td>
                                 </tr>
                                 <tr class="deduction-row">
-                                    <td>Housing Levy (1.5%)</td>
+                                    <td>Housing Levy (1.5%) <span class="tooltip-wrap" tabindex="0"><i class="fas fa-info-circle tooltip-icon"></i><span class="tooltip-box">Affordable Housing Levy introduced under Finance Act 2023. Employee pays 1.5% of gross salary; employer matches 1.5%. Funds affordable housing construction in Kenya.</span></span></td>
                                     <td id="housingLevy"></td>
                                     <td id="housingLevyAnnual"></td>
                                 </tr>
                                 <tr>
-                                    <td>Personal Relief</td>
+                                    <td>Personal Relief <span class="tooltip-wrap" tabindex="0"><i class="fas fa-info-circle tooltip-icon"></i><span class="tooltip-box">A fixed tax credit of KES 2,400 per month (KES 28,800 per year) deducted from your PAYE before remittance. Every Kenyan employee earning taxable income is entitled to this relief.</span></span></td>
                                     <td id="personalRelief"></td>
                                     <td id="personalReliefAnnual"></td>
                                 </tr>
@@ -274,6 +414,11 @@
                             <button onclick="copyShareLink()" class="copy-link-btn"><i class="fas fa-copy"></i> Copy</button>
                         </div>
                         <div id="shareLinkCopied" style="display:none; color:#006600; margin-top:6px;"><i class="fas fa-check"></i> Link copied to clipboard!</div>
+                        <div style="margin-top:10px;">
+                            <a id="whatsappShareBtn" href="#" class="whatsapp-share-btn" target="_blank" rel="noopener noreferrer">
+                                <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Deductions Pie Chart -->
@@ -670,5 +815,27 @@
     <script src="script.js"></script>
     <script src="blog.js"></script>
     <script src="adsense-config.js"></script>
+    <script>
+        // Dark mode
+        (function() {
+            if (localStorage.getItem('darkMode') === 'on') {
+                document.body.classList.add('dark-mode');
+            }
+        })();
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('darkModeToggle');
+            if (!btn) return;
+            function updateBtn() {
+                var on = document.body.classList.contains('dark-mode');
+                btn.textContent = on ? '☀️ Light' : '🌙 Dark';
+            }
+            updateBtn();
+            btn.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+                updateBtn();
+            });
+        });
+    </script>
 </body>
 </html>

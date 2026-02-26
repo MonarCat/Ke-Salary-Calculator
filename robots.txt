@@ -18,3 +18,4 @@ Allow: /
 
 # Sitemap location (update with actual URL when available)
 # Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://salarycalculator.co.ke/sitemap.xml

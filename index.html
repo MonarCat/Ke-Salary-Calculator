@@ -51,6 +51,54 @@
       }
     }
     </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How is PAYE calculated in Kenya 2025?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PAYE in Kenya is calculated on taxable income after deducting NSSF, SHIF and Housing Levy. The tax bands are: 10% on the first KES 24,000; 25% on KES 24,001–32,333; 30% on KES 32,334–500,000; 32.5% on KES 500,001–800,000; and 35% above KES 800,000. A personal relief of KES 2,400 per month is then subtracted."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the NSSF contribution rate in Kenya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Under the NSSF Act 2013, employees contribute 6% of gross salary: Tier I covers the first KES 8,000 and Tier II covers the next KES 64,000 (up to KES 72,000). Employers match the same contribution."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is SHIF and how much do I pay?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SHIF (Social Health Insurance Fund) replaced NHIF in 2024. Employees contribute 2.75% of gross salary with no upper cap. Employers also contribute 2.75%, making the combined contribution 5.5% of gross."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Affordable Housing Levy in Kenya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Affordable Housing Levy (AHL) is 1.5% of an employee's gross salary, matched by the employer. It was introduced under the Finance Act 2023 to fund affordable housing construction in Kenya."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I calculate net salary in Kenya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Net salary = Gross salary − PAYE − NSSF − SHIF − Housing Levy. Use our free Kenya Salary Calculator to get an instant breakdown. Simply enter your gross monthly salary and the calculator applies all current statutory deductions automatically."
+          }
+        }
+      ]
+    }
+    </script>
     <style>
         .hero-section {
             text-align: center;
@@ -247,6 +295,118 @@
             font-size: 1.1em;
             margin-top: 10px;
         }
+        /* Mini Calculator on Homepage */
+        .mini-calc-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 3px 20px rgba(0,0,0,0.12);
+            margin: 30px 0;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .mini-calc-section h2 {
+            color: #006600;
+            margin-bottom: 5px;
+            font-size: 1.6em;
+        }
+        .mini-calc-subtitle {
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+        .mini-calc-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .mini-calc-row input {
+            flex: 1;
+            min-width: 160px;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .mini-calc-row input:focus {
+            outline: none;
+            border-color: #006600;
+        }
+        .mini-calc-row button {
+            padding: 12px 22px;
+            background: #006600;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .mini-calc-row button:hover { background: #004d00; }
+        .mini-result {
+            margin-top: 18px;
+            padding: 16px;
+            background: #f0fff0;
+            border-left: 4px solid #006600;
+            border-radius: 6px;
+            display: none;
+        }
+        .mini-result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .mini-result-item { text-align: center; }
+        .mini-result-item .label { font-size: 0.82em; color: #666; }
+        .mini-result-item .value { font-size: 1.15em; font-weight: bold; color: #006600; }
+        .mini-result-item .value.deduction { color: #CC0000; }
+        .mini-calc-cta {
+            display: inline-block;
+            margin-top: 14px;
+            color: #006600;
+            font-size: 0.9em;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .mini-calc-cta:hover { text-decoration: underline; }
+        /* Dark mode toggle */
+        .dark-mode-toggle {
+            background: none;
+            border: 2px solid #006600;
+            border-radius: 20px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #006600;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+        .dark-mode-toggle:hover { background: #006600; color: white; }
+        body.dark-mode { background: #1a1a2e; color: #e0e0e0; }
+        body.dark-mode .overlay { background: #16213e; }
+        body.dark-mode .container { background: #1a1a2e; }
+        body.dark-mode .feature-card,
+        body.dark-mode .pricing-card,
+        body.dark-mode .mini-calc-section { background: #16213e; color: #e0e0e0; }
+        body.dark-mode .feature-card h3,
+        body.dark-mode .pricing-card h3 { color: #4caf50; }
+        body.dark-mode .feature-card p,
+        body.dark-mode .pricing-card p,
+        body.dark-mode .feature-card li { color: #ccc; }
+        body.dark-mode .mini-calc-section h2 { color: #4caf50; }
+        body.dark-mode .mini-calc-row input { background: #0f3460; border-color: #444; color: #e0e0e0; }
+        body.dark-mode .mini-result { background: #0f3460; border-color: #4caf50; }
+        body.dark-mode .mini-result-item .value { color: #4caf50; }
+        body.dark-mode .dark-mode-toggle { border-color: #4caf50; color: #4caf50; }
+        body.dark-mode .dark-mode-toggle:hover { background: #4caf50; color: #1a1a2e; }
+        body.dark-mode footer a,
+        body.dark-mode .mini-calc-cta { color: #4caf50; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
@@ -298,6 +458,7 @@
                 </div>
                 
                 <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
 
             <!-- AdSense Header Banner -->
@@ -307,14 +468,46 @@
             <div class="hero-section">
                 <h1>🇰🇪 Kenya Salary Calculator</h1>
                 <p>Calculate your net salary instantly. Generate professional payslips. Manage employee payroll with ease.</p>
-                <p style="font-size: 1em; margin-top: 10px;">Trusted by thousands of Kenyan employers and employees</p>
+                <p style="font-size: 1em; margin-top: 10px;">✅ Updated for FY 2025/2026 &nbsp;|&nbsp; Last updated: February 2025</p>
                 <div class="cta-buttons">
                     <a href="/calculator.html" class="cta-button primary">
-                        <i class="fas fa-calculator"></i> Try Free Calculator
+                        <i class="fas fa-calculator"></i> Full Calculator
                     </a>
                     <a href="/auth.html" class="cta-button secondary">
                         <i class="fas fa-user-plus"></i> Sign Up Free
                     </a>
+                </div>
+            </div>
+
+            <!-- Mini Calculator on Homepage -->
+            <div class="mini-calc-section">
+                <h2><i class="fas fa-calculator" style="color:#006600;"></i> Quick Salary Check</h2>
+                <p class="mini-calc-subtitle">Enter your gross monthly salary for an instant net pay estimate (FY 2025/2026 rates)</p>
+                <div class="mini-calc-row">
+                    <input type="number" id="miniGross" placeholder="Gross salary (KES)" min="0" oninput="miniCalcDebounced()" aria-label="Gross monthly salary">
+                    <button onclick="miniCalc()"><i class="fas fa-bolt"></i> Calculate</button>
+                </div>
+                <div class="mini-result" id="miniResult">
+                    <strong>Quick Breakdown</strong>
+                    <div class="mini-result-grid">
+                        <div class="mini-result-item">
+                            <div class="label">Net Pay</div>
+                            <div class="value" id="miniNet">—</div>
+                        </div>
+                        <div class="mini-result-item">
+                            <div class="label">PAYE</div>
+                            <div class="value deduction" id="miniPaye">—</div>
+                        </div>
+                        <div class="mini-result-item">
+                            <div class="label">NSSF</div>
+                            <div class="value deduction" id="miniNssf">—</div>
+                        </div>
+                        <div class="mini-result-item">
+                            <div class="label">SHIF + Housing Levy</div>
+                            <div class="value deduction" id="miniOther">—</div>
+                        </div>
+                    </div>
+                    <a href="/calculator.html" class="mini-calc-cta"><i class="fas fa-arrow-right"></i> Full breakdown with payslip generator →</a>
                 </div>
             </div>
 
@@ -460,7 +653,82 @@
     <script src="blog.js"></script>
     <script src="adsense-config.js"></script>
     <script>
-        // Show additional sections only when user is logged in
+        // ── Mini Calculator ──────────────────────────────────────────────────
+        function debounce(fn, delay) {
+            var t;
+            return function() { clearTimeout(t); t = setTimeout(fn, delay); };
+        }
+        const MINI_RATES = {            personalRelief: 2400,
+            nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
+            shifRate: 0.0275, housingLevyRate: 0.015,
+            payeBands: [
+                { limit: 24000, rate: 0.10, base: 0 },
+                { limit: 32333, rate: 0.25, base: 2400 },
+                { limit: 500000, rate: 0.30, base: 4483.25 },
+                { limit: 800000, rate: 0.325, base: 140983.25 },
+                { limit: Infinity, rate: 0.35, base: 238483.25 }
+            ],
+            payePrev: [24000, 32333, 500000, 800000]
+        };
+        function miniFormatKES(n) {
+            return 'KES ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        function miniCalcNSSF(gross) {
+            const tier1 = Math.min(gross, MINI_RATES.nssfLower) * MINI_RATES.nssfRate;
+            if (gross > MINI_RATES.nssfLower) {
+                return tier1 + (Math.min(gross, MINI_RATES.nssfUpper) - MINI_RATES.nssfLower) * MINI_RATES.nssfRate;
+            }
+            return tier1;
+        }
+        function miniCalcPAYE(taxable) {
+            const b = MINI_RATES.payeBands, p = MINI_RATES.payePrev;
+            let paye = 0;
+            if (taxable <= p[0])       paye = taxable * b[0].rate;
+            else if (taxable <= p[1])  paye = b[1].base + (taxable - p[0]) * b[1].rate;
+            else if (taxable <= p[2])  paye = b[2].base + (taxable - p[1]) * b[2].rate;
+            else if (taxable <= p[3])  paye = b[3].base + (taxable - p[2]) * b[3].rate;
+            else                       paye = b[4].base + (taxable - p[3]) * b[4].rate;
+            return Math.max(paye - MINI_RATES.personalRelief, 0);
+        }
+        function miniCalc() {
+            const gross = parseFloat(document.getElementById('miniGross').value) || 0;
+            if (gross <= 0) { document.getElementById('miniResult').style.display = 'none'; return; }
+            const nssf = miniCalcNSSF(gross);
+            const shif = gross * MINI_RATES.shifRate;
+            const levy = gross * MINI_RATES.housingLevyRate;
+            const taxable = gross - nssf - shif - levy;
+            const paye = miniCalcPAYE(taxable);
+            const net = gross - paye - nssf - shif - levy;
+            document.getElementById('miniNet').textContent  = miniFormatKES(Math.max(net, 0));
+            document.getElementById('miniPaye').textContent = miniFormatKES(paye);
+            document.getElementById('miniNssf').textContent = miniFormatKES(nssf);
+                        document.getElementById('miniOther').textContent = miniFormatKES(shif + levy);
+            document.getElementById('miniResult').style.display = 'block';
+        }
+        const miniCalcDebounced = debounce(miniCalc, 300);
+
+        // ── Dark Mode ────────────────────────────────────────────────────────
+        (function() {
+            if (localStorage.getItem('darkMode') === 'on') {
+                document.body.classList.add('dark-mode');
+            }
+        })();
+        document.addEventListener('DOMContentLoaded', function() {
+            var btn = document.getElementById('darkModeToggle');
+            if (!btn) return;
+            function updateBtn() {
+                var on = document.body.classList.contains('dark-mode');
+                btn.textContent = on ? '☀️ Light' : '🌙 Dark';
+            }
+            updateBtn();
+            btn.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+                updateBtn();
+            });
+        });
+
+        // ── Show sections for logged-in users ────────────────────────────────
         document.addEventListener('DOMContentLoaded', async function() {
             if (supabaseClient && supabaseClient.auth) {
                 try {
