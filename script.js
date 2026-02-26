@@ -1,4 +1,9 @@
 // Tax rates by year
+function debounce(fn, delay) {
+    var t;
+    return function() { clearTimeout(t); t = setTimeout(fn, delay); };
+}
+const calculateSalaryDebounced = debounce(calculateSalary, 300);
 const TAX_RATES = {
     '2026': {
         label: 'Rates updated Feb 2025',
@@ -707,6 +712,16 @@ function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pe
     const url = window.location.origin + window.location.pathname + '?' + params.toString();
     const shareLinkInput = document.getElementById('shareLink');
     if (shareLinkInput) shareLinkInput.value = url;
+
+    // Update WhatsApp share button
+    const waBtn = document.getElementById('whatsappShareBtn');
+    if (waBtn) {
+        const netPayEl = document.getElementById('netPay');
+        const netPayText = netPayEl ? netPayEl.textContent : '';
+        const waText = encodeURIComponent('Check my Kenya salary breakdown: Net Pay ' + netPayText + '. Calculate yours at: ' + url);
+        waBtn.href = 'https://wa.me/?text=' + waText;
+    }
+
     shareSection.style.display = 'block';
 }
 
