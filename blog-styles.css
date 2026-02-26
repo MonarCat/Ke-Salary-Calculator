@@ -564,8 +564,8 @@
 /* Reactions Section */
 .blog-reactions {
     display: flex;
-    gap: 12px;
-    padding: 25px 0;
+    gap: 10px;
+    padding: 24px 0;
     border-top: 2px solid #e0e0e0;
     border-bottom: 2px solid #e0e0e0;
     margin: 30px 0;
@@ -574,72 +574,96 @@
 }
 
 .reactions-label {
-    font-weight: bold;
-    color: #333;
-    font-size: 1em;
+    font-weight: 700;
+    color: #444;
+    font-size: 0.95em;
     margin-right: 4px;
+}
+
+/* Bounce animation on click */
+@keyframes reaction-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1.08); }
+}
+
+/* Pulse animation for active state */
+@keyframes reaction-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(0,153,0,0.45); }
+    70%  { box-shadow: 0 0 0 8px rgba(0,153,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,153,0,0); }
 }
 
 .reaction-button {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 18px;
+    padding: 9px 16px;
     background: #ffffff;
-    border: 2px solid #006600;
-    border-radius: 25px;
+    border: 2px solid #cce5cc;
+    border-radius: 30px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    font-size: 0.95em;
-    min-width: 90px;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    font-size: 0.92em;
+    min-width: 88px;
     justify-content: center;
-    color: #333;
+    color: #444;
     user-select: none;
     position: relative;
     z-index: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
 
 .reaction-button:hover {
-    background: #e8f5e9;
+    background: #f0faf0;
     border-color: #009900;
-    transform: scale(1.08);
-    box-shadow: 0 3px 10px rgba(0,102,0,0.2);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: 0 4px 12px rgba(0,102,0,0.18);
+}
+
+.reaction-button:hover .emoji {
+    animation: reaction-pop 0.35s ease forwards;
 }
 
 .reaction-button.active {
-    background: linear-gradient(135deg, #006600, #009900);
+    background: linear-gradient(135deg, #006600 0%, #009900 100%);
     color: white;
     border-color: #004d00;
-    box-shadow: 0 4px 14px rgba(0,102,0,0.4);
-    transform: scale(1.1);
-    font-weight: bold;
+    box-shadow: 0 4px 14px rgba(0,102,0,0.35);
+    transform: scale(1.08);
+    font-weight: 700;
+    animation: reaction-pulse 1.2s ease-out;
 }
 
 .reaction-button.active .count {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.25);
     border-radius: 10px;
     padding: 1px 7px;
-    font-weight: bold;
-    font-size: 1em;
+    font-weight: 700;
+    font-size: 0.95em;
     min-width: 22px;
 }
 
 .reaction-button .emoji {
-    font-size: 1.4em;
+    font-size: 1.35em;
     line-height: 1;
+    display: inline-block;
+    transition: transform 0.15s ease;
 }
 
 .reaction-button .label {
-    font-size: 0.9em;
+    font-size: 0.88em;
     color: inherit;
+    font-weight: 600;
 }
 
 .reaction-button .count {
-    font-weight: bold;
-    font-size: 0.9em;
+    font-weight: 700;
+    font-size: 0.88em;
     min-width: 18px;
     text-align: center;
-    background: rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.07);
     border-radius: 10px;
     padding: 1px 6px;
     display: inline-block;
