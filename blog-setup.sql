@@ -18,22 +18,22 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   published_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Create blog_comments table
-CREATE TABLE IF NOT EXISTS blog_comments (
+-- 2. Create post_comments table
+CREATE TABLE IF NOT EXISTS post_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES blog_posts(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   user_name TEXT NOT NULL,
   user_email TEXT,
   comment_text TEXT NOT NULL,
-  parent_comment_id UUID REFERENCES blog_comments(id) ON DELETE CASCADE,
+  parent_comment_id UUID REFERENCES post_comments(id) ON DELETE CASCADE,
   is_approved BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Create blog_reactions table
-CREATE TABLE IF NOT EXISTS blog_reactions (
+-- 3. Create post_reactions table
+CREATE TABLE IF NOT EXISTS post_reactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES blog_posts(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -42,12 +42,23 @@ CREATE TABLE IF NOT EXISTS blog_reactions (
   UNIQUE(post_id, user_id)
 );
 
--- 4. Enable Row Level Security
-ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE blog_comments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE blog_reactions ENABLE ROW LEVEL SECURITY;
+-- 4. Create comment_reactions table
+CREATE TABLE IF NOT EXISTS comment_reactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  comment_id UUID REFERENCES post_comments(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  reaction_type TEXT NOT NULL CHECK (reaction_type IN ('like', 'love', 'insightful', 'celebrate', 'support')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(comment_id, user_id)
+);
 
--- 5. Create RLS Policies for blog_posts
+-- 5. Enable Row Level Security
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
+
+-- 6. Create RLS Policies for blog_posts
 DROP POLICY IF EXISTS "Anyone can view published posts" ON blog_posts;
 CREATE POLICY "Anyone can view published posts" ON blog_posts
   FOR SELECT USING (status = 'published');
@@ -64,50 +75,69 @@ DROP POLICY IF EXISTS "Authors can delete own posts" ON blog_posts;
 CREATE POLICY "Authors can delete own posts" ON blog_posts
   FOR DELETE USING (auth.uid() = author_id);
 
--- 6. Create RLS Policies for blog_comments
-DROP POLICY IF EXISTS "Anyone can view approved comments" ON blog_comments;
-CREATE POLICY "Anyone can view approved comments" ON blog_comments
+-- 7. Create RLS Policies for post_comments
+DROP POLICY IF EXISTS "Anyone can view approved comments" ON post_comments;
+CREATE POLICY "Anyone can view approved comments" ON post_comments
   FOR SELECT USING (is_approved = TRUE);
 
-DROP POLICY IF EXISTS "Authenticated users can create comments" ON blog_comments;
-CREATE POLICY "Authenticated users can create comments" ON blog_comments
+DROP POLICY IF EXISTS "Authenticated users can create comments" ON post_comments;
+CREATE POLICY "Authenticated users can create comments" ON post_comments
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
-DROP POLICY IF EXISTS "Users can update own comments" ON blog_comments;
-CREATE POLICY "Users can update own comments" ON blog_comments
+DROP POLICY IF EXISTS "Users can update own comments" ON post_comments;
+CREATE POLICY "Users can update own comments" ON post_comments
   FOR UPDATE USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can delete own comments" ON blog_comments;
-CREATE POLICY "Users can delete own comments" ON blog_comments
+DROP POLICY IF EXISTS "Users can delete own comments" ON post_comments;
+CREATE POLICY "Users can delete own comments" ON post_comments
   FOR DELETE USING (auth.uid() = user_id);
 
--- 7. Create RLS Policies for blog_reactions
-DROP POLICY IF EXISTS "Anyone can view reactions" ON blog_reactions;
-CREATE POLICY "Anyone can view reactions" ON blog_reactions
+-- 8. Create RLS Policies for post_reactions
+DROP POLICY IF EXISTS "Anyone can view reactions" ON post_reactions;
+CREATE POLICY "Anyone can view reactions" ON post_reactions
   FOR SELECT USING (TRUE);
 
-DROP POLICY IF EXISTS "Authenticated users can create reactions" ON blog_reactions;
-CREATE POLICY "Authenticated users can create reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Authenticated users can create reactions" ON post_reactions;
+CREATE POLICY "Authenticated users can create reactions" ON post_reactions
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
-DROP POLICY IF EXISTS "Users can delete own reactions" ON blog_reactions;
-CREATE POLICY "Users can delete own reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Users can delete own reactions" ON post_reactions;
+CREATE POLICY "Users can delete own reactions" ON post_reactions
   FOR DELETE USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can update own reactions" ON blog_reactions;
-CREATE POLICY "Users can update own reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Users can update own reactions" ON post_reactions;
+CREATE POLICY "Users can update own reactions" ON post_reactions
   FOR UPDATE USING (auth.uid() = user_id);
 
--- 8. Create Indexes
-CREATE INDEX IF NOT EXISTS idx_blog_comments_post_id ON blog_comments(post_id);
-CREATE INDEX IF NOT EXISTS idx_blog_reactions_post_id ON blog_reactions(post_id);
-CREATE INDEX IF NOT EXISTS idx_blog_comments_user_id ON blog_comments(user_id);
-CREATE INDEX IF NOT EXISTS idx_blog_reactions_user_id ON blog_reactions(user_id);
+-- 9. Create RLS Policies for comment_reactions
+DROP POLICY IF EXISTS "Anyone can view comment reactions" ON comment_reactions;
+CREATE POLICY "Anyone can view comment reactions" ON comment_reactions
+  FOR SELECT USING (TRUE);
+
+DROP POLICY IF EXISTS "Authenticated users can create comment reactions" ON comment_reactions;
+CREATE POLICY "Authenticated users can create comment reactions" ON comment_reactions
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Users can delete own comment reactions" ON comment_reactions;
+CREATE POLICY "Users can delete own comment reactions" ON comment_reactions
+  FOR DELETE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own comment reactions" ON comment_reactions;
+CREATE POLICY "Users can update own comment reactions" ON comment_reactions
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- 10. Create Indexes
+CREATE INDEX IF NOT EXISTS idx_post_comments_post_id ON post_comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_reactions_post_id ON post_reactions(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_comments_user_id ON post_comments(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_reactions_user_id ON post_reactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_comment_reactions_comment_id ON comment_reactions(comment_id);
+CREATE INDEX IF NOT EXISTS idx_comment_reactions_user_id ON comment_reactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON blog_posts(status);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_published_at ON blog_posts(published_at DESC);
 
--- 9. Create Functions
+-- 11. Create Functions
 CREATE OR REPLACE FUNCTION increment_post_views(p_post_id UUID)
 RETURNS void AS $$
 BEGIN
@@ -122,7 +152,7 @@ RETURNS TABLE(reaction_type TEXT, count BIGINT) AS $$
 BEGIN
   RETURN QUERY
   SELECT br.reaction_type, COUNT(*) as count
-  FROM blog_reactions br
+  FROM post_reactions br
   WHERE br.post_id = p_post_id
   GROUP BY br.reaction_type;
 END;
@@ -134,27 +164,27 @@ DECLARE
   v_count INTEGER;
 BEGIN
   SELECT COUNT(*) INTO v_count
-  FROM blog_comments
+  FROM post_comments
   WHERE post_id = p_post_id AND is_approved = TRUE;
   
   RETURN v_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 10. Create Triggers (use existing update_updated_at function)
+-- 12. Create Triggers (use existing update_updated_at function)
 DROP TRIGGER IF EXISTS update_blog_posts_updated_at ON blog_posts;
 CREATE TRIGGER update_blog_posts_updated_at
   BEFORE UPDATE ON blog_posts
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
-DROP TRIGGER IF EXISTS update_blog_comments_updated_at ON blog_comments;
-CREATE TRIGGER update_blog_comments_updated_at
-  BEFORE UPDATE ON blog_comments
+DROP TRIGGER IF EXISTS update_post_comments_updated_at ON post_comments;
+CREATE TRIGGER update_post_comments_updated_at
+  BEFORE UPDATE ON post_comments
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
--- 11. Insert the first blog post about Kenya tax abolition
+-- 13. Insert the first blog post about Kenya tax abolition
 INSERT INTO blog_posts (
   title,
   slug,
