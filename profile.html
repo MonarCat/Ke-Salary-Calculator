@@ -283,7 +283,7 @@
             const user = await checkAuthStatus();
             
             if (!user) {
-                window.location.href = '/auth.html';
+                window.location.href = '/auth.html?redirect=/profile.html';
                 return;
             }
 
@@ -331,5 +331,6 @@
             loadUserProfile();
         }
     </script>
+    <script src="nav-toggle.js"></script>
 </body>
 </html>

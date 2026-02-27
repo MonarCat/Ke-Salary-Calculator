@@ -701,7 +701,7 @@ async function handleReaction(postId, reactionType) {
         
         if (!user) {
             showToast('Please sign in to react to posts', 'error');
-            window.location.href = 'auth.html';
+            window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
             return;
         }
 
@@ -786,7 +786,7 @@ async function initCommentForm(postId) {
     if (!formContent) return;
 
     if (!supabaseClient || !isSupabaseConfigured()) {
-        formContent.innerHTML = '<p style="text-align: center;"><a href="auth.html">Sign in</a> to leave a comment</p>';
+        formContent.innerHTML = `<p style="text-align: center;"><a href="auth.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}">Sign in</a> to leave a comment</p>`;
         return;
     }
 
@@ -794,7 +794,7 @@ async function initCommentForm(postId) {
         const { data: { user } } = await supabaseClient.auth.getUser();
         
         if (!user) {
-            formContent.innerHTML = '<p style="text-align: center;"><a href="auth.html" style="color: #006600; font-weight: bold;">Sign in</a> to leave a comment</p>';
+            formContent.innerHTML = `<p style="text-align: center;"><a href="auth.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}" style="color: #006600; font-weight: bold;">Sign in</a> to leave a comment</p>`;
             return;
         }
 
@@ -830,7 +830,7 @@ async function initCommentForm(postId) {
         }
     } catch (error) {
         console.error('Error initializing comment form:', error);
-        formContent.innerHTML = '<p style="text-align: center;"><a href="auth.html">Sign in</a> to leave a comment</p>';
+        formContent.innerHTML = `<p style="text-align: center;"><a href="auth.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}">Sign in</a> to leave a comment</p>`;
     }
 }
 
@@ -853,7 +853,7 @@ async function submitComment(postId) {
         
         if (!user) {
             showToast('Please sign in to comment', 'error');
-            window.location.href = 'auth.html';
+            window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
             return;
         }
 
