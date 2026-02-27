@@ -254,7 +254,7 @@ async function handleForgotPassword(event) {
     
     try {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/auth.html',
+            redirectTo: window.location.origin + '/reset-password.html',
         });
         
         if (error) throw error;
@@ -349,9 +349,12 @@ if (supabaseClient && supabaseClient.auth) {
 }
 
 // Show password reset form when user clicks reset link from email
+// Only used as a fallback on auth.html; reset-password.html has its own dedicated handler.
 function showPasswordResetForm() {
+    if (!window.location.pathname.includes('auth.html')) return;
     const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
     if (!authWrapper) return;
+    authWrapper.classList.add('auth-ready');
     authWrapper.innerHTML = `
         <div class="auth-form-container" style="display:block;">
             <h2>🔑 Set New Password</h2>
@@ -514,6 +517,16 @@ if (document.readyState === 'loading') {
 // Redirect away from auth page if already logged in
 async function redirectIfLoggedIn() {
     if (!window.location.pathname.includes('auth.html')) return;
+
+    // If the URL hash contains type=recovery, this is a password-reset flow.
+    // Let the onAuthStateChange PASSWORD_RECOVERY handler take over; do not redirect.
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('type') === 'recovery') {
+        const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
+        if (authWrapper) authWrapper.classList.add('auth-ready');
+        return;
+    }
+
     const user = await checkAuthStatus();
     if (user) {
         // Already logged in — send to homepage
