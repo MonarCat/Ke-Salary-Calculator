@@ -367,14 +367,11 @@
 
                 const user = data.user;
 
-                // 2. Verify admin role via admin_users table (RBAC)
+                // 2. Verify admin role via is_admin() RPC (RBAC)
                 const { data: adminData, error: adminError } = await supabaseClient
-                    .from('admin_users')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .maybeSingle();
+                    .rpc('is_admin');
 
-                if (adminError || !adminData) {
+                if (adminError || adminData !== true) {
                     // Not an admin – sign them out immediately
                     await supabaseClient.auth.signOut();
                     const result = recordLoginAttempt();
@@ -423,11 +420,8 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session && session.user) {
                     const { data: adminData } = await supabaseClient
-                        .from('admin_users')
-                        .select('id')
-                        .eq('user_id', session.user.id)
-                        .maybeSingle();
-                    if (adminData) {
+                        .rpc('is_admin');
+                    if (adminData === true) {
                         // Already authenticated admin – go straight to dashboard
                         window.location.replace('/admin.html');
                         return;
