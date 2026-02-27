@@ -686,7 +686,7 @@
         async function checkPremiumAccess() {
             const user = await checkAuthStatus();
             if (!user) {
-                window.location.href = '/auth.html';
+                window.location.href = '/auth.html?redirect=/employees.html';
                 return;
             }
             loadEmployees();

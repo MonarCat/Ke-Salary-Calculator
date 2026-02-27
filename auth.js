@@ -67,11 +67,14 @@ async function handleLogin(event) {
         
         if (error) throw error;
         
-        showMessage('login-message', 'Login successful! Redirecting...', 'success');
+        showMessage('login-message', '✅ Login successful! Redirecting...', 'success');
         
-        // Redirect to home page after 1 second
+        // Redirect after 1 second, respecting the ?redirect= query param
+        const loginParams = new URLSearchParams(window.location.search);
+        const rawLoginRedirect = loginParams.get('redirect') || '/';
+        const loginRedirectTo = (typeof rawLoginRedirect === 'string' && rawLoginRedirect.startsWith('/')) ? rawLoginRedirect : '/';
         setTimeout(() => {
-            window.location.href = '/';
+            window.location.href = loginRedirectTo;
         }, 1000);
         
     } catch (error) {
@@ -162,6 +165,7 @@ async function handleSignup(event) {
             email: email,
             password: password,
             options: {
+                emailRedirectTo: window.location.origin + '/auth.html',
                 data: {
                     full_name: name,
                     account_type: accountType,
@@ -171,8 +175,19 @@ async function handleSignup(event) {
         });
         
         if (error) throw error;
+
+        // Detect duplicate email: Supabase returns an empty identities array (not an error)
+        // when "Email Enumeration Protection" is enabled in Supabase Auth settings and
+        // the submitted email is already registered. This prevents user enumeration attacks
+        // but means we must explicitly check identities to give the user accurate feedback.
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+            showMessage('signup-message',
+                `This email is already registered. Please <button type="button" onclick="switchAuthTab('login')" class="inline-link-btn">sign in</button> instead, or use a different email.`,
+                'error');
+            return;
+        }
         
-        showMessage('signup-message', `Account created successfully! 📧 Please check your email to verify your account.<br><br>
+        showMessage('signup-message', `✅ Account created! 📧 Please check your email to verify your account.<br><br>
             <small><strong>Tip:</strong> If you don't see our email in your inbox, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" to ensure links work properly.<br>
             For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
         
@@ -411,8 +426,9 @@ async function requireAuth() {
     const user = await checkAuthStatus();
     
     if (!user) {
-        // Redirect to login page if not authenticated
-        window.location.href = '/auth.html';
+        // Redirect to login page if not authenticated, passing current page as redirect target
+        const redirectParam = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = '/auth.html?redirect=' + redirectParam;
     }
     
     return user;

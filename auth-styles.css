@@ -613,3 +613,15 @@
         font-size: 22px;
     }
 }
+
+/* Inline link button - used for in-message action links (e.g. "sign in" in error messages) */
+.inline-link-btn {
+    background: none;
+    border: none;
+    color: #006600;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit;
+    text-decoration: underline;
+}
