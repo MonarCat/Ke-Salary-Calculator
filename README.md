@@ -130,8 +130,9 @@ The application requires the following database tables:
 - `payslip_history` - Track generated payslips and downloads
 - `saved_calculations` - User's saved salary calculations
 - `blog_posts` - Blog articles with images and metadata
-- `blog_comments` - User comments on blog posts
-- `blog_reactions` - User reactions to blog posts
+- `post_comments` - User comments on blog posts
+- `post_reactions` - User reactions to blog posts
+- `comment_reactions` - User reactions to individual comments
 - `admin_users` - Admin access control for blog management
 
 Follow the complete schema and setup instructions:

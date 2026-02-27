@@ -375,7 +375,7 @@ async function loadComments() {
     
     try {
         const { data, error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .select(`
                 *,
                 blog_posts (title)
@@ -431,7 +431,7 @@ async function loadComments() {
 async function approveComment(commentId) {
     try {
         const { error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .update({ is_approved: true })
             .eq('id', commentId);
         
@@ -454,7 +454,7 @@ async function deleteComment(commentId) {
     
     try {
         const { error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .delete()
             .eq('id', commentId);
         

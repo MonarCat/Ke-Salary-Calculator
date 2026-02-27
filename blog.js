@@ -417,7 +417,7 @@ function setupReactionsSubscription(postId) {
                 {
                     event: '*',
                     schema: 'public',
-                    table: 'blog_reactions',
+                    table: 'post_reactions',
                     filter: `post_id=eq.${postId}`
                 },
                 async () => {
@@ -657,7 +657,7 @@ async function loadReactions(postId) {
     try {
         // Get all reactions for this post
         const { data, error } = await supabaseClient
-            .from('blog_reactions')
+            .from('post_reactions')
             .select('reaction_type, user_id')
             .eq('post_id', postId);
         
@@ -707,7 +707,7 @@ async function handleReaction(postId, reactionType) {
 
         // Check if user already reacted
         const { data: existing, error: checkError } = await supabaseClient
-            .from('blog_reactions')
+            .from('post_reactions')
             .select('*')
             .eq('post_id', postId)
             .eq('user_id', user.id)
@@ -721,7 +721,7 @@ async function handleReaction(postId, reactionType) {
             // Update reaction if different, delete if same
             if (existing.reaction_type === reactionType) {
                 const { error } = await supabaseClient
-                    .from('blog_reactions')
+                    .from('post_reactions')
                     .delete()
                     .eq('id', existing.id);
                 
@@ -729,7 +729,7 @@ async function handleReaction(postId, reactionType) {
                 showToast('Reaction removed', 'success');
             } else {
                 const { error } = await supabaseClient
-                    .from('blog_reactions')
+                    .from('post_reactions')
                     .update({ reaction_type: reactionType })
                     .eq('id', existing.id);
                 
@@ -739,7 +739,7 @@ async function handleReaction(postId, reactionType) {
         } else {
             // Insert new reaction
             const { error } = await supabaseClient
-                .from('blog_reactions')
+                .from('post_reactions')
                 .insert({
                     post_id: postId,
                     user_id: user.id,
@@ -767,7 +767,7 @@ async function handleReaction(postId, reactionType) {
 async function loadComments(postId) {
     try {
         const { data, error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .select('*')
             .eq('post_id', postId)
             .eq('is_approved', true)
@@ -862,7 +862,7 @@ async function submitComment(postId) {
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
 
         const { error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .insert({
                 post_id: postId,
                 user_id: user.id,
@@ -961,7 +961,7 @@ async function saveEditComment(commentId) {
     }
     try {
         const { error } = await supabaseClient
-            .from('blog_comments')
+            .from('post_comments')
             .update({ comment_text: newText })
             .eq('id', commentId)
             .eq('user_id', _currentUserId);

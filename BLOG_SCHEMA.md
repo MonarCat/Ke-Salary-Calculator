@@ -45,50 +45,50 @@ CREATE POLICY "Authors can delete own posts" ON blog_posts
   FOR DELETE USING (auth.uid() = author_id);
 ```
 
-### 2. blog_comments
+### 2. post_comments
 
 Stores user comments on blog posts.
 
 ```sql
-CREATE TABLE blog_comments (
+CREATE TABLE post_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES blog_posts(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   user_name TEXT NOT NULL,
   user_email TEXT,
   comment_text TEXT NOT NULL,
-  parent_comment_id UUID REFERENCES blog_comments(id) ON DELETE CASCADE,
+  parent_comment_id UUID REFERENCES post_comments(id) ON DELETE CASCADE,
   is_approved BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable Row Level Security
-ALTER TABLE blog_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Anyone can read approved comments
-CREATE POLICY "Anyone can view approved comments" ON blog_comments
+CREATE POLICY "Anyone can view approved comments" ON post_comments
   FOR SELECT USING (is_approved = TRUE);
 
 -- Policy: Authenticated users can create comments
-CREATE POLICY "Authenticated users can create comments" ON blog_comments
+CREATE POLICY "Authenticated users can create comments" ON post_comments
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- Policy: Users can update their own comments
-CREATE POLICY "Users can update own comments" ON blog_comments
+CREATE POLICY "Users can update own comments" ON post_comments
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- Policy: Users can delete their own comments
-CREATE POLICY "Users can delete own comments" ON blog_comments
+CREATE POLICY "Users can delete own comments" ON post_comments
   FOR DELETE USING (auth.uid() = user_id);
 ```
 
-### 3. blog_reactions
+### 3. post_reactions
 
 Stores user reactions (like, love, insightful, etc.) to blog posts.
 
 ```sql
-CREATE TABLE blog_reactions (
+CREATE TABLE post_reactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID REFERENCES blog_posts(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -98,22 +98,56 @@ CREATE TABLE blog_reactions (
 );
 
 -- Enable Row Level Security
-ALTER TABLE blog_reactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Anyone can read reactions
-CREATE POLICY "Anyone can view reactions" ON blog_reactions
+CREATE POLICY "Anyone can view reactions" ON post_reactions
   FOR SELECT USING (TRUE);
 
 -- Policy: Authenticated users can create reactions
-CREATE POLICY "Authenticated users can create reactions" ON blog_reactions
+CREATE POLICY "Authenticated users can create reactions" ON post_reactions
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- Policy: Users can delete their own reactions
-CREATE POLICY "Users can delete own reactions" ON blog_reactions
+CREATE POLICY "Users can delete own reactions" ON post_reactions
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Policy: Users can update their own reactions (change reaction type)
-CREATE POLICY "Users can update own reactions" ON blog_reactions
+CREATE POLICY "Users can update own reactions" ON post_reactions
+  FOR UPDATE USING (auth.uid() = user_id);
+```
+
+### 4. comment_reactions
+
+Stores user reactions to individual comments.
+
+```sql
+CREATE TABLE comment_reactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  comment_id UUID REFERENCES post_comments(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  reaction_type TEXT NOT NULL CHECK (reaction_type IN ('like', 'love', 'insightful', 'celebrate', 'support')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(comment_id, user_id)
+);
+
+-- Enable Row Level Security
+ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can read comment reactions
+CREATE POLICY "Anyone can view comment reactions" ON comment_reactions
+  FOR SELECT USING (TRUE);
+
+-- Policy: Authenticated users can create comment reactions
+CREATE POLICY "Authenticated users can create comment reactions" ON comment_reactions
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- Policy: Users can delete their own comment reactions
+CREATE POLICY "Users can delete own comment reactions" ON comment_reactions
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Policy: Users can update their own comment reactions
+CREATE POLICY "Users can update own comment reactions" ON comment_reactions
   FOR UPDATE USING (auth.uid() = user_id);
 ```
 
@@ -121,12 +155,16 @@ CREATE POLICY "Users can update own reactions" ON blog_reactions
 
 ```sql
 -- Optimize queries by post_id
-CREATE INDEX idx_blog_comments_post_id ON blog_comments(post_id);
-CREATE INDEX idx_blog_reactions_post_id ON blog_reactions(post_id);
+CREATE INDEX idx_post_comments_post_id ON post_comments(post_id);
+CREATE INDEX idx_post_reactions_post_id ON post_reactions(post_id);
 
 -- Optimize queries by user_id
-CREATE INDEX idx_blog_comments_user_id ON blog_comments(user_id);
-CREATE INDEX idx_blog_reactions_user_id ON blog_reactions(user_id);
+CREATE INDEX idx_post_comments_user_id ON post_comments(user_id);
+CREATE INDEX idx_post_reactions_user_id ON post_reactions(user_id);
+
+-- Optimize comment reactions queries
+CREATE INDEX idx_comment_reactions_comment_id ON comment_reactions(comment_id);
+CREATE INDEX idx_comment_reactions_user_id ON comment_reactions(user_id);
 
 -- Optimize blog post queries
 CREATE INDEX idx_blog_posts_status ON blog_posts(status);
@@ -144,7 +182,7 @@ RETURNS TABLE(reaction_type TEXT, count BIGINT) AS $$
 BEGIN
   RETURN QUERY
   SELECT br.reaction_type, COUNT(*) as count
-  FROM blog_reactions br
+  FROM post_reactions br
   WHERE br.post_id = p_post_id
   GROUP BY br.reaction_type;
 END;
@@ -173,7 +211,7 @@ DECLARE
   v_count INTEGER;
 BEGIN
   SELECT COUNT(*) INTO v_count
-  FROM blog_comments
+  FROM post_comments
   WHERE post_id = p_post_id AND is_approved = TRUE;
   
   RETURN v_count;
@@ -191,8 +229,8 @@ CREATE TRIGGER update_blog_posts_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER update_blog_comments_updated_at
-  BEFORE UPDATE ON blog_comments
+CREATE TRIGGER update_post_comments_updated_at
+  BEFORE UPDATE ON post_comments
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 ```

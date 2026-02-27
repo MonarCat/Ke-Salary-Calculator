@@ -98,44 +98,44 @@ CREATE POLICY "Admins and authors can create posts" ON blog_posts
     is_admin() OR auth.uid() = author_id
   );
 
--- 4. Update blog_comments policies for admin moderation
-DROP POLICY IF EXISTS "Admins can view all comments" ON blog_comments;
-CREATE POLICY "Admins can view all comments" ON blog_comments
+-- 4. Update post_comments policies for admin moderation
+DROP POLICY IF EXISTS "Admins can view all comments" ON post_comments;
+CREATE POLICY "Admins can view all comments" ON post_comments
   FOR SELECT USING (
     is_approved = TRUE OR is_admin() OR auth.uid() = user_id
   );
 
-DROP POLICY IF EXISTS "Admins can moderate comments" ON blog_comments;
-CREATE POLICY "Admins can moderate comments" ON blog_comments
+DROP POLICY IF EXISTS "Admins can moderate comments" ON post_comments;
+CREATE POLICY "Admins can moderate comments" ON post_comments
   FOR UPDATE USING (
     is_admin() OR auth.uid() = user_id
   );
 
-DROP POLICY IF EXISTS "Admins can delete any comment" ON blog_comments;
-CREATE POLICY "Admins can delete any comment" ON blog_comments
+DROP POLICY IF EXISTS "Admins can delete any comment" ON post_comments;
+CREATE POLICY "Admins can delete any comment" ON post_comments
   FOR DELETE USING (
     is_admin() OR auth.uid() = user_id
   );
 
-DROP POLICY IF EXISTS "Authenticated users can add comments" ON blog_comments;
-CREATE POLICY "Authenticated users can add comments" ON blog_comments
+DROP POLICY IF EXISTS "Authenticated users can add comments" ON post_comments;
+CREATE POLICY "Authenticated users can add comments" ON post_comments
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
--- 5. blog_reactions policies
-DROP POLICY IF EXISTS "Anyone can view reactions" ON blog_reactions;
-CREATE POLICY "Anyone can view reactions" ON blog_reactions
+-- 5. post_reactions policies
+DROP POLICY IF EXISTS "Anyone can view reactions" ON post_reactions;
+CREATE POLICY "Anyone can view reactions" ON post_reactions
   FOR SELECT USING (TRUE);
 
-DROP POLICY IF EXISTS "Authenticated users can add reactions" ON blog_reactions;
-CREATE POLICY "Authenticated users can add reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Authenticated users can add reactions" ON post_reactions;
+CREATE POLICY "Authenticated users can add reactions" ON post_reactions
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "Users can update own reactions" ON blog_reactions;
-CREATE POLICY "Users can update own reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Users can update own reactions" ON post_reactions;
+CREATE POLICY "Users can update own reactions" ON post_reactions
   FOR UPDATE USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can delete own reactions" ON blog_reactions;
-CREATE POLICY "Users can delete own reactions" ON blog_reactions
+DROP POLICY IF EXISTS "Users can delete own reactions" ON post_reactions;
+CREATE POLICY "Users can delete own reactions" ON post_reactions
   FOR DELETE USING (auth.uid() = user_id OR is_admin());
 
 -- 6. Add admin email (needs to be run AFTER user signs up)
@@ -191,11 +191,11 @@ BEGIN
   RETURN QUERY
   SELECT
     (SELECT COUNT(*) FROM blog_posts WHERE status = 'published') as total_posts,
-    (SELECT COUNT(*) FROM blog_comments WHERE is_approved = TRUE) as total_comments,
-    (SELECT COUNT(*) FROM blog_reactions) as total_reactions,
+    (SELECT COUNT(*) FROM post_comments WHERE is_approved = TRUE) as total_comments,
+    (SELECT COUNT(*) FROM post_reactions) as total_reactions,
     (SELECT COALESCE(SUM(views_count), 0) FROM blog_posts) as total_views,
     (SELECT COUNT(*) FROM blog_posts WHERE created_at >= date_trunc('month', NOW())) as posts_this_month,
-    (SELECT COUNT(*) FROM blog_comments WHERE created_at >= date_trunc('month', NOW())) as comments_this_month;
+    (SELECT COUNT(*) FROM post_comments WHERE created_at >= date_trunc('month', NOW())) as comments_this_month;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -222,7 +222,7 @@ BEGIN
     bc.user_name,
     bc.comment_text,
     bc.created_at
-  FROM blog_comments bc
+  FROM post_comments bc
   JOIN blog_posts bp ON bc.post_id = bp.id
   WHERE bc.is_approved = FALSE
   ORDER BY bc.created_at DESC;
@@ -233,8 +233,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
 CREATE INDEX IF NOT EXISTS idx_admin_users_user_id ON admin_users(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_posts_author_id ON blog_posts(author_id);
-CREATE INDEX IF NOT EXISTS idx_blog_reactions_post_id ON blog_reactions(post_id);
-CREATE INDEX IF NOT EXISTS idx_blog_reactions_user_id ON blog_reactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_post_reactions_post_id ON post_reactions(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_reactions_user_id ON post_reactions(user_id);
 
 -- 11. View count update function
 CREATE OR REPLACE FUNCTION increment_post_views_realtime(p_post_id UUID)
