@@ -539,5 +539,9 @@ async function redirectIfLoggedIn() {
         // Not logged in — show the auth container
         const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
         if (authWrapper) authWrapper.classList.add('auth-ready');
+        // If URL hash is #signup, switch to the sign-up tab
+        if (window.location.hash === '#signup') {
+            switchAuthTab('signup');
+        }
     }
 }
