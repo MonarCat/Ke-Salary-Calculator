@@ -73,6 +73,7 @@ To enable Google sign-in:
    - `https://salarycalculator.co.ke`
    - `https://salarycalculator.co.ke/`
    - `https://salarycalculator.co.ke/auth.html`
+   - `https://salarycalculator.co.ke/admin-auth.html`
    - `https://salarycalculator.co.ke/calculator.html`
    - `http://localhost:8080` (for local testing)
    - `http://localhost:8080/` (for local testing)
@@ -82,7 +83,68 @@ To enable Google sign-in:
 
 **Important:** Include both URLs with and without trailing slashes for best compatibility.
 
-## Step 6: Configure Email Templates (Optional)
+## Step 6: Set Up Admin Access (Required for Admin Dashboard)
+
+The admin dashboard at `/admin-auth.html` requires an `admin_users` table in your Supabase database with appropriate Row Level Security (RLS) policies.
+
+### 6a: Run the Admin Setup SQL Script
+
+1. In the Supabase dashboard, go to **SQL Editor**
+2. Click **New query**
+3. Open the file `admin-setup.sql` from this repository and paste its entire contents into the editor
+4. Click **Run** (or press `Ctrl+Enter`)
+
+This script will:
+- Create the `admin_users` table
+- Enable Row Level Security on it
+- Create RLS policies so each user can only check their own admin status
+- Create helper functions (`is_admin`, `grant_admin_access`, etc.)
+- Add admin-aware policies on `blog_posts` and `post_comments`
+
+### 6b: Create the Admin User Account
+
+The admin user must exist in Supabase Auth **before** being added to `admin_users`.
+
+1. Navigate to `https://salarycalculator.co.ke/auth.html` (or your local equivalent)
+2. Sign up with:
+   - **Email:** `kesalarycalculator@gmail.com`
+   - **Password:** *(choose a strong password)*
+   - **Name:** Admin
+   - **Account Type:** Individual
+3. Check the inbox for `kesalarycalculator@gmail.com` and confirm the email if email confirmation is enabled
+
+### 6c: Grant Admin Privileges
+
+After the user has signed up and confirmed their email, run the following SQL in the Supabase **SQL Editor** to insert them into `admin_users`:
+
+```sql
+INSERT INTO admin_users (user_id, email, is_super_admin)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'kesalarycalculator@gmail.com'),
+  'kesalarycalculator@gmail.com',
+  TRUE
+)
+ON CONFLICT (email) DO NOTHING;
+```
+
+**Important:** If the `SELECT` returns `NULL` (user not found), make sure the sign-up in step 6b was completed and the email was confirmed.
+
+### 6d: Access the Admin Dashboard
+
+1. Navigate to `https://salarycalculator.co.ke/admin-auth.html`
+2. Sign in with `kesalarycalculator@gmail.com` and the password you created
+3. On successful authentication, the page verifies the `admin_users` record and redirects you to `/admin.html`
+
+### Troubleshooting Admin Access
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| "Access denied. You do not have admin privileges." | User exists but is not in `admin_users` | Run the INSERT in step 6c |
+| "Invalid email or password." | Wrong credentials or user not confirmed | Confirm email or reset password |
+| "Authentication service is unavailable." | `supabase-config.js` not configured | Update `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `supabase-config.js` |
+| Blank page / spinner forever | `admin_users` table missing | Run `admin-setup.sql` (step 6a) |
+
+## Step 7: Configure Email Templates (Optional)
 
 You can customize the email templates sent to users:
 
@@ -93,7 +155,7 @@ You can customize the email templates sent to users:
    - **Change Email Address**: Sent when changing email
    - **Reset Password**: Sent when resetting password
 
-## Step 7: Set Up Database Tables (Optional)
+## Step 8: Set Up Database Tables (Optional)
 
 If you want to store user profiles or additional data:
 
@@ -128,7 +190,7 @@ CREATE POLICY "Users can insert their own profile"
   WITH CHECK (auth.uid() = id);
 ```
 
-## Step 8: Test Your Setup
+## Step 9: Test Your Setup
 
 1. Open your website in a browser
 2. Click on "Sign In" in the navigation
