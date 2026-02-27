@@ -60,18 +60,26 @@ CREATE POLICY "Super admins can delete admin records" ON admin_users
   );
 
 -- 2. Create helper function to check if user is admin
-CREATE OR REPLACE FUNCTION is_admin(check_user_id UUID DEFAULT NULL)
+-- SECURITY DEFINER with search_path='' prevents search-path injection.
+-- Fully-qualified public.admin_users is required when search_path is empty.
+CREATE OR REPLACE FUNCTION public.is_admin(check_user_id UUID DEFAULT NULL)
 RETURNS BOOLEAN AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
   v_user_id := COALESCE(check_user_id, auth.uid());
   RETURN EXISTS (
-    SELECT 1 FROM admin_users 
+    SELECT 1 FROM public.admin_users
     WHERE user_id = v_user_id
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Allow authenticated (signed-in) users to call is_admin() via the RPC API.
+-- Note: when called via the anon key without an active session, auth.uid()
+-- returns NULL and the function returns false. For server-side use requiring
+-- elevated privileges, call with the service_role key instead.
+GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;
 
 -- 3. Update blog_posts policies to allow admin full access
 DROP POLICY IF EXISTS "Admins can update any post" ON blog_posts;
@@ -151,13 +159,13 @@ CREATE POLICY "Users can delete own reactions" ON post_reactions
 -- ON CONFLICT (email) DO NOTHING;
 
 -- 7. Create function to grant admin access (for super admin use)
-CREATE OR REPLACE FUNCTION grant_admin_access(admin_email TEXT)
+CREATE OR REPLACE FUNCTION public.grant_admin_access(admin_email TEXT)
 RETURNS TEXT AS $$
 DECLARE
   v_user_id UUID;
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM admin_users 
+    SELECT 1 FROM public.admin_users
     WHERE user_id = auth.uid() AND is_super_admin = TRUE
   ) THEN
     RETURN 'ERROR: Only super admins can grant admin access';
@@ -169,13 +177,15 @@ BEGIN
     RETURN 'ERROR: User with email ' || admin_email || ' not found';
   END IF;
   
-  INSERT INTO admin_users (user_id, email, is_super_admin, granted_by)
+  INSERT INTO public.admin_users (user_id, email, is_super_admin, granted_by)
   VALUES (v_user_id, admin_email, FALSE, auth.uid())
   ON CONFLICT (email) DO NOTHING;
   
   RETURN 'SUCCESS: Admin access granted to ' || admin_email;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+GRANT EXECUTE ON FUNCTION public.grant_admin_access TO authenticated;
 
 -- 8. Analytics function for admin dashboard
 CREATE OR REPLACE FUNCTION get_blog_stats()

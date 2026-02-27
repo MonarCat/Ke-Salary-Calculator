@@ -36,12 +36,9 @@ async function initAdminDashboard() {
         
         // Check if user is admin
         const { data: adminData, error } = await supabaseClient
-            .from('admin_users')
-            .select('id')
-            .eq('user_id', user.id)
-            .maybeSingle();
+            .rpc('is_admin');
         
-        if (error || !adminData) {
+        if (error || adminData !== true) {
             showAccessDenied();
             return;
         }
