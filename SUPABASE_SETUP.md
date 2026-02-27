@@ -143,6 +143,7 @@ ON CONFLICT (email) DO NOTHING;
 | "Invalid email or password." | Wrong credentials or user not confirmed | Confirm email or reset password |
 | "Authentication service is unavailable." | `supabase-config.js` not configured | Update `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `supabase-config.js` |
 | Blank page / spinner forever | `admin_users` table missing | Run `admin-setup.sql` (step 6a) |
+| `is_admin()` returns false on server-side code | `auth.uid()` is `NULL` when using the `anon` key without an active session | Use the `service_role` key for server-side operations that require elevated privileges |
 
 ## Step 7: Configure Email Templates (Optional)
 
