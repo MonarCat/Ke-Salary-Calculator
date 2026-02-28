@@ -882,6 +882,61 @@
     color: #006600;
 }
 
+/* Comment Reactions */
+.comment-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 6px;
+}
+
+.comment-reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.82em;
+    color: #555;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    user-select: none;
+}
+
+.comment-reaction-btn:hover {
+    background: #f0faf0;
+    border-color: #009900;
+    transform: translateY(-1px);
+}
+
+.comment-reaction-btn.active {
+    background: linear-gradient(135deg, #006600, #009900);
+    color: #fff;
+    border-color: #004d00;
+    font-weight: 700;
+}
+
+.comment-reaction-btn .cr-emoji {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.comment-reaction-btn .cr-count {
+    font-weight: 700;
+    font-size: 0.9em;
+    background: rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 0 5px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.comment-reaction-btn.active .cr-count {
+    background: rgba(255,255,255,0.25);
+}
+
 /* Reply Comment */
 .comment-reply {
     margin-left: 50px;
