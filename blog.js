@@ -4,6 +4,8 @@
 let _currentUserId = null;
 // Current post comments cache for re-rendering after auth resolves
 let _currentPostComments = [];
+// Comment reactions cache keyed by comment ID
+let _currentCommentReactions = {};
 // Reactions realtime subscription reference for cleanup
 let _reactionsSubscription = null;
 
@@ -312,6 +314,12 @@ async function loadBlogPost() {
                     // Load reactions and comments
                     reactions = await loadReactions(post.id);
                     comments = await loadComments(post.id);
+                    if (comments.length > 0) {
+                        const commentIds = comments.map(c => c.id);
+                        _currentCommentReactions = await loadCommentReactions(commentIds);
+                    } else {
+                        _currentCommentReactions = {};
+                    }
 
                     // Start real-time reactions subscription
                     setupReactionsSubscription(post.id);
@@ -637,6 +645,7 @@ function renderComments(comments) {
         const editBtn = canEdit
             ? `<button class="comment-action-btn" onclick="startEditComment('${comment.id}')" title="Edit comment"><i class="fas fa-edit"></i> Edit</button>`
             : '';
+        const commentReactions = _currentCommentReactions[comment.id] || { counts: {}, userReaction: null };
         return `
         <div class="comment" id="comment-${comment.id}">
             <div class="comment-header">
@@ -647,7 +656,10 @@ function renderComments(comments) {
                 <span class="comment-date">${formatRelativeTime(comment.created_at)}</span>
             </div>
             <div class="comment-text" id="comment-text-${comment.id}">${comment.comment_text}</div>
-            <div class="comment-actions">${editBtn}</div>
+            <div class="comment-footer">
+                <div class="comment-actions">${editBtn}</div>
+                <div id="comment-reactions-${comment.id}">${renderCommentReactions(comment.id, commentReactions)}</div>
+            </div>
         </div>`;
     }).join('');
 }
@@ -705,17 +717,17 @@ async function handleReaction(postId, reactionType) {
             return;
         }
 
-        // Check if user already reacted
-        const { data: existing, error: checkError } = await supabaseClient
+        // Check if user already reacted (use array to handle missing UNIQUE constraint)
+        // Select reaction_type to decide whether to delete (same) or update (different)
+        const { data: existingArr, error: checkError } = await supabaseClient
             .from('post_reactions')
-            .select('*')
+            .select('id, reaction_type')
             .eq('post_id', postId)
-            .eq('user_id', user.id)
-            .single();
+            .eq('user_id', user.id);
 
-        if (checkError && checkError.code !== 'PGRST116') {
-            throw checkError;
-        }
+        if (checkError) throw checkError;
+
+        const existing = (existingArr && existingArr.length > 0) ? existingArr[0] : null;
 
         if (existing) {
             // Update reaction if different, delete if same
@@ -781,6 +793,132 @@ async function loadComments(postId) {
     }
 }
 
+// Load reactions for multiple comments at once
+async function loadCommentReactions(commentIds) {
+    if (!commentIds || commentIds.length === 0) return {};
+    try {
+        const { data, error } = await supabaseClient
+            .from('comment_reactions')
+            .select('comment_id, reaction_type, user_id')
+            .in('comment_id', commentIds);
+
+        if (error) throw error;
+
+        let currentUserId = _currentUserId;
+        if (!currentUserId) {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (user) currentUserId = user.id;
+            } catch (e) { /* not logged in */ }
+        }
+
+        const byComment = {};
+        (data || []).forEach(r => {
+            if (!byComment[r.comment_id]) {
+                byComment[r.comment_id] = { counts: {}, userReaction: null };
+            }
+            byComment[r.comment_id].counts[r.reaction_type] =
+                (byComment[r.comment_id].counts[r.reaction_type] || 0) + 1;
+            if (currentUserId && r.user_id === currentUserId) {
+                byComment[r.comment_id].userReaction = r.reaction_type;
+            }
+        });
+
+        return byComment;
+    } catch (error) {
+        console.error('Error loading comment reactions:', error);
+        return {};
+    }
+}
+
+function renderCommentReactions(commentId, reactions) {
+    const reactionTypes = [
+        { type: 'like', emoji: '👍', label: 'Like' },
+        { type: 'love', emoji: '❤️', label: 'Love' },
+        { type: 'insightful', emoji: '💡', label: 'Insightful' },
+        { type: 'celebrate', emoji: '🎉', label: 'Celebrate' },
+        { type: 'support', emoji: '🙌', label: 'Support' }
+    ];
+
+    const data = reactions || { counts: {}, userReaction: null };
+    const buttons = reactionTypes.map(rt => {
+        const count = data.counts[rt.type] || 0;
+        const isActive = data.userReaction === rt.type ? 'active' : '';
+        const label = `${rt.label}${count > 0 ? ': ' + count : ''}`;
+        const countHtml = count > 0 ? `<span class="comment-reaction-count">${count}</span>` : '';
+        return `<button class="comment-reaction-button ${isActive}"` +
+            ` data-comment-id="${commentId}" data-reaction-type="${rt.type}"` +
+            ` title="${label}" aria-label="${label}"` +
+            ` aria-pressed="${data.userReaction === rt.type ? 'true' : 'false'}">` +
+            `<span aria-hidden="true">${rt.emoji}</span>${countHtml}</button>`;
+    }).join('');
+
+    return `<div class="comment-reactions" role="group" aria-label="Comment reactions">${buttons}</div>`;
+}
+
+async function handleCommentReaction(commentId, reactionType) {
+    if (!supabaseClient || !isSupabaseConfigured()) {
+        showToast('Please sign in to react to comments', 'error');
+        return;
+    }
+
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        if (!user) {
+            showToast('Please sign in to react to comments', 'error');
+            window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+            return;
+        }
+
+        // Use array lookup to handle missing UNIQUE constraint gracefully
+        // Select reaction_type to decide whether to delete (same) or update (different)
+        const { data: existingArr, error: checkError } = await supabaseClient
+            .from('comment_reactions')
+            .select('id, reaction_type')
+            .eq('comment_id', commentId)
+            .eq('user_id', user.id);
+
+        if (checkError) throw checkError;
+
+        const existing = (existingArr && existingArr.length > 0) ? existingArr[0] : null;
+
+        if (existing) {
+            if (existing.reaction_type === reactionType) {
+                const { error } = await supabaseClient
+                    .from('comment_reactions')
+                    .delete()
+                    .eq('id', existing.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabaseClient
+                    .from('comment_reactions')
+                    .update({ reaction_type: reactionType })
+                    .eq('id', existing.id);
+                if (error) throw error;
+            }
+        } else {
+            const { error } = await supabaseClient
+                .from('comment_reactions')
+                .insert({ comment_id: commentId, user_id: user.id, reaction_type: reactionType });
+            if (error) throw error;
+        }
+
+        // Refresh only this comment's reactions (efficient: single-comment query)
+        const updatedReactions = await loadCommentReactions([commentId]);
+        _currentCommentReactions[commentId] = updatedReactions[commentId] || { counts: {}, userReaction: null };
+
+        const reactionsEl = document.getElementById(`comment-reactions-${commentId}`);
+        if (reactionsEl) {
+            reactionsEl.innerHTML = renderCommentReactions(commentId, _currentCommentReactions[commentId]);
+        }
+
+    } catch (error) {
+        console.error('Error handling comment reaction:', error);
+        showToast('Error updating reaction', 'error');
+    }
+}
+
 async function initCommentForm(postId) {
     const formContent = document.getElementById('commentFormContent');
     if (!formContent) return;
@@ -798,14 +936,8 @@ async function initCommentForm(postId) {
             return;
         }
 
-        // Get user profile for name
-        const { data: profile } = await supabaseClient
-            .from('user_profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-
-        const userName = profile?.full_name || user.email?.split('@')[0] || 'Anonymous';
+        // Get user display name from metadata
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous';
 
         _currentUserId = user.id;
 
@@ -876,8 +1008,12 @@ async function submitComment(postId) {
         showToast('Comment posted successfully!', 'success');
         document.getElementById('commentText').value = '';
         
-        // Reload comments
+        // Reload comments and their reactions
         const comments = await loadComments(postId);
+        _currentPostComments = comments;
+        if (comments.length > 0) {
+            _currentCommentReactions = await loadCommentReactions(comments.map(c => c.id));
+        }
         document.getElementById('commentsList').innerHTML = renderComments(comments);
         
         // Update count
@@ -1045,6 +1181,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const reactionType = btn.dataset.reactionType;
             if (postId && reactionType) {
                 handleReaction(postId, reactionType);
+            }
+        }
+        // Event delegation for comment reaction buttons
+        const commentBtn = e.target.closest('.comment-reaction-button[data-comment-id]');
+        if (commentBtn) {
+            const commentId = commentBtn.dataset.commentId;
+            const reactionType = commentBtn.dataset.reactionType;
+            if (commentId && reactionType) {
+                handleCommentReaction(commentId, reactionType);
             }
         }
     });
