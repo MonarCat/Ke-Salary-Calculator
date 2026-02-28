@@ -17,6 +17,17 @@ function isSupabaseConfigured() {
            window.isSupabaseConfigured();
 }
 
+// Helper: race a Supabase query promise against a timeout so the page never
+// hangs indefinitely when the database is slow or unreachable.
+// The timer is always cleared (win or lose) to avoid lingering callbacks.
+function withTimeout(promise, ms) {
+    let timerId;
+    const timeout = new Promise((_, reject) => {
+        timerId = setTimeout(() => reject(new Error('Database request timed out')), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timerId));
+}
+
 // Scroll to Top Button
 function initScrollButton() {
     const scrollBtn = document.getElementById('scrollToTop');
@@ -185,14 +196,17 @@ async function loadBlogPosts() {
 
         let posts = [];
         
-        // Try loading from database first
+        // Try loading from database first (5 s timeout to avoid infinite hang)
         if (supabaseClient && isSupabaseConfigured()) {
             try {
-                const { data, error } = await supabaseClient
-                    .from('blog_posts')
-                    .select('*')
-                    .eq('status', 'published')
-                    .order('published_at', { ascending: false });
+                const { data, error } = await withTimeout(
+                    supabaseClient
+                        .from('blog_posts')
+                        .select('*')
+                        .eq('status', 'published')
+                        .order('published_at', { ascending: false }),
+                    5000
+                );
 
                 if (!error && data && data.length > 0) {
                     posts = data;
@@ -295,15 +309,18 @@ async function loadBlogPost() {
         let reactions = {};
         let comments = [];
 
-        // Try loading from database first
+        // Try loading from database first (5 s timeout to avoid infinite hang)
         if (supabaseClient && isSupabaseConfigured()) {
             try {
-                const { data, error } = await supabaseClient
-                    .from('blog_posts')
-                    .select('*')
-                    .eq('slug', slug)
-                    .eq('status', 'published')
-                    .single();
+                const { data, error } = await withTimeout(
+                    supabaseClient
+                        .from('blog_posts')
+                        .select('*')
+                        .eq('slug', slug)
+                        .eq('status', 'published')
+                        .single(),
+                    5000
+                );
 
                 if (!error && data) {
                     post = data;
