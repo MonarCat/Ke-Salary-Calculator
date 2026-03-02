@@ -85,6 +85,21 @@ ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
 
+-- 5a. Add UNIQUE constraints if they don't already exist (for existing databases)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'post_reactions_post_id_user_id_key'
+  ) THEN
+    ALTER TABLE post_reactions ADD CONSTRAINT post_reactions_post_id_user_id_key UNIQUE (post_id, user_id);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'comment_reactions_comment_id_user_id_key'
+  ) THEN
+    ALTER TABLE comment_reactions ADD CONSTRAINT comment_reactions_comment_id_user_id_key UNIQUE (comment_id, user_id);
+  END IF;
+END $$;
+
 -- 6. Create RLS Policies for blog_posts
 DROP POLICY IF EXISTS "Anyone can view published posts" ON blog_posts;
 CREATE POLICY "Anyone can view published posts" ON blog_posts
