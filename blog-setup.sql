@@ -52,6 +52,33 @@ CREATE TABLE IF NOT EXISTS comment_reactions (
   UNIQUE(comment_id, user_id)
 );
 
+-- Add UNIQUE constraints if table already exists without them (safe migration)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'post_reactions_post_id_user_id_key'
+      AND conrelid = 'post_reactions'::regclass
+  ) THEN
+    -- Remove duplicate reactions keeping the latest per (post_id, user_id)
+    DELETE FROM post_reactions a USING post_reactions b
+    WHERE a.id < b.id AND a.post_id = b.post_id AND a.user_id = b.user_id;
+    ALTER TABLE post_reactions ADD CONSTRAINT post_reactions_post_id_user_id_key UNIQUE (post_id, user_id);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'comment_reactions_comment_id_user_id_key'
+      AND conrelid = 'comment_reactions'::regclass
+  ) THEN
+    -- Remove duplicate reactions keeping the latest per (comment_id, user_id)
+    DELETE FROM comment_reactions a USING comment_reactions b
+    WHERE a.id < b.id AND a.comment_id = b.comment_id AND a.user_id = b.user_id;
+    ALTER TABLE comment_reactions ADD CONSTRAINT comment_reactions_comment_id_user_id_key UNIQUE (comment_id, user_id);
+  END IF;
+END $$;
+
 -- 5. Enable Row Level Security
 ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;

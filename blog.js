@@ -4,6 +4,8 @@
 let _currentUserId = null;
 // Current post comments cache for re-rendering after auth resolves
 let _currentPostComments = [];
+// Comment reactions cache keyed by comment ID
+let _currentCommentReactions = {};
 // Reactions realtime subscription reference for cleanup
 let _reactionsSubscription = null;
 // Current comment reactions cache keyed by comment ID
@@ -331,6 +333,12 @@ async function loadBlogPost() {
                     // Load reactions and comments
                     reactions = await loadReactions(post.id);
                     comments = await loadComments(post.id);
+                    if (comments.length > 0) {
+                        const commentIds = comments.map(c => c.id);
+                        _currentCommentReactions = await loadCommentReactions(commentIds);
+                    } else {
+                        _currentCommentReactions = {};
+                    }
 
                     // Start real-time reactions subscription
                     setupReactionsSubscription(post.id);
@@ -945,14 +953,8 @@ async function initCommentForm(postId) {
             return;
         }
 
-        // Get user profile for name
-        const { data: profile } = await supabaseClient
-            .from('user_profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-
-        const userName = profile?.full_name || user.email?.split('@')[0] || 'Anonymous';
+        // Get user display name from metadata
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous';
 
         _currentUserId = user.id;
 
