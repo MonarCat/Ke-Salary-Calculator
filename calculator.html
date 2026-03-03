@@ -476,13 +476,9 @@
                 <div class="donate-section">
                     <button class="donate-toggle" onclick="toggleDonateInfo()">❤️ Support This Project</button>
                     <div id="donateInfoCalc" class="donate-info" style="display: none;">
-                        <p>Your support helps keep this tool free and maintained! Choose your preferred payment method below:</p>
-                        <div class="payment-tabs">
-                            <button class="payment-tab-btn active" onclick="switchPaymentTab(this, 'paypal-calc')">💳 PayPal</button>
-                            <button class="payment-tab-btn" onclick="switchPaymentTab(this, 'mobile-calc')">📱 Mobile Payment</button>
-                        </div>
-                        <!-- PayPal Panel -->
-                        <div id="paypal-calc" class="payment-panel active">
+                        <p>Your support helps keep this tool free and maintained! You can donate via <strong>PayPal</strong> or <strong>Mobile Money</strong> below:</p>
+                        <!-- PayPal -->
+                        <div>
                             <!-- See PAYPAL_SETUP.md for instructions -->
                             <form action="https://www.paypal.com/donate" method="post" target="_top">
                                 <input type="hidden" name="hosted_button_id" value="D9H3ZADBCPPHG" />
@@ -491,8 +487,9 @@
                             </form>
                             <p class="donate-note">Thank you for supporting this free tool!</p>
                         </div>
-                        <!-- Mobile Payment Panel -->
-                        <div id="mobile-calc" class="payment-panel">
+                        <div class="donate-divider"><span>or</span></div>
+                        <!-- Mobile Payment -->
+                        <div>
                             <div class="mobile-payment-panel">
                                 <h4>📲 Send via Mobile Money — Kenya</h4>
                                 <div class="mobile-payment-options">
@@ -818,13 +815,9 @@
                 <div class="donate-section">
                     <button class="donate-toggle" onclick="toggleDonateInfo()">❤️ Support This Project</button>
                     <div id="donateInfo" class="donate-info" style="display: none;">
-                        <p>Your support helps keep this tool free and maintained! Choose your preferred payment method below:</p>
-                        <div class="payment-tabs">
-                            <button class="payment-tab-btn active" onclick="switchPaymentTab(this, 'paypal-main')">💳 PayPal</button>
-                            <button class="payment-tab-btn" onclick="switchPaymentTab(this, 'mobile-main')">📱 Mobile Payment</button>
-                        </div>
-                        <!-- PayPal Panel -->
-                        <div id="paypal-main" class="payment-panel active">
+                        <p>Your support helps keep this tool free and maintained! You can donate via <strong>PayPal</strong> or <strong>Mobile Money</strong> below:</p>
+                        <!-- PayPal -->
+                        <div>
                             <!-- See PAYPAL_SETUP.md for instructions -->
                             <form action="https://www.paypal.com/donate" method="post" target="_top">
                                 <input type="hidden" name="hosted_button_id" value="D9H3ZADBCPPHG" />
@@ -833,8 +826,9 @@
                             </form>
                             <p class="donate-note">Thank you for supporting this free tool!</p>
                         </div>
-                        <!-- Mobile Payment Panel -->
-                        <div id="mobile-main" class="payment-panel">
+                        <div class="donate-divider"><span>or</span></div>
+                        <!-- Mobile Payment -->
+                        <div>
                             <div class="mobile-payment-panel">
                                 <h4>📲 Send via Mobile Money — Kenya</h4>
                                 <div class="mobile-payment-options">

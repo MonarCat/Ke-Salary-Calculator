@@ -936,52 +936,28 @@ footer a:hover {
     color: #666;
 }
 
-/* Payment method tabs */
-.payment-tabs {
+/* Divider between PayPal and Mobile Payment */
+.donate-divider {
     display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 15px 0 10px;
-    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    margin: 18px 0;
+    color: #aaa;
+    font-size: 13px;
 }
 
-.payment-tab-btn {
-    background: #f0f0f0;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 15px;
+.donate-divider::before,
+.donate-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid #ddd;
+}
+
+.donate-divider span {
+    padding: 0 12px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    color: #444;
-}
-
-.payment-tab-btn:hover {
-    border-color: #006600;
-    color: #006600;
-    background: #f0fff0;
-}
-
-.payment-tab-btn.active {
-    border-color: #006600;
-    background: linear-gradient(135deg, #006600, #009900);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(0,102,0,0.3);
-}
-
-.payment-panel {
-    display: none;
-    animation: fadeInPanel 0.3s ease;
-}
-
-.payment-panel.active {
-    display: block;
-}
-
-@keyframes fadeInPanel {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Mobile payment panel */
