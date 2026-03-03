@@ -8,6 +8,16 @@ let _currentPostComments = [];
 let _currentCommentReactions = {};
 // Reactions realtime subscription reference for cleanup
 let _reactionsSubscription = null;
+// Comments realtime subscription reference for cleanup
+let _commentsSubscription = null;
+// Whether the current post is a fallback (not from DB)
+let _isUsingFallback = false;
+// Current post ID (real UUID when loaded from DB)
+let _currentPostId = null;
+// Reference to the emoji picker outside-click handler for cleanup
+let _emojiPickerCloseHandler = null;
+// Ensure beforeunload cleanup is registered only once
+let _beforeunloadRegistered = false;
 
 // Helper function to check if Supabase is configured
 function isSupabaseConfigured() {
@@ -26,6 +36,30 @@ function withTimeout(promise, ms) {
         timerId = setTimeout(() => reject(new Error('Database request timed out')), ms);
     });
     return Promise.race([promise, timeout]).finally(() => clearTimeout(timerId));
+}
+
+// Safely escape HTML to prevent XSS when rendering user-supplied text
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Render comment text: HTML-escaped then simple markdown applied
+function renderCommentText(text) {
+    const escaped = escapeHtml(text);
+    return escaped
+        .replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+}
+
+// Check if a string is a valid UUID (real DB post IDs are UUIDs)
+function isValidUUID(str) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
 // Scroll to Top Button
@@ -115,7 +149,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'kenyan-economy-coins.jpg',
         secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
-        views_count: 2850,
+        views_count: 0,
         published_at: '2026-02-15T08:00:00Z',
         status: 'published'
     },
@@ -128,7 +162,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'by wirestock on Freepik.jpg',
         secondary_image_url: 'kenyan-economy-coins.jpg',
         author_name: 'Admin',
-        views_count: 2340,
+        views_count: 0,
         published_at: '2026-02-16T10:30:00Z',
         status: 'published'
     },
@@ -141,7 +175,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'nairobi_wh10.jpg',
         secondary_image_url: 'giraffe-wild.jpg',
         author_name: 'Admin',
-        views_count: 1920,
+        views_count: 0,
         published_at: '2026-02-17T09:15:00Z',
         status: 'published'
     },
@@ -154,7 +188,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'JT Banner Gemini_Generated_Image_.png',
         secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
-        views_count: 1750,
+        views_count: 0,
         published_at: '2026-02-18T11:00:00Z',
         status: 'published'
     },
@@ -167,7 +201,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'kenyan-economy-coins.jpg',
         secondary_image_url: 'by wirestock on Freepik.jpg',
         author_name: 'Admin',
-        views_count: 1580,
+        views_count: 0,
         published_at: '2026-02-18T14:45:00Z',
         status: 'published'
     },
@@ -180,7 +214,7 @@ const fallbackBlogPosts = [
         featured_image_url: 'kenyan-economy-coins.jpg',
         secondary_image_url: 'nairobi_wh10.jpg',
         author_name: 'Admin',
-        views_count: 3120,
+        views_count: 0,
         published_at: '2026-02-19T08:30:00Z',
         status: 'published'
     }
@@ -287,7 +321,9 @@ async function loadBlogPost() {
 
         let post = null;
         let reactions = {};
-        let comments = [];
+        // Reset state for new post load
+        _isUsingFallback = false;
+        _currentPostId = null;
 
         // Try loading from database first (5 s timeout to avoid infinite hang)
         if (supabaseClient && isSupabaseConfigured()) {
@@ -304,6 +340,7 @@ async function loadBlogPost() {
 
                 if (!error && data) {
                     post = data;
+                    _currentPostId = post.id;
                     
                     // Increment view count
                     await incrementPostViews(post.id);
@@ -318,8 +355,9 @@ async function loadBlogPost() {
                         _currentCommentReactions = {};
                     }
 
-                    // Start real-time reactions subscription
+                    // Start real-time reactions and comments subscriptions
                     setupReactionsSubscription(post.id);
+                    setupCommentsSubscription(post.id);
                 }
             } catch (dbError) {
                 console.log('Database unavailable, using fallback post:', dbError);
@@ -334,6 +372,7 @@ async function loadBlogPost() {
                 return;
             }
             // For fallback posts, reactions and comments remain empty
+            _isUsingFallback = true;
             reactions = { counts: {}, userReaction: null };
             comments = [];
         }
@@ -351,6 +390,7 @@ async function loadBlogPost() {
         // Try fallback
         const post = fallbackBlogPosts.find(p => p.slug === slug);
         if (post) {
+            _isUsingFallback = true;
             renderBlogPost(post, { counts: {}, userReaction: null }, []);
         } else {
             container.innerHTML = '<p style="text-align: center; color: #CC0000;">Error loading post. Please try again later.</p>';
@@ -375,7 +415,7 @@ function setupViewCountSubscription(postId) {
     if (!supabaseClient || !isSupabaseConfigured()) return;
     
     try {
-        const subscription = supabaseClient
+        supabaseClient
             .channel(`post-${postId}-views`)
             .on(
                 'postgres_changes',
@@ -388,17 +428,13 @@ function setupViewCountSubscription(postId) {
                 (payload) => {
                     // Update view count in real-time
                     const viewElement = document.querySelector('.blog-post-views');
-                    if (viewElement && payload.new.views_count) {
-                        viewElement.innerHTML = `<i class="fas fa-eye"></i> ${payload.new.views_count} views`;
+                    if (viewElement && payload.new && payload.new.views_count) {
+                        viewElement.innerHTML = `<i class="fas fa-eye"></i> ${payload.new.views_count} view${payload.new.views_count !== 1 ? 's' : ''}`;
                     }
                 }
             )
             .subscribe();
-        
-        // Cleanup subscription when page unloads
-        window.addEventListener('beforeunload', () => {
-            subscription.unsubscribe();
-        });
+        // Cleanup is handled by the shared beforeunload listener
     } catch (error) {
         console.error('Error setting up realtime subscription:', error);
     }
@@ -436,11 +472,7 @@ function setupReactionsSubscription(postId) {
             )
             .subscribe();
 
-        window.addEventListener('beforeunload', () => {
-            if (_reactionsSubscription) {
-                _reactionsSubscription.unsubscribe();
-            }
-        });
+        // Cleanup is handled by the shared beforeunload listener registered in setupCommentsSubscription
     } catch (error) {
         console.error('Error setting up reactions realtime subscription:', error);
     }
@@ -497,7 +529,7 @@ function renderBlogPost(post, reactions, comments) {
                     </div>
                     <div class="blog-post-meta-right">
                         <span class="blog-post-read-time"><i class="fas fa-clock"></i> ${readTime} min read</span>
-                        <span class="blog-post-views"><i class="fas fa-eye"></i> ${(post.views_count || 0) + 1}</span>
+                        ${_isUsingFallback ? '' : `<span class="blog-post-views"><i class="fas fa-eye"></i> ${(post.views_count || 0) + 1} view${(post.views_count || 0) + 1 !== 1 ? 's' : ''}</span>`}
                     </div>
                 </div>
                 
@@ -632,32 +664,64 @@ function renderRelatedPosts(currentPost) {
     `;
 }
 
+// Organize flat comments list into a tree (top-level + nested replies)
+function organizeComments(comments) {
+    const byId = {};
+    const roots = [];
+    comments.forEach(c => { byId[c.id] = { ...c, replies: [] }; });
+    comments.forEach(c => {
+        if (c.parent_comment_id && byId[c.parent_comment_id]) {
+            byId[c.parent_comment_id].replies.push(byId[c.id]);
+        } else {
+            roots.push(byId[c.id]);
+        }
+    });
+    return roots;
+}
+
 function renderComments(comments) {
     if (!comments || comments.length === 0) {
         return '<p style="text-align: center; color: #999;">No comments yet. Be the first to comment!</p>';
     }
 
-    return comments.map(comment => {
-        const canEdit = _currentUserId && comment.user_id === _currentUserId;
-        const editBtn = canEdit
-            ? `<button class="comment-action-btn" onclick="startEditComment('${comment.id}')" title="Edit comment"><i class="fas fa-edit"></i> Edit</button>`
-            : '';
-        const reactionData = _currentCommentReactions[comment.id] || { counts: {}, userReaction: null };
-        return `
-        <div class="comment" id="comment-${comment.id}">
+    const organized = organizeComments(comments);
+    return organized.map(comment => renderSingleComment(comment, 0)).join('');
+}
+
+function renderSingleComment(comment, depth) {
+    const canEdit = _currentUserId && comment.user_id === _currentUserId;
+    // Use data attributes for safe event delegation (avoids inline onclick with interpolated IDs)
+    const editBtn = canEdit
+        ? `<button class="comment-action-btn" data-action="edit-comment" data-comment-id="${comment.id}" title="Edit comment"><i class="fas fa-edit"></i> Edit</button>`
+        : '';
+    // Only show Reply button for real DB posts with a logged-in user
+    const canReply = _currentPostId && !_isUsingFallback && _currentUserId;
+    const replyBtn = canReply
+        ? `<button class="comment-action-btn comment-reply-btn" data-action="reply-comment" data-comment-id="${comment.id}" title="Reply"><i class="fas fa-reply"></i> Reply</button>`
+        : '';
+    const reactionData = _currentCommentReactions[comment.id] || { counts: {}, userReaction: null };
+    // Use CSS classes for depth indentation (avoids inline style injection)
+    const depthClass = depth > 0 ? ` comment-depth-${Math.min(depth, 2)}` : '';
+    const replies = (comment.replies || []).map(r => renderSingleComment(r, depth + 1)).join('');
+    return `
+        <div class="comment${depth > 0 ? ' comment-reply' : ''}${depthClass}" id="comment-${comment.id}">
             <div class="comment-header">
                 <div class="comment-author">
                     <div class="comment-avatar">${getUserInitials(comment.user_name)}</div>
-                    <span class="comment-author-name">${comment.user_name}</span>
+                    <span class="comment-author-name">${escapeHtml(comment.user_name)}</span>
                 </div>
                 <span class="comment-date">${formatRelativeTime(comment.created_at)}</span>
             </div>
-            <div class="comment-text" id="comment-text-${comment.id}">${comment.comment_text}</div>
-            <div id="comment-reactions-${comment.id}" class="comment-reactions">${renderCommentReactionButtons(reactionData.counts, comment.id, reactionData.userReaction)}</div>
-            <div class="comment-actions">${editBtn}</div>
-        </div>`;
-    }).join('');
+            <div class="comment-text" id="comment-text-${comment.id}">${renderCommentText(comment.comment_text)}</div>
+            <div class="comment-footer">
+                <div id="comment-reactions-${comment.id}" class="comment-reactions">${renderCommentReactionButtons(reactionData.counts, comment.id, reactionData.userReaction)}</div>
+                <div class="comment-actions">${replyBtn}${editBtn}</div>
+            </div>
+            <div id="reply-form-${comment.id}" class="reply-form-container"></div>
+        </div>
+        ${replies}`;
 }
+
 
 function renderCommentReactionButtons(counts, commentId, userReaction) {
     const reactionTypes = [
@@ -918,6 +982,12 @@ async function initCommentForm(postId) {
     const formContent = document.getElementById('commentFormContent');
     if (!formContent) return;
 
+    // For fallback posts (non-UUID IDs), comments are not stored in the DB
+    if (!isValidUUID(postId)) {
+        formContent.innerHTML = `<p style="text-align:center; color:#888;"><i class="fas fa-info-circle"></i> Comments are not available in offline mode. Please reload the page when the database is connected.</p>`;
+        return;
+    }
+
     if (!supabaseClient || !isSupabaseConfigured()) {
         formContent.innerHTML = `<p style="text-align: center;"><a href="auth.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}">Sign in</a> to leave a comment</p>`;
         return;
@@ -936,21 +1006,66 @@ async function initCommentForm(postId) {
 
         _currentUserId = user.id;
 
+        const emojiList = ['😀','😂','😍','🥰','😎','🤔','😢','😅','👍','👎','❤️','🎉','🔥','💯',
+                           '👏','🙌','💪','🤝','😊','🥳','💡','✅','❌','📊','💰','💼','🏢','📈',
+                           '🇰🇪','🎓','😮','🤩','💬','⭐','🚀','📱','💻','🏆','🌟','✍️'];
+
         formContent.innerHTML = `
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" id="commentName" value="${userName}" readonly style="background: #f0f0f0;">
+            <div class="comment-format-toolbar" role="toolbar" aria-label="Comment formatting">
+                <button type="button" class="format-btn" data-format="bold" title="Bold — wraps selection with **bold**"><b>B</b></button>
+                <button type="button" class="format-btn" data-format="italic" title="Italic — wraps selection with *italic*"><i>I</i></button>
+                <button type="button" class="format-btn emoji-toggle-btn" id="emojiToggleBtn" title="Insert emoji">😊 Emoji</button>
+                <span class="format-hint">Tip: **bold** or *italic*</span>
+            </div>
+            <div class="emoji-picker" id="emojiPicker" style="display:none;" role="dialog" aria-label="Emoji picker">
+                <div class="emoji-grid">
+                    ${emojiList.map(e => `<button type="button" class="emoji-item" data-emoji="${e}" title="${e}">${e}</button>`).join('')}
+                </div>
             </div>
             <div class="form-group">
-                <label for="commentText">Write your comment</label>
-                <textarea id="commentText" placeholder="Share your thoughts on this article..." required style="min-height:140px; border:2px solid #006600; font-size:1em;"></textarea>
+                <textarea id="commentText" placeholder="Share your thoughts on this article…" required style="min-height:140px; border:2px solid #006600; font-size:1em; margin-top:6px;"></textarea>
             </div>
-            <button type="button" class="submit-comment-btn" onclick="submitComment('${postId}')">
-                <i class="fas fa-paper-plane"></i> Post Comment
-            </button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="submit-comment-btn" id="submitCommentBtn">
+                    <i class="fas fa-paper-plane"></i> Post Comment
+                </button>
+                <span style="font-size:0.8em; color:#888; font-style:italic;">Posting as: ${escapeHtml(userName)}</span>
+            </div>
         `;
 
-        // Re-render comments list now that we know the current user (to show edit buttons)
+        // Attach submit handler (avoids inline onclick with interpolated data)
+        document.getElementById('submitCommentBtn').addEventListener('click', () => submitComment(postId));
+
+        // Format toolbar buttons
+        formContent.querySelectorAll('.format-btn[data-format]').forEach(btn => {
+            btn.addEventListener('click', () => applyFormat(btn.dataset.format));
+        });
+
+        // Emoji toggle button
+        document.getElementById('emojiToggleBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleEmojiPicker();
+        });
+
+        // Emoji item buttons
+        formContent.querySelectorAll('.emoji-item').forEach(btn => {
+            btn.addEventListener('click', () => insertEmoji(btn.dataset.emoji));
+        });
+
+        // Close emoji picker when clicking elsewhere (single global handler, de-registered on re-render)
+        if (_emojiPickerCloseHandler) {
+            document.removeEventListener('click', _emojiPickerCloseHandler);
+        }
+        _emojiPickerCloseHandler = function(e) {
+            const picker = document.getElementById('emojiPicker');
+            const toggleBtn = document.getElementById('emojiToggleBtn');
+            if (picker && toggleBtn && !picker.contains(e.target) && !toggleBtn.contains(e.target)) {
+                picker.style.display = 'none';
+            }
+        };
+        document.addEventListener('click', _emojiPickerCloseHandler);
+
+        // Re-render comments list now that we know the current user (to show edit/reply buttons)
         const commentsList = document.getElementById('commentsList');
         if (commentsList && _currentPostComments.length > 0) {
             commentsList.innerHTML = renderComments(_currentPostComments);
@@ -961,9 +1076,136 @@ async function initCommentForm(postId) {
     }
 }
 
+// Apply bold/italic markdown formatting to selected textarea text
+function applyFormat(type) {
+    const textarea = document.getElementById('commentText');
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.substring(start, end);
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    let marker, placeholder;
+    if (type === 'bold') { marker = '**'; placeholder = 'bold text'; }
+    else if (type === 'italic') { marker = '*'; placeholder = 'italic text'; }
+    else { return; }
+    const inner = selected || placeholder;
+    const formatted = `${marker}${inner}${marker}`;
+    textarea.value = before + formatted + after;
+    const cursorStart = start + marker.length;
+    const cursorEnd = cursorStart + inner.length;
+    textarea.setSelectionRange(cursorStart, cursorEnd);
+    textarea.focus();
+}
+
+// Toggle the emoji picker panel
+function toggleEmojiPicker() {
+    const picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+}
+
+// Insert an emoji at the current cursor position in the comment textarea
+function insertEmoji(emoji) {
+    const textarea = document.getElementById('commentText');
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(textarea.selectionEnd);
+    textarea.value = before + emoji + after;
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
+    const picker = document.getElementById('emojiPicker');
+    if (picker) picker.style.display = 'none';
+}
+
+// Show an inline reply form below a comment
+function showReplyForm(commentId, postId) {
+    // Toggle: close if already open
+    const container = document.getElementById(`reply-form-${commentId}`);
+    if (!container) return;
+    if (container.children.length > 0) {
+        container.innerHTML = '';
+        return;
+    }
+    // Close any other open reply forms
+    document.querySelectorAll('.reply-form-container').forEach(el => {
+        if (el.id !== `reply-form-${commentId}`) el.innerHTML = '';
+    });
+    if (!supabaseClient || !isSupabaseConfigured() || !_currentUserId) {
+        showToast('Please sign in to reply', 'error');
+        return;
+    }
+    container.innerHTML = `
+        <div class="reply-form">
+            <textarea id="reply-text-${commentId}" class="reply-textarea" placeholder="Write a reply… (use **bold** or *italic*)"></textarea>
+            <div class="reply-form-actions">
+                <button type="button" class="submit-comment-btn reply-submit-btn" id="reply-submit-${commentId}">
+                    <i class="fas fa-reply"></i> Post Reply
+                </button>
+                <button type="button" class="comment-action-btn reply-cancel-btn" id="reply-cancel-${commentId}">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    document.getElementById(`reply-submit-${commentId}`).addEventListener('click', () => submitReply(postId, commentId));
+    document.getElementById(`reply-cancel-${commentId}`).addEventListener('click', () => { container.innerHTML = ''; });
+    document.getElementById(`reply-text-${commentId}`).focus();
+}
+
+// Submit a reply to a comment
+async function submitReply(postId, parentCommentId) {
+    const textarea = document.getElementById(`reply-text-${parentCommentId}`);
+    if (!textarea) return;
+    const replyText = textarea.value.trim();
+    if (!replyText) {
+        showToast('Please enter a reply', 'error');
+        return;
+    }
+    if (!supabaseClient || !isSupabaseConfigured()) {
+        showToast('Please sign in to reply', 'error');
+        return;
+    }
+    const submitBtn = document.getElementById(`reply-submit-${parentCommentId}`);
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) {
+            showToast('Please sign in to reply', 'error');
+            return;
+        }
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…'; }
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous';
+        const { error } = await supabaseClient
+            .from('post_comments')
+            .insert({
+                post_id: postId,
+                user_id: user.id,
+                user_name: userName,
+                user_email: user.email,
+                comment_text: replyText,
+                parent_comment_id: parentCommentId
+            });
+        if (error) throw error;
+        showToast('Reply posted!', 'success');
+        const replyContainer = document.getElementById(`reply-form-${parentCommentId}`);
+        if (replyContainer) replyContainer.innerHTML = '';
+        const comments = await loadComments(postId);
+        _currentPostComments = comments;
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList) commentsList.innerHTML = renderComments(comments);
+        const countEl = document.querySelector('.comments-count');
+        if (countEl) countEl.textContent = `(${comments.length})`;
+    } catch (error) {
+        console.error('Error posting reply:', error);
+        showToast('Error posting reply', 'error');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-reply"></i> Post Reply'; }
+    }
+}
+
+
 async function submitComment(postId) {
     const commentText = document.getElementById('commentText')?.value?.trim();
-    const commentName = document.getElementById('commentName')?.value?.trim();
 
     if (!commentText) {
         showToast('Please enter a comment', 'error');
@@ -984,16 +1226,17 @@ async function submitComment(postId) {
             return;
         }
 
-        const btn = document.querySelector('.submit-comment-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+        const btn = document.getElementById('submitCommentBtn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...'; }
+
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Anonymous';
 
         const { error } = await supabaseClient
             .from('post_comments')
             .insert({
                 post_id: postId,
                 user_id: user.id,
-                user_name: commentName,
+                user_name: userName,
                 user_email: user.email,
                 comment_text: commentText
             });
@@ -1009,17 +1252,15 @@ async function submitComment(postId) {
         document.getElementById('commentsList').innerHTML = renderComments(comments);
         
         // Update count
-        document.querySelector('.comments-count').textContent = `(${comments.length})`;
+        const countEl = document.querySelector('.comments-count');
+        if (countEl) countEl.textContent = `(${comments.length})`;
 
     } catch (error) {
         console.error('Error posting comment:', error);
         showToast('Error posting comment', 'error');
     } finally {
-        const btn = document.querySelector('.submit-comment-btn');
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
-        }
+        const btn = document.getElementById('submitCommentBtn');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment'; }
     }
 }
 
@@ -1069,8 +1310,7 @@ function startEditComment(commentId) {
 function cancelEditComment(commentId, originalText) {
     const textEl = document.getElementById(`comment-text-${commentId}`);
     if (textEl) {
-        textEl.innerHTML = '';
-        textEl.textContent = originalText;
+        textEl.innerHTML = renderCommentText(originalText);
     }
 }
 
@@ -1099,16 +1339,61 @@ async function saveEditComment(commentId) {
         const cached = _currentPostComments.find(c => c.id === commentId);
         if (cached) cached.comment_text = newText;
 
-        // Restore display safely using textContent
+        // Restore display with safe rendered text
         const textEl = document.getElementById(`comment-text-${commentId}`);
         if (textEl) {
-            textEl.innerHTML = '';
-            textEl.textContent = newText;
+            textEl.innerHTML = renderCommentText(newText);
         }
         showToast('Comment updated', 'success');
     } catch (error) {
         console.error('Error updating comment:', error);
         showToast('Error updating comment', 'error');
+    }
+}
+
+// Setup real-time subscription for new comments on a post
+function setupCommentsSubscription(postId) {
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+
+    // Unsubscribe from any existing subscription
+    if (_commentsSubscription) {
+        _commentsSubscription.unsubscribe();
+        _commentsSubscription = null;
+    }
+
+    try {
+        _commentsSubscription = supabaseClient
+            .channel(`post-${postId}-comments`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'post_comments',
+                    filter: `post_id=eq.${postId}`
+                },
+                async () => {
+                    // Reload and re-render comments when a new one arrives
+                    const comments = await loadComments(postId);
+                    _currentPostComments = comments;
+                    const commentsList = document.getElementById('commentsList');
+                    if (commentsList) commentsList.innerHTML = renderComments(comments);
+                    const countEl = document.querySelector('.comments-count');
+                    if (countEl) countEl.textContent = `(${comments.length})`;
+                }
+            )
+            .subscribe();
+
+        // Register a single shared beforeunload cleanup for all subscriptions
+        if (!_beforeunloadRegistered) {
+            _beforeunloadRegistered = true;
+            window.addEventListener('beforeunload', () => {
+                if (_reactionsSubscription) _reactionsSubscription.unsubscribe();
+                if (_commentsSubscription) _commentsSubscription.unsubscribe();
+            });
+        }
+    } catch (error) {
+        console.error('Error setting up comments subscription:', error);
     }
 }
 
@@ -1172,6 +1457,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const postId = btn.dataset.postId;
             const reactionType = btn.dataset.reactionType;
             if (postId && reactionType) {
+                // Optimistic UI: toggle active state immediately before DB round-trip
+                const wasActive = btn.classList.contains('active');
+                document.querySelectorAll(`.reaction-button[data-post-id="${postId}"]`).forEach(b => b.classList.remove('active'));
+                if (!wasActive) btn.classList.add('active');
                 handleReaction(postId, reactionType);
             }
         }
@@ -1181,7 +1470,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentId = commentBtn.dataset.commentId;
             const reactionType = commentBtn.dataset.reactionType;
             if (commentId && reactionType) {
+                // Optimistic UI: toggle active state immediately
+                const wasActive = commentBtn.classList.contains('active');
+                document.querySelectorAll(`.comment-reaction-btn[data-comment-id="${commentId}"]`).forEach(b => b.classList.remove('active'));
+                if (!wasActive) commentBtn.classList.add('active');
                 handleCommentReaction(commentId, reactionType);
+            }
+        }
+
+        // Event delegation for comment action buttons (edit / reply)
+        const actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+            const action = actionBtn.dataset.action;
+            const commentId = actionBtn.dataset.commentId;
+            if (action === 'edit-comment' && commentId) {
+                startEditComment(commentId);
+            } else if (action === 'reply-comment' && commentId && _currentPostId) {
+                showReplyForm(commentId, _currentPostId);
             }
         }
     });
