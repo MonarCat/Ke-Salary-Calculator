@@ -323,6 +323,7 @@ async function loadBlogPost() {
 
         let post = null;
         let reactions = {};
+        let comments = [];
         // Reset state for new post load
         _isUsingFallback = false;
         _currentPostId = null;
@@ -825,8 +826,7 @@ async function loadReactions(postId) {
 
 async function handleReaction(postId, reactionType) {
     if (!supabaseClient || !isSupabaseConfigured()) {
-        showToast('Please sign in to react to posts', 'error');
-        return;
+        return; // Offline check and user notification is handled by the event handler
     }
 
     try {
@@ -889,8 +889,7 @@ async function handleReaction(postId, reactionType) {
 
 async function handleCommentReaction(commentId, reactionType) {
     if (!supabaseClient || !isSupabaseConfigured()) {
-        showToast('Please sign in to react to comments', 'error');
-        return;
+        return; // Offline check and user notification is handled by the event handler
     }
 
     try {
@@ -1028,7 +1027,13 @@ async function initCommentForm(postId) {
 
     // For fallback posts (non-UUID IDs), comments are not stored in the DB
     if (!isValidUUID(postId)) {
-        formContent.innerHTML = `<p style="text-align:center; color:#888;"><i class="fas fa-info-circle"></i> Comments are not available in offline mode. Please reload the page when the database is connected.</p>`;
+        // Hide the "Leave a Comment" heading — it's irrelevant without DB access
+        const commentForm = document.getElementById('commentForm');
+        if (commentForm) {
+            const heading = commentForm.querySelector('h3');
+            if (heading) heading.style.display = 'none';
+        }
+        formContent.innerHTML = `<div class="offline-comments-notice"><i class="fas fa-database"></i> Comments are not available while offline. Reconnect to the database to join the discussion.</div>`;
         const commentsList = document.getElementById('commentsList');
         if (commentsList) commentsList.innerHTML = '';
         return;
@@ -1543,6 +1548,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const postId = btn.dataset.postId;
             const reactionType = btn.dataset.reactionType;
             if (postId && reactionType) {
+                // Skip optimistic UI entirely when offline — the handler will show a toast
+                if (!supabaseClient || !isSupabaseConfigured()) {
+                    showToast('Reactions require a live database connection', 'error');
+                    return;
+                }
                 // Optimistic UI: toggle active state and update counts immediately before DB round-trip
                 const wasActive = btn.classList.contains('active');
                 const currentActive = document.querySelector(`.reaction-button.active[data-post-id="${postId}"]`);
@@ -1572,6 +1582,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentId = commentBtn.dataset.commentId;
             const reactionType = commentBtn.dataset.reactionType;
             if (commentId && reactionType) {
+                // Skip optimistic UI when offline
+                if (!supabaseClient || !isSupabaseConfigured()) {
+                    showToast('Reactions require a live database connection', 'error');
+                    return;
+                }
                 // Optimistic UI: toggle active state immediately
                 const wasActive = commentBtn.classList.contains('active');
                 document.querySelectorAll(`.comment-reaction-btn[data-comment-id="${commentId}"]`).forEach(b => b.classList.remove('active'));
