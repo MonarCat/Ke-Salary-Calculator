@@ -473,7 +473,7 @@
                     <a href="/calculator.html" class="cta-button primary">
                         <i class="fas fa-calculator"></i> Full Calculator
                     </a>
-                    <a href="/auth.html#signup" class="cta-button secondary">
+                    <a href="/auth.html#signup" class="cta-button secondary signup-cta">
                         <i class="fas fa-user-plus"></i> Sign Up Free
                     </a>
                 </div>
@@ -621,7 +621,7 @@
                     <a href="/calculator.html" class="cta-button primary">
                         <i class="fas fa-calculator"></i> Start Calculating
                     </a>
-                    <a href="/auth.html#signup" class="cta-button secondary">
+                    <a href="/auth.html#signup" class="cta-button secondary signup-cta">
                         <i class="fas fa-user-plus"></i> Create Free Account
                     </a>
                 </div>
@@ -737,9 +737,12 @@
                         document.querySelectorAll('.auth-only-section').forEach(function(el) {
                             el.style.display = 'block';
                         });
+                        document.querySelectorAll('.signup-cta').forEach(function(el) {
+                            el.style.display = 'none';
+                        });
                     }
                 } catch (e) {
-                    // Supabase unavailable - keep sections hidden
+                    // Supabase unavailable - keep sections as-is
                 }
             }
         });

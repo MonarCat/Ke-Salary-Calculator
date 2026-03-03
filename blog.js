@@ -8,8 +8,6 @@ let _currentPostComments = [];
 let _currentCommentReactions = {};
 // Reactions realtime subscription reference for cleanup
 let _reactionsSubscription = null;
-// Current comment reactions cache keyed by comment ID
-let _currentCommentReactions = {};
 
 // Helper function to check if Supabase is configured
 function isSupabaseConfigured() {
@@ -193,55 +191,35 @@ async function loadBlogPosts() {
     const container = document.getElementById('blogGrid');
     if (!container) return;
 
-    try {
-        container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Loading posts...</p></div>';
-
-        let posts = [];
-        
-        // Try loading from database first (5 s timeout to avoid infinite hang)
-        if (supabaseClient && isSupabaseConfigured()) {
-            try {
-                const { data, error } = await withTimeout(
-                    supabaseClient
-                        .from('blog_posts')
-                        .select('*')
-                        .eq('status', 'published')
-                        .order('published_at', { ascending: false }),
-                    5000
-                );
-
-                if (!error && data && data.length > 0) {
-                    posts = data;
-                }
-            } catch (dbError) {
-                console.log('Database unavailable, using fallback posts:', dbError);
-            }
-        }
-        
-        // Use fallback posts if database didn't return posts
-        if (posts.length === 0) {
-            console.log('Using fallback blog posts');
-            posts = fallbackBlogPosts;
-        }
-
-        if (!posts || posts.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #666;">No blog posts available yet.</p>';
-            return;
-        }
-
+    // Show fallback posts immediately so the page is never blank
+    function renderPosts(posts) {
         container.innerHTML = '';
         posts.forEach((post, index) => {
             const card = createBlogCard(post, index);
             container.appendChild(card);
         });
-    } catch (error) {
-        console.error('Error loading blog posts:', error);
-        // Try fallback posts on error
-        container.innerHTML = '';
-        fallbackBlogPosts.forEach((post, index) => {
-            const card = createBlogCard(post, index);
-            container.appendChild(card);
-        });
+    }
+
+    renderPosts(fallbackBlogPosts);
+
+    // Try loading fresher posts from the database in the background (5 s timeout)
+    if (supabaseClient && isSupabaseConfigured()) {
+        try {
+            const { data, error } = await withTimeout(
+                supabaseClient
+                    .from('blog_posts')
+                    .select('*')
+                    .eq('status', 'published')
+                    .order('published_at', { ascending: false }),
+                5000
+            );
+
+            if (!error && data && data.length > 0) {
+                renderPosts(data);
+            }
+        } catch (dbError) {
+            console.log('Database unavailable, keeping fallback posts:', dbError);
+        }
     }
 }
 
