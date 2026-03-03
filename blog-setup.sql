@@ -213,6 +213,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Allow any visitor (anon) or signed-in user to call the view-increment RPC.
+-- SECURITY DEFINER means the function itself has permission to UPDATE blog_posts
+-- regardless of the caller's role; we only need to grant EXECUTE here.
+GRANT EXECUTE ON FUNCTION increment_post_views(UUID) TO anon;
+GRANT EXECUTE ON FUNCTION increment_post_views(UUID) TO authenticated;
+
 CREATE OR REPLACE FUNCTION get_reaction_counts(p_post_id UUID)
 RETURNS TABLE(reaction_type TEXT, count BIGINT) AS $$
 BEGIN
