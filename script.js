@@ -618,6 +618,16 @@ function toggleDonateInfo() {
     }
 }
 
+// Payment tab switcher
+function switchPaymentTab(btn, panelId) {
+    const donateInfo = btn.closest('.donate-info');
+    donateInfo.querySelectorAll('.payment-tab-btn').forEach(b => b.classList.remove('active'));
+    donateInfo.querySelectorAll('.payment-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+}
+
 // Helper Functions
 function formatKES(amount) {
     return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
