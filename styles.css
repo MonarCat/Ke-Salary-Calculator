@@ -936,6 +936,154 @@ footer a:hover {
     color: #666;
 }
 
+/* Divider between PayPal and Mobile Payment */
+.donate-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 18px 0;
+    color: #aaa;
+    font-size: 13px;
+}
+
+.donate-divider::before,
+.donate-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid #ddd;
+}
+
+.donate-divider span {
+    padding: 0 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Mobile payment panel */
+.mobile-payment-panel {
+    background: linear-gradient(135deg, #f0fff4, #e8f5e9);
+    border: 1px solid #a5d6a7;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.mobile-payment-panel h4 {
+    text-align: center;
+    font-size: 16px;
+    color: #2e7d32;
+    margin: 0 0 12px;
+}
+
+.mobile-payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 4px rgba(0,102,0,0.08);
+}
+
+.mobile-option-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.mobile-option-logo.mpesa {
+    background: linear-gradient(135deg, #e60000, #cc0000);
+}
+
+.mobile-option-logo.airtel {
+    background: linear-gradient(135deg, #e60000, #990000);
+}
+
+.mobile-option-details {
+    flex: 1;
+}
+
+.mobile-option-details .provider-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1b5e20;
+    margin-bottom: 2px;
+}
+
+.mobile-option-details .phone-number {
+    font-size: 18px;
+    font-weight: 800;
+    color: #2e7d32;
+    letter-spacing: 1px;
+    font-family: monospace;
+}
+
+.mobile-option-details .recipient-name {
+    font-size: 12px;
+    color: #555;
+    margin-top: 2px;
+}
+
+.mobile-payment-steps {
+    margin: 14px 0 10px;
+    padding: 12px 16px;
+    background: #fff;
+    border-left: 4px solid #43a047;
+    border-radius: 0 8px 8px 0;
+    text-align: left;
+}
+
+.mobile-payment-steps p {
+    font-weight: 700;
+    font-size: 13px;
+    color: #2e7d32;
+    margin: 0 0 6px;
+}
+
+.mobile-payment-steps ol {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.7;
+}
+
+.mobile-thanks-msg {
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #5d4037;
+    text-align: center;
+    font-style: italic;
+}
+
+.mobile-thanks-msg span {
+    font-size: 18px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
 .disclaimer-banner {
     background: linear-gradient(to right, #006600, #009900);
     color: white;
