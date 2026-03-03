@@ -122,9 +122,33 @@ DROP POLICY IF EXISTS "Anyone can view approved comments" ON post_comments;
 CREATE POLICY "Anyone can view approved comments" ON post_comments
   FOR SELECT USING (is_approved = TRUE);
 
+-- Rate-limit helper: allows at most 5 comments per authenticated user per hour.
+-- SECURITY DEFINER so the function can count rows without exposing other users' data.
+CREATE OR REPLACE FUNCTION check_comment_rate_limit()
+RETURNS BOOLEAN AS $$
+DECLARE
+  recent_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO recent_count
+  FROM post_comments
+  WHERE user_id = auth.uid()
+    AND created_at > NOW() - INTERVAL '1 hour';
+  RETURN recent_count < 5;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 DROP POLICY IF EXISTS "Authenticated users can create comments" ON post_comments;
+-- Server-side guard: the post must exist and be published (complements the
+-- client-side UUID check), and the user must not exceed the per-hour rate limit.
 CREATE POLICY "Authenticated users can create comments" ON post_comments
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+  FOR INSERT WITH CHECK (
+    auth.role() = 'authenticated'
+    AND check_comment_rate_limit()
+    AND EXISTS (
+      SELECT 1 FROM blog_posts
+      WHERE id = post_id AND status = 'published'
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can update own comments" ON post_comments;
 CREATE POLICY "Users can update own comments" ON post_comments

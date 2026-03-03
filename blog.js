@@ -8,6 +8,8 @@ let _currentPostComments = [];
 let _currentCommentReactions = {};
 // Reactions realtime subscription reference for cleanup
 let _reactionsSubscription = null;
+// Comment reactions realtime subscription reference for cleanup
+let _commentReactionsSubscription = null;
 // Comments realtime subscription reference for cleanup
 let _commentsSubscription = null;
 // Whether the current post is a fallback (not from DB)
@@ -357,6 +359,7 @@ async function loadBlogPost() {
 
                     // Start real-time reactions and comments subscriptions
                     setupReactionsSubscription(post.id);
+                    setupCommentReactionsSubscription(post.id);
                     setupCommentsSubscription(post.id);
                 }
             } catch (dbError) {
@@ -475,6 +478,47 @@ function setupReactionsSubscription(postId) {
         // Cleanup is handled by the shared beforeunload listener registered in setupCommentsSubscription
     } catch (error) {
         console.error('Error setting up reactions realtime subscription:', error);
+    }
+}
+
+// Setup real-time subscription for comment reaction updates so that optimistic
+// UI is reconciled with authoritative DB state when multiple devices interact.
+function setupCommentReactionsSubscription(postId) {
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+
+    if (_commentReactionsSubscription) {
+        _commentReactionsSubscription.unsubscribe();
+        _commentReactionsSubscription = null;
+    }
+
+    try {
+        _commentReactionsSubscription = supabaseClient
+            .channel(`post-${postId}-comment-reactions`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'comment_reactions'
+                },
+                async () => {
+                    // Re-load reactions for all visible comments and reconcile the UI
+                    const commentIds = _currentPostComments.map(c => c.id);
+                    if (commentIds.length === 0) return;
+                    const updated = await loadCommentReactions(commentIds);
+                    commentIds.forEach(id => {
+                        _currentCommentReactions[id] = updated[id] || { counts: {}, userReaction: null };
+                        const el = document.getElementById(`comment-reactions-${id}`);
+                        if (el) {
+                            const rd = _currentCommentReactions[id];
+                            el.innerHTML = renderCommentReactionButtons(rd.counts, id, rd.userReaction);
+                        }
+                    });
+                }
+            )
+            .subscribe();
+    } catch (error) {
+        console.error('Error setting up comment reactions realtime subscription:', error);
     }
 }
 
@@ -1014,12 +1058,12 @@ async function initCommentForm(postId) {
             <div class="comment-format-toolbar" role="toolbar" aria-label="Comment formatting">
                 <button type="button" class="format-btn" data-format="bold" title="Bold — wraps selection with **bold**"><b>B</b></button>
                 <button type="button" class="format-btn" data-format="italic" title="Italic — wraps selection with *italic*"><i>I</i></button>
-                <button type="button" class="format-btn emoji-toggle-btn" id="emojiToggleBtn" title="Insert emoji">😊 Emoji</button>
+                <button type="button" class="format-btn emoji-toggle-btn" id="emojiToggleBtn" title="Insert emoji" aria-haspopup="dialog" aria-expanded="false" aria-controls="emojiPicker">😊 Emoji</button>
                 <span class="format-hint">Tip: **bold** or *italic*</span>
             </div>
-            <div class="emoji-picker" id="emojiPicker" style="display:none;" role="dialog" aria-label="Emoji picker">
+            <div class="emoji-picker" id="emojiPicker" style="display:none;" role="dialog" aria-label="Emoji picker" aria-modal="true">
                 <div class="emoji-grid">
-                    ${emojiList.map(e => `<button type="button" class="emoji-item" data-emoji="${e}" title="${e}">${e}</button>`).join('')}
+                    ${emojiList.map(e => `<button type="button" class="emoji-item" data-emoji="${e}" title="${e}" aria-label="${e}">${e}</button>`).join('')}
                 </div>
             </div>
             <div class="form-group">
@@ -1061,9 +1105,38 @@ async function initCommentForm(postId) {
             const toggleBtn = document.getElementById('emojiToggleBtn');
             if (picker && toggleBtn && !picker.contains(e.target) && !toggleBtn.contains(e.target)) {
                 picker.style.display = 'none';
+                toggleBtn.setAttribute('aria-expanded', 'false');
             }
         };
         document.addEventListener('click', _emojiPickerCloseHandler);
+
+        // Keyboard navigation inside emoji picker: Escape closes it, arrow keys move focus
+        formContent.querySelector('#emojiPicker').addEventListener('keydown', function(e) {
+            const items = Array.from(this.querySelectorAll('.emoji-item'));
+            const idx = items.indexOf(document.activeElement);
+            const cols = Math.floor(this.querySelector('.emoji-grid').offsetWidth / (items[0] ? items[0].offsetWidth : 40)) || 8;
+            if (e.key === 'Escape') {
+                this.style.display = 'none';
+                const toggleBtn = document.getElementById('emojiToggleBtn');
+                if (toggleBtn) {
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.focus();
+                }
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight' && idx >= 0 && idx < items.length - 1) {
+                items[idx + 1].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft' && idx > 0) {
+                items[idx - 1].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown' && idx + cols < items.length) {
+                items[idx + cols].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowUp' && idx - cols >= 0) {
+                items[idx - cols].focus();
+                e.preventDefault();
+            }
+        });
 
         // Re-render comments list now that we know the current user (to show edit/reply buttons)
         const commentsList = document.getElementById('commentsList');
@@ -1101,8 +1174,16 @@ function applyFormat(type) {
 // Toggle the emoji picker panel
 function toggleEmojiPicker() {
     const picker = document.getElementById('emojiPicker');
+    const toggleBtn = document.getElementById('emojiToggleBtn');
     if (!picker) return;
-    picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+    const isOpen = picker.style.display !== 'none';
+    picker.style.display = isOpen ? 'none' : 'flex';
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    // Move focus into picker when opening so keyboard users can navigate
+    if (!isOpen) {
+        const firstEmoji = picker.querySelector('.emoji-item');
+        if (firstEmoji) firstEmoji.focus();
+    }
 }
 
 // Insert an emoji at the current cursor position in the comment textarea
@@ -1117,6 +1198,8 @@ function insertEmoji(emoji) {
     textarea.focus();
     const picker = document.getElementById('emojiPicker');
     if (picker) picker.style.display = 'none';
+    const toggleBtn = document.getElementById('emojiToggleBtn');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
 }
 
 // Show an inline reply form below a comment
@@ -1389,6 +1472,7 @@ function setupCommentsSubscription(postId) {
             _beforeunloadRegistered = true;
             window.addEventListener('beforeunload', () => {
                 if (_reactionsSubscription) _reactionsSubscription.unsubscribe();
+                if (_commentReactionsSubscription) _commentReactionsSubscription.unsubscribe();
                 if (_commentsSubscription) _commentsSubscription.unsubscribe();
             });
         }
