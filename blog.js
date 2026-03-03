@@ -789,26 +789,29 @@ function renderCommentReactionButtons(counts, commentId, userReaction) {
 // Reactions
 async function loadReactions(postId) {
     try {
-        // Get all reactions for this post
+        // Use server-side RPC for aggregated counts (reduces payload vs. fetching every row)
         const { data, error } = await supabaseClient
-            .from('post_reactions')
-            .select('reaction_type, user_id')
-            .eq('post_id', postId);
-        
+            .rpc('get_reaction_counts', { p_post_id: postId });
+
         if (error) throw error;
 
-        // Count reactions by type
+        // Build counts map from RPC result: [{ reaction_type, count }, ...]
         const counts = {};
-        data.forEach(r => {
-            counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1;
+        (data || []).forEach(row => {
+            counts[row.reaction_type] = Number(row.count);
         });
-        
-        // Check if current user has reacted
+
+        // Check if current user has reacted (separate lightweight query)
         let userReaction = null;
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (user) {
-                const userReactionData = data.find(r => r.user_id === user.id);
+                const { data: userReactionData } = await supabaseClient
+                    .from('post_reactions')
+                    .select('reaction_type')
+                    .eq('post_id', postId)
+                    .eq('user_id', user.id)
+                    .maybeSingle();
                 if (userReactionData) {
                     userReaction = userReactionData.reaction_type;
                 }
@@ -965,6 +968,38 @@ async function loadComments(postId) {
 
         if (error) throw error;
         const comments = data || [];
+
+        // Optionally enrich comments with display_name from the profiles table.
+        // Falls back silently to the inline user_name if the table does not yet exist.
+        if (comments.length > 0) {
+            try {
+                const userIds = [...new Set(comments.map(c => c.user_id).filter(id => id != null))];
+                if (userIds.length > 0) {
+                    const { data: profilesData } = await supabaseClient
+                        .from('profiles')
+                        .select('id, display_name')
+                        .in('id', userIds);
+                    if (profilesData && profilesData.length > 0) {
+                        const profileMap = {};
+                        profilesData.forEach(p => { profileMap[p.id] = p.display_name; });
+                        comments.forEach(c => {
+                            if (c.user_id && profileMap[c.user_id]) {
+                                c.user_name = profileMap[c.user_id];
+                            }
+                        });
+                    }
+                }
+            } catch (profilesError) {
+                // Suppress "relation does not exist" errors — the profiles table hasn't
+                // been created yet; fall back to the inline user_name on each comment.
+                // Re-throw any other unexpected errors so they surface in the console.
+                const msg = (profilesError && profilesError.message) ? profilesError.message : '';
+                if (!msg.includes('relation') && !msg.includes('does not exist') &&
+                    profilesError?.code !== '42P01') {
+                    console.error('Unexpected error loading profiles:', profilesError);
+                }
+            }
+        }
 
         // Load comment reactions and populate cache
         if (comments.length > 0) {
