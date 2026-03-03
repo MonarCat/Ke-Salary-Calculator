@@ -1029,6 +1029,8 @@ async function initCommentForm(postId) {
     // For fallback posts (non-UUID IDs), comments are not stored in the DB
     if (!isValidUUID(postId)) {
         formContent.innerHTML = `<p style="text-align:center; color:#888;"><i class="fas fa-info-circle"></i> Comments are not available in offline mode. Please reload the page when the database is connected.</p>`;
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList) commentsList.innerHTML = '';
         return;
     }
 
@@ -1541,10 +1543,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const postId = btn.dataset.postId;
             const reactionType = btn.dataset.reactionType;
             if (postId && reactionType) {
-                // Optimistic UI: toggle active state immediately before DB round-trip
+                // Optimistic UI: toggle active state and update counts immediately before DB round-trip
                 const wasActive = btn.classList.contains('active');
+                const currentActive = document.querySelector(`.reaction-button.active[data-post-id="${postId}"]`);
                 document.querySelectorAll(`.reaction-button[data-post-id="${postId}"]`).forEach(b => b.classList.remove('active'));
-                if (!wasActive) btn.classList.add('active');
+                // Optimistically decrement the previously active reaction count
+                if (currentActive) {
+                    const prevCountSpan = currentActive.querySelector('.count');
+                    if (prevCountSpan) {
+                        const c = (parseInt(prevCountSpan.textContent) || 1) - 1;
+                        prevCountSpan.textContent = c > 0 ? String(c) : '';
+                    }
+                }
+                if (!wasActive) {
+                    btn.classList.add('active');
+                    // Optimistically increment the new reaction count
+                    const countSpan = btn.querySelector('.count');
+                    if (countSpan) {
+                        countSpan.textContent = String((parseInt(countSpan.textContent) || 0) + 1);
+                    }
+                }
                 handleReaction(postId, reactionType);
             }
         }

@@ -669,6 +669,10 @@
     display: inline-block;
 }
 
+.reaction-button .count:empty {
+    display: none;
+}
+
 /* Share Section */
 .blog-share {
     display: flex;

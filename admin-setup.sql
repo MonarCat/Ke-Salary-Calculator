@@ -260,6 +260,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+GRANT EXECUTE ON FUNCTION increment_post_views_realtime(UUID) TO anon;
+GRANT EXECUTE ON FUNCTION increment_post_views_realtime(UUID) TO authenticated;
+
 -- Setup instructions
 DO $$
 BEGIN
