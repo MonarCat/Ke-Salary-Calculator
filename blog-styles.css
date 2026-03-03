@@ -748,6 +748,27 @@
     font-size: 0.9em;
 }
 
+/* Offline / unavailable notice inside the comment form */
+.offline-comments-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: #f0f4f0;
+    border: 1px solid #c8ddc8;
+    border-left: 4px solid #006600;
+    border-radius: 8px;
+    color: #555;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+.offline-comments-notice .fas {
+    color: #006600;
+    font-size: 1.1em;
+    flex-shrink: 0;
+}
+
 /* Comment Form */
 .comment-form {
     background: #f9f9f9;
