@@ -633,7 +633,7 @@ function selectDonateMethod(section, method) {
     }
     if (container) {
         container.querySelectorAll('.donate-method-tab').forEach(function(btn) {
-            btn.classList.toggle('active', btn.textContent.toLowerCase().includes(method === 'paypal' ? 'paypal' : 'mobile'));
+            btn.classList.toggle('active', btn.dataset.method === method);
         });
     }
 }

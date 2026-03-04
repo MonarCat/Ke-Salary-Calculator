@@ -320,7 +320,11 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('tab') === 'signup') {
                 document.addEventListener('DOMContentLoaded', function() {
-                    if (typeof switchAuthTab === 'function') switchAuthTab('signup');
+                    if (typeof switchAuthTab === 'function') {
+                        switchAuthTab('signup');
+                    } else {
+                        console.warn('switchAuthTab is not defined; cannot auto-switch to signup tab.');
+                    }
                 });
             }
         })();

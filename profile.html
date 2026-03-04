@@ -409,7 +409,7 @@
                             <span class="upgrade-feature-item">📄 Bulk payslips</span>
                             <span class="upgrade-feature-item">📁 Export data</span>
                         </div>
-                        <button class="upgrade-button" onclick="showUpgradeForm()">
+                        <button class="upgrade-button" id="initial-upgrade-btn" onclick="showUpgradeForm()">
                             <i class="fas fa-arrow-circle-up"></i> Upgrade Now (Free)
                         </button>
                         <div class="upgrade-form" id="upgrade-form">
@@ -507,18 +507,20 @@
                         document.getElementById('employees-count').textContent = count;
                         document.getElementById('org-employees-count').textContent = count;
                     }
-                } catch (e) { /* table may not exist yet */ }
+                } catch (e) {
+                    console.warn('Failed to fetch employee count:', e);
+                }
             }
         }
 
         function showUpgradeForm() {
             document.getElementById('upgrade-form').style.display = 'block';
-            document.querySelector('#upgrade-card .upgrade-button[onclick="showUpgradeForm()"]').style.display = 'none';
+            document.getElementById('initial-upgrade-btn').style.display = 'none';
         }
 
         function cancelUpgradeForm() {
             document.getElementById('upgrade-form').style.display = 'none';
-            document.querySelector('#upgrade-card .upgrade-button[onclick="showUpgradeForm()"]').style.display = '';
+            document.getElementById('initial-upgrade-btn').style.display = '';
             document.getElementById('upgrade-message').textContent = '';
         }
 
