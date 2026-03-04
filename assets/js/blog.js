@@ -21,14 +21,6 @@ let _emojiPickerCloseHandler = null;
 // Ensure beforeunload cleanup is registered only once
 let _beforeunloadRegistered = false;
 
-// Helper function to check if Supabase is configured
-function isSupabaseConfigured() {
-    return window.supabaseClient !== null && 
-           window.supabaseClient !== undefined &&
-           typeof window.isSupabaseConfigured === 'function' &&
-           window.isSupabaseConfigured();
-}
-
 // Helper: race a Supabase query promise against a timeout so the page never
 // hangs indefinitely when the database is slow or unreachable.
 // The timer is always cleared (win or lose) to avoid lingering callbacks.
