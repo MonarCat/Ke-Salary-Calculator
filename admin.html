@@ -7,10 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/auth-styles.css">
-    <link rel="stylesheet" href="assets/css/blog-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Quill Rich Text Editor -->
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .admin-container {
@@ -398,7 +395,7 @@
             <div id="adminDashboard" style="display: none;">
                 <div class="admin-header">
                     <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
-                    <p>Manage blog posts, users, organisations, comments, and analytics</p>
+                    <p>Manage users, organisations, and analytics</p>
                 </div>
                 
                 <!-- Admin Tabs -->
@@ -406,20 +403,11 @@
                     <div class="admin-tab active" onclick="switchTab('dashboard')">
                         <i class="fas fa-chart-line"></i> Dashboard
                     </div>
-                    <div class="admin-tab" onclick="switchTab('posts')">
-                        <i class="fas fa-newspaper"></i> Manage Posts
-                    </div>
-                    <div class="admin-tab" onclick="switchTab('create')">
-                        <i class="fas fa-plus-circle"></i> Create Post
-                    </div>
                     <div class="admin-tab" onclick="switchTab('users')">
                         <i class="fas fa-users"></i> Users
                     </div>
                     <div class="admin-tab" onclick="switchTab('organisations')">
                         <i class="fas fa-building"></i> Organisations
-                    </div>
-                    <div class="admin-tab" onclick="switchTab('comments')">
-                        <i class="fas fa-comments"></i> Comments
                     </div>
                 </div>
                 
@@ -427,22 +415,6 @@
                 <div id="panel-dashboard" class="admin-panel active">
                     <h2>Analytics Overview</h2>
                     <div class="stats-grid" id="statsGrid">
-                        <div class="stat-card">
-                            <h3 id="stat-posts">-</h3>
-                            <p>Total Posts</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3 id="stat-views">-</h3>
-                            <p>Total Views</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3 id="stat-comments">-</h3>
-                            <p>Total Comments</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3 id="stat-reactions">-</h3>
-                            <p>Total Reactions</p>
-                        </div>
                         <div class="stat-card">
                             <h3 id="stat-users">-</h3>
                             <p>Registered Users</p>
@@ -452,120 +424,8 @@
                             <p>Organisations</p>
                         </div>
                     </div>
-                    
-                    <h3>Recent Posts</h3>
-                    <div id="recentPosts"></div>
                 </div>
                 
-                <!-- Manage Posts Panel -->
-                <div id="panel-posts" class="admin-panel">
-                    <h2>Manage Blog Posts</h2>
-                    <div id="postsMessage"></div>
-                    <table class="posts-table" id="postsTable">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Views</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="postsTableBody">
-                            <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Create/Edit Post Panel -->
-                <div id="panel-create" class="admin-panel">
-                    <h2 id="createFormTitle">Create New Blog Post</h2>
-                    <div id="createMessage"></div>
-                    
-                    <form id="postForm" onsubmit="savePost(event)">
-                        <input type="hidden" id="post-id" value="">
-                        
-                        <div class="form-group">
-                            <label for="post-title">Title *</label>
-                            <input type="text" id="post-title" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-slug">URL Slug *</label>
-                            <input type="text" id="post-slug" required>
-                            <div class="slug-preview">Preview: /blog-post.html?slug=<span id="slug-preview">your-post-slug</span></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-excerpt">Excerpt</label>
-                            <textarea id="post-excerpt" placeholder="Brief summary of the post (150-200 characters)"></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Content *</label>
-                            <div id="quill-editor" style="min-height:300px; background:white; border-radius:6px;"></div>
-                            <textarea id="post-content" class="content-editor" required style="display:none;"></textarea>
-                            <small style="color:#888;">Use the toolbar above to format text, add headings, images, links, and more.</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-image">Featured Image *</label>
-                            <div class="image-input-group">
-                                <input type="text" id="post-image" required placeholder="assets/images/my-photo.jpg">
-                                <label class="image-upload-label" title="Upload an image from your device">
-                                    <i class="fas fa-upload"></i> Upload
-                                    <input type="file" id="post-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
-                                </label>
-                            </div>
-                            <div id="post-image-preview" class="image-preview"></div>
-                            <small style="color:#888;">Enter a URL or click Upload to select a file (JPEG/PNG/GIF/WebP, max 5 MB).</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-secondary-image">Secondary Image</label>
-                            <div class="image-input-group">
-                                <input type="text" id="post-secondary-image" placeholder="assets/images/my-photo.jpg">
-                                <label class="image-upload-label" title="Upload an image from your device">
-                                    <i class="fas fa-upload"></i> Upload
-                                    <input type="file" id="post-secondary-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
-                                </label>
-                            </div>
-                            <div id="post-secondary-image-preview" class="image-preview"></div>
-                            <small style="color:#888;">Optional. Shown mid-way through the article. Enter a URL or upload a file.</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-author">Author Name</label>
-                            <input type="text" id="post-author" placeholder="Admin">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="post-status">Status</label>
-                            <select id="post-status">
-                                <option value="draft">Draft</option>
-                                <option value="published" selected>Published</option>
-                                <option value="archived">Archived</option>
-                            </select>
-                        </div>
-                        
-                        <div style="display: flex; gap: 10px;">
-                            <button type="submit" class="btn">
-                                <i class="fas fa-save"></i> Save Post
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="resetPostForm()">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Comments Panel -->
-                <div id="panel-comments" class="admin-panel">
-                    <h2>Comment Moderation</h2>
-                    <div id="commentsMessage"></div>
-                    <div id="commentsList"></div>
-                </div>
-
                 <!-- Users Panel -->
                 <div id="panel-users" class="admin-panel">
                     <h2>Registered Users</h2>
@@ -608,12 +468,6 @@
                         </tbody>
                     </table>
                 </div>
-                
-                <div style="text-align: center; margin-top: 40px;">
-                    <a href="/blog.html" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Blog
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -622,62 +476,6 @@
     
     <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/auth.js"></script>
-    <script src="assets/js/blog.js"></script>
     <script src="assets/js/admin.js"></script>
-    <!-- Quill Rich Text Editor -->
-    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-    <script>
-        // Initialize Quill editor for blog post content
-        let quillEditor = null;
-        document.addEventListener('DOMContentLoaded', function() {
-            const editorContainer = document.getElementById('quill-editor');
-            if (!editorContainer) return;
-
-            quillEditor = new Quill('#quill-editor', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, 4, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['blockquote', 'code-block'],
-                        ['link', 'image', 'video'],
-                        ['clean']
-                    ]
-                },
-                placeholder: 'Write your blog post here...'
-            });
-
-            // Sync Quill content to hidden textarea before form submit
-            const form = document.getElementById('post-form') || document.querySelector('form[onsubmit*="savePost"]');
-            if (form) {
-                form.addEventListener('submit', function() {
-                    const hiddenField = document.getElementById('post-content');
-                    if (hiddenField && quillEditor) {
-                        hiddenField.value = quillEditor.root.innerHTML;
-                    }
-                });
-            }
-        });
-
-        // Override populatePostForm to fill Quill editor when editing a post
-        const _origPopulate = window.populatePostForm;
-        window.populatePostFormWithQuill = function(post) {
-            if (_origPopulate) _origPopulate(post);
-            if (quillEditor && post && post.content) {
-                quillEditor.root.innerHTML = post.content;
-            }
-        };
-
-        // Patch getPostContent for savePost if it reads from the textarea
-        function getQuillContent() {
-            if (quillEditor) return quillEditor.root.innerHTML;
-            const el = document.getElementById('post-content');
-            return el ? el.value : '';
-        }
-        window.getQuillContent = getQuillContent;
-    </script>
 </body>
 </html>
