@@ -406,6 +406,24 @@
             </nav>
 
             <div class="employees-container">
+                <!-- Employer Profile Banner (populated from employers table when logged in) -->
+                <div id="employer-profile-banner" style="display:none; background:linear-gradient(135deg,#f0f7f0,#e0f0e0); border-left:4px solid #006600; border-radius:8px; padding:16px 20px; margin-bottom:20px;">
+                    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                        <div id="employer-logo-wrap" style="display:none;">
+                            <img id="employer-logo" src="" alt="Org logo" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid #ccc;">
+                        </div>
+                        <div>
+                            <div style="font-size:1.15em;font-weight:700;color:#006600;" id="employer-banner-name">—</div>
+                            <div style="font-size:0.85em;color:#555;margin-top:2px;" id="employer-banner-meta"></div>
+                        </div>
+                        <div style="margin-left:auto;">
+                            <button onclick="window.location.href='/profile.html'" style="padding:7px 16px;border:2px solid #006600;background:white;color:#006600;border-radius:20px;font-weight:600;cursor:pointer;font-size:13px;">
+                                <i class="fas fa-building"></i> Edit Org Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Employees Section -->
                 <div id="employees-section">
                     <div class="employees-header">
@@ -689,7 +707,42 @@
                 window.location.href = '/auth.html?redirect=/employees.html';
                 return;
             }
+            loadEmployerProfile(user);
             loadEmployees();
+        }
+
+        // Load employer profile from the employers table and display in banner
+        async function loadEmployerProfile(user) {
+            if (!supabaseClient || !isSupabaseConfigured()) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('employers')
+                    .select('organization_name, industry, county, contact_email, contact_phone, logo_url')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+                if (error || !data) return;
+
+                const banner = document.getElementById('employer-profile-banner');
+                if (!banner) return;
+
+                document.getElementById('employer-banner-name').textContent = data.organization_name || '—';
+
+                const metaParts = [];
+                if (data.industry) metaParts.push(data.industry);
+                if (data.county) metaParts.push(data.county);
+                if (data.contact_email) metaParts.push(data.contact_email);
+                if (data.contact_phone) metaParts.push(data.contact_phone);
+                document.getElementById('employer-banner-meta').textContent = metaParts.join(' · ');
+
+                if (data.logo_url) {
+                    document.getElementById('employer-logo').src = data.logo_url;
+                    document.getElementById('employer-logo-wrap').style.display = 'block';
+                }
+
+                banner.style.display = 'block';
+            } catch (e) {
+                // employers table may not exist yet — fail silently
+            }
         }
 
         // Load employees from localStorage

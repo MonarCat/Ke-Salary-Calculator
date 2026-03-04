@@ -618,6 +618,26 @@ function toggleDonateInfo() {
     }
 }
 
+function selectDonateMethod(section, method) {
+    const prefix = section === 'calc' ? 'donateCalc' : 'donateMain';
+    const paypalDiv = document.getElementById(prefix + '-paypal');
+    const mobileDiv = document.getElementById(prefix + '-mobile');
+    const container = paypalDiv ? paypalDiv.closest('.donate-info') : null;
+    if (!paypalDiv || !mobileDiv) return;
+    if (method === 'paypal') {
+        paypalDiv.style.display = '';
+        mobileDiv.style.display = 'none';
+    } else {
+        paypalDiv.style.display = 'none';
+        mobileDiv.style.display = '';
+    }
+    if (container) {
+        container.querySelectorAll('.donate-method-tab').forEach(function(btn) {
+            btn.classList.toggle('active', btn.dataset.method === method);
+        });
+    }
+}
+
 // Helper Functions
 function formatKES(amount) {
     return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");

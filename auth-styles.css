@@ -474,6 +474,31 @@
     color: white !important;
 }
 
+/* Sign Up Button (shown when user is not logged in) */
+.sign-up-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: white;
+    color: #006600 !important;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid #006600;
+    transition: all 0.3s;
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.sign-up-btn:hover {
+    background: #006600;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 0, 0.35);
+}
+
 /* Welcome button (shown when user is logged in) */
 .user-welcome-btn {
     display: inline-flex;

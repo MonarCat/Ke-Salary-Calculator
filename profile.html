@@ -51,6 +51,18 @@
             color: #666;
             margin: 0;
         }
+        .org-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
         .profile-section h3 {
             color: #006600;
             margin-bottom: 20px;
@@ -145,6 +157,85 @@
             background: #CC0000;
             color: white;
         }
+        /* Upgrade panel for individual accounts */
+        .upgrade-panel {
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            border-radius: 10px;
+            padding: 28px 30px;
+            text-align: center;
+        }
+        .upgrade-panel h3 { color: white; margin-bottom: 10px; }
+        .upgrade-panel p { margin-bottom: 18px; opacity: 0.92; }
+        .upgrade-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .upgrade-feature-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        .upgrade-form { display: none; margin-top: 16px; }
+        .upgrade-form input[type="text"] {
+            width: 100%;
+            max-width: 360px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .upgrade-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        /* Organization-specific sections */
+        .org-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .org-detail-card {
+            background: #f0f7f0;
+            border-left: 4px solid #006600;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .org-detail-card .detail-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .org-detail-card .detail-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #006600;
+            margin-top: 4px;
+        }
+        .org-features-list {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+        .org-features-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        .org-features-list li i { color: #006600; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
@@ -206,6 +297,7 @@
                         <div class="profile-info">
                             <h2 id="profile-name">Loading...</h2>
                             <p id="profile-email">Loading...</p>
+                            <span id="org-badge" class="org-badge" style="display:none;"><i class="fas fa-building"></i> Organization Account</span>
                         </div>
                     </div>
 
@@ -262,6 +354,77 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Organization Details (only for employer/org accounts) -->
+                <div class="profile-card" id="org-details-card" style="display:none;">
+                    <div class="profile-section">
+                        <h3><i class="fas fa-building"></i> Organization Details</h3>
+                        <div class="org-details-grid">
+                            <div class="org-detail-card">
+                                <div class="detail-label">Organization Name</div>
+                                <div class="detail-value" id="org-detail-name">—</div>
+                            </div>
+                            <div class="org-detail-card">
+                                <div class="detail-label">Employee Limit</div>
+                                <div class="detail-value">Up to 1,000</div>
+                            </div>
+                            <div class="org-detail-card">
+                                <div class="detail-label">Active Employees</div>
+                                <div class="detail-value" id="org-employees-count">0</div>
+                            </div>
+                            <div class="org-detail-card">
+                                <div class="detail-label">Account Tier</div>
+                                <div class="detail-value">Organization</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organization Features (only for employer/org accounts) -->
+                <div class="profile-card" id="org-features-card" style="display:none;">
+                    <div class="profile-section">
+                        <h3><i class="fas fa-star"></i> Organization Features</h3>
+                        <ul class="org-features-list">
+                            <li><i class="fas fa-users"></i> Manage up to 1,000 employees</li>
+                            <li><i class="fas fa-file-invoice-dollar"></i> Bulk payslip generation</li>
+                            <li><i class="fas fa-chart-line"></i> Payroll analytics &amp; reports</li>
+                            <li><i class="fas fa-building"></i> Organization profile &amp; branding</li>
+                            <li><i class="fas fa-user-tie"></i> Multiple department management</li>
+                            <li><i class="fas fa-download"></i> Export payroll data (CSV/PDF)</li>
+                            <li><i class="fas fa-history"></i> Full payroll history</li>
+                            <li><i class="fas fa-shield-alt"></i> KRA compliance reports</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Upgrade to Organization (only for individual accounts) -->
+                <div class="profile-card" id="upgrade-card" style="display:none;">
+                    <div class="upgrade-panel">
+                        <h3><i class="fas fa-arrow-circle-up"></i> Upgrade to Organization Account</h3>
+                        <p>Unlock powerful organization features — manage up to <strong>1,000 employees</strong>, generate bulk payslips, access payroll reports and more.</p>
+                        <div class="upgrade-features">
+                            <span class="upgrade-feature-item">👥 Up to 1,000 employees</span>
+                            <span class="upgrade-feature-item">📊 Payroll analytics</span>
+                            <span class="upgrade-feature-item">🏢 Organization profile</span>
+                            <span class="upgrade-feature-item">📄 Bulk payslips</span>
+                            <span class="upgrade-feature-item">📁 Export data</span>
+                        </div>
+                        <button class="upgrade-button" id="initial-upgrade-btn" onclick="showUpgradeForm()">
+                            <i class="fas fa-arrow-circle-up"></i> Upgrade Now (Free)
+                        </button>
+                        <div class="upgrade-form" id="upgrade-form">
+                            <p style="margin-bottom:10px;">Enter your organization name to complete the upgrade:</p>
+                            <form onsubmit="submitUpgrade(event)">
+                                <input type="text" id="upgrade-org-name" placeholder="Organization / Company Name" required maxlength="100">
+                                <div class="upgrade-btn-row">
+                                    <button type="submit" class="upgrade-button"><i class="fas fa-check"></i> Confirm Upgrade</button>
+                                    <button type="button" class="upgrade-button" style="background:#ccc;color:#333;" onclick="cancelUpgradeForm()">Cancel</button>
+                                </div>
+                            </form>
+                            <div id="upgrade-message" style="margin-top:12px;font-size:14px;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
@@ -297,12 +460,29 @@
             document.getElementById('profile-avatar').textContent = name.charAt(0).toUpperCase();
             
             // Account type
-            const accountTypeDisplay = accountType === 'employer' ? 'Employer/Organization' : 'Individual';
+            const accountTypeDisplay = accountType === 'employer' ? 'Employer / Organization' : 'Individual';
             document.getElementById('account-type').textContent = accountTypeDisplay;
             
-            if (accountType === 'employer' && organizationName) {
-                document.getElementById('org-name-field').style.display = 'flex';
-                document.getElementById('organization-name').textContent = organizationName;
+            if (accountType === 'employer') {
+                // Show organization badge in header
+                document.getElementById('org-badge').style.display = 'inline-flex';
+
+                // Show org name field in account info
+                if (organizationName) {
+                    document.getElementById('org-name-field').style.display = 'flex';
+                    document.getElementById('organization-name').textContent = organizationName;
+                }
+
+                // Show org-specific cards
+                document.getElementById('org-details-card').style.display = 'block';
+                document.getElementById('org-features-card').style.display = 'block';
+                document.getElementById('org-detail-name').textContent = organizationName || '—';
+
+                // Show employee stat
+                document.getElementById('employees-stat').style.display = 'block';
+            } else {
+                // Show upgrade card for individual accounts
+                document.getElementById('upgrade-card').style.display = 'block';
             }
             
             // Member since
@@ -314,13 +494,62 @@
             document.getElementById('member-since').textContent = memberSince;
             
             // Display user statistics
-            const downloadsCount = 0; // Would come from database
-            
-            document.getElementById('downloads-count').textContent = downloadsCount;
-            
-            // Show employee stat for employers
-            if (accountType === 'employer') {
-                document.getElementById('employees-stat').style.display = 'block';
+            document.getElementById('downloads-count').textContent = 0;
+
+            // Fetch employee count for org accounts
+            if (accountType === 'employer' && supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { count } = await supabaseClient
+                        .from('employees')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('user_id', user.id);
+                    if (count !== null) {
+                        document.getElementById('employees-count').textContent = count;
+                        document.getElementById('org-employees-count').textContent = count;
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch employee count:', e);
+                }
+            }
+        }
+
+        function showUpgradeForm() {
+            document.getElementById('upgrade-form').style.display = 'block';
+            document.getElementById('initial-upgrade-btn').style.display = 'none';
+        }
+
+        function cancelUpgradeForm() {
+            document.getElementById('upgrade-form').style.display = 'none';
+            document.getElementById('initial-upgrade-btn').style.display = '';
+            document.getElementById('upgrade-message').textContent = '';
+        }
+
+        async function submitUpgrade(event) {
+            event.preventDefault();
+            const orgName = document.getElementById('upgrade-org-name').value.trim();
+            if (!orgName) return;
+            const msgEl = document.getElementById('upgrade-message');
+            msgEl.style.color = 'white';
+            msgEl.textContent = 'Upgrading your account…';
+
+            if (!isSupabaseConfigured()) {
+                msgEl.textContent = '⚠️ Service not configured. Please try again later.';
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    data: {
+                        account_type: 'employer',
+                        organization_name: orgName
+                    }
+                });
+                if (error) throw error;
+                msgEl.textContent = '✅ Upgrade successful! Reloading your profile…';
+                setTimeout(function() { window.location.reload(); }, 1500);
+            } catch (err) {
+                msgEl.style.color = '#ffcccc';
+                msgEl.textContent = '❌ ' + (err.message || 'Upgrade failed. Please try again.');
             }
         }
 

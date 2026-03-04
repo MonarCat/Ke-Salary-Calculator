@@ -80,7 +80,55 @@ CREATE POLICY "Employers can delete own employees" ON employees
   FOR DELETE USING (auth.uid() = employer_id);
 ```
 
-### 3. payslip_history
+### 3. employers
+
+Stores organisation-specific profile data for employer accounts.
+
+```sql
+CREATE TABLE IF NOT EXISTS employers (
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id              UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  organization_name    TEXT NOT NULL,
+  organization_kra_pin TEXT,
+  registration_number  TEXT,
+  business_type        TEXT CHECK (business_type IN (
+                         'sole_proprietor', 'partnership',
+                         'limited_company', 'ngo', 'government', 'other'
+                       )),
+  industry             TEXT,
+  county               TEXT,
+  physical_address     TEXT,
+  postal_address       TEXT,
+  contact_email        TEXT,
+  contact_phone        TEXT,
+  website              TEXT,
+  logo_url             TEXT,
+  employee_limit       INTEGER DEFAULT 1000 CHECK (employee_limit > 0),
+  created_at           TIMESTAMPTZ DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE employers ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Employers can view their own record
+CREATE POLICY "Employers can view own record" ON employers
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Policy: Employers can insert their own record
+CREATE POLICY "Employers can insert own record" ON employers
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Employers can update their own record
+CREATE POLICY "Employers can update own record" ON employers
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Policy: Employers can delete their own record
+CREATE POLICY "Employers can delete own record" ON employers
+  FOR DELETE USING (auth.uid() = user_id);
+```
+
+### 4. payslip_history
 
 Stores generated payslips for tracking.
 
@@ -118,7 +166,7 @@ CREATE POLICY "Users can update own payslip history" ON payslip_history
   FOR UPDATE USING (auth.uid() = user_id);
 ```
 
-### 4. saved_calculations
+### 5. saved_calculations
 
 Stores saved salary calculations for users.
 
@@ -167,6 +215,7 @@ None currently defined.
 
 ```sql
 -- Optimize queries by user_id
+CREATE INDEX idx_employers_user_id ON employers(user_id);
 CREATE INDEX idx_employees_employer_id ON employees(employer_id);
 CREATE INDEX idx_payslip_history_user_id ON payslip_history(user_id);
 CREATE INDEX idx_saved_calculations_user_id ON saved_calculations(user_id);
@@ -187,6 +236,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_user_profiles_updated_at
   BEFORE UPDATE ON user_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER update_employers_updated_at
+  BEFORE UPDATE ON employers
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
