@@ -420,7 +420,14 @@
                         
                         <div class="form-group">
                             <label for="post-image">Featured Image URL *</label>
-                            <input type="text" id="post-image" required placeholder="image-filename.jpg">
+                            <input type="text" id="post-image" required placeholder="assets/images/my-photo.jpg">
+                            <small style="color:#888;">Path relative to site root (e.g. assets/images/my-photo.jpg) or a full URL (e.g. https://example.com/image.jpg).</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="post-secondary-image">Secondary Image URL</label>
+                            <input type="text" id="post-secondary-image" placeholder="assets/images/my-photo.jpg">
+                            <small style="color:#888;">Optional. Shown mid-way through the article. Use a relative path or full URL.</small>
                         </div>
                         
                         <div class="form-group">

@@ -219,6 +219,7 @@ async function editPost(postId) {
             window.quillEditor.root.innerHTML = data.content || '';
         }
         document.getElementById('post-image').value = data.featured_image_url || '';
+        document.getElementById('post-secondary-image').value = data.secondary_image_url || '';
         document.getElementById('post-author').value = data.author_name || 'Admin';
         document.getElementById('post-status').value = data.status;
         
@@ -281,6 +282,7 @@ async function savePost(event) {
         excerpt: document.getElementById('post-excerpt').value,
         content: (window.getQuillContent ? window.getQuillContent() : document.getElementById('post-content').value),
         featured_image_url: document.getElementById('post-image').value,
+        secondary_image_url: document.getElementById('post-secondary-image').value || null,
         author_name: document.getElementById('post-author').value || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         status: document.getElementById('post-status').value,
         author_id: currentUser.id,

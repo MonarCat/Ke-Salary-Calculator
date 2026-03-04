@@ -74,11 +74,11 @@ Edit `blog.js` around line 155:
 | Post | Title | Current Image | Status |
 |------|-------|---------------|--------|
 | 1 | Understanding PAYE in Kenya | kenyan-economy-coins.jpg | ✅ Appropriate |
-| 2 | Maximize Your Take-Home Pay | by wirestock on Freepika.jpg | ✅ Updated |
+| 2 | Maximize Your Take-Home Pay | by wirestock on Freepik.jpg | ✅ Updated |
 | 3 | 2026 Tax Law Updates | nairobi_wh10.jpg | ✅ Updated |
 | 4 | Salary Negotiation Tips | JT Banner Gemini_Generated_Image_.png | ✅ Updated |
 | 5 | Why Businesses Need Payslip Generator | kenyan-economy-coins.jpg | ✅ Appropriate |
-| 6 | PAYE Exemption Below KSh 30,000 | kenyan-economy-coins.jpg | ⚠️ **NEEDS CS MBADI PHOTO** |
+| 6 | PAYE Exemption Below KSh 30,000 | National Treasury CS John Mbadi.jpeg | ✅ Updated |
 
 ### Alternative If Image Cannot Be Sourced
 
