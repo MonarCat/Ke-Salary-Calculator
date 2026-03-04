@@ -223,6 +223,39 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-recent {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-offline {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-admin {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .online-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .dot-online  { background: #28a745; }
+        .dot-recent  { background: #ffc107; }
+        .dot-offline { background: #6c757d; }
         
         .alert {
             padding: 15px;
@@ -364,8 +397,8 @@
             <!-- Admin Dashboard -->
             <div id="adminDashboard" style="display: none;">
                 <div class="admin-header">
-                    <h1><i class="fas fa-tachometer-alt"></i> Blog Admin Dashboard</h1>
-                    <p>Manage blog posts, comments, and analytics</p>
+                    <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+                    <p>Manage blog posts, users, organisations, comments, and analytics</p>
                 </div>
                 
                 <!-- Admin Tabs -->
@@ -378,6 +411,12 @@
                     </div>
                     <div class="admin-tab" onclick="switchTab('create')">
                         <i class="fas fa-plus-circle"></i> Create Post
+                    </div>
+                    <div class="admin-tab" onclick="switchTab('users')">
+                        <i class="fas fa-users"></i> Users
+                    </div>
+                    <div class="admin-tab" onclick="switchTab('organisations')">
+                        <i class="fas fa-building"></i> Organisations
                     </div>
                     <div class="admin-tab" onclick="switchTab('comments')">
                         <i class="fas fa-comments"></i> Comments
@@ -403,6 +442,14 @@
                         <div class="stat-card">
                             <h3 id="stat-reactions">-</h3>
                             <p>Total Reactions</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="stat-users">-</h3>
+                            <p>Registered Users</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="stat-organisations">-</h3>
+                            <p>Organisations</p>
                         </div>
                     </div>
                     
@@ -517,6 +564,49 @@
                     <h2>Comment Moderation</h2>
                     <div id="commentsMessage"></div>
                     <div id="commentsList"></div>
+                </div>
+
+                <!-- Users Panel -->
+                <div id="panel-users" class="admin-panel">
+                    <h2>Registered Users</h2>
+                    <p style="color:#666; margin-bottom:16px;">All users who have signed up. Online status is based on last sign-in time.</p>
+                    <div id="usersMessage"></div>
+                    <table class="posts-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Name / Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Last Seen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Organisations Panel -->
+                <div id="panel-organisations" class="admin-panel">
+                    <h2>Organisations</h2>
+                    <p style="color:#666; margin-bottom:16px;">All employer / organisation accounts registered on the platform.</p>
+                    <div id="organisationsMessage"></div>
+                    <table class="posts-table" id="organisationsTable">
+                        <thead>
+                            <tr>
+                                <th>Organisation</th>
+                                <th>Type</th>
+                                <th>Industry</th>
+                                <th>County</th>
+                                <th>Contact</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="organisationsTableBody">
+                            <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
                 
                 <div style="text-align: center; margin-top: 40px;">
