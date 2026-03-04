@@ -66,6 +66,8 @@ async function initAdminDashboard() {
         // Load initial data
         await loadDashboardStats();
         await loadRecentPosts();
+        // Pre-load posts so they are immediately available on the Manage Posts tab
+        loadAllPosts().catch(err => console.error('Error pre-loading posts:', err));
         
         // Setup slug auto-generation
         setupSlugGenerator();
@@ -108,6 +110,10 @@ function switchTab(tabName) {
         loadAllPosts();
     } else if (tabName === 'comments') {
         loadComments();
+    } else if (tabName === 'users') {
+        loadUsers();
+    } else if (tabName === 'organisations') {
+        loadOrganisations();
     } else if (tabName === 'dashboard') {
         loadDashboardStats();
         loadRecentPosts();
@@ -128,6 +134,11 @@ async function loadDashboardStats() {
             document.getElementById('stat-views').textContent = stats.total_views || 0;
             document.getElementById('stat-comments').textContent = stats.total_comments || 0;
             document.getElementById('stat-reactions').textContent = stats.total_reactions || 0;
+            // New stats (available after running users-admin.sql)
+            const usersEl = document.getElementById('stat-users');
+            if (usersEl) usersEl.textContent = stats.total_users != null ? stats.total_users : '-';
+            const orgsEl = document.getElementById('stat-organisations');
+            if (orgsEl) orgsEl.textContent = stats.total_organizations != null ? stats.total_organizations : '-';
         }
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -497,6 +508,116 @@ async function deleteComment(commentId) {
     } catch (error) {
         console.error('Error deleting comment:', error);
         alert('Error deleting comment: ' + error.message);
+    }
+}
+
+// ─── Users Management ────────────────────────────────────────────────────────
+
+// Classify a user's online status based on last_sign_in_at
+function getUserStatus(lastSignInAt) {
+    if (!lastSignInAt) return { label: 'Never', cls: 'status-offline', dot: 'dot-offline' };
+    const diffMs = Date.now() - new Date(lastSignInAt).getTime();
+    const diffMins = diffMs / 60000;
+    if (diffMins < 15) return { label: 'Online', cls: 'status-online', dot: 'dot-online' };
+    if (diffMins < 1440) return { label: 'Today', cls: 'status-recent', dot: 'dot-recent' };
+    return { label: 'Offline', cls: 'status-offline', dot: 'dot-offline' };
+}
+
+// Load all registered users
+async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+
+    try {
+        const { data, error } = await supabaseClient.rpc('get_all_users');
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No users found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(user => {
+            const status = getUserStatus(user.last_sign_in_at);
+            const lastSeen = user.last_sign_in_at
+                ? new Date(user.last_sign_in_at).toLocaleString()
+                : 'Never';
+            const roleLabel = user.is_super_admin
+                ? '<span class="status-badge status-admin"><i class="fas fa-crown"></i> Super Admin</span>'
+                : user.is_admin_user
+                    ? '<span class="status-badge status-admin"><i class="fas fa-shield-alt"></i> Admin</span>'
+                    : '<span class="status-badge status-draft">User</span>';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <strong>${escapeHtml(user.display_name)}</strong><br>
+                    <small style="color:#666;">${escapeHtml(user.email)}</small>
+                </td>
+                <td>${roleLabel}</td>
+                <td>
+                    <span class="online-dot ${status.dot}"></span>
+                    <span class="status-badge ${status.cls}">${status.label}</span>
+                </td>
+                <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                <td>${lastSeen}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error loading users:', error);
+        showMessage('usersMessage', 'Error loading users: ' + error.message, 'error');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Failed to load users.</td></tr>';
+    }
+}
+
+// ─── Organisations Management ─────────────────────────────────────────────────
+
+// Load all employer / organisation profiles
+async function loadOrganisations() {
+    const tbody = document.getElementById('organisationsTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+
+    try {
+        const { data, error } = await supabaseClient.rpc('get_all_employers');
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No organisations found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(org => {
+            const businessType = org.business_type
+                ? org.business_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                : '-';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <strong>${escapeHtml(org.organization_name)}</strong><br>
+                    <small style="color:#666;">${escapeHtml(org.email || '')}</small>
+                </td>
+                <td>${escapeHtml(businessType)}</td>
+                <td>${escapeHtml(org.industry || '-')}</td>
+                <td>${escapeHtml(org.county || '-')}</td>
+                <td>
+                    ${org.contact_email ? escapeHtml(org.contact_email) : ''}
+                    ${org.contact_phone ? '<br><small>' + escapeHtml(org.contact_phone) + '</small>' : ''}
+                </td>
+                <td>${new Date(org.created_at).toLocaleDateString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error loading organisations:', error);
+        showMessage('organisationsMessage', 'Error loading organisations: ' + error.message, 'error');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Failed to load organisations.</td></tr>';
     }
 }
 
