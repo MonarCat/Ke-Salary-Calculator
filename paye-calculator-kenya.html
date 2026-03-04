@@ -229,6 +229,83 @@
                 <p>Built specifically for Kenya 🇰🇪 using official KRA, NSSF & SHIF guidelines.</p>
             </div>
 
+            <!-- Support This Project -->
+            <div class="donate-section">
+                <button class="donate-toggle" onclick="toggleDonateInfoById('donateInfoPaye')">❤️ Support This Project</button>
+                <div id="donateInfoPaye" class="donate-info" style="display: none;">
+                    <p>Your support helps keep this tool free and maintained! Choose a payment method below:</p>
+                    <div class="donate-method-tabs">
+                        <button class="donate-method-tab active" data-method="paypal" onclick="selectDonateMethodById('donatePaye','paypal')">💳 PayPal</button>
+                        <button class="donate-method-tab" data-method="mobile" onclick="selectDonateMethodById('donatePaye','mobile')">📲 Mobile Money</button>
+                    </div>
+                    <!-- PayPal -->
+                    <div id="donatePaye-paypal">
+                        <form action="https://www.paypal.com/donate" method="post" target="_top">
+                            <input type="hidden" name="hosted_button_id" value="D9H3ZADBCPPHG" />
+                            <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+                            <img alt="" border="0" src="https://www.paypal.com/en_KE/i/scr/pixel.gif" width="1" height="1" />
+                        </form>
+                        <p class="donate-note">Thank you for supporting this free tool!</p>
+                    </div>
+                    <!-- Mobile Payment -->
+                    <div id="donatePaye-mobile" style="display:none;">
+                        <div class="mobile-payment-panel">
+                            <h4>📲 Send via Mobile Money — Kenya</h4>
+                            <div class="mobile-payment-options">
+                                <div class="mobile-option">
+                                    <div class="mobile-option-logo mpesa">
+                                        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+                                            <rect width="64" height="64" rx="10" fill="#009345"/>
+                                            <text x="32" y="26" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="900" font-family="Arial Black,Arial,sans-serif" letter-spacing="0.5">M-PESA</text>
+                                            <line x1="10" y1="31" x2="54" y2="31" stroke="#ffffff" stroke-width="1" opacity="0.35"/>
+                                            <text x="32" y="43" text-anchor="middle" fill="#ffffff" font-size="8" font-family="Arial,sans-serif" opacity="0.92">Safaricom</text>
+                                        </svg>
+                                    </div>
+                                    <div class="mobile-option-details">
+                                        <div class="provider-name">Safaricom M-Pesa</div>
+                                        <div class="phone-number-row">
+                                            <span class="phone-number">+254 702 359 618</span>
+                                            <button class="copy-btn" onclick="copyDonatePhone(this,'+254702359618')" title="Copy number" aria-label="Copy M-Pesa number">⧉</button>
+                                        </div>
+                                        <div class="recipient-name">Recipient: Moses Mwombe</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-option">
+                                    <div class="mobile-option-logo airtel">
+                                        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+                                            <rect width="64" height="64" rx="10" fill="#ED1C24"/>
+                                            <text x="32" y="27" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700" font-family="Arial,sans-serif" letter-spacing="-0.3">airtel</text>
+                                            <text x="32" y="42" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="600" font-family="Arial,sans-serif" letter-spacing="1">MONEY</text>
+                                        </svg>
+                                    </div>
+                                    <div class="mobile-option-details">
+                                        <div class="provider-name">Airtel Money</div>
+                                        <div class="phone-number-row">
+                                            <span class="phone-number">+254 752 422 013</span>
+                                            <button class="copy-btn" onclick="copyDonatePhone(this,'+254752422013')" title="Copy number" aria-label="Copy Airtel Money number">⧉</button>
+                                        </div>
+                                        <div class="recipient-name">Recipient: Moses Mwombe</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mobile-payment-steps">
+                                <p>🔢 How to send:</p>
+                                <ol>
+                                    <li>Open your <strong>M-Pesa</strong> or <strong>Airtel Money</strong> app/menu.</li>
+                                    <li>Select <strong>Send Money</strong>.</li>
+                                    <li>Enter the number above for your preferred provider.</li>
+                                    <li>Enter <strong>any amount</strong> you wish to donate.</li>
+                                    <li>Confirm the recipient name is <strong>Moses Mwombe</strong>, then approve.</li>
+                                </ol>
+                            </div>
+                            <div class="mobile-thanks-msg">
+                                <span>🙏</span> We sincerely appreciate every donation, big or small. Your generosity keeps this tool free and helps us improve it for everyone. <strong>Thank you so much!</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <footer style="text-align: center; padding: 10px; font-size: 12px; color: #666;">
                 Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer">a Patriotic Kenyan</a>
             </footer>
@@ -242,6 +319,7 @@
 
     <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/donate.js"></script>
     <script src="assets/js/blog.js"></script>
     <script src="assets/js/adsense-config.js"></script>
 </body>
