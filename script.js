@@ -618,6 +618,29 @@ function toggleDonateInfo() {
     }
 }
 
+function copyPhoneNumber(btn, number) {
+    function selectFallback() {
+        var span = btn.previousElementSibling;
+        if (span) {
+            var range = document.createRange();
+            range.selectNodeContents(span);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(number).then(function() {
+            var original = btn.innerHTML;
+            btn.innerHTML = '✓';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.innerHTML = original; btn.classList.remove('copied'); }, 2000);
+        }).catch(selectFallback);
+    } else {
+        selectFallback();
+    }
+}
+
 function selectDonateMethod(section, method) {
     const prefix = section === 'calc' ? 'donateCalc' : 'donateMain';
     const paypalDiv = document.getElementById(prefix + '-paypal');
