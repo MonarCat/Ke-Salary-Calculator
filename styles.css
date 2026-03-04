@@ -1020,26 +1020,28 @@ footer a:hover {
 }
 
 .mobile-option-logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    color: #fff;
     flex-shrink: 0;
-    letter-spacing: 0.5px;
-    text-align: center;
+    overflow: hidden;
 }
 
 .mobile-option-logo.mpesa {
-    background: linear-gradient(135deg, #e60000, #cc0000);
+    background: transparent;
 }
 
 .mobile-option-logo.airtel {
-    background: linear-gradient(135deg, #e60000, #990000);
+    background: transparent;
+}
+
+.mobile-option-logo svg {
+    width: 64px;
+    height: 64px;
+    display: block;
 }
 
 .mobile-option-details {
@@ -1053,12 +1055,45 @@ footer a:hover {
     margin-bottom: 2px;
 }
 
+.phone-number-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .mobile-option-details .phone-number {
     font-size: 18px;
     font-weight: 800;
     color: #2e7d32;
     letter-spacing: 1px;
     font-family: monospace;
+    user-select: text;
+    cursor: text;
+}
+
+.copy-btn {
+    background: none;
+    border: 1px solid #a5d6a7;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 3px 6px;
+    color: #2e7d32;
+    font-size: 13px;
+    line-height: 1;
+    transition: background 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.copy-btn:hover {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.copy-btn.copied {
+    background: #c8e6c9;
+    color: #1b5e20;
+    border-color: #81c784;
 }
 
 .mobile-option-details .recipient-name {
