@@ -1625,6 +1625,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Reactions require a live database connection', 'error');
                     return;
                 }
+                // Reactions are only supported for DB posts (valid UUIDs); fallback posts have no DB record
+                if (!isValidUUID(postId)) {
+                    showToast('Reactions are not available for this post', 'error');
+                    return;
+                }
                 // Optimistic UI: toggle active state and update counts immediately before DB round-trip
                 const wasActive = btn.classList.contains('active');
                 const currentActive = document.querySelector(`.reaction-button.active[data-post-id="${postId}"]`);
