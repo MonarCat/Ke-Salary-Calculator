@@ -270,7 +270,50 @@
             color: #666;
             margin-top: 5px;
         }
-        
+
+        /* Image upload row */
+        .image-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .image-input-group input[type="text"] {
+            flex: 1;
+        }
+        .image-upload-label {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 14px;
+            background: #666;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .image-upload-label:hover {
+            background: #888;
+        }
+        .image-preview {
+            margin-top: 8px;
+            min-height: 0;
+        }
+        .image-preview img {
+            max-height: 90px;
+            max-width: 220px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            object-fit: cover;
+        }
+        .image-upload-progress {
+            font-size: 13px;
+            color: #006600;
+            margin-top: 4px;
+        }
+
         @media (max-width: 768px) {
             .admin-tabs {
                 overflow-x: auto;
@@ -419,15 +462,29 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="post-image">Featured Image URL *</label>
-                            <input type="text" id="post-image" required placeholder="assets/images/my-photo.jpg">
-                            <small style="color:#888;">Path relative to site root (e.g. assets/images/my-photo.jpg) or a full URL (e.g. https://example.com/image.jpg).</small>
+                            <label for="post-image">Featured Image *</label>
+                            <div class="image-input-group">
+                                <input type="text" id="post-image" required placeholder="assets/images/my-photo.jpg">
+                                <label class="image-upload-label" title="Upload an image from your device">
+                                    <i class="fas fa-upload"></i> Upload
+                                    <input type="file" id="post-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
+                                </label>
+                            </div>
+                            <div id="post-image-preview" class="image-preview"></div>
+                            <small style="color:#888;">Enter a URL or click Upload to select a file (JPEG/PNG/GIF/WebP, max 5 MB).</small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="post-secondary-image">Secondary Image URL</label>
-                            <input type="text" id="post-secondary-image" placeholder="assets/images/my-photo.jpg">
-                            <small style="color:#888;">Optional. Shown mid-way through the article. Use a relative path or full URL.</small>
+                            <label for="post-secondary-image">Secondary Image</label>
+                            <div class="image-input-group">
+                                <input type="text" id="post-secondary-image" placeholder="assets/images/my-photo.jpg">
+                                <label class="image-upload-label" title="Upload an image from your device">
+                                    <i class="fas fa-upload"></i> Upload
+                                    <input type="file" id="post-secondary-image-file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
+                                </label>
+                            </div>
+                            <div id="post-secondary-image-preview" class="image-preview"></div>
+                            <small style="color:#888;">Optional. Shown mid-way through the article. Enter a URL or upload a file.</small>
                         </div>
                         
                         <div class="form-group">

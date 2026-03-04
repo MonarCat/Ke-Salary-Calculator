@@ -557,6 +557,9 @@ function renderBlogPost(post, reactions, comments) {
             </div>
 
             <div class="blog-post-inner">
+                <!-- Admin controls (populated asynchronously for logged-in admins) -->
+                <div id="admin-post-controls"></div>
+
                 <!-- Category badge -->
                 <span class="blog-post-category-badge">${category}</span>
 
@@ -647,9 +650,40 @@ function renderBlogPost(post, reactions, comments) {
     // Initialize comment form
     initCommentForm(post.id);
 
+    // Show admin edit bar if the current user is an admin (non-blocking, async)
+    if (!_isUsingFallback && isValidUUID(post.id)) {
+        initAdminPostControls(post.id);
+    }
+
     // Load AdSense
     if (window.adsbygoogle) {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
+    }
+}
+
+// Show an admin toolbar above the post for logged-in admin users
+async function initAdminPostControls(postId) {
+    const controlsEl = document.getElementById('admin-post-controls');
+    if (!controlsEl) return;
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+
+    try {
+        const { data: adminData } = await supabaseClient.rpc('is_admin');
+        if (adminData !== true) return;
+
+        // Encode postId safely – it is a validated UUID so no escaping needed
+        controlsEl.innerHTML = `
+            <div class="admin-post-bar">
+                <span class="admin-post-bar-label"><i class="fas fa-shield-alt"></i> Admin</span>
+                <a href="/admin.html?edit=${postId}" class="admin-post-edit-btn">
+                    <i class="fas fa-edit"></i> Edit Post
+                </a>
+                <a href="/admin.html" class="admin-post-dashboard-btn">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>`;
+    } catch (_) {
+        // Not an admin or Supabase unavailable – silently do nothing
     }
 }
 
