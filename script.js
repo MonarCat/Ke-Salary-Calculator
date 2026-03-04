@@ -1,6 +1,6 @@
 // Tax rates by year
 function debounce(fn, delay) {
-    var t;
+    let t;
     return function() { clearTimeout(t); t = setTimeout(fn, delay); };
 }
 const calculateSalaryDebounced = debounce(calculateSalary, 300);
@@ -63,25 +63,13 @@ function getRates(year) {
 
 // Tab functionality
 function openTab(tabName) {
-    const tabContents = document.getElementsByClassName('tab-content');
-    for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].style.display = 'none';
-    }
-    
-    const tabButtons = document.getElementsByClassName('tab-button');
-    for (let i = 0; i < tabButtons.length; i++) {
-        tabButtons[i].classList.remove('active');
-    }
-    
+    document.querySelectorAll('.tab-content').forEach(el => { el.style.display = 'none'; });
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
     document.getElementById(tabName).style.display = 'block';
-    
-    // Find and activate the corresponding button
-    for (let i = 0; i < tabButtons.length; i++) {
-        if (tabButtons[i].getAttribute('data-tab') === tabName) {
-            tabButtons[i].classList.add('active');
-            break;
-        }
-    }
+
+    const activeBtn = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
 }
 
 // Salary Calculator Functions
@@ -158,7 +146,7 @@ function calculateSalary() {
     }
 
     // Employer cost section
-    const empNssf = calculateNSSF(grossPay, rates); // employer matches employee NSSF
+    const empNssf = nssf; // employer matches employee NSSF
     const empShif = totalIncome * rates.shifRate;
     const empLevy = totalIncome * rates.housingLevyRate;
     const totalCostToCompany = totalIncome + empNssf + empShif + empLevy;
@@ -185,18 +173,13 @@ function calculateSalary() {
 function calculatePAYE(taxablePay, rates) {
     if (!rates) rates = getRates('2026');
     const bands = rates.payeBands;
-    const prev = rates.payePrev;
     let paye = 0;
-    if (taxablePay <= prev[0]) {
-        paye = taxablePay * bands[0].rate;
-    } else if (taxablePay <= prev[1]) {
-        paye = bands[1].base + (taxablePay - prev[0]) * bands[1].rate;
-    } else if (taxablePay <= prev[2]) {
-        paye = bands[2].base + (taxablePay - prev[1]) * bands[2].rate;
-    } else if (taxablePay <= prev[3]) {
-        paye = bands[3].base + (taxablePay - prev[2]) * bands[3].rate;
-    } else {
-        paye = bands[4].base + (taxablePay - prev[3]) * bands[4].rate;
+    for (let i = 0; i < bands.length; i++) {
+        const lower = i === 0 ? 0 : bands[i - 1].limit;
+        if (taxablePay > lower) {
+            paye = bands[i].base + (taxablePay - lower) * bands[i].rate;
+        }
+        if (taxablePay <= bands[i].limit) break;
     }
     return Math.max(paye - rates.personalRelief, 0);
 }
@@ -457,6 +440,12 @@ function generatePayslip() {
     name, id, pin, period, gross, department, payslipNumber
 }));
 
+    const pinRegex = /^[A-Z]{1}\d{9}[A-Z]{1}$/;
+    if (pin && !pinRegex.test(pin)) {
+        alert("Invalid KRA PIN format. Expected A12345678B");
+        return;
+    }
+
     const nssf = calculateNSSF(gross);
     const shif = calculateSHIF(gross);
     const ahl = calculateHousingLevy(gross);
@@ -486,13 +475,6 @@ function generatePayslip() {
     }
 
     document.getElementById('payslipOutput').style.display = 'block';
-    const pinRegex = /^[A-Z]{1}\d{9}[A-Z]{1}$/;
-    if (!pinRegex.test(pin)) {
-        alert ("Invalid KRA PIN format. Expected A12345678B");
-        return;
-    }
-    
-
 }
 
 // Logo Upload Function
@@ -513,7 +495,7 @@ function handleLogoUpload() {
 }
 
 // Print Function
-async function printPayslip() {
+function printPayslip() {
     const originalBodyClass = document.body.className;
     document.body.classList.add('printing');
 
@@ -663,7 +645,7 @@ function selectDonateMethod(section, method) {
 
 // Helper Functions
 function formatKES(amount) {
-    return 'KES ' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return 'KES ' + amount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 window.onload = () => {
     // Check URL parameter for tab
