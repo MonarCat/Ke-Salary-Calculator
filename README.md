@@ -53,9 +53,9 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
    ```  
 
 2. **Configure Supabase authentication:**
-   - Follow the detailed setup guide in [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
-   - Update `supabase-config.js` with your Supabase credentials
-   - Set up the database schema using [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)
+   - Follow the detailed setup guide in [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
+   - Update `assets/js/supabase-config.js` with your Supabase credentials
+   - Set up the database schema using [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
 
 3. **Deploy or run locally:**
    
@@ -115,12 +115,12 @@ A comprehensive web-based tool for calculating salaries and generating payslips 
 
 ### Supabase Authentication Setup
 
-See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions.
+See [SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for detailed instructions.
 
 Quick steps:
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Get your Project URL and anon key from the API settings
-3. Update `supabase-config.js` with your credentials
+3. Update `assets/js/supabase-config.js` with your credentials
 
 ### Database Setup
 
@@ -136,9 +136,9 @@ The application requires the following database tables:
 - `admin_users` - Admin access control for blog management
 
 Follow the complete schema and setup instructions:
-- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) - Core application database
-- [BLOG_SCHEMA.md](BLOG_SCHEMA.md) - Blog feature database
-- [ADMIN_SETUP_GUIDE.md](ADMIN_SETUP_GUIDE.md) - Admin dashboard setup
+- [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) - Core application database
+- [BLOG_SCHEMA.md](docs/BLOG_SCHEMA.md) - Blog feature database
+- [ADMIN_SETUP_GUIDE.md](docs/ADMIN_SETUP_GUIDE.md) - Admin dashboard setup
 
 ### Blog Admin Dashboard
 
@@ -151,16 +151,16 @@ Admin user (kesalarycalculator@gmail.com) has access to:
 To set up admin access:
 ```bash
 # 1. Sign up at /auth.html with kesalarycalculator@gmail.com
-# 2. Run admin-setup.sql in Supabase SQL Editor
+# 2. Run database/admin-setup.sql in Supabase SQL Editor
 # 3. Grant admin privileges via SQL (see ADMIN_SETUP_GUIDE.md)
 # 4. Access dashboard at /admin.html
 ```
 
-See [ADMIN_SETUP_GUIDE.md](ADMIN_SETUP_GUIDE.md) for complete instructions.
+See [ADMIN_SETUP_GUIDE.md](docs/ADMIN_SETUP_GUIDE.md) for complete instructions.
 
 ### Tax Rates and Deductions
 
-Current tax rates are configured in `script.js` based on Kenyan law:
+Current tax rates are configured in `assets/js/script.js` based on Kenyan law:
 
 - **PAYE**: Progressive tax from 10% to 35%
 - **NSSF**: 6% (Tier I & II combined, capped)
@@ -173,10 +173,10 @@ Current tax rates are configured in `script.js` based on Kenyan law:
 The site is integrated with Google AdSense for monetization. Ads are strategically placed to generate revenue while maintaining excellent user experience.
 
 ### Documentation:
-- [ADSENSE_VERIFICATION.md](ADSENSE_VERIFICATION.md) - **START HERE**: Site verification setup guide
-- [ADSENSE_VERIFICATION_QUICKSTART.md](ADSENSE_VERIFICATION_QUICKSTART.md) - Quick reference for verification
-- [ADSENSE_SETUP.md](ADSENSE_SETUP.md) - Complete ad implementation guide
-- [ADSENSE_QUICKSTART.md](ADSENSE_QUICKSTART.md) - Quick setup for ads
+- [ADSENSE_VERIFICATION.md](docs/ADSENSE_VERIFICATION.md) - **START HERE**: Site verification setup guide
+- [ADSENSE_VERIFICATION_QUICKSTART.md](docs/ADSENSE_VERIFICATION_QUICKSTART.md) - Quick reference for verification
+- [ADSENSE_SETUP.md](docs/ADSENSE_SETUP.md) - Complete ad implementation guide
+- [ADSENSE_QUICKSTART.md](docs/ADSENSE_QUICKSTART.md) - Quick setup for ads
 
 ### Key Files:
 - `ads.txt` - Declares authorized digital sellers (required by Google)
