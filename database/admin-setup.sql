@@ -85,44 +85,44 @@ GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;
 DROP POLICY IF EXISTS "Admins can update any post" ON blog_posts;
 CREATE POLICY "Admins can update any post" ON blog_posts
   FOR UPDATE USING (
-    is_admin() OR auth.uid() = author_id
+    public.is_admin() OR auth.uid() = author_id
   );
 
 DROP POLICY IF EXISTS "Admins can delete any post" ON blog_posts;
 CREATE POLICY "Admins can delete any post" ON blog_posts
   FOR DELETE USING (
-    is_admin() OR auth.uid() = author_id
+    public.is_admin() OR auth.uid() = author_id
   );
 
 DROP POLICY IF EXISTS "Admins can view all posts" ON blog_posts;
 CREATE POLICY "Admins can view all posts" ON blog_posts
   FOR SELECT USING (
-    status = 'published' OR is_admin() OR auth.uid() = author_id
+    status = 'published' OR public.is_admin() OR auth.uid() = author_id
   );
 
 DROP POLICY IF EXISTS "Admins and authors can create posts" ON blog_posts;
 CREATE POLICY "Admins and authors can create posts" ON blog_posts
   FOR INSERT WITH CHECK (
-    is_admin() OR auth.uid() = author_id
+    public.is_admin() OR auth.uid() = author_id
   );
 
 -- 4. Update post_comments policies for admin moderation
 DROP POLICY IF EXISTS "Admins can view all comments" ON post_comments;
 CREATE POLICY "Admins can view all comments" ON post_comments
   FOR SELECT USING (
-    is_approved = TRUE OR is_admin() OR auth.uid() = user_id
+    is_approved = TRUE OR public.is_admin() OR auth.uid() = user_id
   );
 
 DROP POLICY IF EXISTS "Admins can moderate comments" ON post_comments;
 CREATE POLICY "Admins can moderate comments" ON post_comments
   FOR UPDATE USING (
-    is_admin() OR auth.uid() = user_id
+    public.is_admin() OR auth.uid() = user_id
   );
 
 DROP POLICY IF EXISTS "Admins can delete any comment" ON post_comments;
 CREATE POLICY "Admins can delete any comment" ON post_comments
   FOR DELETE USING (
-    is_admin() OR auth.uid() = user_id
+    public.is_admin() OR auth.uid() = user_id
   );
 
 DROP POLICY IF EXISTS "Authenticated users can add comments" ON post_comments;
@@ -144,7 +144,7 @@ CREATE POLICY "Users can update own reactions" ON post_reactions
 
 DROP POLICY IF EXISTS "Users can delete own reactions" ON post_reactions;
 CREATE POLICY "Users can delete own reactions" ON post_reactions
-  FOR DELETE USING (auth.uid() = user_id OR is_admin());
+  FOR DELETE USING (auth.uid() = user_id OR public.is_admin());
 
 -- 6. Add admin email (needs to be run AFTER user signs up)
 -- IMPORTANT: The user kesalarycalculator@gmail.com must sign up first through auth.html
@@ -220,7 +220,7 @@ RETURNS TABLE(
   created_at TIMESTAMPTZ
 ) AS $$
 BEGIN
-  IF NOT is_admin() THEN
+  IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'Admin access required';
   END IF;
   

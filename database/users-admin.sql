@@ -4,7 +4,7 @@
 -- 1. Allow admins to view all employer records
 DROP POLICY IF EXISTS "Admins can view all employers" ON employers;
 CREATE POLICY "Admins can view all employers" ON employers
-  FOR SELECT USING (auth.uid() = user_id OR is_admin());
+  FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
 
 -- 2. Function to get all registered users (admin only)
 --    Queries auth.users via SECURITY DEFINER to bypass row-level restrictions.
