@@ -476,9 +476,13 @@
                 <div class="donate-section">
                     <button class="donate-toggle" onclick="toggleDonateInfo()">❤️ Support This Project</button>
                     <div id="donateInfoCalc" class="donate-info" style="display: none;">
-                        <p>Your support helps keep this tool free and maintained! You can donate via <strong>PayPal</strong> or <strong>Mobile Money</strong> below:</p>
+                        <p>Your support helps keep this tool free and maintained! Choose a payment method below:</p>
+                        <div class="donate-method-tabs">
+                            <button class="donate-method-tab active" onclick="selectDonateMethod('calc','paypal')">💳 PayPal</button>
+                            <button class="donate-method-tab" onclick="selectDonateMethod('calc','mobile')">📲 Mobile Money</button>
+                        </div>
                         <!-- PayPal -->
-                        <div>
+                        <div id="donateCalc-paypal">
                             <!-- See PAYPAL_SETUP.md for instructions -->
                             <form action="https://www.paypal.com/donate" method="post" target="_top">
                                 <input type="hidden" name="hosted_button_id" value="D9H3ZADBCPPHG" />
@@ -487,9 +491,8 @@
                             </form>
                             <p class="donate-note">Thank you for supporting this free tool!</p>
                         </div>
-                        <div class="donate-divider"><span>or</span></div>
                         <!-- Mobile Payment -->
-                        <div>
+                        <div id="donateCalc-mobile" style="display:none;">
                             <div class="mobile-payment-panel">
                                 <h4>📲 Send via Mobile Money — Kenya</h4>
                                 <div class="mobile-payment-options">
@@ -815,9 +818,13 @@
                 <div class="donate-section">
                     <button class="donate-toggle" onclick="toggleDonateInfo()">❤️ Support This Project</button>
                     <div id="donateInfo" class="donate-info" style="display: none;">
-                        <p>Your support helps keep this tool free and maintained! You can donate via <strong>PayPal</strong> or <strong>Mobile Money</strong> below:</p>
+                        <p>Your support helps keep this tool free and maintained! Choose a payment method below:</p>
+                        <div class="donate-method-tabs">
+                            <button class="donate-method-tab active" onclick="selectDonateMethod('main','paypal')">💳 PayPal</button>
+                            <button class="donate-method-tab" onclick="selectDonateMethod('main','mobile')">📲 Mobile Money</button>
+                        </div>
                         <!-- PayPal -->
-                        <div>
+                        <div id="donateMain-paypal">
                             <!-- See PAYPAL_SETUP.md for instructions -->
                             <form action="https://www.paypal.com/donate" method="post" target="_top">
                                 <input type="hidden" name="hosted_button_id" value="D9H3ZADBCPPHG" />
@@ -826,9 +833,8 @@
                             </form>
                             <p class="donate-note">Thank you for supporting this free tool!</p>
                         </div>
-                        <div class="donate-divider"><span>or</span></div>
                         <!-- Mobile Payment -->
-                        <div>
+                        <div id="donateMain-mobile" style="display:none;">
                             <div class="mobile-payment-panel">
                                 <h4>📲 Send via Mobile Money — Kenya</h4>
                                 <div class="mobile-payment-options">

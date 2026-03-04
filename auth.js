@@ -496,6 +496,9 @@ async function updateAuthUI() {
                 <a href="/auth.html" class="sign-in-btn">
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </a>
+                <a href="/auth.html?tab=signup" class="sign-up-btn">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </a>
             `;
         }
     }

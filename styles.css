@@ -871,6 +871,31 @@ footer a:hover {
     box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 
+.donate-method-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px 0 16px;
+}
+
+.donate-method-tab {
+    padding: 8px 22px;
+    border: 2px solid #006600;
+    background: white;
+    color: #006600;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.donate-method-tab.active,
+.donate-method-tab:hover {
+    background: #006600;
+    color: white;
+}
+
 .donate-info {
     background: white;
     padding: 20px;
