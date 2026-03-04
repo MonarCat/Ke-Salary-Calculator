@@ -11,6 +11,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Check if a user has admin privileges.
+// Tries the is_admin() RPC first (requires admin-setup.sql to have been run).
+// Falls back to a direct email check so that access works even before the
+// database admin tables are created.
+async function checkIsAdmin(user) {
+    if (!user) return false;
+    try {
+        const { data, error } = await supabaseClient.rpc('is_admin');
+        if (!error && data === true) return true;
+    } catch (_) {
+        // RPC not available yet – fall through to email check
+    }
+    return user.email === window.ADMIN_EMAIL;
+}
+
 // Initialize admin dashboard
 async function initAdminDashboard() {
     const loadingState = document.getElementById('loadingState');
@@ -34,11 +49,10 @@ async function initAdminDashboard() {
         
         currentUser = user;
         
-        // Check if user is admin
-        const { data: adminData, error } = await supabaseClient
-            .rpc('is_admin');
+        // Check if user is admin (with email fallback for kesalarycalculator@gmail.com)
+        const adminGranted = await checkIsAdmin(currentUser);
         
-        if (error || adminData !== true) {
+        if (!adminGranted) {
             showAccessDenied();
             return;
         }
@@ -55,6 +69,15 @@ async function initAdminDashboard() {
         
         // Setup slug auto-generation
         setupSlugGenerator();
+
+        // Setup image upload handlers
+        setupImageUploadHandlers();
+
+        // Handle ?edit= URL parameter: jump straight to editing a specific post
+        const editParam = new URLSearchParams(window.location.search).get('edit');
+        if (editParam) {
+            await editPost(editParam);
+        }
         
     } catch (error) {
         console.error('Error initializing admin dashboard:', error);
@@ -219,15 +242,20 @@ async function editPost(postId) {
             window.quillEditor.root.innerHTML = data.content || '';
         }
         document.getElementById('post-image').value = data.featured_image_url || '';
+        document.getElementById('post-secondary-image').value = data.secondary_image_url || '';
         document.getElementById('post-author').value = data.author_name || 'Admin';
         document.getElementById('post-status').value = data.status;
+
+        // Refresh image previews
+        updateImagePreview('post-image-preview', data.featured_image_url || '');
+        updateImagePreview('post-secondary-image-preview', data.secondary_image_url || '');
         
         // Update form title
         document.getElementById('createFormTitle').textContent = 'Edit Blog Post';
         
-        // Switch to create tab
-        switchTab('create');
-        document.querySelector('[onclick="switchTab(\'create\')"]').click();
+        // Switch to the Create/Edit tab by simulating a click on it
+        const createTabBtn = document.querySelector('[onclick="switchTab(\'create\')"]');
+        if (createTabBtn) createTabBtn.click();
         
     } catch (error) {
         console.error('Error loading post:', error);
@@ -281,6 +309,7 @@ async function savePost(event) {
         excerpt: document.getElementById('post-excerpt').value,
         content: (window.getQuillContent ? window.getQuillContent() : document.getElementById('post-content').value),
         featured_image_url: document.getElementById('post-image').value,
+        secondary_image_url: document.getElementById('post-secondary-image').value || null,
         author_name: document.getElementById('post-author').value || currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'Admin',
         status: document.getElementById('post-status').value,
         author_id: currentUser.id,
@@ -332,6 +361,11 @@ function resetPostForm() {
     document.getElementById('createFormTitle').textContent = 'Create New Blog Post';
     editingPostId = null;
     document.getElementById('createMessage').innerHTML = '';
+    // Clear Quill editor content
+    if (window.quillEditor) window.quillEditor.setText('');
+    // Clear image previews
+    updateImagePreview('post-image-preview', '');
+    updateImagePreview('post-secondary-image-preview', '');
 }
 
 // Setup slug auto-generation
@@ -475,6 +509,84 @@ function showMessage(containerId, message, type) {
     setTimeout(() => {
         container.innerHTML = '';
     }, 5000);
+}
+
+// Update an image preview element
+function updateImagePreview(previewId, url) {
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+    if (url) {
+        const safeUrl = url.replace(/"/g, '%22');
+        preview.innerHTML = `<img src="${safeUrl}" alt="Preview" onerror="this.parentElement.innerHTML='<span style=color:#999>Preview unavailable</span>'">`;
+    } else {
+        preview.innerHTML = '';
+    }
+}
+
+// Upload an image file to Supabase Storage and fill in the URL field
+async function uploadBlogImage(fileInputId, urlInputId, previewId) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) return;
+
+    const file = fileInput.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxSize) {
+        showToast('Image must be smaller than 5 MB', 'error');
+        return;
+    }
+
+    const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const safeName = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`;
+
+    try {
+        showToast('Uploading image…', 'info');
+        const { error: uploadError } = await supabaseClient.storage
+            .from('blog-images')
+            .upload(safeName, file, { upsert: false, contentType: file.type });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabaseClient.storage
+            .from('blog-images')
+            .getPublicUrl(safeName);
+
+        document.getElementById(urlInputId).value = publicUrl;
+        updateImagePreview(previewId, publicUrl);
+        showToast('Image uploaded!', 'success');
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        showToast('Upload failed: ' + error.message, 'error');
+    } finally {
+        // Reset the file input so the same file can be re-selected if needed
+        fileInput.value = '';
+    }
+}
+
+// Wire up file-input change events and URL-input live preview
+function setupImageUploadHandlers() {
+    // Featured image
+    const featuredFile = document.getElementById('post-image-file');
+    if (featuredFile) {
+        featuredFile.addEventListener('change', () =>
+            uploadBlogImage('post-image-file', 'post-image', 'post-image-preview'));
+    }
+    const featuredUrl = document.getElementById('post-image');
+    if (featuredUrl) {
+        featuredUrl.addEventListener('input', () =>
+            updateImagePreview('post-image-preview', featuredUrl.value.trim()));
+    }
+
+    // Secondary image
+    const secondaryFile = document.getElementById('post-secondary-image-file');
+    if (secondaryFile) {
+        secondaryFile.addEventListener('change', () =>
+            uploadBlogImage('post-secondary-image-file', 'post-secondary-image', 'post-secondary-image-preview'));
+    }
+    const secondaryUrl = document.getElementById('post-secondary-image');
+    if (secondaryUrl) {
+        secondaryUrl.addEventListener('input', () =>
+            updateImagePreview('post-secondary-image-preview', secondaryUrl.value.trim()));
+    }
 }
 
 // Initialize on page load

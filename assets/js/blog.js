@@ -213,8 +213,8 @@ const fallbackBlogPosts = [
         slug: 'paye-exemption-below-30000-proposal',
         excerpt: 'Treasury CS John Mbadi has proposed exempting PAYE for individuals earning less than KSh 30,000 monthly. This reform could put more money back into the pockets of over 1.5 million low-wage earners.',
         content: '<p>In a bold move to alleviate financial pressures on Kenya\'s working class, Treasury Cabinet Secretary John Mbadi has proposed exempting PAYE for individuals earning less than KSh 30,000 monthly. Announced in early February 2026 and backed by President William Ruto, this reform aims to put more money back into the pockets of over 1.5 million low-wage earners amid rising living costs. But what does it really mean, and will it pass Parliament? Let\'s unpack the details.</p><h3>The Core of the Proposal</h3><p>Under the Tax Laws (Amendment) Bill 2026, workers earning KSh 30,000 or below would pay zero PAYE, effectively increasing their take-home pay by up to KSh 731 per month for those at the threshold. Additionally, those in the KSh 30,001-50,000 bracket would see their tax rate drop from 30% to 25%, adding about KSh 2,500 monthly to their net salary. The personal relief could also rise from KSh 2,400 to KSh 3,000, further cushioning the blow.</p><p>This initiative, as stated by CS Mbadi, targets equitable taxation: "Anybody earning KSh 30,000 and below in Kenya should not pay PAYE. You pay zero." President Ruto has emphasized its role in easing the cost of living, with the proposal set for parliamentary debate soon.</p><h3>Potential Impacts and Benefits</h3><ul><li><strong>For Employees</strong>: Low earners could see a net increase of KSh 1,361 after offsets like NSSF hikes, providing relief for essentials like food and transport.</li><li><strong>For the Economy</strong>: More disposable income could boost consumer spending, stimulating small businesses and growth.</li><li><strong>Challenges</strong>: Critics argue it might not fully offset other deductions, and revenue loss could strain government budgets, potentially leading to higher taxes elsewhere.</li></ul><h3>How to Prepare</h3><p>Monitor KRA updates via iTax. If passed, employers must adjust payroll systems—use our <a href="/payslip-generator-kenya.html" style="color: #006600;">payslip generator</a> for seamless compliance. Calculate your potential savings with our free tool at <a href="/calculator.html" style="color: #006600;">salarycalculator.co.ke</a>.</p><p>This proposal signals a shift toward progressive taxation, but its success hinges on legislative approval. Stay tuned, and let\'s hope it delivers real relief for Kenya\'s hustlers!</p>',
-        featured_image_url: 'assets/images/kenyan-economy-coins.jpg',
-        secondary_image_url: 'assets/images/nairobi_wh10.jpg',
+        featured_image_url: 'assets/images/National Treasury CS John Mbadi.jpeg',
+        secondary_image_url: 'assets/images/kenyan-economy-coins.jpg',
         author_name: 'Admin',
         views_count: 0,
         published_at: '2026-02-19T08:30:00Z',
@@ -557,6 +557,9 @@ function renderBlogPost(post, reactions, comments) {
             </div>
 
             <div class="blog-post-inner">
+                <!-- Admin controls (populated asynchronously for logged-in admins) -->
+                <div id="admin-post-controls"></div>
+
                 <!-- Category badge -->
                 <span class="blog-post-category-badge">${category}</span>
 
@@ -647,9 +650,51 @@ function renderBlogPost(post, reactions, comments) {
     // Initialize comment form
     initCommentForm(post.id);
 
+    // Show admin edit bar if the current user is an admin (non-blocking, async)
+    if (!_isUsingFallback && isValidUUID(post.id)) {
+        initAdminPostControls(post.id);
+    }
+
     // Load AdSense
     if (window.adsbygoogle) {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
+    }
+}
+
+// Show an admin toolbar above the post for logged-in admin users
+async function initAdminPostControls(postId) {
+    const controlsEl = document.getElementById('admin-post-controls');
+    if (!controlsEl) return;
+    if (!supabaseClient || !isSupabaseConfigured()) return;
+
+    try {
+        // Try the is_admin() RPC first; fall back to email check
+        let isAdminUser = false;
+        try {
+            const { data } = await supabaseClient.rpc('is_admin');
+            if (data === true) isAdminUser = true;
+        } catch (_) {}
+        if (!isAdminUser) {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user && user.email === window.ADMIN_EMAIL) {
+                isAdminUser = true;
+            }
+        }
+        if (!isAdminUser) return;
+
+        // Encode postId safely – it is a validated UUID so no escaping needed
+        controlsEl.innerHTML = `
+            <div class="admin-post-bar">
+                <span class="admin-post-bar-label"><i class="fas fa-shield-alt"></i> Admin</span>
+                <a href="/admin.html?edit=${postId}" class="admin-post-edit-btn">
+                    <i class="fas fa-edit"></i> Edit Post
+                </a>
+                <a href="/admin.html" class="admin-post-dashboard-btn">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>`;
+    } catch (_) {
+        // Not an admin or Supabase unavailable – silently do nothing
     }
 }
 

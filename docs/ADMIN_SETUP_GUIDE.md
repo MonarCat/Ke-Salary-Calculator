@@ -1,48 +1,81 @@
 # Blog Admin Setup and Image Requirements
 
-## Admin User Setup
+## Quick-Start for kesalarycalculator@gmail.com
 
-### Step 1: Create Admin Account
-The admin user **kesalarycalculator@gmail.com** needs to be created and granted admin access.
-
+### Step 1: Sign Up
 1. Navigate to `/auth.html`
 2. Sign up with:
    - Email: `kesalarycalculator@gmail.com`
-   - Password: (Set a strong password)
+   - Password: (strong password of your choice)
    - Name: Admin
-   - Account Type: Individual
 
-### Step 2: Run Database Setup Scripts
+### Step 2: Run Database Setup Scripts (in Supabase SQL Editor)
 
-#### Run Admin Setup SQL
-Execute the `admin-setup.sql` script in Supabase SQL Editor to:
-- Create `admin_users` table
-- Add admin-specific RLS policies
-- Create helper functions for admin operations
-- Setup real-time view tracking
+Run these scripts **in order**:
 
-#### Grant Admin Access
-After the user signs up, run this SQL to grant admin privileges:
+| Script | Purpose |
+|--------|---------|
+| `database/blog-setup.sql` | Blog tables (posts, comments, reactions) |
+| `database/admin-setup.sql` | Admin role & RLS policies |
+| `database/blog-schema-additions.sql` | Profiles table & triggers |
+| `database/storage-setup.sql` | Image upload bucket (`blog-images`) |
+| `database/grant-admin-access.sql` | Grant super-admin to kesalarycalculator@gmail.com |
 
-```sql
-INSERT INTO admin_users (user_id, email, is_super_admin)
-VALUES (
-  (SELECT id FROM auth.users WHERE email = 'kesalarycalculator@gmail.com'),
-  'kesalarycalculator@gmail.com',
-  TRUE
-)
-ON CONFLICT (email) DO NOTHING;
-```
+### Step 3: Access the Admin Dashboard
+1. Sign in at `/admin-auth.html`
+2. You are redirected to `/admin.html` automatically
 
-### Step 3: Access Admin Dashboard
-Once admin access is granted:
-1. Sign in at `/auth.html` with kesalarycalculator@gmail.com
-2. Navigate to `/admin.html`
-3. You should see the admin dashboard with:
-   - Analytics overview
-   - Post management
-   - Create/edit post interface
-   - Comment moderation
+---
+
+## Editing Blog Posts Like WordPress
+
+### From the Blog Post Page
+When signed in as an admin, a yellow **Admin** toolbar appears above every published post:
+- **Edit Post** – opens the admin editor pre-loaded with that post
+- **Dashboard** – returns to the admin overview
+
+The URL `/admin.html?edit=<post-id>` can also be bookmarked or shared.
+
+### From the Admin Dashboard
+1. Go to **Manage Posts** tab
+2. Click **Edit** next to any post
+3. The Create/Edit form opens with all fields pre-filled
+
+---
+
+## Attaching Images
+
+Each blog post has two image fields in the admin form:
+
+| Field | Description |
+|-------|-------------|
+| **Featured Image** | Hero image shown at the top and in the blog listing card |
+| **Secondary Image** | Optional mid-article image inserted between the first and second halves of the content |
+
+### Uploading Files (Recommended)
+1. Click the **Upload** button next to either image field
+2. Choose a JPEG, PNG, GIF, or WebP file (max 5 MB)
+3. The file is uploaded to Supabase Storage (`blog-images` bucket)
+4. The public URL is auto-filled and a thumbnail preview appears
+
+### Using a URL
+Alternatively, type or paste a URL directly into either image field:
+- Relative path: `assets/images/my-photo.jpg`
+- Absolute URL: `https://example.com/photo.jpg`
+
+A live thumbnail preview updates as you type.
+
+---
+
+## Comment Moderation
+
+Go to the **Comments** tab in the admin dashboard to:
+- View all comments across all posts
+- **Approve** pending comments (shown with a yellow "Pending" badge)
+- **Delete** spam or inappropriate comments
+- See which post each comment belongs to
+
+---
 
 ## Admin Dashboard Features
 
@@ -264,14 +297,15 @@ The blog is already configured for Google AdSense:
 ## Next Steps
 
 1. ✅ Create admin account (kesalarycalculator@gmail.com)
-2. ✅ Run `admin-setup.sql` in Supabase
-3. ✅ Grant admin access via SQL
-4. ⚠️ Source and add CS Mbadi photo
-5. ⚠️ Update Post 6 with CS Mbadi image
-6. ✅ Test admin dashboard functionality
-7. ✅ Test real-time view updates
-8. ✅ Verify social sharing on all platforms
-9. ✅ Start creating regular blog content
+2. ✅ Run `blog-setup.sql` in Supabase
+3. ✅ Run `admin-setup.sql` in Supabase
+4. ✅ Run `blog-schema-additions.sql` in Supabase
+5. ✅ Run `storage-setup.sql` in Supabase (image uploads)
+6. ✅ Run `grant-admin-access.sql` to activate admin access
+7. ✅ CS Mbadi photo added to Post 6
+8. ✅ Image file upload available in admin post editor
+9. ✅ "Edit Post" admin bar visible on blog posts for admins
+10. ✅ Start creating regular blog content
 
 ## Support
 

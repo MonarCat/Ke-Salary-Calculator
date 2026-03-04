@@ -1314,3 +1314,58 @@
     line-height: 1.6;
     margin-bottom: 10px;
 }
+
+/* ── Admin post control bar (visible only to admins on blog-post.html) ── */
+.admin-post-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff8e1;
+    border: 1px solid #f0c000;
+    border-radius: 7px;
+    padding: 8px 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.admin-post-bar-label {
+    font-size: 0.82em;
+    font-weight: 600;
+    color: #856404;
+    margin-right: 4px;
+}
+
+.admin-post-edit-btn,
+.admin-post-dashboard-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 0.85em;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.admin-post-edit-btn {
+    background: #006600;
+    color: #fff;
+}
+
+.admin-post-edit-btn:hover {
+    background: #009900;
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+.admin-post-dashboard-btn {
+    background: #555;
+    color: #fff;
+}
+
+.admin-post-dashboard-btn:hover {
+    background: #333;
+    transform: translateY(-1px);
+    color: #fff;
+}

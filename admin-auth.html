@@ -367,11 +367,17 @@
 
                 const user = data.user;
 
-                // 2. Verify admin role via is_admin() RPC (RBAC)
-                const { data: adminData, error: adminError } = await supabaseClient
-                    .rpc('is_admin');
+                // 2. Verify admin role: try is_admin() RPC first, fall back to email check.
+                let adminGranted = false;
+                try {
+                    const { data: rpcData, error: rpcError } = await supabaseClient.rpc('is_admin');
+                    if (!rpcError && rpcData === true) adminGranted = true;
+                } catch (_) {}
+                if (!adminGranted) {
+                    adminGranted = user.email === window.ADMIN_EMAIL;
+                }
 
-                if (adminError || adminData !== true) {
+                if (!adminGranted) {
                     // Not an admin – sign them out immediately
                     await supabaseClient.auth.signOut();
                     const result = recordLoginAttempt();
@@ -419,9 +425,16 @@
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session && session.user) {
-                    const { data: adminData } = await supabaseClient
-                        .rpc('is_admin');
-                    if (adminData === true) {
+                    // Try is_admin() RPC; fall back to email check
+                    let adminGranted = false;
+                    try {
+                        const { data: rpcData } = await supabaseClient.rpc('is_admin');
+                        if (rpcData === true) adminGranted = true;
+                    } catch (_) {}
+                    if (!adminGranted) {
+                        adminGranted = session.user.email === window.ADMIN_EMAIL;
+                    }
+                    if (adminGranted) {
                         // Already authenticated admin – go straight to dashboard
                         window.location.replace('/admin.html');
                         return;

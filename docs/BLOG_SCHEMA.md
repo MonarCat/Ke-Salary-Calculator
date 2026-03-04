@@ -16,6 +16,7 @@ CREATE TABLE blog_posts (
   excerpt TEXT,
   content TEXT NOT NULL,
   featured_image_url TEXT,
+  secondary_image_url TEXT,
   author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   author_name TEXT DEFAULT 'Admin',
   status TEXT DEFAULT 'published' CHECK (status IN ('draft', 'published', 'archived')),
