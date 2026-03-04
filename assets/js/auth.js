@@ -459,6 +459,10 @@ async function updateAuthUI() {
                     isAdmin = false;
                 }
             }
+            // Email-based fallback so kesalarycalculator@gmail.com always sees the link
+            if (!isAdmin) {
+                isAdmin = user.email === window.ADMIN_EMAIL;
+            }
             
             authLinks.innerHTML = `
                 <div class="user-profile">

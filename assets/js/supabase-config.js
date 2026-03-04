@@ -24,6 +24,11 @@ function isSupabaseConfigured() {
            SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
 }
 
+// Designated super-admin email.
+// Used as a fallback when the admin_users table / is_admin() RPC is not yet set up.
+const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
+
 // Export for use in other files
 window.supabaseClient = supabaseClient;
 window.isSupabaseConfigured = isSupabaseConfigured;
+window.ADMIN_EMAIL = ADMIN_EMAIL;

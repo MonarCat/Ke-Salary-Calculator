@@ -11,6 +11,21 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Check if a user has admin privileges.
+// Tries the is_admin() RPC first (requires admin-setup.sql to have been run).
+// Falls back to a direct email check so that access works even before the
+// database admin tables are created.
+async function checkIsAdmin(user) {
+    if (!user) return false;
+    try {
+        const { data, error } = await supabaseClient.rpc('is_admin');
+        if (!error && data === true) return true;
+    } catch (_) {
+        // RPC not available yet – fall through to email check
+    }
+    return user.email === window.ADMIN_EMAIL;
+}
+
 // Initialize admin dashboard
 async function initAdminDashboard() {
     const loadingState = document.getElementById('loadingState');
@@ -34,11 +49,10 @@ async function initAdminDashboard() {
         
         currentUser = user;
         
-        // Check if user is admin
-        const { data: adminData, error } = await supabaseClient
-            .rpc('is_admin');
+        // Check if user is admin (with email fallback for kesalarycalculator@gmail.com)
+        const adminGranted = await checkIsAdmin(currentUser);
         
-        if (error || adminData !== true) {
+        if (!adminGranted) {
             showAccessDenied();
             return;
         }
@@ -522,7 +536,7 @@ async function uploadBlogImage(fileInputId, urlInputId, previewId) {
     }
 
     const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
-    const safeName = `blog/${Date.now()}-${Math.random().toString(36).substr(2, 8)}.${ext}`;
+    const safeName = `blog/${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${ext}`;
 
     try {
         showToast('Uploading image…', 'info');

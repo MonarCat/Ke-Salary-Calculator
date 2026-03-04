@@ -668,8 +668,19 @@ async function initAdminPostControls(postId) {
     if (!supabaseClient || !isSupabaseConfigured()) return;
 
     try {
-        const { data: adminData } = await supabaseClient.rpc('is_admin');
-        if (adminData !== true) return;
+        // Try the is_admin() RPC first; fall back to email check
+        let isAdminUser = false;
+        try {
+            const { data } = await supabaseClient.rpc('is_admin');
+            if (data === true) isAdminUser = true;
+        } catch (_) {}
+        if (!isAdminUser) {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user && user.email === window.ADMIN_EMAIL) {
+                isAdminUser = true;
+            }
+        }
+        if (!isAdminUser) return;
 
         // Encode postId safely – it is a validated UUID so no escaping needed
         controlsEl.innerHTML = `
