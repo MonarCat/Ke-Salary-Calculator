@@ -1422,3 +1422,49 @@ footer a:hover {
     background: #009900;
     box-shadow: 0 6px 18px rgba(0, 102, 0, 0.5);
 }
+
+/* ── Global Advertisement Sidebar Styles ───────────────────────────── */
+.custom-ad-box {
+    background: #fff;
+    border: 2px dashed #009900;
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,102,0,0.07);
+    margin-bottom: 18px;
+}
+.custom-ad-box i.ad-icon {
+    font-size: 1.8em;
+    color: #009900;
+    margin-bottom: 8px;
+    display: block;
+}
+.custom-ad-box p {
+    color: #444;
+    font-size: 0.82em;
+    line-height: 1.5;
+    margin: 5px 0;
+}
+.custom-ad-box a.ad-contact-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #006600;
+    color: white;
+    text-decoration: none;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+.custom-ad-box a.ad-contact-btn:hover { background: #004400; }
+
+/* Feature card hover animation */
+.feature-card {
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 28px rgba(0,102,0,0.13);
+}
+
