@@ -140,6 +140,124 @@
             line-height: 1.8;
             text-align: center;
         }
+        /* Contact Form */
+        .contact-form-section {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+        .contact-form-section h2 {
+            color: #006600;
+            margin-bottom: 8px;
+            font-size: 1.6em;
+        }
+        .contact-form-section .form-subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+        .cf-form-group {
+            margin-bottom: 18px;
+        }
+        .cf-form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+        .cf-form-group label i {
+            color: #006600;
+            margin-right: 6px;
+            width: 14px;
+        }
+        .cf-form-group input,
+        .cf-form-group select,
+        .cf-form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-family: inherit;
+            color: #333;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .cf-form-group input:focus,
+        .cf-form-group select:focus,
+        .cf-form-group textarea:focus {
+            border-color: #006600;
+            box-shadow: 0 0 0 3px rgba(0,102,0,0.1);
+            outline: none;
+        }
+        .cf-form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .cf-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .cf-form-row { grid-template-columns: 1fr; }
+        }
+        .cf-submit-btn {
+            background: #006600;
+            color: white;
+            border: none;
+            padding: 13px 35px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cf-submit-btn:hover {
+            background: #005500;
+        }
+        .cf-submit-btn:active {
+            transform: scale(0.98);
+        }
+        .cf-submit-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .cf-alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-top: 18px;
+            display: none;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        .cf-alert.success {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            color: #2e7d32;
+        }
+        .cf-alert.error {
+            background: #fdecea;
+            border: 1px solid #ef9a9a;
+            color: #c62828;
+        }
+        .cf-loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: cf-spin 0.7s linear infinite;
+        }
+        @keyframes cf-spin { to { transform: rotate(360deg); } }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
@@ -196,14 +314,59 @@
                         <i class="fas fa-envelope"></i>
                         <h3>Email Us</h3>
                         <p>Send us an email and we'll get back to you as soon as possible</p>
-                        <p><a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></p>
+                        <p><a href="mailto:kesalarycalculator@gmail.com">kesalarycalculator@gmail.com</a></p>
                     </div>
                     <div class="contact-card">
-                        <i class="fas fa-phone"></i>
-                        <h3>Call Us</h3>
-                        <p>Speak directly with our support team during business hours</p>
-                        <p><a href="tel:+254702359618">+254 702 359 618</a></p>
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>Message Us</h3>
+                        <p>Fill in the form below and we'll get back to you within 24–48 hours</p>
+                        <p><a href="#contact-form" onclick="document.getElementById('cf-name').focus()">Go to contact form ↓</a></p>
                     </div>
+                </div>
+
+                <!-- Message Us / Feedback Form -->
+                <div class="contact-form-section" id="contact-form">
+                    <h2><i class="fas fa-paper-plane" style="color:#006600;"></i> Message Us / Feedback</h2>
+                    <p class="form-subtitle">Have a question, suggestion or found a bug? We'd love to hear from you. Fill in the form below and we'll respond within 24–48 hours.</p>
+
+                    <form id="contactForm" name="contact" netlify novalidate>
+                        <input type="hidden" name="form-name" value="contact">
+                        <div class="cf-form-row">
+                            <div class="cf-form-group">
+                                <label for="cf-name"><i class="fas fa-user"></i> Your Name <span style="color:#cc0000;">*</span></label>
+                                <input type="text" id="cf-name" name="name" placeholder="John Doe" required autocomplete="name">
+                            </div>
+                            <div class="cf-form-group">
+                                <label for="cf-email"><i class="fas fa-envelope"></i> Your Email <span style="color:#cc0000;">*</span></label>
+                                <input type="email" id="cf-email" name="email" placeholder="john@example.com" required autocomplete="email">
+                            </div>
+                        </div>
+                        <div class="cf-form-group">
+                            <label for="cf-subject"><i class="fas fa-tag"></i> Subject <span style="color:#cc0000;">*</span></label>
+                            <select id="cf-subject" name="subject" required>
+                                <option value="">— Select a subject —</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Feedback / Suggestion">Feedback / Suggestion</option>
+                                <option value="Bug Report">Bug Report</option>
+                                <option value="Feature Request">Feature Request</option>
+                                <option value="Calculation Error">Calculation Error</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="cf-form-group">
+                            <label for="cf-message"><i class="fas fa-comment-alt"></i> Message <span style="color:#cc0000;">*</span></label>
+                            <textarea id="cf-message" name="message" placeholder="Please describe your question, feedback or issue in as much detail as possible…" required></textarea>
+                        </div>
+
+                        <button type="submit" class="cf-submit-btn" id="cf-submit-btn">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+
+                        <div class="cf-alert success" id="cf-success">
+                            <i class="fas fa-check-circle"></i> <strong>Message sent!</strong> Thank you for reaching out. We'll get back to you within 24–48 hours.
+                        </div>
+                        <div class="cf-alert error" id="cf-error"></div>
+                    </form>
                 </div>
 
                 <!-- Support Hours -->
@@ -212,7 +375,7 @@
                     <p><strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM EAT<br>
                     <strong>Saturday:</strong> 9:00 AM - 1:00 PM EAT<br>
                     <strong>Sunday & Public Holidays:</strong> Closed</p>
-                    <p style="margin-top: 15px; font-size: 0.95em;">For urgent matters outside business hours, please email us and we'll respond as soon as we're back online.</p>
+                    <p style="margin-top: 15px; font-size: 0.95em;">Outside business hours, use our contact form or email us and we'll respond as soon as we're back online.</p>
                 </div>
 
                 <!-- Response Time -->
@@ -285,7 +448,7 @@
                             <i class="fas fa-question-circle"></i> Do you offer training or support for employers?
                         </div>
                         <div class="faq-answer">
-                            Yes! We provide email and phone support to help you get started. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">Help Centre</a> to help you make the most of our platform.
+                            Yes! We provide email and online support to help you get started. Use our contact form above or email us directly. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">About Us</a> page to help you make the most of our platform.
                         </div>
                     </div>
                 </div>
@@ -336,5 +499,84 @@
     <script src="assets/js/nav-toggle.js"></script>
     <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script>
+        // ── Contact / Feedback Form (Netlify Forms) ─────────────────────────
+        // Netlify automatically detects the `netlify` attribute on the form and
+        // handles delivery. Submissions are POSTed to this page as URL-encoded
+        // data; Netlify intercepts them and emails the site owner.
+
+        // Helper: show a safe error message (avoids XSS from API responses)
+        function showFormError(el, msg) {
+            el.textContent = '';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-exclamation-circle';
+            el.appendChild(icon);
+            el.appendChild(document.createTextNode(' ' + msg));
+            el.style.display = 'block';
+        }
+
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn      = document.getElementById('cf-submit-btn');
+            const success  = document.getElementById('cf-success');
+            const errorEl  = document.getElementById('cf-error');
+            const name     = document.getElementById('cf-name').value.trim();
+            const email    = document.getElementById('cf-email').value.trim();
+            const subject  = document.getElementById('cf-subject').value;
+            const message  = document.getElementById('cf-message').value.trim();
+
+            // Hide previous alerts
+            success.style.display = 'none';
+            errorEl.style.display = 'none';
+
+            // Basic client-side validation
+            if (!name || !email || !subject || !message) {
+                showFormError(errorEl, 'Please fill in all required fields.');
+                return;
+            }
+
+            // Loading state
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="cf-loading-spinner"></span> Sending…';
+            btn.disabled = true;
+
+            try {
+                // Netlify Forms: POST URL-encoded data to the current page
+                const body = new URLSearchParams({
+                    'form-name': 'contact',
+                    name:    name,
+                    email:   email,
+                    subject: subject,
+                    message: message
+                });
+
+                const res = await fetch(window.location.pathname, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body:    body.toString()
+                });
+
+                if (res.ok) {
+                    success.style.display = 'block';
+                    document.getElementById('contactForm').reset();
+                } else {
+                    showFormError(errorEl,
+                        'Something went wrong (HTTP ' + res.status + '). ' +
+                        'Please try again or email us directly at kesalarycalculator@gmail.com.');
+                }
+            } catch (err) {
+                // Network error – fallback to mailto so the message is not lost
+                const mailBody = 'Name: ' + name + '\nFrom: ' + email + '\n\nMessage:\n' + message;
+                const mailto = 'mailto:kesalarycalculator@gmail.com' +
+                    '?subject=' + encodeURIComponent('[Kenya Salary Calculator] ' + subject) +
+                    '&body='    + encodeURIComponent(mailBody);
+                window.location.href = mailto;
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>

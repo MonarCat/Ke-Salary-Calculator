@@ -501,6 +501,27 @@
                 </div>
             </div>
 
+            <!-- Guest: prompt to sign in to unlock full features -->
+            <div class="guest-only-section" style="text-align:center; margin: 30px 0; padding: 30px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07);">
+                <i class="fas fa-lock" style="font-size: 2.5em; color: #006600; margin-bottom: 12px;"></i>
+                <h2 style="color: #006600; margin-bottom: 10px;">Unlock All Features — Free</h2>
+                <p style="color: #555; max-width: 520px; margin: 0 auto 20px;">Sign in or create a free account to access the full Salary Calculator, Payslip Generator, Employee Management, and more.</p>
+                <ul style="list-style:none; padding:0; margin: 0 auto 24px; max-width:400px; text-align:left; color:#444;">
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Full net salary &amp; PAYE breakdown</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Professional payslip generator</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Employee management &amp; payroll history</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> KRA-compliant calculations</li>
+                </ul>
+                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                    <a href="/auth.html" class="cta-button primary" style="text-decoration:none;">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                    <a href="/auth.html?tab=signup" class="cta-button secondary" style="text-decoration:none;">
+                        <i class="fas fa-user-plus"></i> Create Free Account
+                    </a>
+                </div>
+            </div>
+
             <!-- Stats Section -->
             <div class="stats-section auth-only-section" style="display:none;">
                 <div class="stat-item">
@@ -726,6 +747,9 @@
                             el.style.display = 'block';
                         });
                         document.querySelectorAll('.signup-cta').forEach(function(el) {
+                            el.style.display = 'none';
+                        });
+                        document.querySelectorAll('.guest-only-section').forEach(function(el) {
                             el.style.display = 'none';
                         });
                     }

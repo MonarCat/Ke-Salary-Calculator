@@ -72,6 +72,35 @@ function openTab(tabName) {
     if (activeBtn) activeBtn.classList.add('active');
 }
 
+// Open the Payslip Generator tab with an auth check.
+// Unauthenticated users see a sign-in prompt instead of the form.
+async function openPayslipTab() {
+    openTab('payslip');
+
+    const formContent = document.getElementById('payslip-form-content');
+    const authPrompt  = document.getElementById('payslip-auth-prompt');
+    if (!formContent || !authPrompt) return;
+
+    let isAuthenticated = false;
+    if (typeof supabaseClient !== 'undefined' && supabaseClient &&
+        typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            isAuthenticated = !!session;
+        } catch (e) {
+            isAuthenticated = false;
+        }
+    }
+
+    if (isAuthenticated) {
+        formContent.style.display = 'block';
+        authPrompt.style.display  = 'none';
+    } else {
+        formContent.style.display = 'none';
+        authPrompt.style.display  = 'block';
+    }
+}
+
 // Salary Calculator Functions
 function calculateSalary() {
     const grossPay = parseFloat(document.getElementById('grossPay').value) || 0;
@@ -652,7 +681,7 @@ window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
     if (tab === 'payslip') {
-        openTab('payslip');
+        openPayslipTab();
     }
     
     const saved = JSON.parse(localStorage.getItem('employeeData'));
