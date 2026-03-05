@@ -560,8 +560,12 @@
                         'Please try again later.');
                 }
             } catch (err) {
-                // Network error
-                showFormError(errorEl, 'A network error occurred. Please check your connection and try again.');
+                // Network error – fallback to mailto so the message is not lost
+                const mailBody = 'Name: ' + name + '\nFrom: ' + email + '\n\nMessage:\n' + message;
+                const mailto = 'mailto:kesalarycalculator@gmail.com' +
+                    '?subject=' + encodeURIComponent('[Kenya Salary Calculator] ' + subject) +
+                    '&body='    + encodeURIComponent(mailBody);
+                window.location.href = mailto;
             } finally {
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
