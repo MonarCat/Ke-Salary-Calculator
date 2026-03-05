@@ -311,12 +311,6 @@
                 <!-- Contact Methods -->
                 <div class="contact-grid">
                     <div class="contact-card">
-                        <i class="fas fa-envelope"></i>
-                        <h3>Email Us</h3>
-                        <p>Send us an email and we'll get back to you as soon as possible</p>
-                        <p><a href="mailto:kesalarycalculator@gmail.com">kesalarycalculator@gmail.com</a></p>
-                    </div>
-                    <div class="contact-card">
                         <i class="fas fa-comment-dots"></i>
                         <h3>Message Us</h3>
                         <p>Fill in the form below and we'll get back to you within 24–48 hours</p>
@@ -375,7 +369,7 @@
                     <p><strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM EAT<br>
                     <strong>Saturday:</strong> 9:00 AM - 1:00 PM EAT<br>
                     <strong>Sunday & Public Holidays:</strong> Closed</p>
-                    <p style="margin-top: 15px; font-size: 0.95em;">Outside business hours, use our contact form or email us and we'll respond as soon as we're back online.</p>
+                    <p style="margin-top: 15px; font-size: 0.95em;">Outside business hours, use our contact form and we'll respond as soon as we're back online.</p>
                 </div>
 
                 <!-- Response Time -->
@@ -448,7 +442,7 @@
                             <i class="fas fa-question-circle"></i> Do you offer training or support for employers?
                         </div>
                         <div class="faq-answer">
-                            Yes! We provide email and online support to help you get started. Use our contact form above or email us directly. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">About Us</a> page to help you make the most of our platform.
+                            Yes! We provide online support to help you get started. Use our contact form above. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">About Us</a> page to help you make the most of our platform.
                         </div>
                     </div>
                 </div>
@@ -563,15 +557,11 @@
                 } else {
                     showFormError(errorEl,
                         'Something went wrong (HTTP ' + res.status + '). ' +
-                        'Please try again or email us directly at kesalarycalculator@gmail.com.');
+                        'Please try again later.');
                 }
             } catch (err) {
-                // Network error – fallback to mailto so the message is not lost
-                const mailBody = 'Name: ' + name + '\nFrom: ' + email + '\n\nMessage:\n' + message;
-                const mailto = 'mailto:kesalarycalculator@gmail.com' +
-                    '?subject=' + encodeURIComponent('[Kenya Salary Calculator] ' + subject) +
-                    '&body='    + encodeURIComponent(mailBody);
-                window.location.href = mailto;
+                // Network error
+                showFormError(errorEl, 'A network error occurred. Please check your connection and try again.');
             } finally {
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
