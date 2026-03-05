@@ -31,8 +31,8 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
     <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -155,6 +155,25 @@
             margin-top: 10px;
         }
         .whatsapp-share-btn:hover { background: #128C7E; }
+
+        /* Ad sidebar for calculator page */
+        .calc-page-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .calc-page-main { flex: 1; min-width: 0; }
+        .calc-page-sidebar {
+            width: 180px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 80px;
+        }
+        @media (max-width: 900px) {
+            .calc-page-layout { flex-direction: column; }
+            .calc-page-sidebar { width: 100%; position: static; display: flex; gap: 14px; flex-wrap: wrap; }
+            .calc-page-sidebar .custom-ad-box { flex: 1; min-width: 200px; }
+        }
     </style>
 </head>
 <body>
@@ -928,6 +947,22 @@
                     </div>
                 </div>
                 </div><!-- /payslip-form-content -->
+            </div>
+
+            <!-- Advertisement Sidebar (compact strip at bottom of content) -->
+            <div style="display:flex; gap:14px; flex-wrap:wrap; margin: 20px 0;">
+                <div class="custom-ad-box" style="flex:1; min-width:220px;">
+                    <i class="fas fa-bullhorn ad-icon"></i>
+                    <p><strong>Your Advert Could Be Here</strong></p>
+                    <p>Reach Kenya's HR &amp; payroll audience at affordable rates.</p>
+                    <a href="/contact-us.html" class="ad-contact-btn"><i class="fas fa-envelope"></i> Contact Now</a>
+                </div>
+                <div class="custom-ad-box" style="flex:1; min-width:220px;">
+                    <i class="fas fa-ad ad-icon"></i>
+                    <p><strong>Advertise With Us</strong></p>
+                    <p>Target thousands of Kenyan employers &amp; employees daily.</p>
+                    <a href="/contact-us.html" class="ad-contact-btn"><i class="fas fa-phone-alt"></i> Get In Touch</a>
+                </div>
             </div>
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
