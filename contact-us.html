@@ -329,7 +329,8 @@
                     <h2><i class="fas fa-paper-plane" style="color:#006600;"></i> Message Us / Feedback</h2>
                     <p class="form-subtitle">Have a question, suggestion or found a bug? We'd love to hear from you. Fill in the form below and we'll respond within 24–48 hours.</p>
 
-                    <form id="contactForm" novalidate>
+                    <form id="contactForm" name="contact" netlify novalidate>
+                        <input type="hidden" name="form-name" value="contact">
                         <div class="cf-form-row">
                             <div class="cf-form-group">
                                 <label for="cf-name"><i class="fas fa-user"></i> Your Name <span style="color:#cc0000;">*</span></label>
@@ -499,13 +500,10 @@
     <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
-        // ── Contact / Feedback Form ──────────────────────────────────────────
-        // Submissions are sent via Formspree (https://formspree.io).
-        // To activate email delivery to kesalarycalculator@gmail.com:
-        //   1. Sign up for a free account at https://formspree.io
-        //   2. Create a new form, set the destination to kesalarycalculator@gmail.com
-        //   3. Replace FORMSPREE_FORM_ID below with your form's actual ID
-        const FORMSPREE_FORM_ID = 'YOUR_FORMSPREE_FORM_ID'; // ← replace with your Formspree form ID
+        // ── Contact / Feedback Form (Netlify Forms) ─────────────────────────
+        // Netlify automatically detects the `netlify` attribute on the form and
+        // handles delivery. Submissions are POSTed to this page as URL-encoded
+        // data; Netlify intercepts them and emails the site owner.
 
         // Helper: show a safe error message (avoids XSS from API responses)
         function showFormError(el, msg) {
@@ -544,31 +542,35 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch('https://formspree.io/f/' + FORMSPREE_FORM_ID, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, subject, message })
+                // Netlify Forms: POST URL-encoded data to the current page
+                const body = new URLSearchParams({
+                    'form-name': 'contact',
+                    name:    name,
+                    email:   email,
+                    subject: subject,
+                    message: message
+                });
+
+                const res = await fetch(window.location.pathname, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body:    body.toString()
                 });
 
                 if (res.ok) {
                     success.style.display = 'block';
                     document.getElementById('contactForm').reset();
                 } else {
-                    const data = await res.json().catch(() => ({}));
-                    // Sanitise API error messages — join plain text only, no HTML
-                    const apiMsg = (data.errors && Array.isArray(data.errors))
-                        ? data.errors.map(function(err) { return String(err.message || err); }).join(', ')
-                        : '';
-                    const msg = apiMsg ||
-                        'Something went wrong. Please try again or email us directly at kesalarycalculator@gmail.com.';
-                    showFormError(errorEl, msg);
+                    showFormError(errorEl,
+                        'Something went wrong (HTTP ' + res.status + '). ' +
+                        'Please try again or email us directly at kesalarycalculator@gmail.com.');
                 }
             } catch (err) {
                 // Network error – fallback to mailto so the message is not lost
-                const body = 'Name: ' + name + '\nFrom: ' + email + '\n\nMessage:\n' + message;
+                const mailBody = 'Name: ' + name + '\nFrom: ' + email + '\n\nMessage:\n' + message;
                 const mailto = 'mailto:kesalarycalculator@gmail.com' +
                     '?subject=' + encodeURIComponent('[Kenya Salary Calculator] ' + subject) +
-                    '&body=' + encodeURIComponent(body);
+                    '&body='    + encodeURIComponent(mailBody);
                 window.location.href = mailto;
             } finally {
                 btn.innerHTML = originalHTML;
