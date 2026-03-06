@@ -497,11 +497,8 @@ async function updateAuthUI() {
         } else {
             // User is not logged in
             authLinks.innerHTML = `
-                <a href="/auth.html" class="sign-in-btn">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </a>
-                <a href="/auth.html?tab=signup" class="sign-up-btn">
-                    <i class="fas fa-user-plus"></i> Sign Up
+                <a href="/auth.html" class="sign-in-up-btn">
+                    <i class="fas fa-user-circle"></i> Sign In/Up
                 </a>
             `;
         }

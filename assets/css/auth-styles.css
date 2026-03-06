@@ -451,7 +451,31 @@
     margin: 5px 0;
 }
 
-/* Sign In Button (shown when user is not logged in) */
+/* Sign In/Up combined button (shown when user is not logged in) */
+.sign-in-up-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #006600, #009900);
+    color: white !important;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 102, 0, 0.25);
+}
+
+.sign-in-up-btn:hover {
+    background: linear-gradient(135deg, #004400, #007700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 0, 0.4);
+    color: white !important;
+}
+
+/* Keep legacy sign-in/sign-up classes for backward compat */
 .sign-in-btn {
     display: inline-flex;
     align-items: center;
@@ -474,7 +498,6 @@
     color: white !important;
 }
 
-/* Sign Up Button (shown when user is not logged in) */
 .sign-up-btn {
     display: inline-flex;
     align-items: center;
