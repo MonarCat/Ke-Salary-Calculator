@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Kenya Salary Calculator | Finance & Tax News</title>
+    <meta name="description" content="Read the latest articles on Kenya salary, PAYE, tax changes and financial news from Kenya Salary Calculator.">
+    <meta name="keywords" content="Kenya salary blog, PAYE news Kenya, Kenya tax updates, KRA news, Kenya finance news">
+    <meta name="author" content="Kenya Salary Calculator">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/blog.html">
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/blog.html">
+    <meta property="og:title" content="Blog - Kenya Salary Calculator | Finance & Tax News">
+    <meta property="og:description" content="Read the latest articles on Kenya salary, PAYE, tax changes and financial news.">
+
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
+    <style>
+        .blog-header {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .blog-header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: none;
+            padding-bottom: 0;
+        }
+        .blog-header h1::after {
+            display: none;
+        }
+        .blog-header p {
+            font-size: 1.1em;
+            color: #f0f0f0;
+            margin: 0;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin: 20px 0;
+        }
+        .blog-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px 30px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #006600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .blog-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .blog-card-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #006600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .blog-card-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .blog-card-title a:hover {
+            text-decoration: underline;
+        }
+        .blog-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        .blog-card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .blog-card-excerpt {
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-size: 0.97em;
+        }
+        .blog-read-more {
+            display: inline-block;
+            padding: 9px 22px;
+            background: #006600;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .blog-read-more:hover {
+            background: #004d00;
+        }
+        .blog-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+        .blog-loading i {
+            font-size: 2em;
+            color: #006600;
+            display: block;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .blog-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        .blog-empty i {
+            font-size: 3em;
+            color: #ccc;
+            display: block;
+            margin-bottom: 15px;
+        }
+        .blog-error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #856404;
+        }
+        @media (max-width: 600px) {
+            .blog-card {
+                padding: 20px;
+            }
+            .blog-card-title {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary Calculator &amp; Payslip Generator (Customise with your details):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <!-- Logo Container -->
+            <div class="logo-container">
+                <a href="/">
+                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
+                </a>
+            </div>
+
+            <!-- Navigation Menu -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+
+                <!-- Calculators Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                    </div>
+                </div>
+
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html" class="active">Blog</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/external-links.html">External Links</a>
+
+                <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
+            </nav>
+
+            <!-- Blog Header -->
+            <div class="blog-header">
+                <h1><i class="fas fa-newspaper"></i> Blog</h1>
+                <p>Kenya Finance, Tax &amp; Salary News</p>
+            </div>
+
+            <!-- AdSense Banner -->
+            <div id="adsense-header-banner" class="adsense-container"></div>
+
+            <!-- Blog Posts -->
+            <div id="blog-posts-container">
+                <div class="blog-loading">
+                    <i class="fas fa-circle-notch"></i>
+                    Loading articles&hellip;
+                </div>
+            </div>
+
+            <!-- AdSense Footer -->
+            <div id="adsense-footer" class="adsense-container"></div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/adsense-config.js?v=2.0"></script>
+    <script>
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById('blog-posts-container');
+            if (!posts || posts.length === 0) {
+                container.innerHTML = '<div class="blog-empty"><i class="fas fa-newspaper"></i><p>No articles published yet. Check back soon!</p></div>';
+                return;
+            }
+            const html = '<div class="blog-grid">' + posts.map(function(post) {
+                const date = formatDate(post.published_at || post.created_at);
+                const author = post.author_name || 'Admin';
+                const views = post.views_count || 0;
+                const excerpt = post.excerpt ? post.excerpt : '';
+                const url = '/blog-post.html?slug=' + encodeURIComponent(post.slug);
+                return '<article class="blog-card">' +
+                    '<div class="blog-card-title"><a href="' + url + '">' + escapeHtml(post.title) + '</a></div>' +
+                    '<div class="blog-card-meta">' +
+                        '<span><i class="fas fa-user"></i> ' + escapeHtml(author) + '</span>' +
+                        (date ? '<span><i class="fas fa-calendar"></i> ' + date + '</span>' : '') +
+                        '<span><i class="fas fa-eye"></i> ' + views + ' views</span>' +
+                    '</div>' +
+                    (excerpt ? '<p class="blog-card-excerpt">' + escapeHtml(excerpt) + '</p>' : '') +
+                    '<a href="' + url + '" class="blog-read-more">Read Article <i class="fas fa-arrow-right"></i></a>' +
+                    '</article>';
+            }).join('') + '</div>';
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                if (!window.supabaseClient) {
+                    container.innerHTML = '<div class="blog-error"><i class="fas fa-exclamation-triangle"></i> Unable to load articles at this time. Please try again later.</div>';
+                    return;
+                }
+                const { data, error } = await window.supabaseClient
+                    .from('blog_posts')
+                    .select('id, title, slug, excerpt, author_name, views_count, published_at, created_at')
+                    .eq('status', 'published')
+                    .order('published_at', { ascending: false });
+
+                if (error) throw error;
+                renderPosts(data);
+            } catch (err) {
+                console.error('Failed to load blog posts:', err);
+                container.innerHTML = '<div class="blog-error"><i class="fas fa-exclamation-triangle"></i> Unable to load articles at this time. Please try again later.</div>';
+            }
+        }
+
+        // Scroll to top button
+        var scrollBtn = document.getElementById('scrollToTop');
+        if (scrollBtn) {
+            window.addEventListener('scroll', function() {
+                scrollBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+            });
+            scrollBtn.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
+</html>
