@@ -77,6 +77,19 @@
             font-size: 2em;
             color: #006600;
         }
+        .link-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .site-favicon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: contain;
+            background: #f5f5f5;
+            flex-shrink: 0;
+        }
         .link-card h3 {
             color: #006600;
             margin: 0;
@@ -244,16 +257,20 @@
                     <h2 class="category-title"><i class="fas fa-receipt"></i> Tax &amp; Revenue</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-landmark"></i></div>
-                            <h3>Kenya Revenue Authority (KRA)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=kra.go.ke&sz=32" alt="KRA favicon" class="site-favicon">
+                                <h3>Kenya Revenue Authority (KRA)</h3>
+                            </div>
                             <p>Official tax authority for Kenya. File returns, pay taxes, check PAYE obligations and get iTax PIN.</p>
                             <a href="https://www.kra.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit KRA
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-laptop"></i></div>
-                            <h3>iTax Portal (KRA)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=itax.kra.go.ke&sz=32" alt="iTax favicon" class="site-favicon">
+                                <h3>iTax Portal (KRA)</h3>
+                            </div>
                             <p>Online portal for filing PAYE returns, VAT, income tax and downloading tax compliance certificates.</p>
                             <a href="https://itax.kra.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Open iTax
@@ -265,24 +282,30 @@
                     <h2 class="category-title"><i class="fas fa-shield-alt"></i> Social Security &amp; Health</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-piggy-bank"></i></div>
-                            <h3>NSSF – National Social Security Fund</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=nssf.or.ke&sz=32" alt="NSSF favicon" class="site-favicon">
+                                <h3>NSSF – National Social Security Fund</h3>
+                            </div>
                             <p>Manages pension savings for Kenyan employees. Check contributions, Tier I &amp; II obligations and benefits.</p>
                             <a href="https://www.nssf.or.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit NSSF
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-heartbeat"></i></div>
-                            <h3>SHIF – Social Health Insurance Fund</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=ecitizen.go.ke&sz=32" alt="eCitizen favicon" class="site-favicon">
+                                <h3>SHIF – Social Health Insurance Fund</h3>
+                            </div>
                             <p>Replaced NHIF in 2024 under the Social Health Insurance Act. Manages health insurance contributions (2.75% of gross salary). Access services via eCitizen portal.</p>
                             <a href="https://www.ecitizen.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Access via eCitizen
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-hospital"></i></div>
-                            <h3>NHIF – National Hospital Insurance Fund</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=nhif.or.ke&sz=32" alt="NHIF favicon" class="site-favicon">
+                                <h3>NHIF – National Hospital Insurance Fund</h3>
+                            </div>
                             <p>Previous health insurer, now transitioning to SHIF. Access historical contribution records.</p>
                             <a href="https://www.nhif.or.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit NHIF
@@ -294,16 +317,20 @@
                     <h2 class="category-title"><i class="fas fa-home"></i> Housing &amp; Infrastructure</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-building"></i></div>
-                            <h3>Kenya Affordable Housing Programme</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=affordablehousing.go.ke&sz=32" alt="AHP favicon" class="site-favicon">
+                                <h3>Kenya Affordable Housing Programme</h3>
+                            </div>
                             <p>Government initiative for affordable housing funded by the Housing Levy (1.5% of gross salary).</p>
                             <a href="https://affordablehousing.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit AHP
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-city"></i></div>
-                            <h3>National Housing Corporation</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=nhckenya.co.ke&sz=32" alt="NHC favicon" class="site-favicon">
+                                <h3>National Housing Corporation</h3>
+                            </div>
                             <p>Develops and manages housing in Kenya. Relevant to housing levy administration and beneficiaries.</p>
                             <a href="https://www.nhckenya.co.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit NHC
@@ -315,24 +342,30 @@
                     <h2 class="category-title"><i class="fas fa-briefcase"></i> Labour &amp; Employment</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-hard-hat"></i></div>
-                            <h3>Ministry of Labour &amp; Social Protection</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=labour.go.ke&sz=32" alt="Ministry of Labour favicon" class="site-favicon">
+                                <h3>Ministry of Labour &amp; Social Protection</h3>
+                            </div>
                             <p>Sets employment standards, minimum wage, labour laws and occupational safety regulations in Kenya.</p>
                             <a href="https://www.labour.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit Ministry
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-balance-scale"></i></div>
-                            <h3>Employment &amp; Labour Relations Court</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=elrc.go.ke&sz=32" alt="ELRC favicon" class="site-favicon">
+                                <h3>Employment &amp; Labour Relations Court</h3>
+                            </div>
                             <p>Resolves employment disputes, enforces labour laws and handles matters related to the Employment Act.</p>
                             <a href="https://www.elrc.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit ELRC
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-users"></i></div>
-                            <h3>Federation of Kenya Employers (FKE)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=fke-kenya.org&sz=32" alt="FKE favicon" class="site-favicon">
+                                <h3>Federation of Kenya Employers (FKE)</h3>
+                            </div>
                             <p>Represents employers in Kenya. Provides advisory services on employment policy, HR and labour relations.</p>
                             <a href="https://www.fke-kenya.org" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit FKE
@@ -344,24 +377,30 @@
                     <h2 class="category-title"><i class="fas fa-university"></i> Finance &amp; Banking</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-coins"></i></div>
-                            <h3>Central Bank of Kenya (CBK)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=centralbank.go.ke&sz=32" alt="CBK favicon" class="site-favicon">
+                                <h3>Central Bank of Kenya (CBK)</h3>
+                            </div>
                             <p>Regulates banks, sets monetary policy and maintains financial stability in Kenya.</p>
                             <a href="https://www.centralbank.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit CBK
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-chart-line"></i></div>
-                            <h3>National Treasury Kenya</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=treasury.go.ke&sz=32" alt="National Treasury favicon" class="site-favicon">
+                                <h3>National Treasury Kenya</h3>
+                            </div>
                             <p>Manages public finances, publishes Finance Acts, and oversees Kenya's budget and fiscal policies.</p>
                             <a href="https://www.treasury.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit Treasury
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-search-dollar"></i></div>
-                            <h3>Capital Markets Authority (CMA)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=cma.or.ke&sz=32" alt="CMA favicon" class="site-favicon">
+                                <h3>Capital Markets Authority (CMA)</h3>
+                            </div>
                             <p>Regulates Kenya's capital markets, including securities exchanges and investment funds.</p>
                             <a href="https://www.cma.or.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit CMA
@@ -373,32 +412,40 @@
                     <h2 class="category-title"><i class="fas fa-id-card"></i> Government Services</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-flag"></i></div>
-                            <h3>eCitizen Kenya</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=ecitizen.go.ke&sz=32" alt="eCitizen favicon" class="site-favicon">
+                                <h3>eCitizen Kenya</h3>
+                            </div>
                             <p>Official government services portal for IDs, passports, business registration, driving licences and more.</p>
                             <a href="https://www.ecitizen.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit eCitizen
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-concierge-bell"></i></div>
-                            <h3>Huduma Kenya</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=hudumakenya.go.ke&sz=32" alt="Huduma Kenya favicon" class="site-favicon">
+                                <h3>Huduma Kenya</h3>
+                            </div>
                             <p>One-stop government service centres providing access to multiple government services under one roof.</p>
                             <a href="https://www.hudumakenya.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit Huduma
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-briefcase"></i></div>
-                            <h3>Business Registration Service (BRS)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=businessregistration.go.ke&sz=32" alt="BRS favicon" class="site-favicon">
+                                <h3>Business Registration Service (BRS)</h3>
+                            </div>
                             <p>Register businesses, companies and NGOs in Kenya. Check company status and certificates.</p>
                             <a href="https://www.businessregistration.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit BRS
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-gavel"></i></div>
-                            <h3>Kenya Law</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=kenyalaw.org&sz=32" alt="Kenya Law favicon" class="site-favicon">
+                                <h3>Kenya Law</h3>
+                            </div>
                             <p>Official source of Kenyan legislation, case law, and legal information. Access Employment Act and Finance Acts.</p>
                             <a href="https://www.kenyalaw.org" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit Kenya Law
@@ -410,24 +457,30 @@
                     <h2 class="category-title"><i class="fas fa-clipboard-check"></i> Regulatory Bodies</h2>
                     <div class="links-grid">
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-pencil-ruler"></i></div>
-                            <h3>Salaries &amp; Remuneration Commission (SRC)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=src.go.ke&sz=32" alt="SRC favicon" class="site-favicon">
+                                <h3>Salaries &amp; Remuneration Commission (SRC)</h3>
+                            </div>
                             <p>Sets pay structures for public sector employees and advises on remuneration policy in Kenya.</p>
                             <a href="https://www.src.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit SRC
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-shield-alt"></i></div>
-                            <h3>Retirement Benefits Authority (RBA)</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=rba.go.ke&sz=32" alt="RBA favicon" class="site-favicon">
+                                <h3>Retirement Benefits Authority (RBA)</h3>
+                            </div>
                             <p>Regulates pension schemes and retirement funds in Kenya to protect members' interests.</p>
                             <a href="https://www.rba.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit RBA
                             </a>
                         </div>
                         <div class="link-card">
-                            <div class="link-card-icon"><i class="fas fa-user-shield"></i></div>
-                            <h3>Office of the Data Protection Commissioner</h3>
+                            <div class="link-card-header">
+                                <img src="https://www.google.com/s2/favicons?domain=odpc.go.ke&sz=32" alt="ODPC favicon" class="site-favicon">
+                                <h3>Office of the Data Protection Commissioner</h3>
+                            </div>
                             <p>Enforces Kenya's Data Protection Act, 2019. Relevant for HR systems handling personal employee data.</p>
                             <a href="https://www.odpc.go.ke" target="_blank" rel="noopener noreferrer" class="visit-btn">
                                 <i class="fas fa-external-link-alt"></i> Visit ODPC
