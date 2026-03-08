@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Raleway:wght@400;600;700;800&display=swap');
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -11,7 +13,7 @@ body {
     scroll-behavior: smooth;
 }
 
-/* Dark overlay for better text readability */
+/* Neutral dark overlay – lets the background image breathe */
 body::before {
     content: "";
     position: fixed;
@@ -19,7 +21,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(119, 179, 80, 0.7);
+    background: rgba(18, 35, 18, 0.74);
     z-index: -1;
 }
 
@@ -37,7 +39,10 @@ h1 {
     text-align: center;
     color: #006600;
     margin-bottom: 30px;
+    font-family: 'Oswald', 'Arial Narrow', 'Arial', sans-serif;
     font-size: 2.2em;
+    font-weight: 700;
+    letter-spacing: 1px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     position: relative;
     padding-bottom: 15px;
@@ -1145,7 +1150,7 @@ footer a:hover {
 }
 
 .disclaimer-banner {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(90deg, #000000 0%, #006600 40%, #CC0000 70%, #000000 100%);
     color: white;
     padding: 10px;
     text-align: center;
@@ -1514,5 +1519,60 @@ footer a:hover {
 .quick-nav-card--red i { color: #CC0000; }
 .quick-nav-card--red:hover {
     box-shadow: 0 6px 18px rgba(204,0,0,0.12);
+}
+
+/* ── Global FAQ Accordion Styles ────────────────────────────────────── */
+.faq-section h2 {
+    color: #006600;
+    font-family: 'Oswald', 'Arial Narrow', Arial, sans-serif;
+    font-size: 1.5em;
+    margin-bottom: 16px;
+}
+
+.faq-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 4px 0;
+}
+
+.faq-item summary {
+    font-weight: 600;
+    cursor: pointer;
+    color: #1a1a1a;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 4px;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item summary::before {
+    content: '\002B'; /* + */
+    font-size: 1.25em;
+    font-weight: 700;
+    color: #CC0000;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+    transition: transform 0.25s;
+}
+
+.faq-item[open] > summary::before {
+    content: '\2212'; /* − */
+    color: #006600;
+}
+
+.faq-item[open] > summary {
+    color: #006600;
+}
+
+.faq-item p {
+    margin: 0 0 14px 32px;
+    color: #555;
+    font-size: 0.95em;
+    line-height: 1.7;
 }
 

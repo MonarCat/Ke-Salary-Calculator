@@ -32,6 +32,8 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Preload critical resources -->
     <link rel="preload" href="assets/css/styles.css?v=2.1" as="style">
@@ -112,16 +114,28 @@
         .hero-section {
             text-align: center;
             padding: 40px 20px;
-            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            background: linear-gradient(135deg, #0a1f0a 0%, #003300 50%, #1a0000 100%);
             color: white;
             border-radius: 10px;
             margin: 20px 0;
         }
         .hero-section h1 {
             color: white;
+            font-family: 'Oswald', 'Arial Narrow', Arial, sans-serif;
             font-size: 2.8em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+            padding-bottom: 0;
+        }
+        .hero-section h1::after { display: none; }
+        .hero-section h1 .hero-title-salary {
+            color: #ffffff;
+        }
+        .hero-section h1 .hero-title-calc {
+            color: #77dd44;
         }
         .hero-section p {
             font-size: 1.2em;
@@ -532,7 +546,7 @@
 
             <!-- Hero Section -->
             <div class="hero-section">
-                <h1>🇰🇪 Kenya Salary Calculator</h1>
+                <h1>🇰🇪 <span class="hero-title-salary">Salary</span> <span class="hero-title-calc">Calculator</span></h1>
                 <p>Calculate your net salary instantly. Generate professional payslips. Manage employee payroll with ease.</p>
                 <p style="font-size: 1em; margin-top: 10px;">✅ Updated for FY 2025/2026 &nbsp;|&nbsp; Last updated: February 2025</p>
                 <div class="cta-buttons">
@@ -725,8 +739,8 @@
             </div>
 
             <!-- CTA Section -->
-            <div class="hero-section" style="margin: 40px 0;">
-                <h2 style="color: white; margin-bottom: 20px;">Ready to Get Started?</h2>
+            <div class="hero-section" style="margin: 40px 0; background: linear-gradient(135deg, #1a0000 0%, #CC0000 50%, #1a0000 100%);">
+                <h2 style="color: white; margin-bottom: 20px; font-family: 'Oswald', Arial, sans-serif; letter-spacing: 1px;">Ready to Get Started?</h2>
                 <p>Join thousands of Kenyan employers and employees using our calculator</p>
                 <div class="cta-buttons">
                     <a href="/calculator.html" class="cta-button primary">
