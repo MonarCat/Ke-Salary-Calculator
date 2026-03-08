@@ -333,7 +333,7 @@
             allEls.forEach(function(el) {
                 // Remove event handler attributes
                 Array.from(el.attributes).forEach(function(attr) {
-                    if (attr.name.startsWith('on') || attr.name === 'href' && /^javascript:/i.test(attr.value)) {
+                    if (attr.name.startsWith('on') || (attr.name === 'href' && /^javascript:/i.test(attr.value))) {
                         el.removeAttribute(attr.name);
                     }
                 });
