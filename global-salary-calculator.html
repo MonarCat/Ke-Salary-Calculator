@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Salary Calculator 2025 | Compare Take-Home Pay in 15 Countries</title>
+    <meta name="description" content="Calculate your take-home salary in 15 countries including Kenya, Nigeria, UK, USA, South Africa, Germany, India and more. Compare net pay after taxes worldwide.">
+    <meta name="keywords" content="global salary calculator, international salary calculator, salary after tax worldwide, net pay calculator, Kenya salary, UK salary calculator">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/global-salary-calculator.html">
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/global-salary-calculator.html">
+    <meta property="og:title" content="Global Salary Calculator 2025 | 15 Countries">
+    <meta property="og:description" content="Calculate take-home pay in 15 countries. Compare net salary after tax worldwide.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Global Salary Calculator 2025">
+    <meta name="twitter:description" content="Calculate take-home salary in 15 countries including Kenya, UK, USA, Nigeria and more.">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
+    <style>
+        .global-hero {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: white; border-radius: 12px; padding: 28px 24px 20px;
+            margin-bottom: 24px; text-align: center;
+        }
+        .global-hero h1 { margin: 0 0 8px; font-size: 1.7em; }
+        .global-hero p  { margin: 0; opacity: 0.9; }
+        .global-input-row {
+            display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 18px;
+        }
+        .global-input-row .form-group { flex: 1; min-width: 180px; margin-bottom: 0; }
+        .global-summary {
+            display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .global-sum-card {
+            flex: 1; min-width: 130px; background: #e8f5e9;
+            border: 1px solid #a5d6a7; border-radius: 10px; padding: 14px 16px; text-align: center;
+        }
+        .global-sum-card .label { font-size: 0.82em; color: #555; margin-bottom: 4px; }
+        .global-sum-card .value { font-size: 1.35em; font-weight: 800; color: #006600; }
+        .global-sum-card.net { background: #006600; border-color: #004d00; }
+        .global-sum-card.net .label { color: #a5d6a7; }
+        .global-sum-card.net .value { color: white; }
+        .approx-note {
+            background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px;
+            padding: 11px 16px; margin-bottom: 18px; font-size: 0.9em; color: #7b5800;
+        }
+        .country-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px; margin: 20px 0;
+        }
+        .country-card {
+            background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        .country-card:hover, .country-card.selected {
+            border-color: #006600; background: #e8f5e9;
+        }
+        .country-card .flag { font-size: 1.8em; }
+        .country-card .cname { font-size: 0.85em; font-weight: 600; margin-top: 4px; color: #333; }
+        .twitter-share-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #1DA1F2; color: white; border: none; border-radius: 8px;
+            padding: 10px 20px; font-size: 15px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin-top: 10px;
+        }
+        .twitter-share-btn:hover { background: #0d8bd9; }
+        @media (max-width: 600px) { .global-hero h1 { font-size: 1.25em; } }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Global Salary After Tax Calculator (2025):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <div class="logo-container">
+                <a href="/"><img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo"></a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">Calculators <i class="fas fa-chevron-down"></i></span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html" class="active">Global Calculator</a>
+                    </div>
+                </div>
+                <a href="/about-us.html">About Us</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/external-links.html">External Links</a>
+                <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">🌙 Dark</button>
+            </nav>
+
+            <div class="global-hero">
+                <h1>🌍 Global Salary Calculator 2025</h1>
+                <p>Compare your take-home pay after tax in 15 countries worldwide</p>
+            </div>
+
+            <div class="approx-note">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Tax calculations are approximate and based on standard rates for a single employee with no special allowances. Consult a local tax expert for precise figures.
+            </div>
+
+            <!-- Input -->
+            <div class="input-section">
+                <h2 style="color:#006600; margin-bottom:14px;"><i class="fas fa-globe"></i> Enter Your Salary</h2>
+                <div class="global-input-row">
+                    <div class="form-group">
+                        <label for="globalCountry">Country</label>
+                        <select id="globalCountry" onchange="updateCurrencyLabel()">
+                            <option value="ke">🇰🇪 Kenya (KES)</option>
+                            <option value="ng">🇳🇬 Nigeria (NGN)</option>
+                            <option value="ug">🇺🇬 Uganda (UGX)</option>
+                            <option value="tz">🇹🇿 Tanzania (TZS)</option>
+                            <option value="za">🇿🇦 South Africa (ZAR)</option>
+                            <option value="gh">🇬🇭 Ghana (GHS)</option>
+                            <option value="rw">🇷🇼 Rwanda (RWF)</option>
+                            <option value="gb">🇬🇧 United Kingdom (GBP)</option>
+                            <option value="us">🇺🇸 USA (USD)</option>
+                            <option value="ca">🇨🇦 Canada (CAD)</option>
+                            <option value="au">🇦🇺 Australia (AUD)</option>
+                            <option value="in">🇮🇳 India (INR)</option>
+                            <option value="de">🇩🇪 Germany (EUR)</option>
+                            <option value="ae">🇦🇪 UAE (AED)</option>
+                            <option value="sg">🇸🇬 Singapore (SGD)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="globalSalary">Gross Monthly Salary (<span id="currLabel">KES</span>)</label>
+                        <input type="number" id="globalSalary" placeholder="e.g. 80000" min="0" oninput="globalCalc()">
+                    </div>
+                    <button onclick="globalCalc()" style="height:44px; padding: 0 22px;">Calculate</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="globalResults" style="display:none;">
+                <div class="global-summary">
+                    <div class="global-sum-card">
+                        <div class="label">Gross Salary</div>
+                        <div class="value" id="gDispGross">—</div>
+                    </div>
+                    <div class="global-sum-card">
+                        <div class="label">Income Tax</div>
+                        <div class="value" id="gDispTax">—</div>
+                    </div>
+                    <div class="global-sum-card">
+                        <div class="label">Social / Other</div>
+                        <div class="value" id="gDispSocial">—</div>
+                    </div>
+                    <div class="global-sum-card net">
+                        <div class="label">Net Take-Home</div>
+                        <div class="value" id="gDispNet">—</div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h2 id="gResultTitle"><i class="fas fa-table"></i> Detailed Breakdown</h2>
+                    <div class="breakdown-table-wrapper">
+                        <table class="breakdown-table">
+                            <thead>
+                                <tr><th>Item</th><th>Monthly</th><th>Annual</th></tr>
+                            </thead>
+                            <tbody id="gTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:14px;" id="gEffRate"></div>
+
+                    <div style="margin-top:14px; text-align:center;">
+                        <a id="gTwBtn" href="#" class="twitter-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-twitter"></i> Share My Result on X
+                        </a>
+                    </div>
+
+                    <div class="approx-note" style="margin-top:16px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Disclaimer:</strong> These calculations are approximate for informational purposes only. Actual deductions vary based on individual circumstances, employer benefits, filing status, and local regulations. Always consult a qualified tax professional or accountant.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Country Cards Grid -->
+            <div class="info-section" style="margin-top:24px;">
+                <h2><i class="fas fa-flag"></i> Supported Countries</h2>
+                <div class="country-grid">
+                    <div class="country-card" onclick="selectCountry('ke')"><div class="flag">🇰🇪</div><div class="cname">Kenya</div></div>
+                    <div class="country-card" onclick="selectCountry('ng')"><div class="flag">🇳🇬</div><div class="cname">Nigeria</div></div>
+                    <div class="country-card" onclick="selectCountry('ug')"><div class="flag">🇺🇬</div><div class="cname">Uganda</div></div>
+                    <div class="country-card" onclick="selectCountry('tz')"><div class="flag">🇹🇿</div><div class="cname">Tanzania</div></div>
+                    <div class="country-card" onclick="selectCountry('za')"><div class="flag">🇿🇦</div><div class="cname">South Africa</div></div>
+                    <div class="country-card" onclick="selectCountry('gh')"><div class="flag">🇬🇭</div><div class="cname">Ghana</div></div>
+                    <div class="country-card" onclick="selectCountry('rw')"><div class="flag">🇷🇼</div><div class="cname">Rwanda</div></div>
+                    <div class="country-card" onclick="selectCountry('gb')"><div class="flag">🇬🇧</div><div class="cname">United Kingdom</div></div>
+                    <div class="country-card" onclick="selectCountry('us')"><div class="flag">🇺🇸</div><div class="cname">USA</div></div>
+                    <div class="country-card" onclick="selectCountry('ca')"><div class="flag">🇨🇦</div><div class="cname">Canada</div></div>
+                    <div class="country-card" onclick="selectCountry('au')"><div class="flag">🇦🇺</div><div class="cname">Australia</div></div>
+                    <div class="country-card" onclick="selectCountry('in')"><div class="flag">🇮🇳</div><div class="cname">India</div></div>
+                    <div class="country-card" onclick="selectCountry('de')"><div class="flag">🇩🇪</div><div class="cname">Germany</div></div>
+                    <div class="country-card" onclick="selectCountry('ae')"><div class="flag">🇦🇪</div><div class="cname">UAE</div></div>
+                    <div class="country-card" onclick="selectCountry('sg')"><div class="flag">🇸🇬</div><div class="cname">Singapore</div></div>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin:20px 0;">
+                <a href="/calculator.html" class="cta-button primary" style="text-decoration:none; display:inline-block; padding:13px 28px;">
+                    <i class="fas fa-calculator"></i> Kenya Detailed Salary Calculator
+                </a>
+            </div>
+
+            <footer style="text-align:center; padding:20px; margin-top:30px; font-size:12px; color:#666;">
+                <p style="margin-bottom:10px;">
+                    <a href="/privacy-policy.html" style="color:#006600; text-decoration:none; margin:0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color:#006600; text-decoration:none; margin:0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color:#006600; text-decoration:none; margin:0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color:#006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></button>
+
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script>
+    // ── Country Configurations ───────────────────────────────────────────────
+    const COUNTRIES = {
+        ke: {
+            name: 'Kenya', currency: 'KES', flag: '🇰🇪',
+            calc(gross) {
+                const nssfLow = 8000, nssfUp = 72000, nssfRate = 0.06;
+                const t1 = Math.min(gross, nssfLow) * nssfRate;
+                const nssf = gross > nssfLow ? t1 + (Math.min(gross, nssfUp) - nssfLow) * nssfRate : t1;
+                const shif = gross * 0.0275;
+                const levy = gross * 0.015;
+                const taxable = gross - nssf - shif - levy;
+                const bands = [[24000,0.10,0],[32333,0.25,2400],[500000,0.30,4483.25],[800000,0.325,140983.25],[Infinity,0.35,238483.25]];
+                let paye = 0;
+                for (let i = 0; i < bands.length; i++) {
+                    const lower = i === 0 ? 0 : bands[i-1][0];
+                    if (taxable > lower) paye = bands[i][2] + (taxable - lower) * bands[i][1];
+                    if (taxable <= bands[i][0]) break;
+                }
+                paye = Math.max(paye - 2400, 0);
+                const net = gross - paye - nssf - shif - levy;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'NSSF (Tier I + II)', value: -nssf },
+                        { label: 'SHIF (2.75%)', value: -shif },
+                        { label: 'Housing Levy (1.5%)', value: -levy },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Personal Relief', value: 2400, note: 'subtracted from PAYE' },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: nssf + shif + levy, net
+                };
+            }
+        },
+        ng: {
+            name: 'Nigeria', currency: 'NGN', flag: '🇳🇬',
+            calc(gross) {
+                // Annual salary
+                const annual = gross * 12;
+                const nhf = gross * 0.025;   // NHF 2.5% of basic (approx gross)
+                const nsitf = gross * 0.01;  // NSITF 1%
+                const social = nhf + nsitf;
+                // PAYE on annual taxable (simplified - using annual bands)
+                const taxable = annual;
+                const bands = [[300000,0.07],[300000,0.11],[500000,0.15],[500000,0.19],[1600000,0.21],[Infinity,0.24]];
+                let paye = 0, rem = taxable;
+                for (const [band, rate] of bands) {
+                    const chunk = Math.min(rem, band);
+                    paye += chunk * rate;
+                    rem -= chunk;
+                    if (rem <= 0) break;
+                }
+                const payeMonthly = paye / 12;
+                const net = gross - payeMonthly - social;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'NHF (2.5%)', value: -nhf },
+                        { label: 'NSITF (1%)', value: -nsitf },
+                        { label: 'PAYE (Income Tax)', value: -payeMonthly },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: payeMonthly, social, net
+                };
+            }
+        },
+        ug: {
+            name: 'Uganda', currency: 'UGX', flag: '🇺🇬',
+            calc(gross) {
+                const nssf = gross * 0.05;
+                let paye = 0;
+                if (gross <= 235000) { paye = gross * 0.10; }
+                else if (gross <= 570000) { paye = 23500 + (gross - 235000) * 0.20; }
+                else { paye = 23500 + 67000 + (gross - 570000) * 0.30; }
+                const net = gross - paye - nssf;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'NSSF (5%)', value: -nssf },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: nssf, net
+                };
+            }
+        },
+        tz: {
+            name: 'Tanzania', currency: 'TZS', flag: '🇹🇿',
+            calc(gross) {
+                const nssf = gross * 0.05;
+                let paye = 0;
+                if (gross <= 270000) { paye = gross * 0.09; }
+                else if (gross <= 360000) { paye = 24300 + (gross - 270000) * 0.20; }
+                else if (gross <= 540000) { paye = 24300 + 18000 + (gross - 360000) * 0.25; }
+                else { paye = 24300 + 18000 + 45000 + (gross - 540000) * 0.30; }
+                const net = gross - paye - nssf;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'NSSF (5%)', value: -nssf },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: nssf, net
+                };
+            }
+        },
+        za: {
+            name: 'South Africa', currency: 'ZAR', flag: '🇿🇦',
+            calc(gross) {
+                const uif = Math.min(gross * 0.01, 177.12); // UIF capped
+                const annual = gross * 12;
+                const bands = [[237100,0.18,0],[370500,0.26,42678],[512800,0.31,77362],[673000,0.36,121475],[857900,0.39,179147],[1817000,0.41,251258],[Infinity,0.45,644489]];
+                let paye = 0;
+                for (let i = 0; i < bands.length; i++) {
+                    const lower = i === 0 ? 0 : bands[i-1][0];
+                    if (annual > lower) paye = bands[i][2] + (annual - lower) * bands[i][1];
+                    if (annual <= bands[i][0]) break;
+                }
+                // Primary rebate 17235/year
+                paye = Math.max((paye - 17235) / 12, 0);
+                const net = gross - paye - uif;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'UIF (1%, capped)', value: -uif },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: uif, net
+                };
+            }
+        },
+        gh: {
+            name: 'Ghana', currency: 'GHS', flag: '🇬🇭',
+            calc(gross) {
+                const ssnit = gross * 0.055;
+                let paye = 0;
+                const bands = [[402,0],[110,0.05],[130,0.10],[3000,0.175],[16758,0.25],[Infinity,0.30]];
+                let rem = gross, tax = 0;
+                for (const [band, rate] of bands) {
+                    const chunk = Math.min(rem, band);
+                    tax += chunk * rate;
+                    rem -= chunk;
+                    if (rem <= 0) break;
+                }
+                paye = tax;
+                const net = gross - paye - ssnit;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'SSNIT (5.5%)', value: -ssnit },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: ssnit, net
+                };
+            }
+        },
+        rw: {
+            name: 'Rwanda', currency: 'RWF', flag: '🇷🇼',
+            calc(gross) {
+                const rssb = gross * 0.05;
+                let paye = 0;
+                if (gross <= 30000) { paye = 0; }
+                else if (gross <= 100000) { paye = (gross - 30000) * 0.20; }
+                else { paye = 14000 + (gross - 100000) * 0.30; }
+                const net = gross - paye - rssb;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'RSSB (5%)', value: -rssb },
+                        { label: 'PAYE (Income Tax)', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: rssb, net
+                };
+            }
+        },
+        gb: {
+            name: 'United Kingdom', currency: 'GBP', flag: '🇬🇧',
+            calc(gross) {
+                // Personal allowance £1,048/month, basic rate £1,048-4,189, higher £4,190-12,500, additional above
+                let incomeTax = 0;
+                const pa = 1048;
+                if (gross > pa) {
+                    const abovePa = gross - pa;
+                    if (gross <= 4189) { incomeTax = abovePa * 0.20; }
+                    else if (gross <= 12500) { incomeTax = (4189 - pa) * 0.20 + (gross - 4189) * 0.40; }
+                    else { incomeTax = (4189 - pa) * 0.20 + (12500 - 4189) * 0.40 + (gross - 12500) * 0.45; }
+                }
+                // NI: 12% on £1,048–4,189, 2% above
+                let ni = 0;
+                if (gross > 1048) {
+                    ni = Math.min(gross, 4189) * 0.12 - 1048 * 0.12;
+                    if (gross > 4189) ni += (gross - 4189) * 0.02;
+                }
+                const net = gross - incomeTax - ni;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'National Insurance (NI)', value: -ni },
+                        { label: 'Income Tax (PAYE)', value: -incomeTax },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: incomeTax, social: ni, net
+                };
+            }
+        },
+        us: {
+            name: 'USA', currency: 'USD', flag: '🇺🇸',
+            calc(gross) {
+                // Federal income tax (2024 single filer monthly)
+                const standard = 1517; // monthly standard deduction equiv (~18,200/12)
+                const taxable = Math.max(gross - standard, 0);
+                const bands = [[958,0.10,0],[2975,0.12,95.8],[8942,0.22,452.6],[17025,0.24,1765.9],[21400,0.32,3710.9],[32133,0.35,5109],[Infinity,0.37,8865]];
+                let tax = 0;
+                for (let i = 0; i < bands.length; i++) {
+                    const lower = i === 0 ? 0 : bands[i-1][0];
+                    if (taxable > lower) tax = bands[i][2] + (taxable - lower) * bands[i][1];
+                    if (taxable <= bands[i][0]) break;
+                }
+                // SS 6.2% capped at $160,200/year ($13,350/month)
+                const ss = Math.min(gross, 13350) * 0.062;
+                const medicare = gross * 0.0145;
+                const net = gross - tax - ss - medicare;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'Social Security (6.2%)', value: -ss },
+                        { label: 'Medicare (1.45%)', value: -medicare },
+                        { label: 'Federal Income Tax', value: -tax },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax, social: ss + medicare, net
+                };
+            }
+        },
+        ca: {
+            name: 'Canada', currency: 'CAD', flag: '🇨🇦',
+            calc(gross) {
+                const cpp = Math.min(gross * 0.0595, 3166.45 / 12);
+                const ei  = Math.min(gross * 0.0166, 1049.12 / 12);
+                const monthly_pa = 1517; // ~15,705 BPA / 12 approx
+                const taxable = Math.max(gross - monthly_pa, 0);
+                const bands = [[5517,0.15,0],[3192,0.205,827.55],[3508,0.26,1482.21],[4617,0.29,2394.29],[Infinity,0.33,3733.22]];
+                let tax = 0;
+                for (let i = 0; i < bands.length; i++) {
+                    const lower = i === 0 ? 0 : bands[i-1][0];
+                    if (taxable > lower) tax = bands[i][2] + (taxable - lower) * bands[i][1];
+                    if (taxable <= bands[i][0]) break;
+                }
+                const net = gross - tax - cpp - ei;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'CPP (5.95%)', value: -cpp },
+                        { label: 'EI Premium (1.66%)', value: -ei },
+                        { label: 'Federal Income Tax', value: -tax },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax, social: cpp + ei, net
+                };
+            }
+        },
+        au: {
+            name: 'Australia', currency: 'AUD', flag: '🇦🇺',
+            calc(gross) {
+                const annual = gross * 12;
+                const medicare = annual * 0.02;
+                let tax = 0;
+                if (annual <= 18200) { tax = 0; }
+                else if (annual <= 45000) { tax = (annual - 18200) * 0.19; }
+                else if (annual <= 120000) { tax = 5092 + (annual - 45000) * 0.325; }
+                else if (annual <= 180000) { tax = 29467 + (annual - 120000) * 0.37; }
+                else { tax = 51667 + (annual - 180000) * 0.45; }
+                const taxMonthly = (tax + medicare) / 12;
+                const net = gross - taxMonthly;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'Medicare Levy (2%)', value: -(medicare / 12) },
+                        { label: 'Income Tax', value: -(tax / 12) },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: taxMonthly, social: 0, net
+                };
+            }
+        },
+        in: {
+            name: 'India', currency: 'INR', flag: '🇮🇳',
+            calc(gross) {
+                const epf = Math.min(gross * 0.12, 1800); // capped at 15,000 basic
+                const esi = gross <= 21000 ? gross * 0.0075 : 0;
+                let paye = 0;
+                if (gross <= 25000) { paye = 0; }
+                else if (gross <= 33333) { paye = (gross - 25000) * 0.05; }
+                else if (gross <= 66667) { paye = 416.65 + (gross - 33333) * 0.20; }
+                else { paye = 7083.05 + (gross - 66667) * 0.30; }
+                const net = gross - paye - epf - esi;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'EPF (12%, capped)', value: -epf },
+                        { label: 'ESI (0.75%, if ≤21k)', value: -esi },
+                        { label: 'Income Tax', value: -paye },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: paye, social: epf + esi, net
+                };
+            }
+        },
+        de: {
+            name: 'Germany', currency: 'EUR', flag: '🇩🇪',
+            calc(gross) {
+                // Social: health 7.3%, pension 9.3%, unemployment 1.5%, care 1.525% = ~19.625%
+                const social = gross * 0.19625;
+                const annual = gross * 12;
+                let tax = 0;
+                // Simplified German income tax (single, 2024)
+                if (annual <= 11604) { tax = 0; }
+                else if (annual <= 17006) { tax = (annual - 11604) * 0.14; }
+                else if (annual <= 66761) { tax = (annual - 11604) * 0.24 - 5000; }
+                else if (annual <= 277826) { tax = (annual - 66761) * 0.42 + 14929.55; }
+                else { tax = (annual - 277826) * 0.45 + 103547.76; }
+                tax = Math.max(tax, 0);
+                const taxMonthly = tax / 12;
+                const net = gross - taxMonthly - social;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'Social Contributions (~19.6%)', value: -social },
+                        { label: 'Income Tax (Lohnsteuer)', value: -taxMonthly },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: taxMonthly, social, net
+                };
+            }
+        },
+        ae: {
+            name: 'UAE', currency: 'AED', flag: '🇦🇪',
+            calc(gross) {
+                // No personal income tax in UAE
+                const net = gross;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'Income Tax', value: 0, note: 'No personal income tax in UAE' },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax: 0, social: 0, net
+                };
+            }
+        },
+        sg: {
+            name: 'Singapore', currency: 'SGD', flag: '🇸🇬',
+            calc(gross) {
+                const cpf = gross * 0.20; // employee CPF 20% (up to OW ceiling 6,800/month)
+                let tax = 0;
+                if (gross <= 1667) { tax = 0; }
+                else if (gross <= 2500) { tax = (gross - 1667) * 0.02; }
+                else if (gross <= 3333) { tax = 16.66 + (gross - 2500) * 0.035; }
+                else if (gross <= 4167) { tax = 45.81 + (gross - 3333) * 0.07; }
+                else if (gross <= 8333) { tax = 104.19 + (gross - 4167) * 0.115; }
+                else if (gross <= 16667) { tax = 583.08 + (gross - 8333) * 0.15; }
+                else { tax = 1833.18 + (gross - 16667) * 0.20; }
+                const net = gross - cpf - tax;
+                return {
+                    rows: [
+                        { label: 'Gross Salary', value: gross },
+                        { label: 'CPF Employee (20%)', value: -cpf },
+                        { label: 'Income Tax', value: -tax },
+                        { label: 'Net Take-Home Pay', value: net, bold: true },
+                    ],
+                    tax, social: cpf, net
+                };
+            }
+        }
+    };
+
+    function getCurrency(code) {
+        return COUNTRIES[code] ? COUNTRIES[code].currency : 'KES';
+    }
+
+    function updateCurrencyLabel() {
+        const code = document.getElementById('globalCountry').value;
+        document.getElementById('currLabel').textContent = getCurrency(code);
+        // highlight selected card
+        document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
+        const card = document.querySelector(`.country-card[onclick="selectCountry('${code}')"]`);
+        if (card) card.classList.add('selected');
+        globalCalc();
+    }
+
+    function selectCountry(code) {
+        const sel = document.getElementById('globalCountry');
+        if (sel) { sel.value = code; updateCurrencyLabel(); }
+    }
+
+    function fmtNum(n, decimals) {
+        return Math.abs(n).toLocaleString('en', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+    }
+
+    function globalCalc() {
+        const code = document.getElementById('globalCountry').value;
+        const gross = parseFloat(document.getElementById('globalSalary').value) || 0;
+        if (gross <= 0) { document.getElementById('globalResults').style.display = 'none'; return; }
+
+        const country = COUNTRIES[code];
+        if (!country) return;
+
+        const r = country.calc(gross);
+        const curr = country.currency;
+
+        document.getElementById('gDispGross').textContent  = curr + ' ' + fmtNum(gross);
+        document.getElementById('gDispTax').textContent    = curr + ' ' + fmtNum(Math.max(r.tax, 0));
+        document.getElementById('gDispSocial').textContent = curr + ' ' + fmtNum(Math.max(r.social, 0));
+        document.getElementById('gDispNet').textContent    = curr + ' ' + fmtNum(Math.max(r.net, 0));
+        document.getElementById('gResultTitle').innerHTML  = '<i class="fas fa-table"></i> ' + country.flag + ' ' + country.name + ' Salary Breakdown';
+
+        const effRate = gross > 0 ? ((gross - r.net) / gross * 100).toFixed(1) : 0;
+        document.getElementById('gEffRate').innerHTML =
+            '<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:11px 16px;color:#2e7d32;">' +
+            '<i class="fas fa-percent"></i> <strong>Effective Deduction Rate: ' + effRate + '%</strong> of gross salary goes to tax &amp; contributions.' +
+            '</div>';
+
+        // Build table rows
+        const tbody = document.getElementById('gTableBody');
+        tbody.innerHTML = '';
+        r.rows.forEach(row => {
+            const val = row.value;
+            const annualVal = val * 12;
+            const tr = document.createElement('tr');
+            if (row.bold) tr.className = 'net-row';
+            else if (val < 0) tr.className = 'deduction-row';
+            const sign = val < 0 ? '−' : '';
+            const note = row.note ? ` <span style="font-size:0.8em;color:#888;">(${row.note})</span>` : '';
+            tr.innerHTML =
+                `<td>${row.bold ? '<strong>' + row.label + '</strong>' : row.label}${note}</td>` +
+                `<td>${row.bold ? '<strong>' : ''}${sign}${curr} ${fmtNum(Math.abs(val))}${row.bold ? '</strong>' : ''}</td>` +
+                `<td>${row.bold ? '<strong>' : ''}${sign}${curr} ${fmtNum(Math.abs(annualVal))}${row.bold ? '</strong>' : ''}</td>`;
+            tbody.appendChild(tr);
+        });
+
+        // Twitter share
+        const twBtn = document.getElementById('gTwBtn');
+        if (twBtn) {
+            const tweet = encodeURIComponent(
+                'My ' + curr + ' ' + fmtNum(gross) + ' gross salary in ' + country.name +
+                ' = ' + curr + ' ' + fmtNum(Math.max(r.net, 0)) + ' net take-home 💰 ' +
+                'Check yours: https://salarycalculator.co.ke/global-salary-calculator.html #SalaryAfterTax'
+            );
+            twBtn.href = 'https://twitter.com/intent/tweet?text=' + tweet;
+        }
+
+        document.getElementById('globalResults').style.display = 'block';
+    }
+
+    // Dark mode
+    (function() {
+        if (localStorage.getItem('darkMode') === 'on') document.body.classList.add('dark-mode');
+    })();
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('darkModeToggle');
+        if (!btn) return;
+        const upd = () => { btn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark'; };
+        upd();
+        btn.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            upd();
+        });
+        // highlight Kenya card on load
+        const keCard = document.querySelector(".country-card[onclick=\"selectCountry('ke')\"]");
+        if (keCard) keCard.classList.add('selected');
+    });
+    </script>
+</body>
+</html>

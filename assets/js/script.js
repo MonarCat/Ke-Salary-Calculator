@@ -776,6 +776,21 @@ function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pe
         waBtn.href = 'https://wa.me/?text=' + waText;
     }
 
+    // Update Twitter/X share button
+    const twBtn = document.getElementById('twitterShareBtn');
+    if (twBtn) {
+        const netPayEl = document.getElementById('netPay');
+        const netPayText = netPayEl ? netPayEl.textContent : '';
+        const payeEl = document.getElementById('paye');
+        const payeText = payeEl ? payeEl.textContent : '';
+        const grossFmt = 'KES ' + Number(grossPay).toLocaleString('en-KE');
+        const tweetText = encodeURIComponent(
+            'My ' + grossFmt + ' salary becomes only ' + netPayText + ' after Kenya\'s deductions 😭 ' +
+            'That\'s ' + payeText + ' in PAYE alone! Check yours: https://salarycalculator.co.ke #KenyaSalary'
+        );
+        twBtn.href = 'https://twitter.com/intent/tweet?text=' + tweetText;
+    }
+
     shareSection.style.display = 'block';
 }
 
@@ -836,4 +851,80 @@ function loadCalculationFromURL() {
 
     // Auto-calculate after loading params
     calculateSalary();
+}
+
+// ── Kenya Salary Percentile Calculator ──────────────────────────────────────
+const KE_SALARY_PERCENTILES = [
+    { salary: 5000,    percentile: 2  },
+    { salary: 10000,   percentile: 8  },
+    { salary: 15000,   percentile: 15 },
+    { salary: 20000,   percentile: 25 },
+    { salary: 25000,   percentile: 32 },
+    { salary: 30000,   percentile: 40 },
+    { salary: 40000,   percentile: 50 },
+    { salary: 50000,   percentile: 58 },
+    { salary: 60000,   percentile: 65 },
+    { salary: 72000,   percentile: 70 },
+    { salary: 80000,   percentile: 74 },
+    { salary: 100000,  percentile: 80 },
+    { salary: 120000,  percentile: 84 },
+    { salary: 150000,  percentile: 88 },
+    { salary: 200000,  percentile: 92 },
+    { salary: 300000,  percentile: 96 },
+    { salary: 500000,  percentile: 98 },
+    { salary: 1000000, percentile: 99 },
+];
+
+function getPercentile(salary) {
+    if (salary <= 0) return 0;
+    const data = KE_SALARY_PERCENTILES;
+    if (salary <= data[0].salary) return data[0].percentile * (salary / data[0].salary);
+    if (salary >= data[data.length - 1].salary) return data[data.length - 1].percentile;
+    for (let i = 1; i < data.length; i++) {
+        if (salary <= data[i].salary) {
+            const lower = data[i - 1];
+            const upper = data[i];
+            const t = (salary - lower.salary) / (upper.salary - lower.salary);
+            return lower.percentile + t * (upper.percentile - lower.percentile);
+        }
+    }
+    return 99;
+}
+
+function calcPercentile() {
+    const salary = parseFloat(document.getElementById('percentileGross')?.value) || 0;
+    const resultsDiv = document.getElementById('percentileResults');
+    if (!resultsDiv) return;
+    if (salary <= 0) { resultsDiv.style.display = 'none'; return; }
+
+    const pct = Math.round(getPercentile(salary));
+    const AVG = 72000;
+    const diff = salary - AVG;
+    const diffPct = ((diff / AVG) * 100).toFixed(1);
+    const diffText = diff >= 0
+        ? 'KES ' + Math.abs(diff).toLocaleString('en-KE') + ' (' + Math.abs(diffPct) + '%) above the average'
+        : 'KES ' + Math.abs(diff).toLocaleString('en-KE') + ' (' + Math.abs(diffPct) + '%) below the average';
+
+    document.getElementById('percentileValue').textContent = pct;
+    document.getElementById('percentileBarLabel').textContent = pct + '%';
+    document.getElementById('pctYourSalary').textContent = 'KES ' + salary.toLocaleString('en-KE');
+    document.getElementById('pctDiffAvg').textContent = diffText;
+    document.getElementById('pctPctAvg').textContent = (diff >= 0 ? '+' : '') + diffPct + '%';
+    document.getElementById('pctPercentileRow').textContent = 'Top ' + (100 - pct) + '% (Percentile ' + pct + ')';
+    document.getElementById('pctSharePct').textContent = pct;
+
+    // Animate bar
+    const fill = document.getElementById('percentileBarFill');
+    if (fill) { fill.style.width = '0%'; setTimeout(() => { fill.style.width = pct + '%'; }, 50); }
+
+    // Twitter share link
+    const twBtn = document.getElementById('percentileShareBtn');
+    if (twBtn) {
+        const tweetText = encodeURIComponent(
+            'I earn more than ' + pct + '% of Kenyans! 🇰🇪 Check where your salary ranks: https://salarycalculator.co.ke #KenyaSalary #KenyaJobs'
+        );
+        twBtn.href = 'https://twitter.com/intent/tweet?text=' + tweetText;
+    }
+
+    resultsDiv.style.display = 'block';
 }
