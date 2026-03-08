@@ -155,6 +155,79 @@
             margin-top: 10px;
         }
         .whatsapp-share-btn:hover { background: #128C7E; }
+        /* Twitter/X share */
+        .twitter-share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1DA1F2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+        .twitter-share-btn:hover { background: #0d8bd9; }
+        /* Kenya Percentile tab */
+        .percentile-bar-wrap {
+            background: #e8f5e9;
+            border-radius: 10px;
+            height: 28px;
+            overflow: hidden;
+            margin: 10px 0 4px;
+        }
+        .percentile-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #006600, #22c55e);
+            border-radius: 10px;
+            transition: width 1.2s cubic-bezier(.4,0,.2,1);
+            width: 0%;
+        }
+        .percentile-result-card {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .percentile-result-card .big-pct {
+            font-size: 3em;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+        .percentile-avg-info {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 18px;
+            color: #2e7d32;
+            font-size: 0.95em;
+        }
+        .percentile-share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #006600, #22c55e);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 22px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            margin-top: 14px;
+        }
+        .percentile-share-btn:hover { opacity: 0.88; }
 
         /* Ad sidebar for calculator page */
         .calc-page-layout {
@@ -206,6 +279,9 @@
                         <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
                         <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                         <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/calculator.html#percentile" onclick="event.preventDefault();window.location='/calculator.html';setTimeout(function(){openTab('percentile');},400);">Kenya Percentile</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
                     </div>
                 </div>
                 
@@ -247,6 +323,7 @@
                 <button class="tab-button active" data-tab="calculator" onclick="openTab('calculator')">Salary Calculator</button>
                 <button class="tab-button" data-tab="grossup" onclick="openTab('grossup')">Gross-Up Calculator</button>
                 <button class="tab-button" data-tab="comparison" onclick="openTab('comparison')">Salary Comparison</button>
+                <button class="tab-button" data-tab="percentile" onclick="openTab('percentile')">Kenya Percentile</button>
                 <button class="tab-button" data-tab="payslip" onclick="openPayslipTab()">Payslip Generator</button>
             </div>
             
@@ -436,6 +513,9 @@
                         <div style="margin-top:10px;">
                             <a id="whatsappShareBtn" href="#" class="whatsapp-share-btn" target="_blank" rel="noopener noreferrer">
                                 <i class="fab fa-whatsapp"></i> Share via WhatsApp
+                            </a>
+                            <a id="twitterShareBtn" href="#" class="twitter-share-btn" target="_blank" rel="noopener noreferrer">
+                                <i class="fab fa-twitter"></i> Share on X (Twitter)
                             </a>
                         </div>
                     </div>
@@ -685,6 +765,61 @@
                 </div>
             </div>
             
+            <!-- Kenya Percentile Tab -->
+            <div id="percentile" class="tab-content" style="display: none;">
+                <div class="input-section">
+                    <h2 style="color:#006600; margin-bottom:8px;"><i class="fas fa-chart-bar"></i> Compare Your Salary With Other Kenyans</h2>
+                    <p style="color:#555; margin-bottom:18px;">Find out where your salary ranks among Kenya's formal sector workers.</p>
+
+                    <div class="percentile-avg-info">
+                        <i class="fas fa-info-circle"></i> <strong>Average Kenyan Salary: KES 72,000/month</strong> &nbsp;—&nbsp; Based on KNBS formal sector data.
+                    </div>
+
+                    <div class="form-group" style="max-width:320px;">
+                        <label for="percentileGross">Your Gross Monthly Salary (KES)</label>
+                        <input type="number" id="percentileGross" placeholder="e.g. 85000" oninput="calcPercentile()" min="0">
+                    </div>
+                    <button onclick="calcPercentile()" style="margin-top:4px;">Calculate My Rank</button>
+                </div>
+
+                <div id="percentileResults" class="results-section" style="display:none; margin-top:20px;">
+                    <div class="percentile-result-card">
+                        <div style="font-size:1.05em; margin-bottom:4px;">You earn more than</div>
+                        <div class="big-pct"><span id="percentileValue">0</span>%</div>
+                        <div style="font-size:1.05em; margin-top:4px;">of Kenyan employees</div>
+                    </div>
+
+                    <div style="padding: 4px 0 10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.88em; color:#555; margin-bottom:4px;">
+                            <span>0%</span><span id="percentileBarLabel" style="font-weight:bold; color:#006600;">0%</span><span>100%</span>
+                        </div>
+                        <div class="percentile-bar-wrap">
+                            <div class="percentile-bar-fill" id="percentileBarFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="breakdown-table-wrapper" style="margin-top:16px;">
+                        <table class="breakdown-table">
+                            <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+                            <tbody>
+                                <tr><td>Your Gross Salary</td><td id="pctYourSalary">—</td></tr>
+                                <tr><td>Average Kenyan Salary</td><td>KES 72,000</td></tr>
+                                <tr><td>Difference vs. Average</td><td id="pctDiffAvg">—</td></tr>
+                                <tr><td>% vs. Average</td><td id="pctPctAvg">—</td></tr>
+                                <tr class="net-row"><td><strong>Your Percentile</strong></td><td id="pctPercentileRow">—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="text-align:center; margin-top:16px;">
+                        <a id="percentileShareBtn" href="#" class="percentile-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-twitter"></i> Share on X: "I earn more than <span id="pctSharePct">0</span>% of Kenyans!"
+                        </a>
+                    </div>
+                    <p style="font-size:0.8em; color:#888; margin-top:12px; text-align:center;">* Estimates based on KNBS Kenya formal sector salary distribution data.</p>
+                </div>
+            </div>
+
             <!-- Payslip Generator Tab -->
             <div id="payslip" class="tab-content" style="display: none;">
 
