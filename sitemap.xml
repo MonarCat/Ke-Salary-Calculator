@@ -32,8 +32,14 @@
   </url>
   <url>
     <loc>https://salarycalculator.co.ke/blog.html</loc>
-    <lastmod>2025-02-01</lastmod>
+    <lastmod>2025-02-17</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://salarycalculator.co.ke/kenya-tax-abolition-below-30000.html</loc>
+    <lastmod>2025-02-17</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>

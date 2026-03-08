@@ -2,180 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Article - Kenya Salary Calculator Blog</title>
-    <meta name="description" id="page-description" content="Read the latest articles on Kenya salary, PAYE, tax changes and financial news.">
-    <meta name="robots" content="index, follow">
-    <link id="canonical-link" rel="canonical" href="https://salarycalculator.co.ke/blog.html">
-    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <title>Kenya Salary Calculator Blog | All Articles</title>
+    <meta name="description" content="Browse all articles on Kenya salary, PAYE, tax changes and financial news from Kenya Salary Calculator.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/blog.html">
 
-    <!-- Open Graph (updated by JS) -->
-    <meta property="og:type" content="article">
-    <meta property="og:url" id="og-url" content="https://salarycalculator.co.ke/blog-post.html">
-    <meta property="og:title" id="og-title" content="Article - Kenya Salary Calculator Blog">
-    <meta property="og:description" id="og-description" content="Read the latest articles on Kenya salary, PAYE, tax changes and financial news.">
-
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
-    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <style>
-        .article-wrapper {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .article-header {
-            background: linear-gradient(135deg, #006600 0%, #009900 100%);
-            color: white;
-            padding: 35px 30px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-        .article-header h1 {
-            color: white;
-            font-size: 2em;
-            margin-bottom: 15px;
-            line-height: 1.4;
-            text-shadow: none;
-            padding-bottom: 0;
-        }
-        .article-header h1::after {
-            display: none;
-        }
-        .article-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            font-size: 0.9em;
-            color: #d0f0d0;
-        }
-        .article-meta span {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .article-body {
+        .redirect-box {
             background: white;
             border-radius: 10px;
-            padding: 30px 35px;
+            padding: 40px 35px;
+            text-align: center;
             box-shadow: 0 3px 15px rgba(0,0,0,0.1);
-            line-height: 1.85;
-            color: #444;
-            font-size: 1.02em;
+            max-width: 600px;
+            margin: 30px auto;
         }
-        .article-body h2 {
+        .redirect-box i.big-icon {
+            font-size: 3em;
             color: #006600;
-            font-size: 1.5em;
-            margin-top: 30px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e8f5e9;
+            margin-bottom: 15px;
+            display: block;
         }
-        .article-body h2::after {
-            display: none;
-        }
-        .article-body h3 {
-            color: #004d00;
-            font-size: 1.2em;
-            margin-top: 25px;
-            margin-bottom: 10px;
-        }
-        .article-body p {
-            margin-bottom: 16px;
-        }
-        .article-body ul, .article-body ol {
-            padding-left: 28px;
-            margin-bottom: 16px;
-        }
-        .article-body li {
-            margin-bottom: 6px;
-        }
-        .article-body blockquote {
-            border-left: 4px solid #006600;
-            margin: 20px 0;
-            padding: 12px 20px;
-            background: #f1f8f1;
-            color: #444;
-            font-style: italic;
-            border-radius: 0 6px 6px 0;
-        }
-        .article-body strong {
-            color: #333;
-        }
-        .article-body a {
+        .redirect-box h1 {
             color: #006600;
-            text-decoration: underline;
+            font-size: 1.6em;
+            margin-bottom: 15px;
+            padding-bottom: 0;
         }
-        .article-body a:hover {
-            color: #004d00;
-        }
-        .back-to-blog {
+        .redirect-box h1::after { display: none; }
+        .redirect-box p { color: #555; margin-bottom: 25px; }
+        .redirect-box a.btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 22px;
+            padding: 12px 28px;
             background: #006600;
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 0.9em;
-            margin-bottom: 20px;
             transition: background 0.2s;
         }
-        .back-to-blog:hover {
-            background: #004d00;
+        .redirect-box a.btn:hover { background: #004d00; }
+        .article-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+            text-align: left;
         }
-        .article-loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
+        .article-list li {
+            border-top: 1px solid #eee;
+            padding: 12px 0;
         }
-        .article-loading i {
-            font-size: 2.5em;
+        .article-list a {
             color: #006600;
-            display: block;
-            margin-bottom: 15px;
-            animation: spin 1s linear infinite;
+            text-decoration: none;
+            font-weight: bold;
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .article-not-found {
-            text-align: center;
-            padding: 60px 20px;
+        .article-list a:hover { text-decoration: underline; }
+        .article-list .meta {
+            font-size: 0.82em;
             color: #888;
-        }
-        .article-not-found i {
-            font-size: 3em;
-            color: #ccc;
-            display: block;
-            margin-bottom: 15px;
-        }
-        .article-error {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 25px;
-            text-align: center;
-            color: #856404;
-        }
-        @media (max-width: 600px) {
-            .article-header {
-                padding: 25px 20px;
-            }
-            .article-header h1 {
-                font-size: 1.6em;
-            }
-            .article-body {
-                padding: 20px;
-            }
+            margin-top: 3px;
         }
     </style>
 </head>
@@ -196,10 +89,8 @@
             <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <nav class="main-nav">
+            <nav class="main-nav" aria-label="Main navigation">
                 <a href="/">Home</a>
-
-                <!-- Calculators Dropdown -->
                 <div class="nav-dropdown">
                     <span class="nav-dropdown-toggle">
                         Calculators <i class="fas fa-chevron-down"></i>
@@ -213,38 +104,29 @@
                         <a href="/global-salary-calculator.html">Global Calculator</a>
                     </div>
                 </div>
-
                 <a href="/about-us.html">About Us</a>
                 <a href="/blog.html" class="active">Blog</a>
                 <a href="/contact-us.html">Contact Us</a>
                 <a href="/employees.html">Manage Employees</a>
                 <a href="/external-links.html">External Links</a>
-
                 <div id="auth-links" class="auth-links-container"></div>
-                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">&#127769; Dark</button>
             </nav>
 
-            <div class="article-wrapper">
-                <a href="/blog.html" class="back-to-blog">
-                    <i class="fas fa-arrow-left"></i> Back to Blog
-                </a>
+            <div class="redirect-box">
+                <i class="fas fa-newspaper big-icon" aria-hidden="true"></i>
+                <h1>Kenya Finance &amp; Tax Blog</h1>
+                <p>Please browse our published articles below, or return to the full blog index.</p>
+                <a href="/blog.html" class="btn"><i class="fas fa-list" aria-hidden="true"></i> View All Articles</a>
 
-                <!-- AdSense Banner -->
-                <div id="adsense-header-banner" class="adsense-container"></div>
-
-                <!-- Article Content -->
-                <div id="article-container">
-                    <div class="article-loading">
-                        <i class="fas fa-circle-notch"></i>
-                        Loading article&hellip;
-                    </div>
-                </div>
-
-                <!-- AdSense In-Content -->
-                <div id="adsense-in-content" class="adsense-container" style="margin: 20px 0;"></div>
-
-                <!-- AdSense Footer -->
-                <div id="adsense-footer" class="adsense-container"></div>
+                <ul class="article-list">
+                    <li>
+                        <a href="/kenya-tax-abolition-below-30000.html">
+                            Kenya Treasury Hints at Tax Abolition for Low-Income Earners Below KES 30,000
+                        </a>
+                        <div class="meta">17 February 2025 &bull; Tax Policy &bull; PAYE &bull; KRA</div>
+                    </li>
+                </ul>
             </div>
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
@@ -266,143 +148,17 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
-    <script src="assets/js/adsense-config.js?v=2.0"></script>
     <script>
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            var d = new Date(dateStr);
-            return d.toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-
-        function getSlugFromUrl() {
-            var params = new URLSearchParams(window.location.search);
-            return params.get('slug') || '';
-        }
-
-        function updateMetaTags(post) {
-            var title = post.title + ' - Kenya Salary Calculator Blog';
-            document.getElementById('page-title').textContent = title;
-            var desc = post.excerpt || post.title;
-            document.getElementById('page-description').setAttribute('content', desc);
-            document.getElementById('og-title').setAttribute('content', title);
-            document.getElementById('og-description').setAttribute('content', desc);
-            var url = 'https://salarycalculator.co.ke/blog-post.html?slug=' + encodeURIComponent(post.slug);
-            document.getElementById('og-url').setAttribute('content', url);
-            document.getElementById('canonical-link').setAttribute('href', url);
-        }
-
-        function renderArticle(post) {
-            var container = document.getElementById('article-container');
-            var date = formatDate(post.published_at || post.created_at);
-            var author = post.author_name || 'Admin';
-            var views = post.views_count || 0;
-
-            var html = '<div class="article-header">' +
-                '<h1>' + escapeHtml(post.title) + '</h1>' +
-                '<div class="article-meta">' +
-                    '<span><i class="fas fa-user"></i> ' + escapeHtml(author) + '</span>' +
-                    (date ? '<span><i class="fas fa-calendar"></i> ' + date + '</span>' : '') +
-                    '<span><i class="fas fa-eye"></i> ' + views + ' views</span>' +
-                '</div>' +
-                '</div>' +
-                '<div class="article-body">' + sanitizeContent(post.content) + '</div>';
-
-            container.innerHTML = html;
-            updateMetaTags(post);
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        // Allow only safe HTML tags for article content
-        function sanitizeContent(html) {
-            if (!html) return '';
-            // Use a temporary element to strip disallowed tags
-            var tmp = document.createElement('div');
-            tmp.innerHTML = html;
-            // Remove script, style, iframe and on* attributes
-            var dangerous = tmp.querySelectorAll('script, style, iframe, object, embed, form');
-            dangerous.forEach(function(el) { el.remove(); });
-            var allEls = tmp.querySelectorAll('*');
-            allEls.forEach(function(el) {
-                // Remove event handler attributes
-                Array.from(el.attributes).forEach(function(attr) {
-                    if (attr.name.startsWith('on') || (attr.name === 'href' && /^javascript:/i.test(attr.value))) {
-                        el.removeAttribute(attr.name);
-                    }
-                });
-                // Remove src pointing to javascript:
-                if (el.hasAttribute('src') && /^javascript:/i.test(el.getAttribute('src'))) {
-                    el.removeAttribute('src');
-                }
+        (function () {
+            var btn = document.getElementById('scrollToTop');
+            if (!btn) return;
+            window.addEventListener('scroll', function () {
+                btn.style.display = window.scrollY > 300 ? 'block' : 'none';
             });
-            return tmp.innerHTML;
-        }
-
-        async function incrementViews(postId) {
-            try {
-                if (window.supabaseClient) {
-                    await window.supabaseClient.rpc('increment_post_views_realtime', { post_id: postId });
-                }
-            } catch (e) {
-                // View count increment is non-critical; ignore errors
-            }
-        }
-
-        async function loadArticle() {
-            var container = document.getElementById('article-container');
-            var slug = getSlugFromUrl();
-
-            if (!slug) {
-                container.innerHTML = '<div class="article-not-found"><i class="fas fa-search"></i><p>Article not found. <a href="/blog.html">Return to Blog</a></p></div>';
-                return;
-            }
-
-            try {
-                if (!window.supabaseClient) {
-                    container.innerHTML = '<div class="article-error"><i class="fas fa-exclamation-triangle"></i> Unable to load article at this time. Please try again later.</div>';
-                    return;
-                }
-
-                var result = await window.supabaseClient
-                    .from('blog_posts')
-                    .select('id, title, slug, excerpt, content, author_name, views_count, published_at, created_at')
-                    .eq('slug', slug)
-                    .eq('status', 'published')
-                    .single();
-
-                if (result.error || !result.data) {
-                    container.innerHTML = '<div class="article-not-found"><i class="fas fa-search"></i><p>Article not found. <a href="/blog.html">Return to Blog</a></p></div>';
-                    return;
-                }
-
-                renderArticle(result.data);
-                incrementViews(result.data.id);
-
-            } catch (err) {
-                console.error('Failed to load article:', err);
-                container.innerHTML = '<div class="article-error"><i class="fas fa-exclamation-triangle"></i> Unable to load article at this time. Please try again later.</div>';
-            }
-        }
-
-        // Scroll to top button
-        var scrollBtn = document.getElementById('scrollToTop');
-        if (scrollBtn) {
-            window.addEventListener('scroll', function() {
-                scrollBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
-            });
-            scrollBtn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
-        }
-
-        document.addEventListener('DOMContentLoaded', loadArticle);
+        }());
     </script>
 </body>
 </html>
