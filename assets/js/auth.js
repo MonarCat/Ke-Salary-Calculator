@@ -3,31 +3,6 @@
 // Constants
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
 
-// hCaptcha widget IDs (assigned after the hCaptcha API loads)
-let loginHcaptchaWidgetId = null;
-let signupHcaptchaWidgetId = null;
-
-// Called by the hCaptcha API script once it has loaded (via ?onload=onHcaptchaLoad)
-function onHcaptchaLoad() {
-    if (typeof hcaptcha === 'undefined') return;
-    const siteKey = (typeof HCAPTCHA_SITE_KEY !== 'undefined') ? HCAPTCHA_SITE_KEY : '';
-    if (!siteKey) {
-        console.error('hCaptcha: HCAPTCHA_SITE_KEY is not configured. Set it in supabase-config.js.');
-        return;
-    }
-
-    const loginContainer = document.getElementById('login-hcaptcha');
-    const signupContainer = document.getElementById('signup-hcaptcha');
-
-    if (loginContainer) {
-        loginHcaptchaWidgetId = hcaptcha.render('login-hcaptcha', { sitekey: siteKey });
-    }
-    if (signupContainer) {
-        signupHcaptchaWidgetId = hcaptcha.render('signup-hcaptcha', { sitekey: siteKey });
-    }
-}
-window.onHcaptchaLoad = onHcaptchaLoad;
-
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
     const tabs = document.querySelectorAll('.auth-tab');
@@ -78,17 +53,6 @@ async function handleLogin(event) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    // Validate hCaptcha
-    if (typeof hcaptcha === 'undefined' || loginHcaptchaWidgetId === null) {
-        showMessage('login-message', 'Security check is still loading. Please wait a moment and try again.', 'error');
-        return;
-    }
-    const captchaToken = hcaptcha.getResponse(loginHcaptchaWidgetId);
-    if (!captchaToken) {
-        showMessage('login-message', 'Please complete the CAPTCHA verification.', 'error');
-        return;
-    }
-    
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -98,8 +62,7 @@ async function handleLogin(event) {
     try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
-            password: password,
-            options: { captchaToken }
+            password: password
         });
         
         if (error) throw error;
@@ -115,10 +78,6 @@ async function handleLogin(event) {
         }, 1000);
         
     } catch (error) {
-        // Reset captcha on failure so the user can try again
-        if (typeof hcaptcha !== 'undefined' && loginHcaptchaWidgetId !== null) {
-            hcaptcha.reset(loginHcaptchaWidgetId);
-        }
         // Detect unverified email and offer resend link
         if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
             showMessage('login-message',
@@ -195,17 +154,6 @@ async function handleSignup(event) {
         return;
     }
 
-    // Validate hCaptcha
-    if (typeof hcaptcha === 'undefined' || signupHcaptchaWidgetId === null) {
-        showMessage('signup-message', 'Security check is still loading. Please wait a moment and try again.', 'error');
-        return;
-    }
-    const captchaToken = hcaptcha.getResponse(signupHcaptchaWidgetId);
-    if (!captchaToken) {
-        showMessage('signup-message', 'Please complete the CAPTCHA verification.', 'error');
-        return;
-    }
-    
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -217,7 +165,6 @@ async function handleSignup(event) {
             email: email,
             password: password,
             options: {
-                captchaToken,
                 emailRedirectTo: window.location.origin + '/auth.html',
                 data: {
                     full_name: name,
@@ -247,16 +194,8 @@ async function handleSignup(event) {
         // Reset form
         event.target.reset();
         document.getElementById('organization-fields').style.display = 'none';
-        // Reset captcha after successful signup
-        if (typeof hcaptcha !== 'undefined' && signupHcaptchaWidgetId !== null) {
-            hcaptcha.reset(signupHcaptchaWidgetId);
-        }
         
     } catch (error) {
-        // Reset captcha on failure so the user can try again
-        if (typeof hcaptcha !== 'undefined' && signupHcaptchaWidgetId !== null) {
-            hcaptcha.reset(signupHcaptchaWidgetId);
-        }
         showMessage('signup-message', error.message || 'Signup failed. Please try again.', 'error');
     } finally {
         submitBtn.innerHTML = originalText;
