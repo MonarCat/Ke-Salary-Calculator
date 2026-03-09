@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Net Salary Game Kenya | Fun Salary Quiz</title>
+    <meta name="description" content="How well do you know Kenyan salaries? Guess the net take-home salary from the gross. A fun way to learn about Kenya's tax deductions.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/salary-guess-game.html">
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/salary-guess-game.html">
+    <meta property="og:title" content="Guess the Net Salary Game Kenya | Fun Salary Quiz">
+    <meta property="og:description" content="How well do you know Kenyan salaries? Guess the net take-home pay from the gross. A fun and educational salary quiz.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Guess the Net Salary Game Kenya | Fun Salary Quiz">
+    <meta name="twitter:description" content="Can you guess the take-home salary from a gross salary? Test your Kenya tax knowledge!">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
+    <style>
+        .gg-hero {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: white; border-radius: 12px; padding: 28px 24px 20px;
+            margin-bottom: 24px; text-align: center;
+        }
+        .gg-hero h1 { margin: 0 0 6px; font-size: 1.9em; }
+        .gg-hero p  { margin: 0; font-size: 1em; opacity: 0.9; }
+        .gg-score-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 10px;
+            padding: 12px 20px; margin-bottom: 18px; font-weight: 700;
+        }
+        .gg-score-bar .score-num { font-size: 1.3em; color: #006600; }
+        .gg-progress { font-size: 0.9em; color: #555; }
+        .gg-question-card {
+            background: #fff; border: 2px solid #a5d6a7; border-radius: 14px;
+            padding: 28px 24px; margin-bottom: 18px; text-align: center;
+        }
+        .gg-question-label { font-size: 0.9em; color: #777; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .gg-gross-amount { font-size: 2.8em; font-weight: 900; color: #006600; margin: 8px 0; }
+        .gg-profession { font-size: 1em; color: #555; margin-top: 4px; }
+        .gg-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .gg-option {
+            padding: 14px; border: 2px solid #d1e7d1; border-radius: 10px;
+            font-size: 1.05em; font-weight: 700; cursor: pointer; background: #fff;
+            transition: all 0.15s; color: #333; text-align: center;
+        }
+        .gg-option:hover:not(:disabled) { border-color: #006600; background: #e8f5e9; }
+        .gg-option.correct { border-color: #006600; background: #006600; color: white; }
+        .gg-option.wrong   { border-color: #c0392b; background: #fdecea; color: #c0392b; }
+        .gg-option:disabled { cursor: default; }
+        .gg-submit-btn {
+            background: #006600; color: white; border: none; border-radius: 8px;
+            padding: 12px 28px; font-size: 1em; font-weight: 700; cursor: pointer;
+            width: 100%; transition: background 0.2s; margin-bottom: 10px;
+        }
+        .gg-submit-btn:hover { background: #004d00; }
+        .gg-submit-btn:disabled { background: #999; cursor: default; }
+        .gg-next-btn {
+            background: #009900; color: white; border: none; border-radius: 8px;
+            padding: 12px 28px; font-size: 1em; font-weight: 700; cursor: pointer;
+            width: 100%; transition: background 0.2s; display: none;
+        }
+        .gg-next-btn:hover { background: #007700; }
+        .gg-explanation {
+            display: none; background: #f9f9f9; border: 1px solid #e5e7eb;
+            border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; text-align: left;
+        }
+        .gg-explanation h3 { color: #006600; margin: 0 0 10px; }
+        .gg-expl-table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+        .gg-expl-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+        .gg-expl-table td:last-child { text-align: right; font-weight: 600; }
+        .gg-expl-table tr:last-child td { font-weight: 800; color: #006600; background: #e8f5e9; }
+        .gg-feedback-badge {
+            display: inline-block; padding: 6px 16px; border-radius: 20px;
+            font-weight: 800; font-size: 1em; margin-bottom: 12px;
+        }
+        .gg-feedback-badge.correct { background: #006600; color: white; }
+        .gg-feedback-badge.wrong   { background: #c0392b; color: white; }
+        .gg-results-screen {
+            display: none; text-align: center; background: linear-gradient(135deg, #006600, #009900);
+            color: white; border-radius: 14px; padding: 36px 24px; margin-bottom: 22px;
+        }
+        .gg-results-screen .big-score { font-size: 4em; font-weight: 900; }
+        .gg-results-screen .score-label { font-size: 1.2em; margin-top: 4px; opacity: 0.9; }
+        .gg-results-screen .score-msg { font-size: 1em; margin-top: 12px; opacity: 0.85; }
+        .gg-restart-btn {
+            display: inline-block; margin-top: 18px; padding: 12px 28px;
+            background: white; color: #006600; border: none; border-radius: 8px;
+            font-size: 1em; font-weight: 800; cursor: pointer; transition: all 0.2s;
+        }
+        .gg-restart-btn:hover { background: #e8f5e9; }
+        .twitter-share-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #1DA1F2; color: white; border: none; border-radius: 8px;
+            padding: 10px 20px; font-size: 15px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 6px;
+        }
+        .twitter-share-btn:hover { background: #0d8bd9; }
+        .wa-share-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #25D366; color: white; border: none; border-radius: 8px;
+            padding: 10px 20px; font-size: 15px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 6px;
+        }
+        .wa-share-btn:hover { background: #1aab52; }
+        .info-section { background: #f9f9f9; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
+        .info-section h2 { color: #006600; margin-top: 0; }
+        @media (max-width: 480px) {
+            .gg-options { grid-template-columns: 1fr; }
+            .gg-gross-amount { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="disclaimer-banner">
+        <p>FREE TO USE | Kenyan Salary After Tax Calculator (2025):</p>
+    </div>
+    <div class="overlay">
+        <div class="container">
+            <div class="logo-container">
+                <a href="/"><img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo"></a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">Calculators <i class="fas fa-chevron-down"></i></span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                    </div>
+                </div>
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/external-links.html">External Links</a>
+                <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">🌙 Dark</button>
+            </nav>
+
+            <!-- Hero -->
+            <div class="gg-hero">
+                <h1>🎯 Guess the Net Salary</h1>
+                <p>Can you guess the take-home pay from a gross salary? Test your Kenya tax knowledge!</p>
+            </div>
+
+            <!-- Game Area -->
+            <div id="guess_game">
+                <!-- Score bar -->
+                <div class="gg-score-bar">
+                    <div>Score: <span class="score-num" id="gg_score">0</span> / <span id="gg_total_q">0</span></div>
+                    <div class="gg-progress" id="gg_progress_text">Question 1 of 10</div>
+                </div>
+
+                <!-- Question card -->
+                <div class="gg-question-card" id="gg_question_card">
+                    <div class="gg-question-label">What is the net take-home salary for this gross?</div>
+                    <div class="gg-gross-amount" id="gg_gross_display">—</div>
+                    <div class="gg-profession" id="gg_profession_display"></div>
+                </div>
+
+                <!-- Options -->
+                <div class="gg-options" id="gg_options_wrap">
+                    <button class="gg-option" id="opt_0" onclick="selectOption(0)">—</button>
+                    <button class="gg-option" id="opt_1" onclick="selectOption(1)">—</button>
+                    <button class="gg-option" id="opt_2" onclick="selectOption(2)">—</button>
+                    <button class="gg-option" id="opt_3" onclick="selectOption(3)">—</button>
+                </div>
+
+                <!-- Feedback -->
+                <div id="gg_feedback_badge"></div>
+                <div class="gg-explanation" id="gg_explanation">
+                    <h3 id="gg_expl_title">Correct Answer Breakdown</h3>
+                    <table class="gg-expl-table" id="gg_expl_table"></table>
+                </div>
+
+                <!-- Buttons -->
+                <button class="gg-submit-btn" id="gg_submit_btn" onclick="submitAnswer()" disabled>
+                    <i class="fas fa-check"></i> Submit Answer
+                </button>
+                <button class="gg-next-btn" id="gg_next_btn" onclick="nextQuestion()">
+                    Next Question <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Results screen -->
+            <div class="gg-results-screen" id="gg_results_screen">
+                <div class="big-score"><span id="gg_final_score">0</span>/10</div>
+                <div class="score-label" id="gg_score_label">Well done!</div>
+                <div class="score-msg" id="gg_score_msg"></div>
+                <div style="margin-top:18px;">
+                    <a id="gg_twitter_share" href="#" class="twitter-share-btn" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-twitter"></i> Share on X (Twitter)
+                    </a>
+                    <a id="gg_wa_share" href="#" class="wa-share-btn" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                    </a>
+                </div>
+                <button class="gg-restart-btn" onclick="restartGame()">
+                    <i class="fas fa-redo"></i> Play Again
+                </button>
+            </div>
+
+            <!-- Info -->
+            <div class="info-section">
+                <h2><i class="fas fa-lightbulb"></i> How to Play</h2>
+                <ol style="color:#444; line-height:1.9;">
+                    <li>You'll be shown a monthly <strong>gross salary</strong> in Kenyan Shillings.</li>
+                    <li>Choose the option closest to the correct <strong>net take-home pay</strong> after all statutory deductions.</li>
+                    <li>After each answer, you'll see the full breakdown of PAYE, NSSF, SHIF, and Housing Levy.</li>
+                    <li>Answer 10 questions and see your final score!</li>
+                </ol>
+                <p style="margin:0; color:#555; font-size:0.95em;">All calculations use the official 2025/2026 Kenya tax rates. This is a great way to understand how much deductions really affect your salary.</p>
+            </div>
+
+            <div class="info-section" style="margin-top:16px;">
+                <h2><i class="fas fa-tools"></i> Related Tools</h2>
+                <ul style="display:flex; flex-wrap:wrap; gap:10px; list-style:none; padding:0; margin:0;">
+                    <li><a href="/calculator.html" style="color:#006600;"><i class="fas fa-calculator"></i> Full Salary Calculator</a></li>
+                    <li><a href="/salary-raise-calculator.html" style="color:#006600;"><i class="fas fa-arrow-up"></i> Raise Calculator</a></li>
+                    <li><a href="/salary-comparison.html" style="color:#006600;"><i class="fas fa-chart-bar"></i> Salary Comparison</a></li>
+                    <li><a href="/salary-index.html" style="color:#006600;"><i class="fas fa-table"></i> Salary Index</a></li>
+                </ul>
+            </div>
+
+            <div style="text-align:center; margin: 20px 0;">
+                <a href="/calculator.html" class="cta-button primary" style="text-decoration:none; display:inline-block; padding:13px 28px;">
+                    <i class="fas fa-calculator"></i> Use the Full Kenya Salary Calculator
+                </a>
+            </div>
+
+            <footer style="text-align:center; padding:20px; margin-top:30px; font-size:12px; color:#666;">
+                <p style="margin-bottom:10px;">
+                    <a href="/privacy-policy.html" style="color:#006600; text-decoration:none; margin:0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color:#006600; text-decoration:none; margin:0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color:#006600; text-decoration:none; margin:0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color:#006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></button>
+
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script>
+    (function() {
+        if (localStorage.getItem('darkMode') === 'on') document.body.classList.add('dark-mode');
+    })();
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('darkModeToggle');
+        if (!btn) return;
+        const upd = () => { btn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark'; };
+        upd();
+        btn.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            upd();
+        });
+    });
+
+    // Tax calculation (2025/2026 rates)
+    function calcBreakdown(gross) {
+        const nssf = Math.min(gross * 0.06, 4320);
+        const shif = gross * 0.0275;
+        const hl   = gross * 0.015;
+        const taxable = Math.max(0, gross - nssf - shif - hl);
+        let paye = 0;
+        if (taxable > 0) {
+            const bands = [[24000,0.10],[8333,0.25],[467667,0.30],[300000,0.325],[Infinity,0.35]];
+            let rem = taxable;
+            for (const [size, rate] of bands) {
+                if (rem <= 0) break;
+                paye += Math.min(rem, size) * rate;
+                rem -= size;
+            }
+            paye = Math.max(0, paye - 2400);
+        }
+        return {
+            gross: Math.round(gross),
+            nssf: Math.round(nssf),
+            shif: Math.round(shif),
+            hl: Math.round(hl),
+            paye: Math.round(paye),
+            net: Math.round(gross - nssf - shif - hl - paye)
+        };
+    }
+
+    // Salary scenarios
+    const SCENARIOS = [
+        { gross: 25000, label: 'Entry-level employee' },
+        { gross: 35000, label: 'Junior staff member' },
+        { gross: 45000, label: 'Mid-level employee' },
+        { gross: 50000, label: 'Experienced professional' },
+        { gross: 65000, label: 'Senior professional' },
+        { gross: 80000, label: 'Manager / Team Lead' },
+        { gross: 100000, label: 'Senior Manager' },
+        { gross: 120000, label: 'Software Engineer' },
+        { gross: 150000, label: 'Finance Manager' },
+        { gross: 180000, label: 'Senior Engineer' },
+        { gross: 200000, label: 'Senior Doctor' },
+        { gross: 250000, label: 'Director / C-Suite' },
+        { gross: 300000, label: 'VP / Senior Director' },
+        { gross: 400000, label: 'C-Suite Executive' },
+        { gross: 500000, label: 'Top Executive' },
+    ];
+
+    const QUESTIONS_PER_GAME = 10;
+    let gameQuestions = [];
+    let currentQ = 0;
+    let score = 0;
+    let selectedOption = null;
+    let answered = false;
+
+    function shuffleArray(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function generateWrongAnswers(correctNet, gross) {
+        const offsets = [-0.15, -0.08, 0.08, 0.15, -0.20, 0.20, -0.05, 0.05];
+        const wrongs = [];
+        const used = new Set([correctNet]);
+        for (const off of shuffleArray(offsets)) {
+            const candidate = Math.round((correctNet + gross * off) / 1000) * 1000;
+            if (!used.has(candidate) && candidate > 0 && candidate !== correctNet) {
+                used.add(candidate);
+                wrongs.push(candidate);
+                if (wrongs.length === 3) break;
+            }
+        }
+        // Fallback if not enough
+        while (wrongs.length < 3) {
+            const fallback = correctNet + (wrongs.length + 1) * 2000;
+            if (!used.has(fallback)) { used.add(fallback); wrongs.push(fallback); }
+        }
+        return wrongs;
+    }
+
+    function buildGame() {
+        const pool = shuffleArray(SCENARIOS).slice(0, QUESTIONS_PER_GAME);
+        gameQuestions = pool.map(s => {
+            const bd = calcBreakdown(s.gross);
+            const wrongs = generateWrongAnswers(bd.net, s.gross);
+            const options = shuffleArray([bd.net, ...wrongs]);
+            return { scenario: s, breakdown: bd, options, correctIndex: options.indexOf(bd.net) };
+        });
+    }
+
+    function fmt(n) { return 'KES ' + n.toLocaleString('en-KE'); }
+
+    function renderQuestion() {
+        const q = gameQuestions[currentQ];
+        document.getElementById('gg_gross_display').textContent = fmt(q.scenario.gross);
+        document.getElementById('gg_profession_display').textContent = '(' + q.scenario.label + ')';
+        document.getElementById('gg_progress_text').textContent = 'Question ' + (currentQ + 1) + ' of ' + QUESTIONS_PER_GAME;
+        document.getElementById('gg_score').textContent = score;
+        document.getElementById('gg_total_q').textContent = currentQ;
+
+        for (let i = 0; i < 4; i++) {
+            const btn = document.getElementById('opt_' + i);
+            btn.textContent = fmt(q.options[i]);
+            btn.className = 'gg-option';
+            btn.disabled = false;
+        }
+
+        selectedOption = null;
+        answered = false;
+        document.getElementById('gg_submit_btn').disabled = true;
+        document.getElementById('gg_submit_btn').style.display = 'block';
+        document.getElementById('gg_next_btn').style.display = 'none';
+        document.getElementById('gg_explanation').style.display = 'none';
+        document.getElementById('gg_feedback_badge').innerHTML = '';
+    }
+
+    function selectOption(idx) {
+        if (answered) return;
+        selectedOption = idx;
+        for (let i = 0; i < 4; i++) {
+            document.getElementById('opt_' + i).classList.remove('correct', 'wrong');
+            document.getElementById('opt_' + i).style.borderColor = '';
+        }
+        document.getElementById('opt_' + idx).style.borderColor = '#006600';
+        document.getElementById('gg_submit_btn').disabled = false;
+    }
+
+    function submitAnswer() {
+        if (selectedOption === null || answered) return;
+        answered = true;
+
+        const q = gameQuestions[currentQ];
+        const isCorrect = (selectedOption === q.correctIndex);
+
+        if (isCorrect) {
+            score++;
+            document.getElementById('opt_' + selectedOption).className = 'gg-option correct';
+            document.getElementById('gg_feedback_badge').innerHTML =
+                '<span class="gg-feedback-badge correct">✓ Correct! Great Kenya tax knowledge!</span>';
+        } else {
+            document.getElementById('opt_' + selectedOption).className = 'gg-option wrong';
+            document.getElementById('opt_' + q.correctIndex).className = 'gg-option correct';
+            document.getElementById('gg_feedback_badge').innerHTML =
+                '<span class="gg-feedback-badge wrong">✗ Not quite — the correct answer was ' + fmt(q.breakdown.net) + '</span>';
+        }
+
+        // Disable all options
+        for (let i = 0; i < 4; i++) document.getElementById('opt_' + i).disabled = true;
+
+        // Show breakdown
+        const bd = q.breakdown;
+        document.getElementById('gg_expl_title').textContent = (isCorrect ? '✓ ' : '') + 'Full Breakdown for ' + fmt(bd.gross) + ' Gross';
+        document.getElementById('gg_expl_table').innerHTML = `
+            <tr><td>Gross Salary</td><td>${fmt(bd.gross)}</td></tr>
+            <tr><td>NSSF (6%, max KES 4,320)</td><td>− ${fmt(bd.nssf)}</td></tr>
+            <tr><td>SHIF (2.75%)</td><td>− ${fmt(bd.shif)}</td></tr>
+            <tr><td>Housing Levy (1.5%)</td><td>− ${fmt(bd.hl)}</td></tr>
+            <tr><td>PAYE (after personal relief)</td><td>− ${fmt(bd.paye)}</td></tr>
+            <tr><td><strong>Net Take-Home Pay</strong></td><td><strong>${fmt(bd.net)}</strong></td></tr>
+        `;
+        document.getElementById('gg_explanation').style.display = 'block';
+
+        document.getElementById('gg_submit_btn').style.display = 'none';
+        document.getElementById('gg_score').textContent = score;
+
+        if (currentQ + 1 >= QUESTIONS_PER_GAME) {
+            document.getElementById('gg_next_btn').textContent = 'See My Results 🏆';
+            document.getElementById('gg_next_btn').style.display = 'block';
+        } else {
+            document.getElementById('gg_next_btn').textContent = 'Next Question →';
+            document.getElementById('gg_next_btn').style.display = 'block';
+        }
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        if (currentQ >= QUESTIONS_PER_GAME) {
+            showResults();
+        } else {
+            renderQuestion();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('guess_game').style.display = 'none';
+        document.getElementById('gg_results_screen').style.display = 'block';
+        document.getElementById('gg_final_score').textContent = score;
+
+        let label, msg;
+        if (score === 10) {
+            label = '🏆 Perfect Score!';
+            msg = "You're a Kenya tax expert! You know exactly how deductions affect take-home pay.";
+        } else if (score >= 8) {
+            label = '🌟 Excellent!';
+            msg = "You have great knowledge of Kenyan salaries and tax deductions!";
+        } else if (score >= 6) {
+            label = '👍 Good Job!';
+            msg = "Solid understanding of Kenya's salary structure. Keep learning!";
+        } else if (score >= 4) {
+            label = '📚 Not Bad';
+            msg = "You know the basics! Try our salary calculator to explore more.";
+        } else {
+            label = '🤔 Keep Learning!';
+            msg = "Kenya tax can be tricky. Use our calculator to understand your deductions better.";
+        }
+
+        document.getElementById('gg_score_label').textContent = label;
+        document.getElementById('gg_score_msg').textContent = msg;
+
+        const shareText = encodeURIComponent(
+            'I scored ' + score + '/10 on the Kenya Salary Guess Game! Test your knowledge: https://salarycalculator.co.ke/salary-guess-game.html #KenyaSalary'
+        );
+        document.getElementById('gg_twitter_share').href = 'https://twitter.com/intent/tweet?text=' + shareText;
+        document.getElementById('gg_wa_share').href = 'https://wa.me/?text=' + shareText;
+    }
+
+    function restartGame() {
+        currentQ = 0;
+        score = 0;
+        selectedOption = null;
+        answered = false;
+        buildGame();
+        document.getElementById('gg_results_screen').style.display = 'none';
+        document.getElementById('guess_game').style.display = 'block';
+        renderQuestion();
+    }
+
+    // Start the game on load
+    document.addEventListener('DOMContentLoaded', function() {
+        buildGame();
+        renderQuestion();
+    });
+    </script>
+</body>
+</html>

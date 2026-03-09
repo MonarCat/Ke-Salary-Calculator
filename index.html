@@ -492,6 +492,178 @@
             }
             .custom-ad-box { flex: 1; min-width: 200px; }
         }
+
+        /* Daily Salary Insight */
+        .salary-insight-card {
+            background: linear-gradient(135deg, #003d00 0%, #006600 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            margin: 24px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .salary-insight-card::before {
+            content: "💡";
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3em;
+            opacity: 0.2;
+        }
+        .salary-insight-label {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 6px;
+        }
+        .salary-insight-text {
+            font-size: 1.05em;
+            line-height: 1.6;
+            margin: 0 0 14px;
+        }
+        .salary-insight-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .salary-insight-btn:hover { background: rgba(255,255,255,0.35); }
+
+        /* Tools Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin: 22px 0;
+        }
+        .tool-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 18px 14px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .tool-card:hover {
+            border-color: #006600;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,102,0,0.15);
+        }
+        .tool-card i { font-size: 1.8em; color: #006600; margin-bottom: 8px; display: block; }
+        .tool-card span { font-size: 0.88em; font-weight: 600; color: #333; }
+
+        /* Poll */
+        .poll-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin: 22px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        .poll-card h3 { color: #006600; margin: 0 0 14px; font-size: 1.05em; }
+        .poll-btn {
+            display: block;
+            width: 100%;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+        .poll-btn:hover { border-color: #006600; background: #f0fff0; }
+        .poll-btn.selected { border-color: #006600; background: #e8f5e9; font-weight: 600; }
+        .poll-result-bar { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+        .poll-result-fill { height: 100%; background: #006600; border-radius: 4px; transition: width 0.5s ease; }
+        .poll-result-label { font-size: 0.8em; color: #666; margin-top: 3px; }
+
+        /* Salary Trends */
+        .trends-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin: 22px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        .trends-card h3 { color: #006600; margin: 0 0 14px; }
+        .trends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .trends-stat {
+            background: #f0fff0;
+            border: 1px solid #a5d6a7;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .trends-stat .t-val { font-size: 1.3em; font-weight: 800; color: #006600; }
+        .trends-stat .t-lbl { font-size: 0.78em; color: #555; margin-top: 3px; }
+
+        /* Challenge */
+        .challenge-card {
+            background: linear-gradient(135deg, #1a0000 0%, #a00000 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            margin: 22px 0;
+        }
+        .challenge-card h3 { margin: 0 0 10px; font-size: 1.1em; }
+        .challenge-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .challenge-item {
+            background: rgba(255,255,255,0.12);
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.88em;
+        }
+        .challenge-item .c-label { opacity: 0.8; margin-bottom: 2px; }
+        .challenge-item .c-val { font-weight: 700; }
+
+        /* Email alert signup */
+        .email-alert-section {
+            background: #fff;
+            border: 2px solid #006600;
+            border-radius: 12px;
+            padding: 22px;
+            margin: 22px 0;
+            text-align: center;
+        }
+        .email-alert-section h3 { color: #006600; margin: 0 0 8px; }
+        .email-alert-section p { color: #555; font-size: 0.92em; margin: 0 0 14px; }
+        .email-alert-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .email-alert-input {
+            flex: 1; min-width: 200px; max-width: 320px;
+            padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px;
+        }
+        .email-alert-input:focus { outline: none; border-color: #006600; }
+        .email-alert-btn {
+            padding: 10px 22px; background: #006600; color: white; border: none;
+            border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+        }
+        .email-alert-btn:hover { background: #004d00; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
@@ -527,12 +699,31 @@
                         <a href="/payslip-generator-kenya.html">Payslip Generator</a>
                         <a href="/salary-after-tax.html">Salary After Tax</a>
                         <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/salary-raise-calculator.html">Raise Calculator</a>
+                        <a href="/salary-comparison.html">Salary Comparison</a>
+                    </div>
+                </div>
+
+                <!-- Salaries Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Salaries <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/salary-index.html">Salary Index Table</a>
+                        <a href="/salary/software-engineer-kenya.html">Software Engineer</a>
+                        <a href="/salary/nurse-kenya.html">Nurse</a>
+                        <a href="/salary/teacher-kenya.html">Teacher</a>
+                        <a href="/salary/accountant-kenya.html">Accountant</a>
+                        <a href="/salary/doctor-kenya.html">Doctor</a>
+                        <a href="/50000.html">KES 50,000 Salary</a>
+                        <a href="/100000.html">KES 100,000 Salary</a>
                     </div>
                 </div>
                 
-                
                 <a href="/about-us.html">About Us</a>
                 <a href="/blog.html">Blog</a>
+                <a href="/salary-news.html">Salary News</a>
                 <a href="/contact-us.html">Contact Us</a>
                 <a href="/employees.html">Manage Employees</a>
                 <a href="/external-links.html">External Links</a>
@@ -615,6 +806,175 @@
                         </div>
                     </div>
                     <a href="/calculator.html" class="mini-calc-cta"><i class="fas fa-arrow-right"></i> Full breakdown with payslip generator →</a>
+                </div>
+            </div>
+
+            <!-- Daily Salary Insight -->
+            <div class="salary-insight-card" id="salary_fact">
+                <div class="salary-insight-label">📊 Today's Salary Insight</div>
+                <p class="salary-insight-text" id="insightText">Loading today's insight...</p>
+                <button class="salary-insight-btn" onclick="loadNextInsight()">
+                    <i class="fas fa-sync-alt"></i> See another salary breakdown
+                </button>
+            </div>
+
+            <!-- New Tools Grid -->
+            <div style="margin: 24px 0;">
+                <h2 style="color:#006600; margin-bottom:14px; font-size:1.3em;"><i class="fas fa-tools"></i> Salary Intelligence Tools</h2>
+                <div class="tools-grid">
+                    <a href="/salary-comparison.html" class="tool-card">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Salary Comparison</span>
+                    </a>
+                    <a href="/salary-raise-calculator.html" class="tool-card">
+                        <i class="fas fa-arrow-trend-up"></i>
+                        <span>Raise Calculator</span>
+                    </a>
+                    <a href="/salary-guess-game.html" class="tool-card">
+                        <i class="fas fa-gamepad"></i>
+                        <span>Salary Quiz Game</span>
+                    </a>
+                    <a href="/salary-index.html" class="tool-card">
+                        <i class="fas fa-table"></i>
+                        <span>Salary Index</span>
+                    </a>
+                    <a href="/salary-news.html" class="tool-card">
+                        <i class="fas fa-newspaper"></i>
+                        <span>Salary News</span>
+                    </a>
+                    <a href="/salary/software-engineer-kenya.html" class="tool-card">
+                        <i class="fas fa-laptop-code"></i>
+                        <span>Job Salaries</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Salary Trends Dashboard -->
+            <div class="trends-card" id="live_stats">
+                <h3><i class="fas fa-chart-line"></i> Kenya Salary Trends (2025)</h3>
+                <div class="trends-grid">
+                    <div class="trends-stat">
+                        <div class="t-val">KES 50k</div>
+                        <div class="t-lbl">Most searched salary today</div>
+                    </div>
+                    <div class="trends-stat">
+                        <div class="t-val">KES 72k</div>
+                        <div class="t-lbl">Average salary searched</div>
+                    </div>
+                    <div class="trends-stat">
+                        <div class="t-val">28.4%</div>
+                        <div class="t-lbl">Avg deduction rate at 100k</div>
+                    </div>
+                    <div class="trends-stat">
+                        <div class="t-val">KES 2,400</div>
+                        <div class="t-lbl">Monthly personal relief</div>
+                    </div>
+                </div>
+                <p style="margin:12px 0 0; font-size:0.85em; color:#666;">
+                    <a href="/salary-index.html" style="color:#006600;"><i class="fas fa-external-link-alt"></i> View full Kenya Salary Index</a>
+                    &nbsp;|&nbsp;
+                    <a href="/salary-comparison.html" style="color:#006600;">Compare your salary →</a>
+                </p>
+            </div>
+
+            <!-- Daily Poll -->
+            <div class="poll-card" id="salary_poll">
+                <h3><i class="fas fa-poll"></i> Quick Poll — Share Your View</h3>
+                <p id="pollQuestion" style="font-weight:600; color:#333; margin-bottom:14px;">Do you think Kenyan salaries are fair relative to the cost of living?</p>
+                <div id="pollOptions"></div>
+                <p id="pollThanks" style="display:none; color:#006600; font-weight:bold; margin-top:10px;">
+                    <i class="fas fa-check-circle"></i> Thanks for your vote! See more: <a href="/salary-comparison.html" style="color:#006600;">Salary Comparison Tool</a>
+                </p>
+                <p style="font-size:0.8em; color:#999; margin-top:10px; margin-bottom:0;">Results shown after voting. New poll each week.</p>
+            </div>
+
+            <!-- Monthly Salary Challenge -->
+            <div class="challenge-card" id="challenge">
+                <h3>🏙️ Can You Survive in Nairobi on KES 50,000?</h3>
+                <p style="margin:0 0 12px; font-size:0.95em; opacity:0.9;">Net take-home on KES 50,000 is KES 39,029. Here's a typical Nairobi monthly budget:</p>
+                <div class="challenge-breakdown">
+                    <div class="challenge-item">
+                        <div class="c-label">🏠 Rent (Bedsitter)</div>
+                        <div class="c-val">KES 12,000</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="c-label">🚌 Transport</div>
+                        <div class="c-val">KES 6,000</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="c-label">🍱 Food</div>
+                        <div class="c-val">KES 10,000</div>
+                    </div>
+                    <div class="challenge-item">
+                        <div class="c-label">💡 Utilities + Data</div>
+                        <div class="c-val">KES 3,500</div>
+                    </div>
+                </div>
+                <p style="margin:8px 0 0; font-size:0.9em;"><strong>Remaining: KES 7,529</strong> — savings, entertainment &amp; emergencies</p>
+                <a href="/cost-of-living-nairobi-2025.html" style="color:rgba(255,255,255,0.85); font-size:0.85em; margin-top:8px; display:inline-block;">
+                    <i class="fas fa-arrow-right"></i> Full Nairobi cost of living guide
+                </a>
+            </div>
+
+            <!-- Email Alerts -->
+            <div class="email-alert-section">
+                <h3><i class="fas fa-bell"></i> Get Salary &amp; Tax Update Alerts</h3>
+                <p>Get notified when Kenya's PAYE, NSSF, SHIF or Housing Levy rates change.</p>
+                <div class="email-alert-row">
+                    <input type="email" class="email-alert-input" id="alertEmail" placeholder="your@email.com" aria-label="Email address for salary alerts">
+                    <button class="email-alert-btn" onclick="subscribeAlert()"><i class="fas fa-paper-plane"></i> Subscribe Free</button>
+                </div>
+                <p id="alertMsg" style="display:none; color:#006600; margin-top:8px; font-size:0.9em;"></p>
+                <p style="font-size:0.78em; color:#999; margin:8px 0 0;">No spam. Unsubscribe any time. See <a href="/salary-news.html" style="color:#006600;">Salary News</a> for recent updates.</p>
+            </div>
+
+            <!-- Quick Salary Links -->
+            <div style="background:white; border-radius:10px; padding:18px 20px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.07);">
+                <h3 style="color:#006600; margin:0 0 12px; font-size:1em;"><i class="fas fa-link"></i> Quick Salary Breakdowns</h3>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <a href="/30000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 30,000</a>
+                    <a href="/40000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 40,000</a>
+                    <a href="/50000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 50,000</a>
+                    <a href="/60000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 60,000</a>
+                    <a href="/70000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 70,000</a>
+                    <a href="/80000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 80,000</a>
+                    <a href="/90000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 90,000</a>
+                    <a href="/100000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 100,000</a>
+                    <a href="/120000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 120,000</a>
+                    <a href="/200000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 200,000</a>
+                </div>
+                <p style="margin:10px 0 0;"><a href="/salary-index.html" style="color:#006600; font-size:0.88em; font-weight:bold;"><i class="fas fa-table"></i> View complete salary table (KES 20k–500k) →</a></p>
+            </div>
+
+            <!-- Job Salary Explorer -->
+            <div style="background:white; border-radius:10px; padding:18px 20px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.07);" id="job_salary">
+                <h3 style="color:#006600; margin:0 0 12px; font-size:1em;"><i class="fas fa-briefcase"></i> Job Salary Explorer</h3>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px;">
+                    <a href="/salary/software-engineer-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
+                        <div style="font-size:0.78em; color:#555;">Software Engineer</div>
+                        <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 180,000</div>
+                        <div style="font-size:0.78em; color:#888;">Net ≈ KES 125,238</div>
+                    </a>
+                    <a href="/salary/nurse-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
+                        <div style="font-size:0.78em; color:#555;">Nurse</div>
+                        <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 75,000</div>
+                        <div style="font-size:0.78em; color:#888;">Net ≈ KES 54,861</div>
+                    </a>
+                    <a href="/salary/teacher-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
+                        <div style="font-size:0.78em; color:#555;">Teacher (TSC)</div>
+                        <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 45,000</div>
+                        <div style="font-size:0.78em; color:#888;">Net ≈ KES 35,887</div>
+                    </a>
+                    <a href="/salary/accountant-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
+                        <div style="font-size:0.78em; color:#555;">Accountant (CPA-K)</div>
+                        <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 80,000</div>
+                        <div style="font-size:0.78em; color:#888;">Net ≈ KES 58,213</div>
+                    </a>
+                    <a href="/salary/doctor-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
+                        <div style="font-size:0.78em; color:#555;">Doctor (Medical Officer)</div>
+                        <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 250,000</div>
+                        <div style="font-size:0.78em; color:#888;">Net ≈ KES 172,155</div>
+                    </a>
                 </div>
             </div>
 
@@ -897,6 +1257,109 @@
                 }
             }
         });
+
+        // ── Daily Salary Insight ─────────────────────────────────────────────
+        const SALARY_INSIGHTS = [
+            'A person earning <strong>KES 70,000</strong> in Kenya takes home about <strong>KES 51,594</strong> after PAYE, SHIF, NSSF &amp; Housing Levy.',
+            'On a <strong>KES 50,000</strong> salary, you pay <strong>KES 5,846</strong> in PAYE (income tax) each month — less than 12% of gross.',
+            'The <strong>SHIF</strong> (Social Health Insurance Fund) costs <strong>2.75%</strong> of your gross salary, replacing the old NHIF from 2024.',
+            'If you earn <strong>KES 100,000</strong>, your net take-home is <strong>KES 71,618</strong> — a total deduction of 28.4%.',
+            'Kenyan workers earning <strong>below KES 24,000</strong> per month pay only <strong>10% PAYE</strong> on their taxable income.',
+            'The <strong>Affordable Housing Levy</strong> is 1.5% of your gross salary — both employee and employer each contribute 1.5%.',
+            'NSSF contributions are <strong>capped at KES 4,320/month</strong> (6% of the first KES 72,000 of gross salary).',
+            'A <strong>Software Engineer</strong> in Kenya earning KES 180,000 takes home approximately <strong>KES 125,238</strong> after deductions.',
+            'The <strong>personal relief</strong> of KES 2,400/month reduces your PAYE bill. This means everyone earning under KES 24,000 effectively pays no PAYE.',
+            'Kenya has <strong>5 PAYE tax bands</strong>: 10%, 25%, 30%, 32.5%, and 35%. Only high earners above KES 800,000/month hit the top rate.',
+        ];
+        let insightIndex = (new Date().getDate() + new Date().getMonth()) % SALARY_INSIGHTS.length;
+        function loadNextInsight() {
+            insightIndex = (insightIndex + 1) % SALARY_INSIGHTS.length;
+            document.getElementById('insightText').innerHTML = SALARY_INSIGHTS[insightIndex];
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var el = document.getElementById('insightText');
+            if (el) el.innerHTML = SALARY_INSIGHTS[insightIndex];
+            initPoll();
+        });
+
+        // ── Daily Poll ────────────────────────────────────────────────────────
+        const POLLS = [
+            {
+                q: 'Do you think Kenyan salaries are fair relative to the cost of living?',
+                opts: ['Yes, they are fair', 'No, too low', 'Depends on profession', 'Not sure'],
+                votes: [18, 52, 20, 10]
+            },
+            {
+                q: 'Would you accept a job paying KES 60,000 in Nairobi?',
+                opts: ['Yes, definitely', 'Only if remote/WFH', 'No, too low for Nairobi', 'Depends on benefits'],
+                votes: [22, 35, 28, 15]
+            },
+            {
+                q: 'Which deduction do you find most burdensome?',
+                opts: ['PAYE (income tax)', 'NSSF contributions', 'SHIF (health levy)', 'Housing Levy'],
+                votes: [45, 15, 22, 18]
+            }
+        ];
+        const pollIdx = new Date().getDay() % POLLS.length;
+        function initPoll() {
+            const poll = POLLS[pollIdx];
+            const qEl = document.getElementById('pollQuestion');
+            const optsEl = document.getElementById('pollOptions');
+            if (!qEl || !optsEl) return;
+            qEl.textContent = poll.q;
+            const voted = localStorage.getItem('poll_voted_' + pollIdx);
+            if (voted !== null) {
+                showPollResults(poll, parseInt(voted));
+                return;
+            }
+            optsEl.innerHTML = '';
+            poll.opts.forEach(function(opt, i) {
+                var btn = document.createElement('button');
+                btn.className = 'poll-btn';
+                btn.textContent = opt;
+                btn.onclick = function() { castPollVote(i); };
+                optsEl.appendChild(btn);
+            });
+        }
+        function castPollVote(idx) {
+            var poll = POLLS[pollIdx];
+            poll.votes[idx]++;
+            localStorage.setItem('poll_voted_' + pollIdx, idx);
+            showPollResults(poll, idx);
+        }
+        function showPollResults(poll, selected) {
+            var total = poll.votes.reduce(function(a,b){return a+b;},0);
+            var optsEl = document.getElementById('pollOptions');
+            var thanks = document.getElementById('pollThanks');
+            if (!optsEl) return;
+            optsEl.innerHTML = '';
+            poll.opts.forEach(function(opt, i) {
+                var pct = total > 0 ? Math.round(poll.votes[i]/total*100) : 0;
+                var div = document.createElement('div');
+                div.style.marginBottom = '10px';
+                div.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:0.9em;' + (i===selected?'font-weight:700;color:#006600;':'') + '">' +
+                    '<span>' + opt + (i===selected?' ✓':'') + '</span><span>' + pct + '%</span></div>' +
+                    '<div class="poll-result-bar"><div class="poll-result-fill" style="width:' + pct + '%;"></div></div>';
+                optsEl.appendChild(div);
+            });
+            if (thanks) thanks.style.display = 'block';
+        }
+
+        // ── Email Alert Signup ────────────────────────────────────────────────
+        function subscribeAlert() {
+            var email = document.getElementById('alertEmail').value.trim();
+            var msg = document.getElementById('alertMsg');
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                if (msg) { msg.style.display='block'; msg.style.color='#CC0000'; msg.textContent='Please enter a valid email address.'; }
+                return;
+            }
+            // Store locally as a demo (no backend in this static site)
+            var subs = JSON.parse(localStorage.getItem('salary_alert_subs') || '[]');
+            if (!subs.includes(email)) subs.push(email);
+            localStorage.setItem('salary_alert_subs', JSON.stringify(subs));
+            document.getElementById('alertEmail').value = '';
+            if (msg) { msg.style.display='block'; msg.style.color='#006600'; msg.textContent='✓ You\'re subscribed! You\'ll be notified when Kenya tax rules change.'; }
+        }
     </script>
 </body>
 </html>
