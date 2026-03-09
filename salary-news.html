@@ -23,60 +23,153 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <style>
+        /* ── News Page Styles ── */
         .sn-hero {
-            background: linear-gradient(135deg, #006600 0%, #009900 100%);
-            color: white; border-radius: 12px; padding: 28px 24px 20px;
-            margin-bottom: 24px; text-align: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: white; border-radius: 12px; padding: 36px 28px 28px;
+            margin-bottom: 28px; text-align: center; position: relative; overflow: hidden;
         }
-        .sn-hero h1 { margin: 0 0 6px; font-size: 1.7em; }
-        .sn-hero p  { margin: 0; font-size: 1em; opacity: 0.9; }
-        .sn-articles { display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; }
+        .sn-hero::after {
+            content: ''; position: absolute; bottom: -30px; left: -30px;
+            width: 160px; height: 160px; background: rgba(0,153,0,0.15); border-radius: 50%;
+        }
+        .sn-hero h1 { margin: 0 0 8px; font-size: 2em; color: white; }
+        .sn-hero p  { margin: 0 0 16px; font-size: 1em; color: #aaa; }
+        .sn-hero-live {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #cc0000; color: white; padding: 4px 14px; border-radius: 20px;
+            font-size: 0.82em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .sn-hero-live::before {
+            content: ''; width: 8px; height: 8px; background: white; border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* Breaking ticker */
+        .sn-ticker {
+            background: #cc0000; color: white; padding: 8px 0;
+            overflow: hidden; white-space: nowrap; margin-bottom: 20px; border-radius: 6px;
+        }
+        .sn-ticker-label {
+            display: inline-block; background: #900; padding: 0 14px; font-weight: 800;
+            font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.05em;
+            margin-right: 16px;
+        }
+        .sn-ticker-content { display: inline-block; animation: ticker 25s linear infinite; font-size: 0.88em; }
+        @keyframes ticker { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
+
+        /* Category bar */
+        .sn-cat-bar {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .sn-cat-btn {
+            padding: 6px 16px; border-radius: 20px; font-size: 0.82em; font-weight: 700;
+            border: 2px solid #006600; color: #006600; background: white; cursor: pointer;
+            transition: all 0.2s; text-decoration: none;
+        }
+        .sn-cat-btn:hover, .sn-cat-btn.active { background: #006600; color: white; }
+
+        /* Featured News Article */
+        .sn-featured {
+            display: grid; grid-template-columns: 1fr 1fr;
+            background: white; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 24px; border: 1px solid #e0e0e0;
+        }
+        .sn-featured-img {
+            background: linear-gradient(135deg, #003d00, #006600);
+            display: flex; align-items: center; justify-content: center;
+            min-height: 200px; padding: 24px;
+        }
+        .sn-featured-img-icon { font-size: 5em; }
+        .sn-featured-body { padding: 24px 22px; }
+        .sn-breaking-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #cc0000; color: white; padding: 3px 10px; border-radius: 3px;
+            font-size: 0.74em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+            margin-bottom: 10px;
+        }
+        .sn-featured-body h2 { color: #1a1a1a; font-size: 1.3em; margin: 0 0 10px; line-height: 1.35; }
+        .sn-featured-body h2 a { color: inherit; text-decoration: none; }
+        .sn-featured-body h2 a:hover { color: #006600; }
+        .sn-featured-body p { color: #555; font-size: 0.93em; line-height: 1.65; margin: 0 0 14px; }
+
+        /* Article list */
+        .sn-articles { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
         .sn-article {
-            background: #fff; border: 1px solid #d1e7d1; border-radius: 12px;
-            padding: 22px 24px; transition: box-shadow 0.2s;
+            background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
+            padding: 20px 22px; transition: box-shadow 0.2s, transform 0.2s;
+            display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
         }
-        .sn-article:hover { box-shadow: 0 4px 16px rgba(0,102,0,0.12); }
+        .sn-article:hover { box-shadow: 0 4px 16px rgba(0,102,0,0.12); transform: translateX(3px); }
+        .sn-article-icon {
+            width: 56px; height: 56px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6em; flex-shrink: 0; background: #e8f5e9;
+        }
+        .sn-article-content { min-width: 0; }
         .sn-article-meta {
-            display: flex; gap: 14px; align-items: center; margin-bottom: 10px;
+            display: flex; gap: 10px; align-items: center; margin-bottom: 8px;
             flex-wrap: wrap;
         }
         .sn-tag {
-            background: #e8f5e9; color: #006600; border-radius: 20px;
-            padding: 3px 10px; font-size: 0.78em; font-weight: 700;
+            background: #006600; color: white; border-radius: 3px;
+            padding: 2px 8px; font-size: 0.73em; font-weight: 700; text-transform: uppercase;
         }
-        .sn-date { font-size: 0.82em; color: #777; }
-        .sn-read-time { font-size: 0.82em; color: #888; }
-        .sn-article h2 { color: #006600; margin: 0 0 10px; font-size: 1.2em; }
-        .sn-article p { color: #444; font-size: 0.95em; line-height: 1.6; margin: 0 0 14px; }
-        .sn-article ul { color: #444; font-size: 0.95em; line-height: 1.7; margin: 0 0 14px; padding-left: 20px; }
+        .sn-date { font-size: 0.80em; color: #888; }
+        .sn-read-time { font-size: 0.80em; color: #aaa; }
+        .sn-article h2 { color: #1a1a1a; margin: 0 0 8px; font-size: 1.08em; line-height: 1.4; }
+        .sn-article p { color: #555; font-size: 0.92em; line-height: 1.6; margin: 0 0 12px; }
+        .sn-article ul { color: #555; font-size: 0.92em; line-height: 1.7; margin: 0 0 12px; padding-left: 20px; }
+        .sn-article-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
         .sn-read-more {
             display: inline-flex; align-items: center; gap: 6px;
-            color: #006600; font-weight: 700; font-size: 0.9em;
+            color: #006600; font-weight: 700; font-size: 0.88em;
             text-decoration: none; border: 1px solid #006600; border-radius: 6px;
-            padding: 6px 14px; transition: all 0.2s;
+            padding: 5px 13px; transition: all 0.2s;
         }
         .sn-read-more:hover { background: #006600; color: white; }
-        .sn-alert-box {
-            background: #e8f5e9; border: 2px solid #006600; border-radius: 12px;
-            padding: 24px; margin-bottom: 22px;
+        .sn-share-row { display: flex; gap: 6px; }
+        .sn-share-mini {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%; font-size: 12px;
+            text-decoration: none; transition: opacity 0.2s;
         }
-        .sn-alert-box h3 { color: #006600; margin: 0 0 8px; }
-        .sn-alert-box p { color: #444; font-size: 0.95em; margin: 0 0 14px; }
+        .sn-share-mini:hover { opacity: 0.8; }
+        .sn-share-mini.wa  { background: #25D366; color: white; }
+        .sn-share-mini.tw  { background: #000;    color: white; }
+        .sn-share-mini.fb  { background: #1877F2; color: white; }
+
+        /* Alert / newsletter box */
+        .sn-alert-box {
+            background: linear-gradient(135deg, #003d00, #005500);
+            border-radius: 12px; padding: 24px; margin-bottom: 22px;
+            color: white;
+        }
+        .sn-alert-box h3 { color: white; margin: 0 0 6px; font-size: 1.2em; }
+        .sn-alert-box p { color: #c8f0c8; font-size: 0.93em; margin: 0 0 14px; }
         .sn-email-form { display: flex; gap: 10px; flex-wrap: wrap; }
         .sn-email-input {
-            flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #a5d6a7;
+            flex: 1; min-width: 200px; padding: 10px 14px; border: none;
             border-radius: 8px; font-size: 1em;
         }
         .sn-email-btn {
-            background: #006600; color: white; border: none; border-radius: 8px;
-            padding: 10px 20px; font-size: 1em; font-weight: 700; cursor: pointer;
+            background: #ffcc00; color: #003300; border: none; border-radius: 8px;
+            padding: 10px 20px; font-size: 1em; font-weight: 800; cursor: pointer;
             white-space: nowrap; transition: background 0.2s;
         }
-        .sn-email-btn:hover { background: #004d00; }
+        .sn-email-btn:hover { background: #e6b800; }
         .info-section { background: #f9f9f9; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
         .info-section h2 { color: #006600; margin-top: 0; }
         .sn-quick-links { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0; }
         .sn-quick-links a { color: #006600; font-weight: 600; font-size: 0.95em; }
+
+        @media (max-width: 600px) {
+            .sn-featured { grid-template-columns: 1fr; }
+            .sn-featured-img { min-height: 100px; }
+            .sn-article { grid-template-columns: 1fr; }
+            .sn-article-icon { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -117,6 +210,47 @@
             <div class="sn-hero">
                 <h1><i class="fas fa-newspaper"></i> Kenya Salary &amp; Tax News</h1>
                 <p>Stay updated on PAYE, NSSF, SHIF, and Housing Levy changes that affect your payslip</p>
+                <span class="sn-hero-live">Live Updates</span>
+            </div>
+
+            <!-- Breaking news ticker -->
+            <div class="sn-ticker" aria-live="polite">
+                <span class="sn-ticker-label">LATEST</span>
+                <span class="sn-ticker-content">
+                    NSSF Act 2013 upheld — contributions now 6% of gross (max KES 4,320) &nbsp;|&nbsp;
+                    SHIF replaces NHIF at 2.75% of gross salary from October 2024 &nbsp;|&nbsp;
+                    Housing Levy upheld by Supreme Court — 1.5% deduction continues &nbsp;|&nbsp;
+                    Treasury hints at zero PAYE for earners below KES 30,000/month &nbsp;|&nbsp;
+                    Use our calculator to check your exact take-home pay →
+                </span>
+            </div>
+
+            <!-- Category filter -->
+            <div class="sn-cat-bar" aria-label="Filter by category">
+                <span class="sn-cat-btn active">All</span>
+                <a href="#nssf-article"   class="sn-cat-btn">NSSF</a>
+                <a href="#shif-article"   class="sn-cat-btn">SHIF</a>
+                <a href="#paye-article"   class="sn-cat-btn">PAYE</a>
+                <a href="#ahl-article"    class="sn-cat-btn">Housing Levy</a>
+                <a href="#career-article" class="sn-cat-btn">Career</a>
+            </div>
+
+            <!-- Featured Article -->
+            <div class="sn-featured" id="nssf-article">
+                <div class="sn-featured-img" aria-hidden="true"><span class="sn-featured-img-icon">🛡️</span></div>
+                <div class="sn-featured-body">
+                    <span class="sn-breaking-badge"><i class="fas fa-bolt"></i> Featured</span>
+                    <h2><a href="/blog.html#nssf">New NSSF Rates 2025: What Every Kenyan Employee Needs to Know</a></h2>
+                    <p>The NSSF Act 2013, upheld by the Court of Appeal, introduced a two-tier contribution system that significantly increased deductions. Employees earning KES 72,000+ now pay up to KES 4,320/month — KES 4,120 more than the old flat KES 200 deduction.</p>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <a href="/blog.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                        <div class="sn-share-row">
+                            <a href="https://wa.me/?text=New+NSSF+Rates+2025+Kenya+https%3A%2F%2Fsalarycalculator.co.ke%2Fsalary-news.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://twitter.com/intent/tweet?text=New+NSSF+Rates+2025+Kenya+https%3A%2F%2Fsalarycalculator.co.ke%2Fsalary-news.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Fsalary-news.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Email Alert Signup -->
@@ -129,133 +263,120 @@
                         <i class="fas fa-envelope"></i> Notify Me
                     </button>
                 </div>
-                <div id="sn_email_msg" style="margin-top:10px; font-size:0.9em; color:#006600; display:none;"></div>
+                <div id="sn_email_msg" style="margin-top:10px; font-size:0.9em; color:#c8f0c8; display:none;"></div>
             </div>
 
             <!-- News Articles -->
             <div class="sn-articles">
 
-                <!-- Article 1 -->
-                <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-shield-alt"></i> NSSF</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> February 2025</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 3 min read</span>
-                    </div>
-                    <h2>New NSSF Rates 2025: What Every Kenyan Employee Needs to Know</h2>
-                    <p>The National Social Security Fund (NSSF) Act 2013, upheld by the Court of Appeal, introduced a two-tier contribution system that significantly increased deductions compared to the old flat KES 200/month.</p>
-                    <ul>
-                        <li><strong>Tier I:</strong> 6% of the first KES 8,000 of gross salary = KES 480/month (employer matches)</li>
-                        <li><strong>Tier II:</strong> 6% of gross salary from KES 8,001 up to KES 72,000 = up to KES 3,840/month</li>
-                        <li><strong>Maximum employee contribution:</strong> KES 4,320/month for salaries of KES 72,000+</li>
-                        <li>Employer matches the employee contribution — total of KES 8,640/month for high earners</li>
-                        <li>For salaries below KES 8,000, NSSF is simply 6% of gross</li>
-                    </ul>
-                    <p>This change means employees earning KES 72,000+ pay KES 4,120 more per month in NSSF than under the old rules. The funds are invested on your behalf for retirement.</p>
-                    <a href="/blog.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
-                </article>
-
                 <!-- Article 2 -->
-                <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-hospital"></i> SHIF</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> January 2025</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 4 min read</span>
+                <article class="sn-article" id="shif-article">
+                    <div class="sn-article-icon" style="background:#fce4ec;">🏥</div>
+                    <div class="sn-article-content">
+                        <div class="sn-article-meta">
+                            <span class="sn-tag"><i class="fas fa-hospital"></i> SHIF</span>
+                            <span class="sn-date"><i class="fas fa-calendar"></i> January 2025</span>
+                            <span class="sn-read-time"><i class="fas fa-clock"></i> 4 min read</span>
+                        </div>
+                        <h2>SHIF 2025: How the Social Health Insurance Fund Affects Your Salary</h2>
+                        <p>From October 2024, SHIF replaced NHIF at 2.75% of gross salary. A KES 100,000 earner now pays KES 2,750/month instead of the old KES 1,700 — an extra KES 1,050 taken home each month.</p>
+                        <div class="sn-article-footer">
+                            <a href="/shif-vs-nhif-kenya-2024.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                            <div class="sn-share-row">
+                                <a href="https://wa.me/?text=SHIF+vs+NHIF+Kenya+2025+https%3A%2F%2Fsalarycalculator.co.ke%2Fshif-vs-nhif-kenya-2024.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=SHIF+vs+NHIF+Kenya+https%3A%2F%2Fsalarycalculator.co.ke%2Fshif-vs-nhif-kenya-2024.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Fshif-vs-nhif-kenya-2024.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <h2>SHIF 2025: How the Social Health Insurance Fund Affects Your Salary</h2>
-                    <p>From October 2024, the Social Health Insurance Fund (SHIF) replaced the National Hospital Insurance Fund (NHIF). The change has a major impact on higher-income earners.</p>
-                    <ul>
-                        <li><strong>SHIF rate:</strong> 2.75% of gross salary — no cap or upper limit</li>
-                        <li><strong>Old NHIF:</strong> Was capped at KES 1,700/month regardless of salary</li>
-                        <li>A KES 100,000 earner now pays KES 2,750/month instead of KES 1,700 — an increase of KES 1,050</li>
-                        <li>A KES 200,000 earner pays KES 5,500/month in SHIF</li>
-                        <li>Covers access to healthcare under the Social Health Authority (SHA)</li>
-                    </ul>
-                    <p>SHIF is administered by the Social Health Authority and covers inpatient, outpatient, and emergency care. The higher contributions are intended to fund universal health coverage for all Kenyans.</p>
-                    <a href="/shif-vs-nhif-kenya-2024.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
                 </article>
 
                 <!-- Article 3 -->
-                <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-percent"></i> PAYE</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> January 2025</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 5 min read</span>
+                <article class="sn-article" id="paye-article">
+                    <div class="sn-article-icon" style="background:#e8f5e9;">💰</div>
+                    <div class="sn-article-content">
+                        <div class="sn-article-meta">
+                            <span class="sn-tag"><i class="fas fa-percent"></i> PAYE</span>
+                            <span class="sn-date"><i class="fas fa-calendar"></i> January 2025</span>
+                            <span class="sn-read-time"><i class="fas fa-clock"></i> 5 min read</span>
+                        </div>
+                        <h2>Kenya PAYE Bands 2025/2026: Complete Explanation of All Tax Brackets</h2>
+                        <p>PAYE is deducted from your gross salary each month. Key bands: 10% on first KES 24,000 of taxable income; 25% up to KES 32,333; 30% up to KES 500,000; plus personal relief of KES 2,400/month.</p>
+                        <div class="sn-article-footer">
+                            <a href="/paye-calculator-kenya.html" class="sn-read-more">Use PAYE Calculator <i class="fas fa-arrow-right"></i></a>
+                            <div class="sn-share-row">
+                                <a href="https://wa.me/?text=Kenya+PAYE+Bands+2025+https%3A%2F%2Fsalarycalculator.co.ke%2Fpaye-calculator-kenya.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=Kenya+PAYE+Tax+Bands+2025%2F2026+https%3A%2F%2Fsalarycalculator.co.ke%2Fpaye-calculator-kenya.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Fpaye-calculator-kenya.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <h2>Kenya PAYE Bands 2025/2026: Complete Explanation of All Tax Brackets</h2>
-                    <p>Pay As You Earn (PAYE) is deducted from your gross salary each month before it reaches your bank account. Understanding the bands helps you plan and negotiate better.</p>
-                    <ul>
-                        <li><strong>10%</strong> on the first KES 24,000 of monthly taxable income</li>
-                        <li><strong>25%</strong> on KES 24,001 – KES 32,333</li>
-                        <li><strong>30%</strong> on KES 32,334 – KES 500,000</li>
-                        <li><strong>32.5%</strong> on KES 500,001 – KES 800,000</li>
-                        <li><strong>35%</strong> on income above KES 800,000</li>
-                        <li><strong>Personal Relief:</strong> KES 2,400/month (KES 28,800/year) reduces your PAYE bill</li>
-                    </ul>
-                    <p>Taxable income is calculated after deducting NSSF, SHIF, and Housing Levy from gross salary. Most Kenyans earning under KES 30,000 gross effectively pay zero PAYE after personal relief.</p>
-                    <a href="/paye-calculator-kenya.html" class="sn-read-more">Use PAYE Calculator <i class="fas fa-arrow-right"></i></a>
                 </article>
 
                 <!-- Article 4 -->
-                <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-home"></i> Housing Levy</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> December 2024</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 3 min read</span>
+                <article class="sn-article" id="ahl-article">
+                    <div class="sn-article-icon" style="background:#e3f2fd;">🏠</div>
+                    <div class="sn-article-content">
+                        <div class="sn-article-meta">
+                            <span class="sn-tag"><i class="fas fa-home"></i> Housing Levy</span>
+                            <span class="sn-date"><i class="fas fa-calendar"></i> December 2024</span>
+                            <span class="sn-read-time"><i class="fas fa-clock"></i> 3 min read</span>
+                        </div>
+                        <h2>Affordable Housing Levy Kenya: Who Pays, How Much, and What For?</h2>
+                        <p>The AHL is 1.5% of gross salary, upheld by the Supreme Court in 2024. A KES 50,000 earner pays KES 750/month; employer also contributes another KES 750. Funds go to the national housing programme.</p>
+                        <div class="sn-article-footer">
+                            <a href="/kenya-affordable-housing-levy-explained.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                            <div class="sn-share-row">
+                                <a href="https://wa.me/?text=Kenya+Housing+Levy+Explained+https%3A%2F%2Fsalarycalculator.co.ke%2Fkenya-affordable-housing-levy-explained.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=Kenya+Housing+Levy+Explained+https%3A%2F%2Fsalarycalculator.co.ke%2Fkenya-affordable-housing-levy-explained.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Fkenya-affordable-housing-levy-explained.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <h2>Affordable Housing Levy Kenya: Who Pays, How Much, and What For?</h2>
-                    <p>The Affordable Housing Levy (AHL), introduced under the Finance Act 2023, is 1.5% of gross salary — paid by both employee and employer.</p>
-                    <ul>
-                        <li><strong>Employee contribution:</strong> 1.5% of gross salary (no cap)</li>
-                        <li><strong>Employer contribution:</strong> Additional 1.5% of your gross (employer-side cost)</li>
-                        <li>A KES 50,000 earner pays KES 750/month; employer pays another KES 750</li>
-                        <li>Funds go to the Affordable Housing Fund managed by the government</li>
-                        <li>Beneficiaries: Kenyans in low- and middle-income brackets seeking affordable homes</li>
-                        <li>The levy was upheld by the Supreme Court of Kenya in 2024</li>
-                    </ul>
-                    <p>Unlike NSSF, the AHL is not a personal savings account — it funds a national housing programme. Employees cannot individually claim these funds back.</p>
-                    <a href="/kenya-affordable-housing-levy-explained.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
                 </article>
 
                 <!-- Article 5 -->
-                <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-handshake"></i> Career</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> March 2025</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 6 min read</span>
+                <article class="sn-article" id="career-article">
+                    <div class="sn-article-icon" style="background:#f3e5f5;">🤝</div>
+                    <div class="sn-article-content">
+                        <div class="sn-article-meta">
+                            <span class="sn-tag"><i class="fas fa-handshake"></i> Career</span>
+                            <span class="sn-date"><i class="fas fa-calendar"></i> March 2025</span>
+                            <span class="sn-read-time"><i class="fas fa-clock"></i> 6 min read</span>
+                        </div>
+                        <h2>Salary Negotiation Tips Kenya 2025: How to Ask for — and Get — More Pay</h2>
+                        <p>Negotiate gross, not net. Time it right — after a win, not during company stress. Come with data from salary surveys and competitor offers. A 10% gross raise often means only 6–7% more net due to progressive PAYE.</p>
+                        <div class="sn-article-footer">
+                            <a href="/how-to-negotiate-salary-kenya-2025.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                            <div class="sn-share-row">
+                                <a href="https://wa.me/?text=Salary+Negotiation+Tips+Kenya+https%3A%2F%2Fsalarycalculator.co.ke%2Fhow-to-negotiate-salary-kenya-2025.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=Salary+Negotiation+Tips+Kenya+2025+https%3A%2F%2Fsalarycalculator.co.ke%2Fhow-to-negotiate-salary-kenya-2025.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Fhow-to-negotiate-salary-kenya-2025.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <h2>Salary Negotiation Tips Kenya 2025: How to Ask for — and Get — More Pay</h2>
-                    <p>Negotiating your salary in Kenya requires understanding both the market and your value. Here are five proven strategies:</p>
-                    <ul>
-                        <li><strong>Know your market rate:</strong> Use our salary comparison tool to see what others in your profession earn.</li>
-                        <li><strong>Negotiate gross, not net:</strong> Always discuss gross salary so both parties have a common basis — use our calculator to understand the net impact.</li>
-                        <li><strong>Time it right:</strong> Ask during performance reviews or after a clear win, not during company financial stress.</li>
-                        <li><strong>Come with data:</strong> Reference industry salary surveys, KNBS data, and competitor offers.</li>
-                        <li><strong>Consider the full package:</strong> Pension, medical (SHIF top-up), transport allowances, and bonuses can be worth thousands per month.</li>
-                    </ul>
-                    <p>Remember: a 10% gross raise often means only 6–7% more net pay due to progressive PAYE. Use our raise calculator to see the exact impact.</p>
-                    <a href="/how-to-negotiate-salary-kenya-2025.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
                 </article>
 
                 <!-- Article 6 -->
                 <article class="sn-article">
-                    <div class="sn-article-meta">
-                        <span class="sn-tag"><i class="fas fa-file-invoice"></i> Payslip</span>
-                        <span class="sn-date"><i class="fas fa-calendar"></i> November 2024</span>
-                        <span class="sn-read-time"><i class="fas fa-clock"></i> 4 min read</span>
+                    <div class="sn-article-icon" style="background:#fff8e1;">📄</div>
+                    <div class="sn-article-content">
+                        <div class="sn-article-meta">
+                            <span class="sn-tag"><i class="fas fa-file-invoice"></i> Payslip</span>
+                            <span class="sn-date"><i class="fas fa-calendar"></i> November 2024</span>
+                            <span class="sn-read-time"><i class="fas fa-clock"></i> 4 min read</span>
+                        </div>
+                        <h2>How to Read Your Kenyan Payslip: Every Line Item Explained</h2>
+                        <p>Your payslip lists Gross Pay, then deductions: NSSF (6%, max KES 4,320), SHIF (2.75%), AHL (1.5%), and PAYE calculated on taxable income less KES 2,400 personal relief. Net Pay is what reaches your bank.</p>
+                        <div class="sn-article-footer">
+                            <a href="/understanding-your-kenyan-payslip.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
+                            <div class="sn-share-row">
+                                <a href="https://wa.me/?text=How+to+Read+Your+Kenyan+Payslip+https%3A%2F%2Fsalarycalculator.co.ke%2Funderstanding-your-kenyan-payslip.html" class="sn-share-mini wa" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=How+to+Read+Your+Kenyan+Payslip+https%3A%2F%2Fsalarycalculator.co.ke%2Funderstanding-your-kenyan-payslip.html" class="sn-share-mini tw" target="_blank" rel="noopener" title="X/Twitter"><i class="fab fa-x-twitter"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fsalarycalculator.co.ke%2Funderstanding-your-kenyan-payslip.html" class="sn-share-mini fb" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                            </div>
+                        </div>
                     </div>
-                    <h2>How to Read Your Kenyan Payslip: Every Line Item Explained</h2>
-                    <p>Your payslip can be confusing, especially with the new SHIF and Housing Levy lines. Here's what every deduction means:</p>
-                    <ul>
-                        <li><strong>Basic Salary / Gross Pay:</strong> Your agreed monthly salary before any deductions</li>
-                        <li><strong>NSSF:</strong> Your retirement savings contribution (6% of gross, max KES 4,320)</li>
-                        <li><strong>SHIF:</strong> Your health insurance contribution (2.75% of gross, replaced NHIF)</li>
-                        <li><strong>AHL (Housing Levy):</strong> Affordable Housing Levy (1.5% of gross)</li>
-                        <li><strong>PAYE:</strong> Income tax calculated on taxable income (gross minus NSSF/SHIF/AHL), less personal relief</li>
-                        <li><strong>Net Pay:</strong> What actually reaches your bank account</li>
-                    </ul>
-                    <p>Some payslips also show allowances (house, transport, medical) which may be taxable or non-taxable. Non-cash benefits like company cars have a notional value added to taxable income.</p>
-                    <a href="/understanding-your-kenyan-payslip.html" class="sn-read-more">Read Full Article <i class="fas fa-arrow-right"></i></a>
                 </article>
 
             </div>

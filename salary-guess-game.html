@@ -46,14 +46,16 @@
         .gg-profession { font-size: 1em; color: #555; margin-top: 4px; }
         .gg-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .gg-option {
-            padding: 14px; border: 2px solid #d1e7d1; border-radius: 10px;
-            font-size: 1.05em; font-weight: 700; cursor: pointer; background: #fff;
-            transition: all 0.15s; color: #333; text-align: center;
+            padding: 14px; border: 2px solid #006600; border-radius: 10px;
+            font-size: 1.05em; font-weight: 700; cursor: pointer; background: #f0f8f0;
+            transition: all 0.15s; color: #1a1a1a; text-align: center;
+            box-shadow: 0 1px 4px rgba(0,102,0,0.10);
         }
-        .gg-option:hover:not(:disabled) { border-color: #006600; background: #e8f5e9; }
+        .gg-option:hover:not(:disabled) { border-color: #004d00; background: #c8e6c9; color: #003300; }
+        .gg-option.selected { border-color: #004d00; background: #a5d6a7; color: #002200; }
         .gg-option.correct { border-color: #006600; background: #006600; color: white; }
-        .gg-option.wrong   { border-color: #c0392b; background: #fdecea; color: #c0392b; }
-        .gg-option:disabled { cursor: default; }
+        .gg-option.wrong   { border-color: #c0392b; background: #fdecea; color: #8b0000; font-weight: 800; }
+        .gg-option:disabled { cursor: default; opacity: 0.85; }
         .gg-submit-btn {
             background: #006600; color: white; border: none; border-radius: 8px;
             padding: 12px 28px; font-size: 1em; font-weight: 700; cursor: pointer;
@@ -97,18 +99,40 @@
         .gg-restart-btn:hover { background: #e8f5e9; }
         .twitter-share-btn {
             display: inline-flex; align-items: center; gap: 8px;
-            background: #1DA1F2; color: white; border: none; border-radius: 8px;
-            padding: 10px 20px; font-size: 15px; font-weight: bold;
-            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 6px;
+            background: #000; color: white; border: none; border-radius: 8px;
+            padding: 10px 18px; font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 5px;
         }
-        .twitter-share-btn:hover { background: #0d8bd9; }
+        .twitter-share-btn:hover { background: #333; }
         .wa-share-btn {
             display: inline-flex; align-items: center; gap: 8px;
             background: #25D366; color: white; border: none; border-radius: 8px;
-            padding: 10px 20px; font-size: 15px; font-weight: bold;
-            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 6px;
+            padding: 10px 18px; font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 5px;
         }
         .wa-share-btn:hover { background: #1aab52; }
+        .fb-share-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #1877F2; color: white; border: none; border-radius: 8px;
+            padding: 10px 18px; font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 5px;
+        }
+        .fb-share-btn:hover { background: #0d5bb5; }
+        .li-share-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #0A66C2; color: white; border: none; border-radius: 8px;
+            padding: 10px 18px; font-size: 14px; font-weight: bold;
+            cursor: pointer; text-decoration: none; transition: background 0.2s; margin: 5px;
+        }
+        .li-share-btn:hover { background: #084d92; }
+        .challenge-box {
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 12px; padding: 18px 20px; margin: 18px 0 0;
+            text-align: center;
+        }
+        .challenge-box h3 { margin: 0 0 6px; font-size: 1.1em; color: white; }
+        .challenge-box p  { margin: 0 0 12px; font-size: 0.9em; color: rgba(255,255,255,0.88); }
+        .share-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
         .info-section { background: #f9f9f9; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px 24px; margin-top: 16px; }
         .info-section h2 { color: #006600; margin-top: 0; }
         @media (max-width: 480px) {
@@ -201,13 +225,23 @@
                 <div class="big-score"><span id="gg_final_score">0</span>/10</div>
                 <div class="score-label" id="gg_score_label">Well done!</div>
                 <div class="score-msg" id="gg_score_msg"></div>
-                <div style="margin-top:18px;">
-                    <a id="gg_twitter_share" href="#" class="twitter-share-btn" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-twitter"></i> Share on X (Twitter)
-                    </a>
-                    <a id="gg_wa_share" href="#" class="wa-share-btn" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                    </a>
+                <div class="challenge-box">
+                    <h3>🏆 Challenge Your Friends &amp; Family!</h3>
+                    <p>Think they know Kenyan salaries better than you? Dare them to beat your score!</p>
+                    <div class="share-row">
+                        <a id="gg_wa_share" href="#" class="wa-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        <a id="gg_twitter_share" href="#" class="twitter-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-x-twitter"></i> X / Twitter
+                        </a>
+                        <a id="gg_fb_share" href="#" class="fb-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a id="gg_li_share" href="#" class="li-share-btn" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-linkedin-in"></i> LinkedIn
+                        </a>
+                    </div>
                 </div>
                 <button class="gg-restart-btn" onclick="restartGame()">
                     <i class="fas fa-redo"></i> Play Again
@@ -396,10 +430,10 @@
         if (answered) return;
         selectedOption = idx;
         for (let i = 0; i < 4; i++) {
-            document.getElementById('opt_' + i).classList.remove('correct', 'wrong');
+            document.getElementById('opt_' + i).classList.remove('selected', 'correct', 'wrong');
             document.getElementById('opt_' + i).style.borderColor = '';
         }
-        document.getElementById('opt_' + idx).style.borderColor = '#006600';
+        document.getElementById('opt_' + idx).classList.add('selected');
         document.getElementById('gg_submit_btn').disabled = false;
     }
 
@@ -486,10 +520,13 @@
         document.getElementById('gg_score_msg').textContent = msg;
 
         const shareText = encodeURIComponent(
-            'I scored ' + score + '/10 on the Kenya Salary Guess Game! Test your knowledge: https://salarycalculator.co.ke/salary-guess-game.html #KenyaSalary'
+            'I scored ' + score + '/10 on the Kenya Salary Guess Game! 🎯 Can you beat me? Test your Kenya tax knowledge: https://salarycalculator.co.ke/salary-guess-game.html #KenyaSalary #KenyaTax'
         );
+        const shareUrl = encodeURIComponent('https://salarycalculator.co.ke/salary-guess-game.html');
         document.getElementById('gg_twitter_share').href = 'https://twitter.com/intent/tweet?text=' + shareText;
         document.getElementById('gg_wa_share').href = 'https://wa.me/?text=' + shareText;
+        document.getElementById('gg_fb_share').href = 'https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '&quote=' + shareText;
+        document.getElementById('gg_li_share').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
     }
 
     function restartGame() {
