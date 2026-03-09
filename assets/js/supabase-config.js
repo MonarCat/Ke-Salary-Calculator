@@ -2,6 +2,10 @@
 // Replace these with your actual Supabase project credentials
 // You can find these in your Supabase project dashboard at https://app.supabase.com
 
+// hCaptcha site key — replace with your production key from https://dashboard.hcaptcha.com
+// The key below is hCaptcha's official always-pass test key (safe for development/staging).
+const HCAPTCHA_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001';
+
 const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
 
@@ -32,3 +36,4 @@ const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 window.supabaseClient = supabaseClient;
 window.isSupabaseConfigured = isSupabaseConfigured;
 window.ADMIN_EMAIL = ADMIN_EMAIL;
+window.HCAPTCHA_SITE_KEY = HCAPTCHA_SITE_KEY;
