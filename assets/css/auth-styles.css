@@ -673,3 +673,10 @@
     font-size: inherit;
     text-decoration: underline;
 }
+
+/* hCaptcha widget container */
+.hcaptcha-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+}
