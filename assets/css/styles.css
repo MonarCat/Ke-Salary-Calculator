@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Raleway:wght@400;600;700;800&display=swap');
 
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     margin: 0;
@@ -11,6 +19,8 @@ body {
     background-attachment: fixed;
     position: relative;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* Neutral dark overlay – lets the background image breathe */
@@ -27,6 +37,7 @@ body::before {
 
 .container {
     max-width: 800px;
+    width: 100%;
     margin: 40px auto;
     padding: 30px;
     background: linear-gradient(to bottom right, #ffffff, #f0f0f0);
@@ -609,6 +620,15 @@ footer a:hover {
 }
 
 /* Tab Styles */
+.tab-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .tab-button {
     padding: 8px 15px;
     background: #f0f0f0;
@@ -620,6 +640,8 @@ footer a:hover {
     transition: all 0.3s;
     border: 1px solid #ddd;
     border-bottom: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .tab-button.active {
@@ -634,6 +656,12 @@ footer a:hover {
     color: #333;
 }
 
+/* Lock icon inside tab buttons for auth-gated features */
+.tab-lock-icon {
+    font-size: 0.8em;
+    margin-right: 4px;
+}
+
 /* Payslip Styles */
 .payslip-container {
     background-color: #fff;
@@ -643,9 +671,9 @@ footer a:hover {
     margin-top: 30px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     max-width: 800px;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
-    width: 148mm;
     min-height: 175mm;
     padding: 10mm;
     box-sizing: border-box;
@@ -1791,6 +1819,10 @@ footer a:hover {
     .share-link-input { min-width: auto; }
     /* Scroll to top closer to edge */
     .scroll-to-top { bottom: 16px; right: 16px; width: 42px; height: 42px; font-size: 1em; }
+    /* Tab buttons on mobile */
+    .tab-button { padding: 8px 10px; font-size: 12px; margin-right: 2px; }
+    /* Payslip container on mobile */
+    .payslip-container { padding: 15px; min-height: auto; }
 }
 
 /* Tablet (600–768px) */

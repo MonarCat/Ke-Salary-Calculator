@@ -279,7 +279,7 @@
                         <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
                         <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                         <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                        <a href="/calculator.html#percentile" onclick="event.preventDefault();window.location='/calculator.html';setTimeout(function(){openTab('percentile');},400);">Kenya Percentile</a>
+                        <a href="/calculator.html#percentile" onclick="event.preventDefault();window.location='/calculator.html?tab=percentile';">Kenya Percentile</a>
                         <a href="/salary-after-tax.html">Salary After Tax</a>
                         <a href="/global-salary-calculator.html">Global Calculator</a>
                     </div>
@@ -322,10 +322,10 @@
             
             <div class="tab-container">
                 <button class="tab-button active" data-tab="calculator" onclick="openTab('calculator')">Salary Calculator</button>
-                <button class="tab-button" data-tab="grossup" onclick="openTab('grossup')">Gross-Up Calculator</button>
-                <button class="tab-button" data-tab="comparison" onclick="openTab('comparison')">Salary Comparison</button>
-                <button class="tab-button" data-tab="percentile" onclick="openTab('percentile')">Kenya Percentile</button>
-                <button class="tab-button" data-tab="payslip" onclick="openPayslipTab()">Payslip Generator</button>
+                <button class="tab-button" data-tab="grossup" onclick="openGrossUpTab()"><i class="fas fa-lock tab-lock-icon"></i>Gross-Up Calculator</button>
+                <button class="tab-button" data-tab="comparison" onclick="openComparisonTab()"><i class="fas fa-lock tab-lock-icon"></i>Salary Comparison</button>
+                <button class="tab-button" data-tab="percentile" onclick="openPercentileTab()"><i class="fas fa-lock tab-lock-icon"></i>Kenya Percentile</button>
+                <button class="tab-button" data-tab="payslip" onclick="openPayslipTab()"><i class="fas fa-lock tab-lock-icon"></i>Payslip Generator</button>
             </div>
             
             <!-- Salary Calculator Tab -->
@@ -653,6 +653,21 @@
 
             <!-- Gross-Up / Reverse Calculator Tab -->
             <div id="grossup" class="tab-content" style="display: none;">
+                <!-- Auth prompt shown to unauthenticated users -->
+                <div id="grossup-auth-prompt" style="display:none; text-align:center; padding: 40px 20px;">
+                    <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                        <i class="fas fa-lock" style="font-size: 3em; color: #006600; margin-bottom: 16px;"></i>
+                        <h2 style="color: #006600; margin-bottom: 10px;">Sign In to Use the Gross-Up Calculator</h2>
+                        <p style="color: #555; margin-bottom: 24px;">Create a free account or sign in to calculate the gross salary needed to achieve a desired net take-home pay.</p>
+                        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                            <a href="/auth.html?redirect=%2Fcalculator.html%3Ftab%3Dgrossup" class="cta-button primary" style="text-decoration:none;">
+                                <i class="fas fa-user-circle"></i> Sign In / Sign Up Free
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Gross-Up form shown to authenticated users -->
+                <div id="grossup-form-content">
                 <div class="input-section">
                     <p style="color:#555; margin-bottom:15px;">Enter your desired <strong>net take-home pay</strong> and we'll calculate the <strong>gross salary</strong> needed to achieve it.</p>
                     <div class="form-group">
@@ -694,10 +709,26 @@
                         <canvas id="grossupChart" width="300" height="300"></canvas>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Salary Comparison Tab -->
             <div id="comparison" class="tab-content" style="display: none;">
+                <!-- Auth prompt shown to unauthenticated users -->
+                <div id="comparison-auth-prompt" style="display:none; text-align:center; padding: 40px 20px;">
+                    <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                        <i class="fas fa-lock" style="font-size: 3em; color: #006600; margin-bottom: 16px;"></i>
+                        <h2 style="color: #006600; margin-bottom: 10px;">Sign In to Use Salary Comparison</h2>
+                        <p style="color: #555; margin-bottom: 24px;">Create a free account or sign in to compare two salaries side-by-side — ideal for modelling a promotion, raise, or job offer.</p>
+                        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                            <a href="/auth.html?redirect=%2Fcalculator.html%3Ftab%3Dcomparison" class="cta-button primary" style="text-decoration:none;">
+                                <i class="fas fa-user-circle"></i> Sign In / Sign Up Free
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Comparison form shown to authenticated users -->
+                <div id="comparison-form-content">
                 <div class="input-section">
                     <p style="color:#555; margin-bottom:15px;">Compare two salaries side-by-side — ideal for modelling a <strong>promotion, raise, or job offer</strong>.</p>
                     <div class="comparison-inputs">
@@ -764,10 +795,26 @@
                         <canvas id="comparisonChart" width="400" height="200"></canvas>
                     </div>
                 </div>
+                </div>
             </div>
             
             <!-- Kenya Percentile Tab -->
             <div id="percentile" class="tab-content" style="display: none;">
+                <!-- Auth prompt shown to unauthenticated users -->
+                <div id="percentile-auth-prompt" style="display:none; text-align:center; padding: 40px 20px;">
+                    <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 40px 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                        <i class="fas fa-lock" style="font-size: 3em; color: #006600; margin-bottom: 16px;"></i>
+                        <h2 style="color: #006600; margin-bottom: 10px;">Sign In to Check Your Kenya Salary Percentile</h2>
+                        <p style="color: #555; margin-bottom: 24px;">Create a free account or sign in to find out where your salary ranks among Kenya's formal sector workers.</p>
+                        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                            <a href="/auth.html?redirect=%2Fcalculator.html%3Ftab%3Dpercentile" class="cta-button primary" style="text-decoration:none;">
+                                <i class="fas fa-user-circle"></i> Sign In / Sign Up Free
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Percentile form shown to authenticated users -->
+                <div id="percentile-form-content">
                 <div class="input-section">
                     <h2 style="color:#006600; margin-bottom:8px;"><i class="fas fa-chart-bar"></i> Compare Your Salary With Other Kenyans</h2>
                     <p style="color:#555; margin-bottom:18px;">Find out where your salary ranks among Kenya's formal sector workers.</p>
@@ -818,6 +865,7 @@
                         </a>
                     </div>
                     <p style="font-size:0.8em; color:#888; margin-top:12px; text-align:center;">* Estimates based on KNBS Kenya formal sector salary distribution data.</p>
+                </div>
                 </div>
             </div>
 
