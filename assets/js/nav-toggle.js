@@ -1,4 +1,7 @@
-// Google Analytics 4 — replace GA4_MEASUREMENT_ID with your property's Measurement ID
+// Google Analytics 4 — replace the placeholder below with your GA4 Measurement ID.
+// Steps: 1) Go to analytics.google.com  2) Create/open your property
+//        3) Admin > Data Streams > your stream > Measurement ID (format: G-XXXXXXXXXX)
+//        4) Replace 'G-XXXXXXXXXX' below with that ID and save this file.
 (function() {
     var GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     if (!GA4_MEASUREMENT_ID || GA4_MEASUREMENT_ID === 'G-XXXXXXXXXX') return;
