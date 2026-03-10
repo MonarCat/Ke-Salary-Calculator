@@ -788,7 +788,7 @@ function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pe
             'My ' + grossFmt + ' salary becomes only ' + netPayText + ' after Kenya\'s deductions 😭 ' +
             'That\'s ' + payeText + ' in PAYE alone! Check yours: https://salarycalculator.co.ke #KenyaSalary'
         );
-        twBtn.href = 'https://twitter.com/intent/tweet?text=' + tweetText;
+        twBtn.href = 'https://x.com/intent/post?text=' + tweetText;
     }
 
     shareSection.style.display = 'block';
@@ -917,13 +917,13 @@ function calcPercentile() {
     const fill = document.getElementById('percentileBarFill');
     if (fill) { fill.style.width = '0%'; setTimeout(() => { fill.style.width = pct + '%'; }, 50); }
 
-    // Twitter share link
+    // X (formerly Twitter) share link
     const twBtn = document.getElementById('percentileShareBtn');
     if (twBtn) {
         const tweetText = encodeURIComponent(
             'I earn more than ' + pct + '% of Kenyans! 🇰🇪 Check where your salary ranks: https://salarycalculator.co.ke #KenyaSalary #KenyaJobs'
         );
-        twBtn.href = 'https://twitter.com/intent/tweet?text=' + tweetText;
+        twBtn.href = 'https://x.com/intent/post?text=' + tweetText;
     }
 
     resultsDiv.style.display = 'block';

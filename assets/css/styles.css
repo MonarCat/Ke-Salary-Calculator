@@ -1429,6 +1429,34 @@ footer a:hover {
 }
 
 /* ── Global Advertisement Sidebar Styles ───────────────────────────── */
+
+/* Keyframe animations for ad boxes */
+@keyframes adPulse {
+    0%, 100% { box-shadow: 0 2px 10px rgba(0,102,0,0.07); border-color: #009900; }
+    50% { box-shadow: 0 4px 20px rgba(0,153,0,0.3); border-color: #00cc00; }
+}
+
+@keyframes adShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes adIconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes adSlideIn {
+    0% { opacity: 0; transform: translateX(20px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes adGlow {
+    0%, 100% { border-color: #009900; }
+    33% { border-color: #CC0000; }
+    66% { border-color: #006600; }
+}
+
 .custom-ad-box {
     background: #fff;
     border: 2px dashed #009900;
@@ -1437,19 +1465,98 @@ footer a:hover {
     text-align: center;
     box-shadow: 0 2px 10px rgba(0,102,0,0.07);
     margin-bottom: 18px;
+    animation: adPulse 3s ease-in-out infinite, adSlideIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
+
+.custom-ad-box:nth-child(2) {
+    animation-delay: 1.5s;
+}
+
+.custom-ad-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 22px rgba(0,102,0,0.18);
+    border-style: solid;
+    animation: adGlow 2s linear infinite;
+}
+
+/* Shimmer overlay on the ad box */
+.custom-ad-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255,255,255,0.6) 50%,
+        transparent 60%
+    );
+    background-size: 200% 100%;
+    animation: adShimmer 4s linear infinite;
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+/* Animated ad placeholder banner (for future image/video ads) */
+.animated-ad-banner {
+    width: 100%;
+    min-height: 120px;
+    background: linear-gradient(135deg, #003300 0%, #006600 40%, #004400 60%, #CC0000 100%);
+    background-size: 300% 300%;
+    animation: adBgMove 6s ease infinite;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.78em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes adBgMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animated-ad-banner .ad-placeholder-text {
+    font-size: 1.1em;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    animation: adIconBounce 2s ease-in-out infinite;
+}
+
+.animated-ad-banner .ad-placeholder-sub {
+    font-size: 0.75em;
+    opacity: 0.85;
+    margin-top: 4px;
+}
+
 .custom-ad-box i.ad-icon {
     font-size: 1.8em;
     color: #009900;
     margin-bottom: 8px;
     display: block;
+    animation: adIconBounce 2s ease-in-out infinite;
 }
+
+.custom-ad-box:nth-child(2) i.ad-icon {
+    animation-delay: 0.5s;
+}
+
 .custom-ad-box p {
     color: #444;
     font-size: 0.82em;
     line-height: 1.5;
     margin: 5px 0;
 }
+
 .custom-ad-box a.ad-contact-btn {
     display: inline-block;
     margin-top: 8px;
@@ -1460,9 +1567,77 @@ footer a:hover {
     border-radius: 14px;
     font-size: 11px;
     font-weight: bold;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.2s;
+    position: relative;
+    z-index: 1;
 }
-.custom-ad-box a.ad-contact-btn:hover { background: #004400; }
+
+.custom-ad-box a.ad-contact-btn:hover {
+    background: #004400;
+    transform: scale(1.05);
+}
+
+/* Affiliate / Partner section */
+.affiliate-section {
+    background: linear-gradient(135deg, #f8fff8 0%, #fff8e1 100%);
+    border: 1px solid #c8e6c9;
+    border-radius: 12px;
+    padding: 18px 14px;
+    margin-bottom: 18px;
+}
+
+.affiliate-section h4 {
+    color: #006600;
+    font-size: 0.88em;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.affiliate-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.8em;
+    margin-bottom: 6px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.affiliate-link:hover {
+    border-color: #006600;
+    color: #006600;
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(0,102,0,0.12);
+}
+
+.affiliate-link i {
+    color: #CC0000;
+    font-size: 1.1em;
+    flex-shrink: 0;
+}
+
+.affiliate-link .aff-badge {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.68em;
+    background: #e8f5e9;
+    color: #006600;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+
 
 /* Feature card hover animation */
 .feature-card {
@@ -1629,4 +1804,136 @@ footer a:hover {
     footer a { display: inline-block; padding: 6px 4px; }
     .blog-card-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
     .sn-article-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+/* ── Automated Updates Section ─────────────────────────────────────── */
+.auto-updates-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 24px 0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid #e8f5e9;
+}
+
+.auto-updates-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.auto-updates-header h2 {
+    color: #006600;
+    font-size: 1.15em;
+    margin: 0;
+    font-family: 'Oswald', Arial, sans-serif;
+}
+
+.auto-updates-tabs {
+    display: flex;
+    gap: 6px;
+}
+
+.update-tab {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    color: #555;
+}
+
+.update-tab:hover {
+    border-color: #006600;
+    color: #006600;
+    background: #e8f5e9;
+}
+
+.update-tab.active {
+    background: #006600;
+    color: white;
+    border-color: #006600;
+}
+
+.updates-feed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    min-height: 80px;
+}
+
+.update-card {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 12px;
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: all 0.2s;
+    animation: updateCardIn 0.3s ease-out;
+}
+
+@keyframes updateCardIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.update-card:hover {
+    border-color: #006600;
+    background: #f0fff0;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0,102,0,0.1);
+}
+
+.update-card .uc-category {
+    font-size: 0.68em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.uc-category.cat-news { background: #ffebee; color: #CC0000; }
+.uc-category.cat-blog { background: #e8f5e9; color: #006600; }
+.uc-category.cat-game { background: #e3f2fd; color: #1565c0; }
+.uc-category.cat-update { background: #fff3e0; color: #e65100; }
+
+.update-card .uc-title {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.4;
+}
+
+.update-card .uc-meta {
+    font-size: 0.72em;
+    color: #999;
+}
+
+.updates-more-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 0.83em;
+    color: #006600;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.updates-more-link:hover { color: #004400; text-decoration: underline; }
+
+@media (max-width: 600px) {
+    .auto-updates-header { flex-direction: column; align-items: flex-start; }
+    .updates-feed { grid-template-columns: 1fr; }
 }
