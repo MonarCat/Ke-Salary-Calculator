@@ -409,7 +409,13 @@
                 <div class="blog-newsletter">
                     <h3><i class="fas fa-bell"></i> Never Miss a Kenya Tax Update</h3>
                     <p>We&#8217;ll notify you when KRA, NSSF, SHIF, or Housing Levy rates change — so your payslip never surprises you.</p>
-                    <div class="blog-nl-form">
+                    <!-- Signed-in user UI -->
+                    <div id="blog_signed_in" style="display:none;">
+                        <p style="color:#c8f0c8; font-size:0.9em; margin-bottom:8px;">Subscribe using your account email: <strong id="blog_user_email"></strong></p>
+                        <button class="blog-nl-btn" onclick="blogSubscribeWithAccount()"><i class="fas fa-envelope"></i> Yes, Notify Me</button>
+                    </div>
+                    <!-- Guest UI -->
+                    <div class="blog-nl-form" id="blog_guest_form">
                         <input type="email" class="blog-nl-input" id="blog_email" placeholder="your@email.com" autocomplete="email">
                         <button class="blog-nl-btn" onclick="blogSubscribe()"><i class="fas fa-envelope"></i> Notify Me</button>
                     </div>
@@ -451,10 +457,43 @@
             var email=document.getElementById('blog_email').value.trim();
             var msg=document.getElementById('blog_email_msg');
             if(!email||!email.includes('@')){msg.style.color='#ffaaaa';msg.textContent='Please enter a valid email.';msg.style.display='block';return;}
-            localStorage.setItem('blog_subscribed',email);
-            msg.style.color='#c8f0c8';msg.textContent='✓ Thanks! We\'ll notify you of Kenya tax changes.';msg.style.display='block';
+            blogDoSubscribe(email);
             document.getElementById('blog_email').value='';
         }
+        function blogSubscribeWithAccount(){
+            var emailEl=document.getElementById('blog_user_email');
+            var email=emailEl?emailEl.textContent.trim():'';
+            if(!email)return;
+            blogDoSubscribe(email);
+        }
+        function blogDoSubscribe(email){
+            var msg=document.getElementById('blog_email_msg');
+            if(typeof supabaseClient!=='undefined'&&supabaseClient&&typeof isSupabaseConfigured==='function'&&isSupabaseConfigured()){
+                supabaseClient.from('newsletter_subscribers').upsert({email:email},{onConflict:'email'}).then(function(res){
+                    if(res.error){localStorage.setItem('blog_subscribed',email);}
+                    msg.style.color='#c8f0c8';msg.textContent='✓ Thanks! We\'ll notify you of Kenya tax changes.';msg.style.display='block';
+                });
+            } else {
+                localStorage.setItem('blog_subscribed',email);
+                msg.style.color='#c8f0c8';msg.textContent='✓ Thanks! We\'ll notify you of Kenya tax changes.';msg.style.display='block';
+            }
+        }
+        (async function initBlogAlertSection(){
+            try{
+                if(typeof supabaseClient!=='undefined'&&supabaseClient&&typeof isSupabaseConfigured==='function'&&isSupabaseConfigured()){
+                    var r=await supabaseClient.auth.getSession();
+                    var s=r&&r.data&&r.data.session;
+                    if(s&&s.user&&s.user.email){
+                        var si=document.getElementById('blog_signed_in');
+                        var gf=document.getElementById('blog_guest_form');
+                        var el=document.getElementById('blog_user_email');
+                        if(si)si.style.display='block';
+                        if(gf)gf.style.display='none';
+                        if(el)el.textContent=s.user.email;
+                    }
+                }
+            }catch(e){}
+        })();
     </script>
 </body>
 </html>

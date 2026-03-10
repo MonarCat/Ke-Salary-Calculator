@@ -716,7 +716,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('employers')
-                    .select('organization_name, industry, county, contact_email, contact_phone, logo_url')
+                    .select('organization_name, organization_kra_pin, industry, county, physical_address, postal_address, contact_email, contact_phone, logo_url')
                     .eq('user_id', user.id)
                     .maybeSingle();
                 if (error || !data) return;
@@ -732,6 +732,18 @@
                 if (data.contact_email) metaParts.push(data.contact_email);
                 if (data.contact_phone) metaParts.push(data.contact_phone);
                 document.getElementById('employer-banner-meta').textContent = metaParts.join(' · ');
+
+                // Cache employer profile for payslip pre-fill
+                const address = data.physical_address || data.postal_address || data.county || '';
+                localStorage.setItem('employerProfile', JSON.stringify({
+                    name: data.organization_name || '',
+                    kraPin: data.organization_kra_pin || '',
+                    address: address,
+                    county: data.county || '',
+                    email: data.contact_email || '',
+                    phone: data.contact_phone || '',
+                    logo_url: data.logo_url || ''
+                }));
 
                 if (data.logo_url) {
                     document.getElementById('employer-logo').src = data.logo_url;
@@ -995,9 +1007,11 @@
                 pin: emp.kraPin || '',
                 period: '',
                 gross: emp.salary,
-                department: emp.department || ''
+                department: emp.department || '',
+                position: emp.position || '',
+                allowances: emp.allowances || 0
             }));
-            window.location.href = '/index.html?tab=payslip';
+            window.location.href = '/calculator.html?tab=payslip';
         }
 
         // ── Export Functions ──────────────────────────────────────────────────────

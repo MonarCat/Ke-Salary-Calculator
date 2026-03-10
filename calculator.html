@@ -910,6 +910,26 @@
                         <input type="number" id="grossPaySlip" placeholder="e.g. 50000">
                     </div>
 
+                    <details style="margin-bottom:10px;">
+                        <summary style="cursor:pointer; color:#006600; font-weight:600; font-size:0.95em; padding:6px 0;">
+                            <i class="fas fa-plus-circle"></i> Optional Deductions (SACCO, Pension, Insurance)
+                        </summary>
+                        <div style="margin-top:8px;">
+                            <div class="form-group">
+                                <label for="saccoDeductionInput">SACCO Loan (KES)</label>
+                                <input type="number" id="saccoDeductionInput" placeholder="0.00" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="pensionDeductionInput">Pension Scheme (KES)</label>
+                                <input type="number" id="pensionDeductionInput" placeholder="0.00" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="insuranceDeductionInput">Insurance Premium (KES)</label>
+                                <input type="number" id="insuranceDeductionInput" placeholder="0.00" min="0">
+                            </div>
+                        </div>
+                    </details>
+
                     <button onclick="generatePayslip()">Create Payslip</button>
                 </div>
 
@@ -1002,6 +1022,18 @@
                                     <tr>
                                         <td>Loan Deduction</td>
                                         <td><input type="number" id="loanDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
+                                    </tr>
+                                    <tr id="saccoRow" style="display:none;">
+                                        <td>SACCO Loan</td>
+                                        <td><input type="number" id="saccoDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
+                                    </tr>
+                                    <tr id="pensionRow" style="display:none;">
+                                        <td>Pension Scheme</td>
+                                        <td><input type="number" id="pensionDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
+                                    </tr>
+                                    <tr id="insuranceRow" style="display:none;">
+                                        <td>Insurance Premium</td>
+                                        <td><input type="number" id="insuranceDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
                                     </tr>
                                 </table>
                             </div>

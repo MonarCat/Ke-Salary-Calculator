@@ -993,7 +993,13 @@
             <div class="email-alert-section">
                 <h3><i class="fas fa-bell"></i> Get Salary &amp; Tax Update Alerts</h3>
                 <p>Get notified when Kenya's PAYE, NSSF, SHIF or Housing Levy rates change.</p>
-                <div class="email-alert-row">
+                <!-- Shown to signed-in users: one-click subscribe with account email -->
+                <div id="alertSignedIn" style="display:none;">
+                    <p style="font-size:0.9em; color:#555; margin-bottom:8px;">Subscribe using your account email: <strong id="alertUserEmail"></strong></p>
+                    <button class="email-alert-btn" onclick="subscribeWithAccountEmail()"><i class="fas fa-paper-plane"></i> Yes, Subscribe Me</button>
+                </div>
+                <!-- Shown to guests -->
+                <div id="alertGuest" class="email-alert-row">
                     <input type="email" class="email-alert-input" id="alertEmail" placeholder="your@email.com" aria-label="Email address for salary alerts">
                     <button class="email-alert-btn" onclick="subscribeAlert()"><i class="fas fa-paper-plane"></i> Subscribe Free</button>
                 </div>
@@ -1442,13 +1448,63 @@
                 if (msg) { msg.style.display='block'; msg.style.color='#CC0000'; msg.textContent='Please enter a valid email address.'; }
                 return;
             }
-            // Store locally as a demo (no backend in this static site)
+            _doSubscribe(email);
+        }
+
+        function subscribeWithAccountEmail() {
+            var emailEl = document.getElementById('alertUserEmail');
+            var email = emailEl ? emailEl.textContent.trim() : '';
+            if (!email) return;
+            _doSubscribe(email);
+        }
+
+        function _doSubscribe(email) {
+            var msg = document.getElementById('alertMsg');
+            // Store subscriber list in Supabase if available, else fallback to localStorage
+            if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+                supabaseClient.from('newsletter_subscribers').upsert({ email: email }, { onConflict: 'email' })
+                    .then(function(res) {
+                        if (res.error) {
+                            // Table may not exist yet or RLS denied — fallback to localStorage
+                            console.warn('Newsletter subscribe error:', res.error.message || res.error);
+                            _localSubscribe(email);
+                        } else {
+                            if (msg) { msg.style.display='block'; msg.style.color='#006600'; msg.textContent='✓ You\'re subscribed! You\'ll be notified when Kenya tax rules change.'; }
+                        }
+                    });
+            } else {
+                _localSubscribe(email);
+            }
+            var emailInput = document.getElementById('alertEmail');
+            if (emailInput) emailInput.value = '';
+        }
+
+        function _localSubscribe(email) {
+            var msg = document.getElementById('alertMsg');
             var subs = JSON.parse(localStorage.getItem('salary_alert_subs') || '[]');
             if (!subs.includes(email)) subs.push(email);
             localStorage.setItem('salary_alert_subs', JSON.stringify(subs));
-            document.getElementById('alertEmail').value = '';
             if (msg) { msg.style.display='block'; msg.style.color='#006600'; msg.textContent='✓ You\'re subscribed! You\'ll be notified when Kenya tax rules change.'; }
         }
+
+        // Check if user is signed in and update the subscription UI
+        (async function initAlertSection() {
+            try {
+                if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+                    var sessionData = await supabaseClient.auth.getSession();
+                    var session = sessionData && sessionData.data && sessionData.data.session;
+                    if (session && session.user && session.user.email) {
+                        var userEmail = session.user.email;
+                        var signedInBox = document.getElementById('alertSignedIn');
+                        var guestBox = document.getElementById('alertGuest');
+                        var emailLabel = document.getElementById('alertUserEmail');
+                        if (signedInBox) signedInBox.style.display = 'block';
+                        if (guestBox) guestBox.style.display = 'none';
+                        if (emailLabel) emailLabel.textContent = userEmail;
+                    }
+                }
+            } catch(e) {}
+        })();
 
         // ── Automated Updates Feed ────────────────────────────────────────────
         const AUTO_UPDATES = {
