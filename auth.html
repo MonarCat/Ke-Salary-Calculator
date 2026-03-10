@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=onHcaptchaLoad" async defer></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <style>
         /* Hide auth wrapper until auth check completes to avoid flash */
@@ -125,6 +126,10 @@
                             <a href="#" onclick="handleForgotPassword()" class="forgot-password">Forgot Password?</a>
                         </div>
                         
+                        <div class="hcaptcha-container">
+                            <div id="hcaptcha-login"></div>
+                        </div>
+                        
                         <button type="submit" class="auth-button">
                             <i class="fas fa-sign-in-alt"></i> Sign In
                         </button>
@@ -214,6 +219,10 @@
                                 <input type="checkbox" id="terms-checkbox" required>
                                 <span>I agree to the <a href="/terms-of-service.html" target="_blank" style="color: #006600;">Terms & Conditions</a></span>
                             </label>
+                        </div>
+                        
+                        <div class="hcaptcha-container">
+                            <div id="hcaptcha-signup"></div>
                         </div>
                         
                         <button type="submit" class="auth-button">
