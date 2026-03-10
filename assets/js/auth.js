@@ -3,6 +3,29 @@
 // Constants
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
 
+// hCaptcha widget IDs (populated after the hCaptcha library loads)
+let hcaptchaLoginWidgetId = null;
+let hcaptchaSignupWidgetId = null;
+
+// Called by the hCaptcha script once it has loaded (onload=onHcaptchaLoad)
+function onHcaptchaLoad() {
+    if (typeof HCAPTCHA_SITE_KEY === 'undefined' || !HCAPTCHA_SITE_KEY) {
+        console.warn('HCAPTCHA_SITE_KEY is not defined. hCaptcha widgets will not be rendered.');
+        return;
+    }
+
+    const loginEl = document.getElementById('hcaptcha-login');
+    if (loginEl && window.hcaptcha) {
+        hcaptchaLoginWidgetId = hcaptcha.render(loginEl, { sitekey: HCAPTCHA_SITE_KEY });
+    }
+
+    const signupEl = document.getElementById('hcaptcha-signup');
+    if (signupEl && window.hcaptcha) {
+        hcaptchaSignupWidgetId = hcaptcha.render(signupEl, { sitekey: HCAPTCHA_SITE_KEY });
+    }
+}
+window.onHcaptchaLoad = onHcaptchaLoad;
+
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
     const tabs = document.querySelectorAll('.auth-tab');
@@ -53,6 +76,15 @@ async function handleLogin(event) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
+    // Require hCaptcha token before attempting sign-in
+    const captchaToken = (window.hcaptcha && hcaptchaLoginWidgetId !== null)
+        ? hcaptcha.getResponse(hcaptchaLoginWidgetId)
+        : '';
+    if (!captchaToken) {
+        showMessage('login-message', 'Please complete the CAPTCHA verification.', 'error');
+        return;
+    }
+
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -62,7 +94,8 @@ async function handleLogin(event) {
     try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
-            password: password
+            password: password,
+            options: { captchaToken }
         });
         
         if (error) throw error;
@@ -78,6 +111,10 @@ async function handleLogin(event) {
         }, 1000);
         
     } catch (error) {
+        // Reset captcha so the user can try again
+        if (window.hcaptcha && hcaptchaLoginWidgetId !== null) {
+            hcaptcha.reset(hcaptchaLoginWidgetId);
+        }
         // Detect unverified email and offer resend link
         if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
             showMessage('login-message',
@@ -154,6 +191,15 @@ async function handleSignup(event) {
         return;
     }
 
+    // Require hCaptcha token before attempting sign-up
+    const captchaToken = (window.hcaptcha && hcaptchaSignupWidgetId !== null)
+        ? hcaptcha.getResponse(hcaptchaSignupWidgetId)
+        : '';
+    if (!captchaToken) {
+        showMessage('signup-message', 'Please complete the CAPTCHA verification.', 'error');
+        return;
+    }
+
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -166,6 +212,7 @@ async function handleSignup(event) {
             password: password,
             options: {
                 emailRedirectTo: window.location.origin + '/auth.html',
+                captchaToken,
                 data: {
                     full_name: name,
                     account_type: accountType,
@@ -196,6 +243,10 @@ async function handleSignup(event) {
         document.getElementById('organization-fields').style.display = 'none';
         
     } catch (error) {
+        // Reset captcha so the user can try again
+        if (window.hcaptcha && hcaptchaSignupWidgetId !== null) {
+            hcaptcha.reset(hcaptchaSignupWidgetId);
+        }
         // Provide a friendlier message for the known Supabase trigger failure
         const msg = (error.message || '').toLowerCase();
         if (msg.includes('database error saving new user')) {
