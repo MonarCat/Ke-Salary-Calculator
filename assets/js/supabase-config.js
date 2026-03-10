@@ -8,8 +8,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // hCaptcha site key (public – safe to include in client-side code).
 // The hCaptcha SECRET key must be configured in the Supabase dashboard under
 // Authentication → Security → Enable hCaptcha, NOT here.
-// Replace the value below with your production hCaptcha site key from https://dashboard.hcaptcha.com
-const HCAPTCHA_SITE_KEY = '10000000-ffff-ffff-ffff-000000000001'; // TODO: replace with production site key
+const HCAPTCHA_SITE_KEY = '7bae6a14-f7e6-44b2-9c08-b616a6bc78c4';
 
 // Initialize Supabase client with error handling
 let supabaseClient = null;
