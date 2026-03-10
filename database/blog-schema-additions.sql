@@ -57,6 +57,8 @@ CREATE TRIGGER update_user_profiles_updated_at
 --    Reads metadata supplied in supabaseClient.auth.signUp({ options: { data: {...} } })
 --    and creates the corresponding user_profiles row.
 --    ON CONFLICT (id) DO NOTHING makes the function safe to re-run.
+--    EXCEPTION handler ensures a profile-insert failure never prevents
+--    auth user creation (the "Database error saving new user" Supabase error).
 -- ─────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -76,8 +78,19 @@ BEGIN
   ON CONFLICT (id) DO NOTHING;
 
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log the error so it appears in Supabase Postgres logs, but do NOT
+    -- re-raise it.  Re-raising would roll back the auth.users INSERT and
+    -- surface the "Database error saving new user" error to the user.
+    RAISE WARNING 'handle_new_user() could not create user_profiles row for id=%: %', NEW.id, SQLERRM;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Ensure the function is owned by the postgres superuser so that
+-- SECURITY DEFINER gives it RLS-bypass privileges.
+ALTER FUNCTION public.handle_new_user() OWNER TO postgres;
 
 -- ─────────────────────────────────────────────────────────────────
 -- 5. Trigger: fire handle_new_user() after every INSERT on auth.users

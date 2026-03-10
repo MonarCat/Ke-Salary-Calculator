@@ -558,6 +558,45 @@ async function redirectIfLoggedIn() {
         return;
     }
 
+    // Detect error parameters appended by Supabase when an auth redirect fails
+    // (e.g. ?error=server_error&error_description=Database+error+saving+new+user).
+    // Both the query-string and the hash fragment may carry these params.
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorCode = searchParams.get('error') || hashParams.get('error');
+    const errorDescription = searchParams.get('error_description') || hashParams.get('error_description');
+
+    if (errorCode) {
+        const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
+        if (authWrapper) authWrapper.classList.add('auth-ready');
+
+        const showRedirectError = () => {
+            const escapeHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            if (errorDescription && errorDescription.toLowerCase().includes('database error saving new user')) {
+                // Switch to signup tab so the message is visible and the user can retry
+                if (typeof switchAuthTab === 'function') switchAuthTab('signup');
+                showMessage('signup-message',
+                    'We could not complete your registration due to a temporary server issue. ' +
+                    'Please try signing up again. If the problem persists, contact ' +
+                    '<a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a>.',
+                    'error');
+            } else {
+                // Default: show on the login tab (visible regardless of current tab state)
+                showMessage('login-message',
+                    errorDescription
+                        ? 'Authentication error: ' + escapeHtml(errorDescription)
+                        : 'An authentication error occurred. Please try again.',
+                    'error');
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showRedirectError);
+        } else {
+            showRedirectError();
+        }
+        return;
+    }
+
     const user = await checkAuthStatus();
     if (user) {
         // Already logged in — send to homepage
