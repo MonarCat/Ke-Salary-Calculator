@@ -21,7 +21,7 @@
     <meta property="og:description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
     <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
     
-    <!-- Twitter -->
+    <!-- X (formerly Twitter) -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://salarycalculator.co.ke/">
     <meta property="twitter:title" content="Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator 2025">
@@ -671,9 +671,6 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="disclaimer-banner">
-        <p> Kenya Salary Calculator & Payslip Generator:</p>
-    </div>
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
@@ -850,6 +847,20 @@
                         <span>Job Salaries</span>
                     </a>
                 </div>
+            </div>
+
+            <!-- Automated Updates: Latest Blog & News Feed -->
+            <div class="auto-updates-section" id="autoUpdates">
+                <div class="auto-updates-header">
+                    <h2><i class="fas fa-rss"></i> Latest Updates</h2>
+                    <div class="auto-updates-tabs">
+                        <button class="update-tab active" onclick="switchUpdateTab('news')" id="tab_news">📰 News</button>
+                        <button class="update-tab" onclick="switchUpdateTab('blog')" id="tab_blog">✍️ Blog</button>
+                        <button class="update-tab" onclick="switchUpdateTab('games')" id="tab_games">🎮 Games</button>
+                    </div>
+                </div>
+                <div id="updates_feed" class="updates-feed"></div>
+                <a href="/salary-news.html" class="updates-more-link" id="updates_more_link"><i class="fas fa-arrow-right"></i> View all updates</a>
             </div>
 
             <!-- Salary Trends Dashboard -->
@@ -1120,7 +1131,10 @@
             <!-- Advertisement Sidebar -->
             <aside class="index-ad-sidebar" aria-label="Advertisement sidebar">
                 <div class="custom-ad-box">
-                    <i class="fas fa-bullhorn ad-icon"></i>
+                    <div class="animated-ad-banner" aria-label="Advertisement placeholder">
+                        <span class="ad-placeholder-text">📢 Your Ad Here</span>
+                        <span class="ad-placeholder-sub">Premium placement available</span>
+                    </div>
                     <p><strong>Your Advert Could Be Here</strong></p>
                     <p>Reach thousands of Kenyan HR professionals &amp; employers at an affordable rate.</p>
                     <a href="/contact-us.html" class="ad-contact-btn">
@@ -1128,13 +1142,42 @@
                     </a>
                 </div>
                 <div class="custom-ad-box">
-                    <i class="fas fa-ad ad-icon"></i>
+                    <div class="animated-ad-banner" aria-label="Advertisement placeholder">
+                        <span class="ad-placeholder-text">🎯 Advertise Here</span>
+                        <span class="ad-placeholder-sub">Target payroll &amp; finance audience</span>
+                    </div>
                     <p><strong>Advertise With Us</strong></p>
                     <p>Target Kenya's payroll &amp; finance audience effectively.</p>
                     <a href="/contact-us.html" class="ad-contact-btn">
                         <i class="fas fa-phone-alt"></i> Get In Touch
                     </a>
                 </div>
+
+                <!-- Partners & Affiliate Deals -->
+                <div class="affiliate-section" aria-label="Partner recommendations">
+                    <h4><i class="fas fa-handshake"></i> Partners &amp; Deals</h4>
+                    <a href="https://www.kra.go.ke/" class="affiliate-link" target="_blank" rel="noopener noreferrer" title="Kenya Revenue Authority">
+                        <i class="fas fa-landmark"></i>
+                        <span>KRA Official Portal</span>
+                        <span class="aff-badge">Official</span>
+                    </a>
+                    <a href="https://www.nssf.or.ke/" class="affiliate-link" target="_blank" rel="noopener noreferrer" title="NSSF Kenya">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>NSSF Portal</span>
+                        <span class="aff-badge">Official</span>
+                    </a>
+                    <a href="https://www.nhif.or.ke/" class="affiliate-link" target="_blank" rel="noopener noreferrer" title="SHIF / NHIF Kenya">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>SHIF / NHIF Portal</span>
+                        <span class="aff-badge">Official</span>
+                    </a>
+                    <a href="/contact-us.html" class="affiliate-link" title="Become a partner">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Become a Partner</span>
+                        <span class="aff-badge">Earn</span>
+                    </a>
+                </div>
+
                 <!-- AdSense sidebar -->
                 <div id="adsense-sidebar" class="adsense-container"></div>
             </aside>
@@ -1363,6 +1406,78 @@
             document.getElementById('alertEmail').value = '';
             if (msg) { msg.style.display='block'; msg.style.color='#006600'; msg.textContent='✓ You\'re subscribed! You\'ll be notified when Kenya tax rules change.'; }
         }
+
+        // ── Automated Updates Feed ────────────────────────────────────────────
+        const AUTO_UPDATES = {
+            news: [
+                { title: 'New NSSF Tier II Rates Effective FY 2025/2026', category: 'cat-news', date: 'Mar 2025', url: '/salary-news.html' },
+                { title: 'KRA Reminds Employers: PAYE Remittance Deadline Extended', category: 'cat-news', date: 'Feb 2025', url: '/salary-news.html' },
+                { title: 'Housing Levy: Court Ruling Upholds 1.5% Deduction', category: 'cat-news', date: 'Jan 2025', url: '/salary-news.html' },
+                { title: 'SHIF Replaces NHIF: What Every Kenyan Employee Must Know', category: 'cat-news', date: 'Dec 2024', url: '/shif-vs-nhif-kenya-2024.html' },
+                { title: 'Treasury Hints at Tax Abolition for Earners Below KES 30,000', category: 'cat-update', date: 'Nov 2024', url: '/kenya-tax-abolition-below-30000.html' },
+            ],
+            blog: [
+                { title: 'How to Negotiate a Better Salary in Kenya: 2026 Guide', category: 'cat-blog', date: '6 min read', url: '/how-to-negotiate-salary-kenya-2025.html' },
+                { title: 'Cost of Living in Nairobi 2026: What Salary Do You Really Need?', category: 'cat-blog', date: '8 min read', url: '/cost-of-living-nairobi-2025.html' },
+                { title: 'Understanding Your Kenyan Payslip: A Plain-English Guide', category: 'cat-blog', date: '5 min read', url: '/understanding-your-kenyan-payslip.html' },
+                { title: 'Kenya\'s Affordable Housing Levy: What the 1.5% Means for You', category: 'cat-blog', date: '4 min read', url: '/kenya-affordable-housing-levy-explained.html' },
+                { title: 'PAYE Bands 2025/2026: Are You Paying the Right Tax?', category: 'cat-blog', date: '5 min read', url: '/blog.html' },
+            ],
+            games: [
+                { title: '🎮 Salary Quiz: Can You Guess the Net Salary?', category: 'cat-game', date: 'Play now', url: '/salary-guess-game.html' },
+                { title: '🏙️ Nairobi Survival Challenge: Live on KES 50,000?', category: 'cat-game', date: 'Try it', url: '/cost-of-living-nairobi-2025.html' },
+                { title: '📊 Salary Comparison: Where Do You Rank?', category: 'cat-game', date: 'Find out', url: '/salary-comparison.html' },
+                { title: '🔮 Salary Raise Simulator: See Your Future Pay', category: 'cat-game', date: 'Simulate', url: '/salary-raise-calculator.html' },
+            ]
+        };
+
+        const UPDATE_MORE_LINKS = {
+            news: '/salary-news.html',
+            blog: '/blog.html',
+            games: '/salary-guess-game.html'
+        };
+
+        let currentUpdateTab = 'news';
+        let autoUpdateInterval = null;
+
+        function renderUpdateCards(tab) {
+            const feed = document.getElementById('updates_feed');
+            const moreLink = document.getElementById('updates_more_link');
+            if (!feed) return;
+            const items = AUTO_UPDATES[tab] || [];
+            feed.innerHTML = items.slice(0, 4).map(item => `
+                <a href="${item.url}" class="update-card">
+                    <span class="uc-category ${item.category}">${item.category.replace('cat-','')}</span>
+                    <span class="uc-title">${item.title}</span>
+                    <span class="uc-meta">${item.date}</span>
+                </a>
+            `).join('');
+            if (moreLink) moreLink.href = UPDATE_MORE_LINKS[tab] || '/';
+        }
+
+        function switchUpdateTab(tab) {
+            currentUpdateTab = tab;
+            document.querySelectorAll('.update-tab').forEach(btn => btn.classList.remove('active'));
+            const activeTab = document.getElementById('tab_' + tab);
+            if (activeTab) activeTab.classList.add('active');
+            renderUpdateCards(tab);
+            // Reset auto-rotation timer
+            if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+            startAutoUpdateRotation();
+        }
+
+        function startAutoUpdateRotation() {
+            const tabs = ['news', 'blog', 'games'];
+            let idx = tabs.indexOf(currentUpdateTab);
+            autoUpdateInterval = setInterval(() => {
+                idx = (idx + 1) % tabs.length;
+                switchUpdateTab(tabs[idx]);
+            }, 8000);
+        }
+
+        // Initialise on page load
+        renderUpdateCards('news');
+        startAutoUpdateRotation();
     </script>
 </body>
 </html>
