@@ -72,26 +72,27 @@ function openTab(tabName) {
     if (activeBtn) activeBtn.classList.add('active');
 }
 
-// Open the Payslip Generator tab with an auth check.
-// Unauthenticated users see a sign-in prompt instead of the form.
-async function openPayslipTab() {
-    openTab('payslip');
-
-    const formContent = document.getElementById('payslip-form-content');
-    const authPrompt  = document.getElementById('payslip-auth-prompt');
-    if (!formContent || !authPrompt) return;
-
-    let isAuthenticated = false;
+// Shared auth check helper – returns true if a Supabase session is active.
+async function checkIsAuthenticated() {
     if (typeof supabaseClient !== 'undefined' && supabaseClient &&
         typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
         try {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            isAuthenticated = !!session;
+            return !!session;
         } catch (e) {
-            isAuthenticated = false;
+            return false;
         }
     }
+    return false;
+}
 
+// Generic helper: opens a tab and shows either the form or the auth prompt.
+async function openProtectedTab(tabName, formContentId, authPromptId) {
+    openTab(tabName);
+    const formContent = document.getElementById(formContentId);
+    const authPrompt  = document.getElementById(authPromptId);
+    if (!formContent || !authPrompt) return;
+    const isAuthenticated = await checkIsAuthenticated();
     if (isAuthenticated) {
         formContent.style.display = 'block';
         authPrompt.style.display  = 'none';
@@ -99,6 +100,27 @@ async function openPayslipTab() {
         formContent.style.display = 'none';
         authPrompt.style.display  = 'block';
     }
+}
+
+// Open the Payslip Generator tab with an auth check.
+// Unauthenticated users see a sign-in prompt instead of the form.
+async function openPayslipTab() {
+    await openProtectedTab('payslip', 'payslip-form-content', 'payslip-auth-prompt');
+}
+
+// Open the Gross-Up Calculator tab with an auth check.
+async function openGrossUpTab() {
+    await openProtectedTab('grossup', 'grossup-form-content', 'grossup-auth-prompt');
+}
+
+// Open the Salary Comparison tab with an auth check.
+async function openComparisonTab() {
+    await openProtectedTab('comparison', 'comparison-form-content', 'comparison-auth-prompt');
+}
+
+// Open the Kenya Percentile tab with an auth check.
+async function openPercentileTab() {
+    await openProtectedTab('percentile', 'percentile-form-content', 'percentile-auth-prompt');
 }
 
 // Salary Calculator Functions
@@ -682,6 +704,12 @@ window.onload = () => {
     const tab = urlParams.get('tab');
     if (tab === 'payslip') {
         openPayslipTab();
+    } else if (tab === 'grossup') {
+        openGrossUpTab();
+    } else if (tab === 'comparison') {
+        openComparisonTab();
+    } else if (tab === 'percentile') {
+        openPercentileTab();
     }
     
     const saved = JSON.parse(localStorage.getItem('employeeData'));
