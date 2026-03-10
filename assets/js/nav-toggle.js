@@ -1,3 +1,18 @@
+// Google Analytics 4 — replace GA4_MEASUREMENT_ID with your property's Measurement ID
+(function() {
+    var GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+    if (!GA4_MEASUREMENT_ID || GA4_MEASUREMENT_ID === 'G-XXXXXXXXXX') return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_MEASUREMENT_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', GA4_MEASUREMENT_ID);
+})();
+
 // Shared navigation dropdown and mobile menu toggle for all pages
 document.addEventListener('DOMContentLoaded', function() {
     // Handle dropdown toggles
