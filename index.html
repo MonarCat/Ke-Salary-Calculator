@@ -36,12 +36,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Preload critical resources -->
-    <link rel="preload" href="assets/css/styles.css?v=2.1" as="style">
+    <link rel="preload" href="assets/css/styles.css?v=2.2" as="style">
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
     
-    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
-    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
-    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -702,6 +702,16 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- ── Database Notice Banner ──────────────────────────────────────── -->
+    <div class="db-notice-banner" id="db-notice-banner" role="alert">
+        <p>
+            <strong>ℹ️ Service Update:</strong>
+            We recently experienced issues during a database migration that temporarily affected some user data.
+            All data has been recovered and logins are back to normal.
+            If you experience any challenges accessing your account, please reach out via our <a href="/contact-us.html">contact form</a>.
+        </p>
+        <button class="db-notice-close" id="db-notice-close" aria-label="Close notice">&#10005;</button>
+    </div>
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
@@ -1509,6 +1519,18 @@
         // Initialise on page load
         renderUpdateCards('news');
         startAutoUpdateRotation();
+    </script>
+    <script>
+        // DB notice close button
+        (function() {
+            var btn = document.getElementById('db-notice-close');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    var banner = document.getElementById('db-notice-banner');
+                    if (banner) banner.style.display = 'none';
+                });
+            }
+        })();
     </script>
 </body>
 </html>

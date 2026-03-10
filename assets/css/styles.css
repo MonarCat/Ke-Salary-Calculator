@@ -2057,3 +2057,116 @@ table {
     .donate-method-tabs { flex-wrap: wrap; }
     .comparison-result-table td, .comparison-result-table th { font-size: 13px; padding: 7px 8px; }
 }
+
+/* ── Database / Supabase Notification Banner ─────────────────────────── */
+.db-notice-banner {
+    background: linear-gradient(135deg, #004d00 0%, #006600 50%, #004d00 100%);
+    color: #fff;
+    padding: 14px 16px;
+    text-align: center;
+    position: relative;
+    z-index: 200;
+    font-size: 0.92em;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    animation: db-notice-slide-in 0.5s ease-out;
+}
+
+@keyframes db-notice-slide-in {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.db-notice-banner p {
+    margin: 0 30px 0 0;
+    display: inline;
+}
+
+.db-notice-banner strong {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.db-notice-banner a {
+    color: #ffe082;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.db-notice-banner a:hover {
+    color: #fff176;
+}
+
+.db-notice-close {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2em;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.db-notice-close:hover {
+    opacity: 1;
+}
+
+@media (max-width: 600px) {
+    .db-notice-banner {
+        font-size: 0.82em;
+        padding: 12px 40px 12px 12px;
+        text-align: left;
+    }
+    .db-notice-banner p {
+        margin: 0;
+        display: block;
+    }
+}
+
+/* ── Enhanced mobile overflow guards ────────────────────────────────── */
+@media (max-width: 600px) {
+    /* Prevent any element from causing horizontal scroll */
+    .overlay { overflow-x: hidden; }
+    /* Shrink quick-nav from 3 to 2 columns on tiny phones */
+    .overlay .quick-nav-grid { grid-template-columns: repeat(2, 1fr); }
+    /* Make nav dropdown toggles and links wrap text instead of clipping */
+    .nav-dropdown-toggle,
+    .main-nav a { white-space: normal; }
+    /* Salary / number input fields */
+    input[type="number"],
+    input[type="text"],
+    select {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    /* Feature cards full-width on mobile */
+    .feature-card, .pricing-card { width: 100%; box-sizing: border-box; }
+    /* Wrap rate-selector tabs on small screens */
+    .rates-selector-row { flex-wrap: wrap; }
+    /* Ensure comparison table doesn't overflow */
+    .comparison-table-wrapper, .breakdown-table-wrapper { overflow-x: auto; max-width: 100%; }
+    /* Share / social buttons row wrapping */
+    .share-buttons-row { flex-wrap: wrap; gap: 8px; }
+    /* Payslip actions stack on small screens */
+    .payslip-actions { flex-direction: column; }
+    .payslip-actions button { width: 100%; }
+}
+
+@media (max-width: 400px) {
+    /* On very small phones, tighten the 2-col quick nav grid spacing */
+    .overlay .quick-nav-grid { gap: 8px; }
+    .quick-nav-card { padding: 10px 6px; }
+    .quick-nav-card span { font-size: 0.72em; }
+    /* Stack donate-method tabs */
+    .donate-method-tabs { flex-direction: column; }
+    /* Ensure the main container doesn't clip content */
+    .container { padding: 10px 10px; }
+}
