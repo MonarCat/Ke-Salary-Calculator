@@ -41,10 +41,10 @@ body::before {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     margin: 40px auto;
-    padding: 30px;
+    padding: clamp(1rem, 4vw, 2.5rem);
     background: linear-gradient(to bottom right, #ffffff, #f0f0f0);
     border-radius: 10px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
@@ -56,7 +56,7 @@ h1 {
     color: #006600;
     margin-bottom: 30px;
     font-family: 'Oswald', 'Arial Narrow', 'Arial', sans-serif;
-    font-size: 2.2em;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
     font-weight: 700;
     letter-spacing: 1px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -260,6 +260,8 @@ h1::after {
     top: 8px;
     z-index: 101;
     margin: 15px auto 0;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .mobile-menu-toggle:hover {
@@ -267,35 +269,64 @@ h1::after {
     color: white;
 }
 
+/* Overlay backdrop for mobile drawer */
+.nav-drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 98;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.nav-drawer-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .main-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 80%;
+        max-width: 300px;
         flex-direction: column;
         align-items: stretch;
-        display: none;
-        position: static;
-        box-shadow: none;
+        background: linear-gradient(to bottom right, #ffffff, #f0f0f0);
+        box-shadow: 4px 0 16px rgba(0,0,0,0.18);
         border-radius: 0;
-        margin-top: 0;
-        padding: 5px 0;
-        background: transparent;
+        margin: 0;
+        padding: 60px 12px 24px;
+        z-index: 99;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex !important;
     }
-    
+
     .main-nav.mobile-open {
-        display: flex;
+        transform: translateX(0);
     }
-    
+
     .mobile-menu-toggle {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    
+
     .main-nav a,
     .main-nav .auth-link,
     .main-nav .nav-dropdown-toggle {
         width: 100%;
-        text-align: center;
+        text-align: left;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
     }
-    
+
     .nav-dropdown-menu {
         position: static;
         opacity: 1;
@@ -307,11 +338,11 @@ h1::after {
         box-shadow: none;
         background: #f9f9f9;
     }
-    
+
     .nav-dropdown.open .nav-dropdown-menu {
         display: block;
     }
-    
+
     .nav-dropdown:not(.open) .nav-dropdown-menu {
         display: none;
     }
@@ -1100,7 +1131,7 @@ footer a:hover {
 }
 
 .mobile-option-details .phone-number {
-    font-size: 18px;
+    font-size: clamp(1rem, 3vw, 1.125rem);
     font-weight: 800;
     color: #2e7d32;
     letter-spacing: 1px;
@@ -1732,7 +1763,7 @@ footer a:hover {
 /* ── Quick Navigation Cards (homepage) ─────────────────────────────── */
 .quick-nav-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
     margin: 0 0 24px;
 }
@@ -1862,9 +1893,9 @@ footer a:hover {
         padding: 11px 14px;
         font-size: 13px;
     }
-    /* Quick nav cards in 3-col grid on mobile */
-    .quick-nav-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .quick-nav-card { padding: 12px 8px; }
+    /* Quick nav cards: auto-fill still works, force single-col on very small phones via xs rule below */
+    .quick-nav-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .quick-nav-card { padding: 12px 8px; min-height: 44px; }
     .quick-nav-card i { font-size: 1.5em; }
     .quick-nav-card span { font-size: 0.78em; }
     /* Payslip/print fix */
@@ -1873,11 +1904,17 @@ footer a:hover {
     .share-link-row { flex-direction: column; }
     .share-link-input { min-width: auto; }
     /* Scroll to top closer to edge */
-    .scroll-to-top { bottom: 16px; right: 16px; width: 42px; height: 42px; font-size: 1em; }
+    .scroll-to-top { bottom: 70px; right: 16px; width: 42px; height: 42px; font-size: 1em; }
     /* Tab buttons on mobile */
     .tab-button { padding: 8px 10px; font-size: 12px; margin-right: 2px; }
     /* Payslip container on mobile */
     .payslip-container { padding: 15px; min-height: auto; }
+}
+
+/* xs: very small phones (< 480px) */
+@media (max-width: 480px) {
+    .quick-nav-grid { grid-template-columns: repeat(2, 1fr); }
+    .tools-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Tablet (600–768px) */
@@ -2039,7 +2076,7 @@ footer a:hover {
 
 /* ── Wide screens (≥1200px) ──────────────────────────────────────────── */
 @media (min-width: 1200px) {
-    .container { max-width: 860px; }
+    .container { max-width: 1200px; }
 }
 
 /* ── Responsive table overflow ───────────────────────────────────────── */
@@ -2169,4 +2206,144 @@ table {
     .donate-method-tabs { flex-direction: column; }
     /* Ensure the main container doesn't clip content */
     .container { padding: 10px 10px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOBILE BOTTOM TAB BAR
+   ═══════════════════════════════════════════════════════════════════════ */
+.bottom-tab-bar {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .bottom-tab-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-top: 1px solid #e0e0e0;
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+        z-index: 200;
+        height: 58px;
+    }
+    .bottom-tab-bar a {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        text-decoration: none;
+        color: #666;
+        font-size: 0.6rem;
+        font-weight: 600;
+        padding: 6px 2px;
+        transition: color 0.2s;
+        min-height: 44px;
+        border-top: 2px solid transparent;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-tab-bar a i {
+        font-size: 1.2rem;
+        display: block;
+    }
+    .bottom-tab-bar a.active,
+    .bottom-tab-bar a:hover {
+        color: #006600;
+        border-top-color: #006600;
+    }
+    /* Extra bottom padding so content isn't hidden behind the tab bar */
+    .overlay > .container,
+    .container {
+        padding-bottom: 70px;
+    }
+    /* Ensure scroll-to-top button clears the tab bar */
+    .scroll-to-top {
+        bottom: 68px;
+    }
+    /* Prevent body scrolling when drawer is open */
+    body.nav-open {
+        overflow: hidden;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DARK MODE — global (via body.dark-mode class from localStorage)
+   ═══════════════════════════════════════════════════════════════════════ */
+body.dark-mode {
+    color: #e0e0e0;
+}
+body.dark-mode::before {
+    background: rgba(5, 10, 5, 0.88);
+}
+body.dark-mode .container {
+    background: linear-gradient(to bottom right, #1a1a2e, #16213e);
+    border-color: #2a2a4e;
+    color: #e0e0e0;
+}
+body.dark-mode .main-nav {
+    background: linear-gradient(to bottom right, #1a1a2e, #16213e);
+}
+body.dark-mode .main-nav a,
+body.dark-mode .main-nav .auth-link,
+body.dark-mode .main-nav .nav-dropdown-toggle {
+    background-color: #1a1a2e;
+    border-color: #4caf50;
+    color: #4caf50;
+}
+body.dark-mode .main-nav a:hover,
+body.dark-mode .main-nav .nav-dropdown-toggle:hover {
+    background-color: #4caf50;
+    color: #1a1a2e;
+}
+body.dark-mode .main-nav a.active {
+    background-color: #4caf50;
+    color: #1a1a2e;
+}
+body.dark-mode .nav-dropdown-menu {
+    background: #16213e;
+    border-color: #4caf50;
+}
+body.dark-mode .nav-dropdown-menu a {
+    background: #16213e;
+    color: #4caf50;
+    border-bottom-color: #2a2a4e;
+}
+body.dark-mode .nav-dropdown-menu a:hover {
+    background: #0f3460;
+}
+body.dark-mode .input-section,
+body.dark-mode .results-section,
+body.dark-mode .intro-section,
+body.dark-mode .info-section {
+    background-color: #16213e;
+    color: #e0e0e0;
+}
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3 { color: #4caf50; }
+body.dark-mode .bottom-tab-bar {
+    background: #16213e;
+    border-top-color: #2a2a4e;
+}
+body.dark-mode .bottom-tab-bar a { color: #999; }
+body.dark-mode .bottom-tab-bar a.active,
+body.dark-mode .bottom-tab-bar a:hover {
+    color: #4caf50;
+    border-top-color: #4caf50;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAZY-LOAD FADE-IN (used by Intersection Observer)
+   ═══════════════════════════════════════════════════════════════════════ */
+.lazy-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.lazy-section.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
