@@ -254,7 +254,15 @@
             <div class="sn-alert-box">
                 <h3><i class="fas fa-bell"></i> Get Notified When Kenya Tax Rules Change</h3>
                 <p>We'll email you when KRA, NSSF, SHIF, or Housing Levy rates change — so your payslip never surprises you.</p>
-                <div class="sn-email-form">
+                <!-- Shown to signed-in users -->
+                <div id="sn_signed_in" style="display:none;">
+                    <p style="color:#c8f0c8; font-size:0.9em; margin-bottom:8px;">Subscribe using your account email: <strong id="sn_user_email"></strong></p>
+                    <button class="sn-email-btn" onclick="snSubscribeWithAccount()">
+                        <i class="fas fa-envelope"></i> Yes, Notify Me
+                    </button>
+                </div>
+                <!-- Shown to guests -->
+                <div class="sn-email-form" id="sn_guest_form">
                     <input type="email" class="sn-email-input" id="sn_email" placeholder="your@email.com" autocomplete="email">
                     <button class="sn-email-btn" onclick="subscribeAlert()">
                         <i class="fas fa-envelope"></i> Notify Me
@@ -440,13 +448,54 @@
             msg.style.display = 'block';
             return;
         }
-        // Store locally as a simple sign-up indicator
-        localStorage.setItem('sn_subscribed', email);
-        msg.style.color = '#006600';
-        msg.textContent = '✓ Thanks! We\'ll notify you when Kenya salary and tax rules change.';
-        msg.style.display = 'block';
+        snDoSubscribe(email);
         document.getElementById('sn_email').value = '';
     }
+
+    function snSubscribeWithAccount() {
+        const emailEl = document.getElementById('sn_user_email');
+        const email = emailEl ? emailEl.textContent.trim() : '';
+        if (!email) return;
+        snDoSubscribe(email);
+    }
+
+    function snDoSubscribe(email) {
+        const msg = document.getElementById('sn_email_msg');
+        if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+            supabaseClient.from('newsletter_subscribers').upsert({ email: email }, { onConflict: 'email' })
+                .then(function(res) {
+                    if (res.error) {
+                        console.warn('Newsletter subscribe error:', res.error.message || res.error);
+                        localStorage.setItem('sn_subscribed', email);
+                    }
+                    msg.style.color = '#c8f0c8';
+                    msg.textContent = '✓ Thanks! We\'ll notify you when Kenya salary and tax rules change.';
+                    msg.style.display = 'block';
+                });
+        } else {
+            localStorage.setItem('sn_subscribed', email);
+            msg.style.color = '#c8f0c8';
+            msg.textContent = '✓ Thanks! We\'ll notify you when Kenya salary and tax rules change.';
+            msg.style.display = 'block';
+        }
+    }
+
+    // Check auth and update UI
+    (async function initSnAlertSection() {
+        try {
+            if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user && session.user.email) {
+                    const signedInBox = document.getElementById('sn_signed_in');
+                    const guestBox = document.getElementById('sn_guest_form');
+                    const emailLabel = document.getElementById('sn_user_email');
+                    if (signedInBox) signedInBox.style.display = 'block';
+                    if (guestBox) guestBox.style.display = 'none';
+                    if (emailLabel) emailLabel.textContent = session.user.email;
+                }
+            }
+        } catch(e) {}
+    })();
     </script>
 </body>
 </html>

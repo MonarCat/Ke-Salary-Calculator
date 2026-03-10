@@ -102,10 +102,54 @@ async function openProtectedTab(tabName, formContentId, authPromptId) {
     }
 }
 
+// Load employer profile from Supabase and pre-fill payslip company fields.
+async function prefillEmployerProfileFromSupabase() {
+    if (typeof supabaseClient === 'undefined' || !supabaseClient ||
+        typeof isSupabaseConfigured !== 'function' || !isSupabaseConfigured()) return;
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return;
+        const { data, error } = await supabaseClient
+            .from('employers')
+            .select('organization_name, organization_kra_pin, county, physical_address, postal_address, contact_email, contact_phone')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+        if (error || !data) return;
+        const address = data.physical_address || data.postal_address || data.county || '';
+        const profile = {
+            name: data.organization_name || '',
+            kraPin: data.organization_kra_pin || '',
+            address: address,
+            county: data.county || '',
+            email: data.contact_email || '',
+            phone: data.contact_phone || ''
+        };
+        localStorage.setItem('employerProfile', JSON.stringify(profile));
+        // Pre-fill the payslip form fields if they are currently empty
+        const companyNameEl = document.getElementById('companyName');
+        const companyAddrEl = document.getElementById('companyAddress');
+        const companyKraEl  = document.getElementById('companyKra');
+        const companyContactsEl = document.getElementById('companyContacts');
+        if (companyNameEl && !companyNameEl.value) companyNameEl.value = profile.name;
+        if (companyAddrEl && !companyAddrEl.value) companyAddrEl.value = profile.address;
+        if (companyKraEl  && !companyKraEl.value)  companyKraEl.value  = profile.kraPin;
+        if (companyContactsEl && !companyContactsEl.value) {
+            const parts = [];
+            if (profile.phone) parts.push('Tel: ' + profile.phone);
+            if (profile.email) parts.push('Email: ' + profile.email);
+            companyContactsEl.value = parts.join(' | ');
+        }
+    } catch (e) {
+        // Fail silently – table may not exist
+    }
+}
+
 // Open the Payslip Generator tab with an auth check.
 // Unauthenticated users see a sign-in prompt instead of the form.
 async function openPayslipTab() {
     await openProtectedTab('payslip', 'payslip-form-content', 'payslip-auth-prompt');
+    // Attempt to load employer profile from Supabase if not already cached
+    await prefillEmployerProfileFromSupabase();
 }
 
 // Open the Gross-Up Calculator tab with an auth check.
@@ -486,6 +530,18 @@ function generatePayslip() {
     const department = document.getElementById('department').value || "";
     const payslipNumber = document.getElementById('payslipNumber').value || "";
     const loanDeduction = parseFloat(document.getElementById('loanDeduction').value) || 0;
+    // Read from the form input fields
+    const saccoDeduction = parseFloat(document.getElementById('saccoDeductionInput').value) || 0;
+    const pensionDeduction = parseFloat(document.getElementById('pensionDeductionInput').value) || 0;
+    const insuranceDeduction = parseFloat(document.getElementById('insuranceDeductionInput').value) || 0;
+
+    // Copy values into payslip editable fields so user can adjust on the slip
+    const saccoSlipEl = document.getElementById('saccoDeduction');
+    const pensionSlipEl = document.getElementById('pensionDeduction');
+    const insuranceSlipEl = document.getElementById('insuranceDeduction');
+    if (saccoSlipEl) saccoSlipEl.value = saccoDeduction > 0 ? saccoDeduction : '';
+    if (pensionSlipEl) pensionSlipEl.value = pensionDeduction > 0 ? pensionDeduction : '';
+    if (insuranceSlipEl) insuranceSlipEl.value = insuranceDeduction > 0 ? insuranceDeduction : '';
 
     localStorage.setItem('employeeData', JSON.stringify({
     name, id, pin, period, gross, department, payslipNumber
@@ -502,7 +558,7 @@ function generatePayslip() {
     const ahl = calculateHousingLevy(gross);
     const taxable = gross - nssf - shif - ahl;
     const paye = calculatePAYE(taxable);
-    const totalDeductions = nssf + shif + ahl + paye + loanDeduction;
+    const totalDeductions = nssf + shif + ahl + paye + loanDeduction + saccoDeduction + pensionDeduction + insuranceDeduction;
     const net = gross - totalDeductions;
 
     // Update display
@@ -518,6 +574,14 @@ function generatePayslip() {
     document.getElementById('slipNet').textContent = formatKES(net);
     document.getElementById('slipGrossSummary').textContent = formatKES(gross);
     document.getElementById('slipDeductionsSummary').textContent = formatKES(totalDeductions);
+
+    // Show/hide optional deduction rows
+    const saccoRow = document.getElementById('saccoRow');
+    const pensionRow = document.getElementById('pensionRow');
+    const insuranceRow = document.getElementById('insuranceRow');
+    if (saccoRow) saccoRow.style.display = saccoDeduction > 0 ? 'table-row' : 'none';
+    if (pensionRow) pensionRow.style.display = pensionDeduction > 0 ? 'table-row' : 'none';
+    if (insuranceRow) insuranceRow.style.display = insuranceDeduction > 0 ? 'table-row' : 'none';
 
     // Update company header
     const header = document.querySelector('.payslip-header h2');
@@ -547,37 +611,7 @@ function handleLogoUpload() {
 
 // Print Function
 function printPayslip() {
-    const originalBodyClass = document.body.className;
-    document.body.classList.add('printing');
-
-    const style = document.createElement('style');
-    style.id = 'print-styles';
-    style.innerHTML = `
-        .no-print { display: none !important; }
-        body.printing * { visibility: hidden; }
-        body.printing .payslip-container,
-        body.printing .payslip-container * {
-            visibility: visible;
-        }
-        body.printing .payslip-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: auto;
-            width: 100%;
-            background: white;
-            box-shadow: none;
-            border: none;
-            padding: 20px;
-        }
-    `;
-    document.head.appendChild(style);
-
-    setTimeout(() => {
-        window.print();
-        document.body.classList.remove('printing');
-        document.getElementById('print-styles')?.remove();
-    }, 100);
+    window.print();
 }
 
 
@@ -595,6 +629,25 @@ function resetPayslip() {
     document.getElementById('department').value = '';
     document.getElementById('payslipNumber').value = '';
     document.getElementById('loanDeduction').value = '';
+    document.getElementById('saccoDeduction').value = '';
+    document.getElementById('pensionDeduction').value = '';
+    document.getElementById('insuranceDeduction').value = '';
+
+    // Also reset form input deduction fields
+    const saccoIn = document.getElementById('saccoDeductionInput');
+    const pensionIn = document.getElementById('pensionDeductionInput');
+    const insuranceIn = document.getElementById('insuranceDeductionInput');
+    if (saccoIn) saccoIn.value = '';
+    if (pensionIn) pensionIn.value = '';
+    if (insuranceIn) insuranceIn.value = '';
+
+    // Hide optional deduction rows
+    const saccoRow = document.getElementById('saccoRow');
+    const pensionRow = document.getElementById('pensionRow');
+    const insuranceRow = document.getElementById('insuranceRow');
+    if (saccoRow) saccoRow.style.display = 'none';
+    if (pensionRow) pensionRow.style.display = 'none';
+    if (insuranceRow) insuranceRow.style.display = 'none';
 
     const signatureFields = document.querySelectorAll('.signature-field');
     signatureFields.forEach(field => field.value = '');
@@ -623,6 +676,9 @@ function resetPayslip() {
 // Update Deductions Function
 function updateDeductions() {
     const loanDeduction = parseFloat(document.getElementById('loanDeduction').value) || 0;
+    const saccoDeduction = parseFloat(document.getElementById('saccoDeduction').value) || 0;
+    const pensionDeduction = parseFloat(document.getElementById('pensionDeduction').value) || 0;
+    const insuranceDeduction = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
     const gross = parseFloat(document.getElementById('grossPaySlip').value) || 0;
     
     const nssf = calculateNSSF(gross);
@@ -631,7 +687,7 @@ function updateDeductions() {
     const taxable = gross - nssf - shif - ahl;
     const paye = calculatePAYE(taxable);
     
-    const totalDeductions = nssf + shif + ahl + paye + loanDeduction;
+    const totalDeductions = nssf + shif + ahl + paye + loanDeduction + saccoDeduction + pensionDeduction + insuranceDeduction;
     const net = gross - totalDeductions;
     
     document.getElementById('slipNet').textContent = formatKES(net);
@@ -721,6 +777,24 @@ window.onload = () => {
         document.getElementById('grossPaySlip').value = saved.gross;
         document.getElementById('department').value = saved.department;
         document.getElementById('payslipNumber').value = saved.payslipNumber;
+    }
+
+    // Pre-fill employer / organization details from cached profile
+    const savedProfile = JSON.parse(localStorage.getItem('employerProfile'));
+    if (savedProfile) {
+        const companyNameEl = document.getElementById('companyName');
+        const companyAddrEl = document.getElementById('companyAddress');
+        const companyKraEl = document.getElementById('companyKra');
+        const companyContactsEl = document.getElementById('companyContacts');
+        if (companyNameEl && !companyNameEl.value) companyNameEl.value = savedProfile.name || '';
+        if (companyAddrEl && !companyAddrEl.value) companyAddrEl.value = savedProfile.address || savedProfile.county || '';
+        if (companyKraEl && !companyKraEl.value) companyKraEl.value = savedProfile.kraPin || '';
+        if (companyContactsEl && !companyContactsEl.value) {
+            const parts = [];
+            if (savedProfile.phone) parts.push('Tel: ' + savedProfile.phone);
+            if (savedProfile.email) parts.push('Email: ' + savedProfile.email);
+            companyContactsEl.value = parts.join(' | ');
+        }
     }
 
     // Load calculation from URL params (shared link)
