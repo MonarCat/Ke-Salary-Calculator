@@ -196,7 +196,18 @@ async function handleSignup(event) {
         document.getElementById('organization-fields').style.display = 'none';
         
     } catch (error) {
-        showMessage('signup-message', error.message || 'Signup failed. Please try again.', 'error');
+        // Provide a friendlier message for the known Supabase trigger failure
+        const msg = (error.message || '').toLowerCase();
+        if (msg.includes('database error saving new user')) {
+            showMessage('signup-message',
+                'We could not complete your registration due to a temporary server issue. ' +
+                'Please try again in a moment or contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a> if the problem persists.',
+                'error');
+        } else {
+            // Escape error.message before inserting into innerHTML to prevent XSS
+            const escapeHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            showMessage('signup-message', escapeHtml(error.message || 'Signup failed. Please try again.'), 'error');
+        }
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
