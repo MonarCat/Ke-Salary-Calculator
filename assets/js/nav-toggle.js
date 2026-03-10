@@ -80,12 +80,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Highlight active bottom tab based on current page
-    var path = window.location.pathname;
+    var path = window.location.pathname.replace(/\/$/, '') || '/';
     document.querySelectorAll('.bottom-tab-bar a').forEach(function(link) {
-        if (link.getAttribute('href') === path || link.getAttribute('href') === path.replace(/\/$/, '') + '/') {
-            link.classList.add('active');
-        }
-        if (path === '/' && link.getAttribute('href') === '/') {
+        var href = (link.getAttribute('href') || '').replace(/\/$/, '') || '/';
+        if (href === path) {
             link.classList.add('active');
         }
     });

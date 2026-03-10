@@ -841,7 +841,7 @@
                 <h2><i class="fas fa-calculator" style="color:#006600;"></i> Quick Salary Check</h2>
                 <p class="mini-calc-subtitle">Enter your gross monthly salary for an instant net pay estimate (FY 2025/2026 rates)</p>
                 <div class="mini-calc-row">
-                <input type="number" id="miniGross" placeholder="Gross salary (KES)" min="0" inputmode="numeric" pattern="[0-9]*" oninput="miniCalcDebounced()" aria-label="Gross monthly salary">
+                <input type="number" id="miniGross" placeholder="Gross salary (KES)" min="0" inputmode="numeric" oninput="miniCalcDebounced()" aria-label="Gross monthly salary">
                     <button onclick="miniCalc()"><i class="fas fa-bolt"></i> Calculate</button>
                 </div>
                 <div class="mini-result" id="miniResult">

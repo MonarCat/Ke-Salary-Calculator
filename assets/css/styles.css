@@ -2261,7 +2261,7 @@ table {
     }
     /* Ensure scroll-to-top button clears the tab bar */
     .scroll-to-top {
-        bottom: 68px !important;
+        bottom: 68px;
     }
     /* Prevent body scrolling when drawer is open */
     body.nav-open {
