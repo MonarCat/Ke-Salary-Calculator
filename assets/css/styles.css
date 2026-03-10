@@ -2060,7 +2060,7 @@ table {
 
 /* ── Database / Supabase Notification Banner ─────────────────────────── */
 .db-notice-banner {
-    background: linear-gradient(135deg, #7b0000 0%, #cc0000 50%, #7b0000 100%);
+    background: linear-gradient(135deg, #004d00 0%, #006600 50%, #004d00 100%);
     color: #fff;
     padding: 14px 16px;
     text-align: center;
