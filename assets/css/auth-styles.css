@@ -660,6 +660,14 @@
     .auth-form-container h2 {
         font-size: 22px;
     }
+
+    /* Prevent iOS auto-zoom on form inputs */
+    .auth-form-container input[type="text"],
+    .auth-form-container input[type="email"],
+    .auth-form-container input[type="password"],
+    .auth-form-container select {
+        font-size: 16px;
+    }
 }
 
 /* Inline link button - used for in-message action links (e.g. "sign in" in error messages) */
