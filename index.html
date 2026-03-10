@@ -618,7 +618,7 @@
             padding: 12px;
             text-align: center;
         }
-        .trends-stat .t-val { font-size: 1.3em; font-weight: 800; color: #006600; }
+        .trends-stat .t-val { font-size: clamp(1.1rem, 3vw, 1.3rem); font-weight: 800; color: #006600; }
         .trends-stat .t-lbl { font-size: 0.78em; color: #555; margin-top: 3px; }
 
         /* Challenge */
@@ -669,9 +669,23 @@
         .email-alert-btn:hover { background: #004d00; }
 
         /* ── Responsive overrides for mobile ────────────────────────────── */
+        @media (max-width: 768px) {
+            .mini-calc-row {
+                flex-direction: column;
+            }
+            .mini-calc-row input {
+                width: 100%;
+                min-width: 0;
+            }
+            .mini-calc-row button {
+                width: 100%;
+                min-height: 48px;
+                font-size: 16px;
+            }
+        }
         @media (max-width: 600px) {
             .hero-section { padding: 24px 16px; margin: 12px 0; }
-            .hero-section h1 { font-size: 1.75em; letter-spacing: 1px; margin-bottom: 12px; }
+            .hero-section h1 { font-size: clamp(1.2rem, 5vw, 1.75rem); letter-spacing: 1px; margin-bottom: 12px; }
             .hero-section p { font-size: 0.97em; margin-bottom: 18px; }
             .cta-buttons { gap: 12px; margin-top: 18px; }
             .cta-button { padding: 12px 22px; font-size: 15px; }
@@ -690,6 +704,7 @@
             .trends-grid { gap: 8px; }
             .salary-insight-card { padding: 16px; }
             .email-alert-input { min-width: 160px; }
+            .mini-result-item .value { font-size: clamp(1.0rem, 3vw, 1.15rem); }
         }
 
         @media (max-width: 400px) {
@@ -702,6 +717,9 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- Nav drawer overlay (backdrop for mobile slide-in drawer) -->
+    <div class="nav-drawer-overlay" id="navDrawerOverlay" aria-hidden="true"></div>
+
     <!-- ── Database Notice Banner ──────────────────────────────────────── -->
     <div class="db-notice-banner" id="db-notice-banner" role="alert">
         <p>
@@ -717,7 +735,7 @@
             <!-- Logo Container -->
             <div class="logo-container">
                 <a href="/">
-                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
+                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo" width="260" height="130" loading="eager">
                 </a>
             </div>
             
@@ -823,7 +841,7 @@
                 <h2><i class="fas fa-calculator" style="color:#006600;"></i> Quick Salary Check</h2>
                 <p class="mini-calc-subtitle">Enter your gross monthly salary for an instant net pay estimate (FY 2025/2026 rates)</p>
                 <div class="mini-calc-row">
-                    <input type="number" id="miniGross" placeholder="Gross salary (KES)" min="0" oninput="miniCalcDebounced()" aria-label="Gross monthly salary">
+                <input type="number" id="miniGross" placeholder="Gross salary (KES)" min="0" inputmode="numeric" pattern="[0-9]*" oninput="miniCalcDebounced()" aria-label="Gross monthly salary">
                     <button onclick="miniCalc()"><i class="fas fa-bolt"></i> Calculate</button>
                 </div>
                 <div class="mini-result" id="miniResult">
@@ -851,7 +869,7 @@
             </div>
 
             <!-- Daily Salary Insight -->
-            <div class="salary-insight-card" id="salary_fact">
+            <div class="salary-insight-card lazy-section" id="salary_fact">
                 <div class="salary-insight-label">📊 Today's Salary Insight</div>
                 <p class="salary-insight-text" id="insightText">Loading today's insight...</p>
                 <button class="salary-insight-btn" onclick="loadNextInsight()">
@@ -891,7 +909,7 @@
             </div>
 
             <!-- Automated Updates: Latest Blog & News Feed -->
-            <div class="auto-updates-section" id="autoUpdates">
+            <div class="auto-updates-section lazy-section" id="autoUpdates">
                 <div class="auto-updates-header">
                     <h2><i class="fas fa-rss"></i> Latest Updates</h2>
                     <div class="auto-updates-tabs">
@@ -1171,28 +1189,9 @@
 
             <!-- Advertisement Sidebar -->
             <aside class="index-ad-sidebar" aria-label="Advertisement sidebar">
-                <div class="custom-ad-box">
-                    <div class="animated-ad-banner" aria-label="Advertisement placeholder">
-                        <span class="ad-placeholder-text">📢 Your Ad Here</span>
-                        <span class="ad-placeholder-sub">Premium placement available</span>
-                    </div>
-                    <p><strong>Your Advert Could Be Here</strong></p>
-                    <p>Reach thousands of Kenyan HR professionals &amp; employers at an affordable rate.</p>
-                    <a href="/contact-us.html" class="ad-contact-btn">
-                        <i class="fas fa-envelope"></i> Contact Now
-                    </a>
-                </div>
-                <div class="custom-ad-box">
-                    <div class="animated-ad-banner" aria-label="Advertisement placeholder">
-                        <span class="ad-placeholder-text">🎯 Advertise Here</span>
-                        <span class="ad-placeholder-sub">Target payroll &amp; finance audience</span>
-                    </div>
-                    <p><strong>Advertise With Us</strong></p>
-                    <p>Target Kenya's payroll &amp; finance audience effectively.</p>
-                    <a href="/contact-us.html" class="ad-contact-btn">
-                        <i class="fas fa-phone-alt"></i> Get In Touch
-                    </a>
-                </div>
+                <!-- AdSense ad slots -->
+                <div class="adsense-container" id="adsense-sidebar-top"></div>
+                <div class="adsense-container" id="adsense-sidebar-mid"></div>
 
                 <!-- Partners & Affiliate Deals -->
                 <div class="affiliate-section" aria-label="Partner recommendations">
@@ -1242,6 +1241,30 @@
     <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <!-- Fixed Mobile Bottom Tab Bar -->
+    <nav class="bottom-tab-bar" aria-label="Mobile navigation">
+        <a href="/" aria-label="Home">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="/calculator.html" aria-label="Calculator">
+            <i class="fas fa-calculator"></i>
+            <span>Calculator</span>
+        </a>
+        <a href="/paye-calculator-kenya.html" aria-label="PAYE">
+            <i class="fas fa-receipt"></i>
+            <span>PAYE</span>
+        </a>
+        <a href="/payslip-generator-kenya.html" aria-label="Payslip">
+            <i class="fas fa-file-invoice"></i>
+            <span>Payslip</span>
+        </a>
+        <a href="/salary-index.html" aria-label="More">
+            <i class="fas fa-bars"></i>
+            <span>More</span>
+        </a>
+    </nav>
 
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
@@ -1301,27 +1324,6 @@
             document.getElementById('miniResult').style.display = 'block';
         }
         const miniCalcDebounced = debounce(miniCalc, 300);
-
-        // ── Dark Mode ────────────────────────────────────────────────────────
-        (function() {
-            if (localStorage.getItem('darkMode') === 'on') {
-                document.body.classList.add('dark-mode');
-            }
-        })();
-        document.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('darkModeToggle');
-            if (!btn) return;
-            function updateBtn() {
-                var on = document.body.classList.contains('dark-mode');
-                btn.textContent = on ? '☀️ Light' : '🌙 Dark';
-            }
-            updateBtn();
-            btn.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
-                updateBtn();
-            });
-        });
 
         // ── Show sections for logged-in users ────────────────────────────────
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1530,6 +1532,30 @@
                     if (banner) banner.style.display = 'none';
                 });
             }
+        })();
+    </script>
+    <script>
+        // ── Intersection Observer for lazy-section fade-in ───────────────────
+        (function() {
+            if (!('IntersectionObserver' in window)) {
+                // Fallback: show all sections immediately
+                document.querySelectorAll('.lazy-section').forEach(function(el) {
+                    el.classList.add('visible');
+                });
+                return;
+            }
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '0px 0px -60px 0px', threshold: 0.08 });
+
+            document.querySelectorAll('.lazy-section').forEach(function(el) {
+                observer.observe(el);
+            });
         })();
     </script>
 </body>
