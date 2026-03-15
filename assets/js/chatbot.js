@@ -1,5 +1,5 @@
 /**
- * Kenya Salary Calculator — Site Navigation & FAQ Chatbot
+ * Kenya Salary Calculator — Site Navigation & FAQ Chatbot (Salo)
  * Free, open-source, runs fully client-side (no API keys needed).
  * Uses keyword/intent matching against a built-in knowledge base.
  */
@@ -9,10 +9,14 @@
 
     /* ── Knowledge Base ─────────────────────────────────────────────── */
     var KB = [
-        /* Navigation */
+        /* Greetings — highest priority, matched first */
         {
-            tags: ['hello', 'hi', 'hey', 'start', 'help', 'what can you do', 'assist'],
-            answer: "👋 Hi there! I'm <strong>Kazi</strong>, your guide to the Kenya Salary Calculator.\n\nI can help you:\n• 💰 Calculate your net salary\n• 📄 Generate a payslip\n• 📊 Understand PAYE, NSSF, SHIF & Housing Levy\n• 🗺️ Navigate any part of the site\n\nJust type your question below!"
+            tags: ['hello', 'hi', 'hey', 'hiya', 'howdy', 'sup', 'yo', 'greetings',
+                   'good morning', 'good afternoon', 'good evening', 'good day',
+                   'how are you', 'how r u', 'how are u', "what's up", 'whats up',
+                   'start', 'help', 'what can you do', 'assist'],
+            answer: "👋 Hello! I'm <strong>Salo</strong>, your guide to the Kenya Salary Calculator.\n\nI can help you:\n• 💰 Calculate your net salary\n• 📄 Generate a payslip\n• 📊 Understand PAYE, NSSF, SHIF & Housing Levy\n• 🗺️ Navigate any part of the site\n\nJust type your question below!",
+            isGreeting: true
         },
         {
             tags: ['calculate salary', 'how to calculate', 'calculate my salary', 'salary calculator', 'compute salary'],
@@ -123,11 +127,11 @@
             answer: "HR managers and employers can use our <a href='/employees.html' target='_blank'>Employees Tool</a> to calculate payroll for multiple employees at once."
         },
         {
-            tags: ['thank you', 'thanks', 'awesome', 'great', 'helpful'],
+            tags: ['thank you', 'thanks', 'awesome', 'great', 'helpful', 'nice', 'cool', 'perfect'],
             answer: "You're very welcome! 😊 Let me know if you have any other questions about salaries, taxes, or the site."
         },
         {
-            tags: ['bye', 'goodbye', 'see you', 'exit', 'close'],
+            tags: ['bye', 'goodbye', 'see you', 'exit', 'close', 'later', 'ciao', 'ttyl'],
             answer: "Goodbye! 👋 Come back anytime you need help understanding your Kenyan salary. Have a great day! 🇰🇪"
         }
     ];
@@ -137,8 +141,44 @@
         return text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
+    /* Check if a whole word exists in text using word boundaries.
+     * The replace pattern is the standard MDN regex-escape approach:
+     * [.*+?^${}()|[\]\\] matches all regex special characters. */
+    function containsWord(text, word) {
+        var re = new RegExp('(?:^|\\s)' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:\\s|$)');
+        return re.test(text);
+    }
+
+    /* Minimum score a KB entry must reach to be considered a match */
+    var MIN_SCORE_THRESHOLD = 2;
+    /* Maximum input length (chars) that can be classified as a short greeting */
+    var MAX_SHORT_GREETING_LENGTH = 30;
+
     function findAnswer(input) {
         var q = normalise(input);
+
+        /* ── Step 1: Pure greeting detection ───────────────────────── */
+        /* If the entire message is a simple greeting phrase, answer immediately */
+        var pureGreetings = ['hi', 'hey', 'hello', 'hiya', 'howdy', 'sup', 'yo',
+                             'good morning', 'good afternoon', 'good evening', 'good day',
+                             'how are you', 'how r u', 'how are u', "what's up", 'whats up',
+                             'greetings'];
+        for (var g = 0; g < pureGreetings.length; g++) {
+            if (q === pureGreetings[g]) {
+                return KB[0].answer;
+            }
+        }
+        /* Short message that starts with a greeting word */
+        var greetingStarters = ['hi ', 'hey ', 'hello ', 'hiya '];
+        if (q.length < MAX_SHORT_GREETING_LENGTH) {
+            for (var gs = 0; gs < greetingStarters.length; gs++) {
+                if (q.indexOf(greetingStarters[gs]) === 0) {
+                    return KB[0].answer;
+                }
+            }
+        }
+
+        /* ── Step 2: Scored matching ────────────────────────────────── */
         var bestScore = 0;
         var bestAnswer = null;
 
@@ -147,15 +187,18 @@
             var score = 0;
             for (var j = 0; j < entry.tags.length; j++) {
                 var tag = entry.tags[j];
-                if (q === tag) { score += 10; }          // exact match
-                else if (q.indexOf(tag) !== -1) { score += 3; } // phrase in query
-                else {
-                    // word-level partial match
+                if (q === tag) {
+                    score += 10;                        // exact full match
+                } else if (q.indexOf(tag) !== -1) {
+                    /* Phrase is contained in query */
+                    score += tag.split(' ').length > 1 ? 5 : 3;
+                } else {
+                    /* Word-level matching using whole-word boundaries */
                     var tagWords = tag.split(' ');
-                    var qWords = q.split(' ');
                     for (var k = 0; k < tagWords.length; k++) {
-                        if (tagWords[k].length > 3 && q.indexOf(tagWords[k]) !== -1) {
-                            score += 1;
+                        var tw = tagWords[k];
+                        if (tw.length > 3 && containsWord(q, tw)) {
+                            score += 2;
                         }
                     }
                 }
@@ -166,21 +209,53 @@
             }
         }
 
-        if (bestScore > 0) return bestAnswer;
+        /* Require a meaningful match threshold */
+        if (bestScore >= MIN_SCORE_THRESHOLD) return bestAnswer;
 
         return "I'm not sure about that yet, but I'm always learning! 🤔\n\nYou can try:\n• Rephrasing your question\n• Visiting our <a href='/contact-us.html' target='_blank'>Contact page</a> for direct support\n• Browsing the <a href='/' target='_blank'>home page</a> for all tools";
     }
+
+    /* ── Salo Avatar SVG ─────────────────────────────────────────────── */
+    var SALO_AVATAR = '<svg class="salo-avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true">' +
+        '<circle cx="24" cy="24" r="24" fill="#1a4a2e"/>' +
+        /* Head */
+        '<circle cx="24" cy="18" r="10" fill="#d4956a"/>' +
+        /* Hair — short, dark, professional */
+        '<path d="M14 18 C14 7 34 7 34 18 C31 12 24 11 17 13Z" fill="#1a0f08"/>' +
+        /* Ears */
+        '<ellipse cx="14" cy="18" rx="2.2" ry="3" fill="#c4855a"/>' +
+        '<ellipse cx="34" cy="18" rx="2.2" ry="3" fill="#c4855a"/>' +
+        /* Eyes */
+        '<ellipse cx="20" cy="17" rx="1.5" ry="1.8" fill="#1a0f08"/>' +
+        '<ellipse cx="28" cy="17" rx="1.5" ry="1.8" fill="#1a0f08"/>' +
+        /* Eyebrows */
+        '<path d="M17.5 14 Q20 13 22.5 14" stroke="#1a0f08" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M25.5 14 Q28 13 30.5 14" stroke="#1a0f08" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        /* Nose */
+        '<path d="M22.5 19 Q24 21.5 25.5 19" stroke="#a06040" stroke-width="1" fill="none" stroke-linecap="round"/>' +
+        /* Smile */
+        '<path d="M20 22 Q24 25 28 22" stroke="#a06040" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        /* Suit body */
+        '<path d="M8 48 Q8 34 24 34 Q40 34 40 48Z" fill="#1a3a5c"/>' +
+        /* White shirt/collar */
+        '<path d="M21 34 L24 39 L27 34" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>' +
+        /* Tie */
+        '<path d="M24 38 L22 44 L24 42 L26 44Z" fill="#b22222"/>' +
+        '</svg>';
 
     /* ── Render Chat Widget ──────────────────────────────────────────── */
     function createWidget() {
         var html = [
             '<div id="kazi-chat-btn" role="button" aria-label="Open chat assistant" tabindex="0">',
-            '  <span class="kazi-btn-icon">💬</span>',
-            '  <span class="kazi-btn-label">Chat with Kazi</span>',
+            '  <span class="kazi-btn-icon">' + SALO_AVATAR + '</span>',
+            '  <span class="kazi-btn-label">Chat with Salo</span>',
             '</div>',
-            '<div id="kazi-chat-box" role="dialog" aria-label="Kazi chat assistant" aria-hidden="true">',
+            '<div id="kazi-chat-box" role="dialog" aria-label="Salo chat assistant" aria-hidden="true">',
             '  <div id="kazi-chat-header">',
-            '    <span>🤖 Kazi — Your Salary Guide</span>',
+            '    <span class="salo-header-identity">',
+            '      <span class="salo-header-avatar">' + SALO_AVATAR + '</span>',
+            '      <span class="salo-header-info"><strong>Salo</strong><span class="salo-status">● Online</span></span>',
+            '    </span>',
             '    <button id="kazi-chat-close" aria-label="Close chat">&#10005;</button>',
             '  </div>',
             '  <div id="kazi-chat-messages" aria-live="polite" aria-atomic="false"></div>',
@@ -303,7 +378,7 @@
         renderSuggestions();
 
         // Greeting message
-        appendMessage('bot', findAnswer('hello'));
+        appendMessage('bot', KB[0].answer);
 
         // Toggle button
         var toggleBtn = document.getElementById('kazi-chat-btn');

@@ -1508,7 +1508,7 @@ footer a:hover {
 /* Scroll To Top Button */
 .scroll-to-top {
     position: fixed;
-    bottom: 30px;
+    bottom: 90px;
     right: 30px;
     width: 48px;
     height: 48px;
@@ -1903,8 +1903,8 @@ footer a:hover {
     /* Share section */
     .share-link-row { flex-direction: column; }
     .share-link-input { min-width: auto; }
-    /* Scroll to top closer to edge */
-    .scroll-to-top { bottom: 70px; right: 16px; width: 42px; height: 42px; font-size: 1em; }
+    /* Scroll to top above chatbot button */
+    .scroll-to-top { bottom: 90px; right: 16px; width: 42px; height: 42px; font-size: 1em; }
     /* Tab buttons on mobile */
     .tab-button { padding: 8px 10px; font-size: 12px; margin-right: 2px; }
     /* Payslip container on mobile */
@@ -2364,7 +2364,7 @@ body.dark-mode .bottom-tab-bar a:hover {
     }
 }
 
-/* ── Kazi Chatbot Widget ─────────────────────────────────────────────── */
+/* ── Salo Chatbot Widget ─────────────────────────────────────────────── */
 #kazi-widget {
     position: fixed;
     bottom: 24px;
@@ -2399,8 +2399,18 @@ body.dark-mode .bottom-tab-bar a:hover {
 }
 
 .kazi-btn-icon {
-    font-size: 1.3em;
+    display: flex;
+    align-items: center;
     line-height: 1;
+}
+
+/* Salo avatar SVG — button size */
+#kazi-chat-btn .salo-avatar-svg {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.6);
+    flex-shrink: 0;
 }
 
 .kazi-btn-label {
@@ -2448,6 +2458,42 @@ body.dark-mode .bottom-tab-bar a:hover {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+/* Salo header identity block */
+.salo-header-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.salo-header-avatar .salo-avatar-svg {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    flex-shrink: 0;
+    display: block;
+}
+
+.salo-header-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.salo-header-info strong {
+    font-size: 1em;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.salo-status {
+    font-size: 0.72em;
+    font-weight: 400;
+    opacity: 0.85;
+    color: #afffaf;
+    letter-spacing: 0.01em;
 }
 
 #kazi-chat-close {
