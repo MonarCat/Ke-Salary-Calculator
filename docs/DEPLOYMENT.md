@@ -65,7 +65,7 @@ Netlify offers excellent performance and easy deployment.
    - Drag and drop to Netlify dashboard
 
 4. **Update Supabase URLs**:
-   - Copy your Netlify URL (e.g., `https://your-site.netlify.app`)
+   - Copy your Vercel URL (e.g., `https://your-site.vercel.app`)
    - Add it to Supabase redirect URLs
 
 5. **Optional: Custom Domain**:
@@ -238,18 +238,20 @@ For `salarycalculator.co.ke`:
 
 ### 1. Enable Caching
 
-For Netlify:
-```toml
-# netlify.toml
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+For Vercel (`vercel.json`):
+```json
+{
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
+  ]
+}
 ```
 
 ### 2. Compress Images

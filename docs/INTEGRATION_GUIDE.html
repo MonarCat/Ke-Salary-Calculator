@@ -38,22 +38,19 @@
 </div>
 
 <!-- ─── STEP 2 ─────────────────────────────────────────────────────────── -->
-<h2>Step 2 — Deploy the Netlify Webhook Function</h2>
+<h2>Step 2 — Deploy the Vercel Webhook Function</h2>
 
-<h3>2a. netlify.toml</h3>
-<p>Ensure this file exists at the repository root:</p>
-<pre><code>[build]
-  functions = "netlify/functions"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
+<h3>2a. vercel.json</h3>
+<p>Ensure this file exists at the repository root (already included in this project):</p>
+<pre><code>{
+  "functions": {
+    "api/**/*.mjs": { "runtime": "nodejs20.x" }
+  }
+}
 </code></pre>
 
-<h3>2b. Environment variables (Netlify dashboard)</h3>
-<p>Go to <strong>Site settings → Environment variables</strong> and add:</p>
+<h3>2b. Environment variables (Vercel dashboard)</h3>
+<p>Go to <strong>Project settings → Environment Variables</strong> and add:</p>
 <table>
     <tr><th>Variable</th><th>Value</th></tr>
     <tr><td><code>SUPABASE_URL</code></td><td>Your Supabase project URL, e.g. <code>https://xyzxyz.supabase.co</code></td></tr>
@@ -63,10 +60,10 @@
 
 <h3>2c. PayPal IPN URL</h3>
 <p>In your PayPal account go to <strong>Account Settings → Instant Payment Notifications</strong> and set the notification URL to:</p>
-<pre><code>https://&lt;your-netlify-site&gt;.netlify.app/.netlify/functions/paypal-webhook</code></pre>
+<pre><code>https://&lt;your-vercel-site&gt;.vercel.app/api/paypal-webhook</code></pre>
 <p>Or update the <code>notify_url</code> field in your PayPal button form:</p>
 <pre><code>&lt;input type="hidden" name="notify_url"
-       value="https://&lt;your-netlify-site&gt;.netlify.app/.netlify/functions/paypal-webhook" /&gt;</code></pre>
+       value="https://&lt;your-vercel-site&gt;.vercel.app/api/paypal-webhook" /&gt;</code></pre>
 
 <!-- ─── STEP 3 ─────────────────────────────────────────────────────────── -->
 <h2>Step 3 — Update calculator.html</h2>

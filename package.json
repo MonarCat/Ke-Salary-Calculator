@@ -1,0 +1,13 @@
+{
+  "name": "ke-salary-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "vercel-build": "echo 'Static site – no build step required'"
+  },
+  "dependencies": {
+    "raw-body": "^2.5.2"
+  }
+}

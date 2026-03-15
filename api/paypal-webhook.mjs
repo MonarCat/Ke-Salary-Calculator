@@ -1,28 +1,34 @@
 /**
- * PayPal IPN Webhook – Netlify Serverless Function
+ * PayPal IPN Webhook – Vercel Serverless Function
  *
  * Receives PayPal IPN (Instant Payment Notification), verifies the payload
  * with PayPal's servers, deduplicates transactions, and calls the
  * grant_premium() RPC in Supabase to activate the paying user.
  *
- * Required environment variables (set in Netlify dashboard):
+ * Required environment variables (set in Vercel dashboard):
  *   SUPABASE_URL          – e.g. https://xyzxyz.supabase.co
  *   SUPABASE_SERVICE_KEY  – Service-role key (never expose client-side)
  *   PAYPAL_MODE           – "sandbox" or "live"
  */
+
+import getRawBody from 'raw-body';
+
+// Disable Vercel's built-in body parser so we can read the raw bytes
+export const config = { api: { bodyParser: false } };
 
 const PAYPAL_VERIFY_URL = {
     live:    'https://ipnpb.paypal.com/cgi-bin/webscr',
     sandbox: 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr',
 };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
     // PayPal sends IPN as an HTTP POST with an application/x-www-form-urlencoded body
     if (req.method !== 'POST') {
-        return new Response('Method Not Allowed', { status: 405 });
+        res.status(405).send('Method Not Allowed');
+        return;
     }
 
-    const rawBody = await req.text();
+    const rawBody = (await getRawBody(req)).toString();
 
     // ── Step 1: Echo back to PayPal for verification ──────────────────────────
     const mode = process.env.PAYPAL_MODE === 'sandbox' ? 'sandbox' : 'live';
@@ -41,7 +47,8 @@ export default async function handler(req) {
 
     if (verification !== 'VERIFIED') {
         console.error('PayPal IPN verification failed:', verification);
-        return new Response('IPN verification failed', { status: 400 });
+        res.status(400).send('IPN verification failed');
+        return;
     }
 
     // ── Step 2: Parse the verified payload ────────────────────────────────────
@@ -57,7 +64,8 @@ export default async function handler(req) {
 
     // We only process completed payments (not refunds, reversals, etc.)
     if (paymentStatus !== 'Completed') {
-        return new Response('Not a completed payment – ignored', { status: 200 });
+        res.status(200).send('Not a completed payment – ignored');
+        return;
     }
 
     // ── Step 3: Connect to Supabase ───────────────────────────────────────────
@@ -66,7 +74,8 @@ export default async function handler(req) {
 
     if (!supabaseUrl || !supabaseKey) {
         console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
-        return new Response('Server misconfiguration', { status: 500 });
+        res.status(500).send('Server misconfiguration');
+        return;
     }
 
     const supabaseHeaders = {
@@ -100,12 +109,14 @@ export default async function handler(req) {
     if (!insertRes.ok && insertRes.status !== 409) {
         const errText = await insertRes.text();
         console.error('Failed to insert paypal_transaction:', errText);
-        return new Response('DB error', { status: 500 });
+        res.status(500).send('DB error');
+        return;
     }
 
     // 409 means duplicate – already processed; acknowledge and exit cleanly
     if (insertRes.status === 409) {
-        return new Response('Duplicate IPN – already processed', { status: 200 });
+        res.status(200).send('Duplicate IPN – already processed');
+        return;
     }
 
     // ── Step 5: Grant premium via the Supabase RPC ───────────────────────────
@@ -132,7 +143,8 @@ export default async function handler(req) {
     if (!userId) {
         // Unknown user – log and acknowledge (no grant, but don't fail PayPal)
         console.warn('PayPal IPN: could not map payer_email to a user_id:', payerEmail);
-        return new Response('OK – user not found, premium not granted', { status: 200 });
+        res.status(200).send('OK – user not found, premium not granted');
+        return;
     }
 
     // Determine premium duration based on gross amount (KES / USD)
@@ -158,8 +170,9 @@ export default async function handler(req) {
     if (!rpcRes.ok) {
         const errText = await rpcRes.text();
         console.error('grant_premium RPC failed:', errText);
-        return new Response('grant_premium failed', { status: 500 });
+        res.status(500).send('grant_premium failed');
+        return;
     }
 
-    return new Response('IPN processed successfully', { status: 200 });
+    res.status(200).send('IPN processed successfully');
 }
