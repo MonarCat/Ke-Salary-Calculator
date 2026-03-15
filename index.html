@@ -720,16 +720,6 @@
     <!-- Nav drawer overlay (backdrop for mobile slide-in drawer) -->
     <div class="nav-drawer-overlay" id="navDrawerOverlay" aria-hidden="true"></div>
 
-    <!-- ── Database Notice Banner ──────────────────────────────────────── -->
-    <div class="db-notice-banner" id="db-notice-banner" role="alert">
-        <p>
-            <strong>ℹ️ Service Update:</strong>
-            We recently experienced issues during a database migration that temporarily affected some user data.
-            All data has been recovered and logins are back to normal.
-            If you experience any challenges accessing your account, please reach out via our <a href="/contact-us.html">contact form</a>.
-        </p>
-        <button class="db-notice-close" id="db-notice-close" aria-label="Close notice">&#10005;</button>
-    </div>
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
@@ -1579,18 +1569,6 @@
         startAutoUpdateRotation();
     </script>
     <script>
-        // DB notice close button
-        (function() {
-            var btn = document.getElementById('db-notice-close');
-            if (btn) {
-                btn.addEventListener('click', function() {
-                    var banner = document.getElementById('db-notice-banner');
-                    if (banner) banner.style.display = 'none';
-                });
-            }
-        })();
-    </script>
-    <script>
         // ── Intersection Observer for lazy-section fade-in ───────────────────
         (function() {
             if (!('IntersectionObserver' in window)) {
@@ -1614,5 +1592,7 @@
             });
         })();
     </script>
+    <!-- Kazi Chatbot -->
+    <script src="assets/js/chatbot.js" defer></script>
 </body>
 </html>
