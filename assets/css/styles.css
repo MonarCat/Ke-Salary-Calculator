@@ -1508,7 +1508,7 @@ footer a:hover {
 /* Scroll To Top Button */
 .scroll-to-top {
     position: fixed;
-    bottom: 30px;
+    bottom: 90px;
     right: 30px;
     width: 48px;
     height: 48px;
@@ -2399,8 +2399,9 @@ body.dark-mode .bottom-tab-bar a:hover {
 }
 
 .kazi-btn-icon {
-    font-size: 1.3em;
     line-height: 1;
+    display: flex;
+    align-items: center;
 }
 
 .kazi-btn-label {
@@ -2439,7 +2440,7 @@ body.dark-mode .bottom-tab-bar a:hover {
     justify-content: space-between;
     background: linear-gradient(135deg, #006600 0%, #009900 100%);
     color: #fff;
-    padding: 12px 16px;
+    padding: 10px 14px;
     font-size: 0.92em;
     font-weight: 700;
 }
