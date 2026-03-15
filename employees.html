@@ -875,13 +875,13 @@
                         <div>${fmtKES(gross)}</div>
                         <div class="net-cell">${fmtKES(d.net)}</div>
                         <div class="employee-actions" onclick="event.stopPropagation()">
-                            <span class="action-icon payslip" onclick="generatePayslipForEmployee(${JSON.stringify(emp.id)})" title="Generate Payslip" role="button" aria-label="Generate Payslip for ${esc(emp.name)}">
+                            <span class="action-icon payslip" onclick='generatePayslipForEmployee(${JSON.stringify(emp.id)})' title="Generate Payslip" role="button" aria-label="Generate Payslip for ${esc(emp.name)}">
                                 <i class="fas fa-file-invoice"></i>
                             </span>
-                            <span class="action-icon edit" onclick="editEmployee(${JSON.stringify(emp.id)})" title="Edit" role="button" aria-label="Edit ${esc(emp.name)}">
+                            <span class="action-icon edit" onclick='editEmployee(${JSON.stringify(emp.id)})' title="Edit" role="button" aria-label="Edit ${esc(emp.name)}">
                                 <i class="fas fa-edit"></i>
                             </span>
-                            <span class="action-icon delete" onclick="deleteEmployee(${JSON.stringify(emp.id)})" title="Delete" role="button" aria-label="Delete ${esc(emp.name)}">
+                            <span class="action-icon delete" onclick='deleteEmployee(${JSON.stringify(emp.id)})' title="Delete" role="button" aria-label="Delete ${esc(emp.name)}">
                                 <i class="fas fa-trash"></i>
                             </span>
                         </div>
