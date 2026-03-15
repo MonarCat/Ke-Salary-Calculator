@@ -9,14 +9,20 @@
 
     /* ── Knowledge Base ─────────────────────────────────────────────── */
     var KB = [
-        /* Greetings — highest priority, matched first */
+        /* Greetings */
         {
-            tags: ['hello', 'hi', 'hey', 'hiya', 'howdy', 'sup', 'yo', 'greetings',
-                   'good morning', 'good afternoon', 'good evening', 'good day',
-                   'how are you', 'how r u', 'how are u', "what's up", 'whats up',
-                   'start', 'help', 'what can you do', 'assist'],
-            answer: "👋 Hello! I'm <strong>Salo</strong>, your guide to the Kenya Salary Calculator.\n\nI can help you:\n• 💰 Calculate your net salary\n• 📄 Generate a payslip\n• 📊 Understand PAYE, NSSF, SHIF & Housing Levy\n• 🗺️ Navigate any part of the site\n\nJust type your question below!",
-            isGreeting: true
+            tags: ['hello', 'hi', 'hey', 'start', 'help', 'what can you do', 'assist', 'help me',
+                   'good morning', 'good afternoon', 'good evening', 'morning', 'afternoon',
+                   'evening', 'howdy', 'hiya', 'sup', 'yo', 'greetings', 'whats up', 'what up'],
+            answer: "👋 Hi there! I'm <strong>Salo</strong>, your salary guide for Kenya.\n\nI can help you:\n• 💰 Calculate your net salary\n• 📄 Generate a payslip\n• 📊 Understand PAYE, NSSF, SHIF & Housing Levy\n• 🗺️ Navigate any part of the site\n\nJust type your question below!"
+        },
+        {
+            tags: ['how are you', 'how are you doing', 'hows it going', 'how do you do', 'how is it going'],
+            answer: "I'm doing great, thanks for asking! 😊 Ready to help you with all things Kenyan salary.\n\nWhat would you like to know?"
+        },
+        {
+            tags: ['who are you', 'your name', 'what are you', 'tell me about yourself', 'introduce yourself', 'what is your name'],
+            answer: "I'm <strong>Salo</strong> — your personal salary assistant for the Kenya Salary Calculator! 🇰🇪\n\nI help you understand your salary, taxes, and navigate the site. Ask me anything about PAYE, NSSF, SHIF, Housing Levy, or job salaries in Kenya!"
         },
         {
             tags: ['calculate salary', 'how to calculate', 'calculate my salary', 'salary calculator', 'compute salary'],
@@ -71,7 +77,7 @@
             answer: "You can reach the team via our <a href='/contact-us.html' target='_blank'>Contact Us</a> page. We're happy to help with any questions or feedback!"
         },
         {
-            tags: ['about', 'who are you', 'about the site', 'about us'],
+            tags: ['about', 'about the site', 'about us'],
             answer: "Kenya Salary Calculator is a <strong>free tool</strong> that helps Kenyans understand their pay after tax.\n\nLearn more on our <a href='/about-us.html' target='_blank'>About Us</a> page."
         },
         {
@@ -141,44 +147,19 @@
         return text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    /* Check if a whole word exists in text using word boundaries.
-     * The replace pattern is the standard MDN regex-escape approach:
-     * [.*+?^${}()|[\]\\] matches all regex special characters. */
-    function containsWord(text, word) {
-        var re = new RegExp('(?:^|\\s)' + word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:\\s|$)');
-        return re.test(text);
+    /* Check if a phrase exists as whole-word(s) within text */
+    function phraseInText(text, phrase) {
+        if (!phrase) return false;
+        var idx = text.indexOf(phrase);
+        if (idx === -1) return false;
+        var before = (idx === 0 || text[idx - 1] === ' ');
+        var after = (idx + phrase.length === text.length || text[idx + phrase.length] === ' ');
+        return before && after;
     }
-
-    /* Minimum score a KB entry must reach to be considered a match */
-    var MIN_SCORE_THRESHOLD = 2;
-    /* Maximum input length (chars) that can be classified as a short greeting */
-    var MAX_SHORT_GREETING_LENGTH = 30;
 
     function findAnswer(input) {
         var q = normalise(input);
-
-        /* ── Step 1: Pure greeting detection ───────────────────────── */
-        /* If the entire message is a simple greeting phrase, answer immediately */
-        var pureGreetings = ['hi', 'hey', 'hello', 'hiya', 'howdy', 'sup', 'yo',
-                             'good morning', 'good afternoon', 'good evening', 'good day',
-                             'how are you', 'how r u', 'how are u', "what's up", 'whats up',
-                             'greetings'];
-        for (var g = 0; g < pureGreetings.length; g++) {
-            if (q === pureGreetings[g]) {
-                return KB[0].answer;
-            }
-        }
-        /* Short message that starts with a greeting word */
-        var greetingStarters = ['hi ', 'hey ', 'hello ', 'hiya '];
-        if (q.length < MAX_SHORT_GREETING_LENGTH) {
-            for (var gs = 0; gs < greetingStarters.length; gs++) {
-                if (q.indexOf(greetingStarters[gs]) === 0) {
-                    return KB[0].answer;
-                }
-            }
-        }
-
-        /* ── Step 2: Scored matching ────────────────────────────────── */
+        var qWords = q.split(' ');
         var bestScore = 0;
         var bestAnswer = null;
 
@@ -186,21 +167,26 @@
             var entry = KB[i];
             var score = 0;
             for (var j = 0; j < entry.tags.length; j++) {
-                var tag = entry.tags[j];
+                var tag = normalise(entry.tags[j]);
+                var tagWords = tag.split(' ');
+
                 if (q === tag) {
-                    score += 10;                        // exact full match
-                } else if (q.indexOf(tag) !== -1) {
-                    /* Phrase is contained in query */
-                    score += tag.split(' ').length > 1 ? 5 : 3;
+                    score += 10;   // exact full-query match — highest confidence
+                } else if (phraseInText(q, tag)) {
+                    score += 5;    // complete tag phrase found as whole words in query
                 } else {
-                    /* Word-level matching using whole-word boundaries */
-                    var tagWords = tag.split(' ');
+                    // Whole-word matching (length > 3 to skip trivial words like 'the', 'and')
+                    // Score 2 per word to outweigh random single-word coincidences.
+                    var matched = 0;
                     for (var k = 0; k < tagWords.length; k++) {
-                        var tw = tagWords[k];
-                        if (tw.length > 3 && containsWord(q, tw)) {
+                        var word = tagWords[k];
+                        if (word.length > 3 && qWords.indexOf(word) !== -1) {
                             score += 2;
+                            matched++;
                         }
                     }
+                    // Multi-word match bonus: rewards tags where several words align
+                    if (matched > 1) score += matched;
                 }
             }
             if (score > bestScore) {
@@ -244,18 +230,33 @@
         '</svg>';
 
     /* ── Render Chat Widget ──────────────────────────────────────────── */
+    var SALO_AVATAR_SVG = [
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="34" height="34"',
+        '  style="flex-shrink:0;border-radius:50%;border:2px solid rgba(255,255,255,0.4)">',
+        '  <circle cx="22" cy="22" r="22" fill="#1a237e"/>',
+        '  <circle cx="22" cy="17" r="8.5" fill="#FDBCB4"/>',
+        '  <path d="M13,16 Q13,6 22,6 Q31,6 31,16 Q29,10 22,10 Q15,10 13,16Z" fill="#212121"/>',
+        '  <ellipse cx="13.5" cy="17" rx="1.5" ry="2" fill="#F0A090"/>',
+        '  <ellipse cx="30.5" cy="17" rx="1.5" ry="2" fill="#F0A090"/>',
+        '  <rect x="19" y="24" width="6" height="4" fill="#FDBCB4"/>',
+        '  <path d="M2,44 Q2,32 12,29 L18,27 L22,31 L26,27 L32,29 Q42,32 42,44Z" fill="#1565C0"/>',
+        '  <path d="M18,27 L22,32 L26,27 L26,30.5 L22,34.5 L18,30.5Z" fill="white"/>',
+        '  <polygon points="22,28.5 21,33 22,36 23,33" fill="#c62828"/>',
+        '  <circle cx="19.5" cy="16" r="1.2" fill="#333"/>',
+        '  <circle cx="24.5" cy="16" r="1.2" fill="#333"/>',
+        '  <path d="M19.5,21 Q22,23 24.5,21" stroke="#d2856a" stroke-width="1" fill="none" stroke-linecap="round"/>',
+        '</svg>'
+    ].join('');
+
     function createWidget() {
         var html = [
-            '<div id="kazi-chat-btn" role="button" aria-label="Open chat assistant" tabindex="0">',
-            '  <span class="kazi-btn-icon">' + SALO_AVATAR + '</span>',
+            '<div id="kazi-chat-btn" role="button" aria-label="Open Salo chat assistant" tabindex="0">',
+            '  <span class="kazi-btn-icon">' + SALO_AVATAR_SVG + '</span>',
             '  <span class="kazi-btn-label">Chat with Salo</span>',
             '</div>',
             '<div id="kazi-chat-box" role="dialog" aria-label="Salo chat assistant" aria-hidden="true">',
             '  <div id="kazi-chat-header">',
-            '    <span class="salo-header-identity">',
-            '      <span class="salo-header-avatar">' + SALO_AVATAR + '</span>',
-            '      <span class="salo-header-info"><strong>Salo</strong><span class="salo-status">● Online</span></span>',
-            '    </span>',
+            '    <span>' + SALO_AVATAR_SVG + ' Salo — Your Salary Guide</span>',
             '    <button id="kazi-chat-close" aria-label="Close chat">&#10005;</button>',
             '  </div>',
             '  <div id="kazi-chat-messages" aria-live="polite" aria-atomic="false"></div>',

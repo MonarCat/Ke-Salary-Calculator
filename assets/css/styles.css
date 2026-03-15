@@ -2399,9 +2399,9 @@ body.dark-mode .bottom-tab-bar a:hover {
 }
 
 .kazi-btn-icon {
+    line-height: 1;
     display: flex;
     align-items: center;
-    line-height: 1;
 }
 
 /* Salo avatar SVG — button size */
@@ -2449,7 +2449,7 @@ body.dark-mode .bottom-tab-bar a:hover {
     justify-content: space-between;
     background: linear-gradient(135deg, #006600 0%, #009900 100%);
     color: #fff;
-    padding: 12px 16px;
+    padding: 10px 14px;
     font-size: 0.92em;
     font-weight: 700;
 }
