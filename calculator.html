@@ -523,7 +523,16 @@
                         <h3>Where Your Money Goes</h3>
                         <canvas id="deductionsChart" width="300" height="300"></canvas>
                     </div>
+
+                    <!-- Share result bar (populated by share-result.js) -->
+                    <div id="ke-share-result" style="display:none;"></div>
+
+                    <!-- Financial tools cards (populated by financial-tools.js) -->
+                    <div id="ke-financial-tools" style="display:none;"></div>
                 </div>
+
+                <!-- Monetag / AdSense ad slot – hidden automatically for premium users -->
+                <div id="ke-ad-top"></div>
 
                 <!-- AdSense In-Content Ad -->
                 <div id="adsense-in-content" class="adsense-container"></div>
@@ -1168,6 +1177,15 @@
                 <div id="adsense-calc-bottom-2" class="adsense-container"></div>
             </div>
 
+            <!-- Monetag mid ad slot – hidden automatically for premium users -->
+            <div id="ke-ad-mid"></div>
+
+            <!-- Newsletter subscription block -->
+            <div data-ke-newsletter="calculator"></div>
+
+            <!-- Monetag bottom ad slot – hidden automatically for premium users -->
+            <div id="ke-ad-bottom"></div>
+
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
                 <p style="margin-bottom: 10px;">
                     <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
@@ -1189,6 +1207,8 @@
     <script src="assets/js/auth.js?v=2.0"></script>
     <script src="assets/js/script.js?v=2.0"></script>
     <script src="assets/js/adsense-config.js?v=2.0"></script>
+    <!-- Premium, sharing, newsletter & financial-tools components -->
+    <script src="src/components/calculator-enhancements.js" defer></script>
     <script>
         // Dark mode
         (function() {

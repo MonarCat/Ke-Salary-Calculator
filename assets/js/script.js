@@ -263,6 +263,17 @@ function calculateSalary() {
 
     // Share / save link
     generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pension, insurance, childCare, commuter);
+
+    // Notify premium/share/financial-tools components of the new calculation
+    window.dispatchEvent(new CustomEvent('salaryCalculated', { detail: {
+        grossPay: totalIncome,
+        netPay,
+        paye,
+        nssf,
+        shif,
+        housingLevy,
+        totalIncome
+    } }));
 }
 
 function calculatePAYE(taxablePay, rates) {
