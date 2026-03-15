@@ -1,11 +1,8 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.mjs": { "runtime": "nodejs20.x" },
-    "api/**/*.js":  { "runtime": "nodejs20.x" }
-  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)",     "destination": "/$1" }
   ],
   "headers": [
     {
@@ -13,14 +10,6 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]
