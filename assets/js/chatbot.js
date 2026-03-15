@@ -133,11 +133,11 @@
             answer: "HR managers and employers can use our <a href='/employees.html' target='_blank'>Employees Tool</a> to calculate payroll for multiple employees at once."
         },
         {
-            tags: ['thank you', 'thanks', 'awesome', 'great', 'helpful'],
+            tags: ['thank you', 'thanks', 'awesome', 'great', 'helpful', 'nice', 'cool', 'perfect'],
             answer: "You're very welcome! 😊 Let me know if you have any other questions about salaries, taxes, or the site."
         },
         {
-            tags: ['bye', 'goodbye', 'see you', 'exit', 'close'],
+            tags: ['bye', 'goodbye', 'see you', 'exit', 'close', 'later', 'ciao', 'ttyl'],
             answer: "Goodbye! 👋 Come back anytime you need help understanding your Kenyan salary. Have a great day! 🇰🇪"
         }
     ];
@@ -195,10 +195,39 @@
             }
         }
 
-        if (bestScore > 0) return bestAnswer;
+        /* Require a meaningful match threshold */
+        if (bestScore >= MIN_SCORE_THRESHOLD) return bestAnswer;
 
         return "I'm not sure about that yet, but I'm always learning! 🤔\n\nYou can try:\n• Rephrasing your question\n• Visiting our <a href='/contact-us.html' target='_blank'>Contact page</a> for direct support\n• Browsing the <a href='/' target='_blank'>home page</a> for all tools";
     }
+
+    /* ── Salo Avatar SVG ─────────────────────────────────────────────── */
+    var SALO_AVATAR = '<svg class="salo-avatar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true">' +
+        '<circle cx="24" cy="24" r="24" fill="#1a4a2e"/>' +
+        /* Head */
+        '<circle cx="24" cy="18" r="10" fill="#d4956a"/>' +
+        /* Hair — short, dark, professional */
+        '<path d="M14 18 C14 7 34 7 34 18 C31 12 24 11 17 13Z" fill="#1a0f08"/>' +
+        /* Ears */
+        '<ellipse cx="14" cy="18" rx="2.2" ry="3" fill="#c4855a"/>' +
+        '<ellipse cx="34" cy="18" rx="2.2" ry="3" fill="#c4855a"/>' +
+        /* Eyes */
+        '<ellipse cx="20" cy="17" rx="1.5" ry="1.8" fill="#1a0f08"/>' +
+        '<ellipse cx="28" cy="17" rx="1.5" ry="1.8" fill="#1a0f08"/>' +
+        /* Eyebrows */
+        '<path d="M17.5 14 Q20 13 22.5 14" stroke="#1a0f08" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        '<path d="M25.5 14 Q28 13 30.5 14" stroke="#1a0f08" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        /* Nose */
+        '<path d="M22.5 19 Q24 21.5 25.5 19" stroke="#a06040" stroke-width="1" fill="none" stroke-linecap="round"/>' +
+        /* Smile */
+        '<path d="M20 22 Q24 25 28 22" stroke="#a06040" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+        /* Suit body */
+        '<path d="M8 48 Q8 34 24 34 Q40 34 40 48Z" fill="#1a3a5c"/>' +
+        /* White shirt/collar */
+        '<path d="M21 34 L24 39 L27 34" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>' +
+        /* Tie */
+        '<path d="M24 38 L22 44 L24 42 L26 44Z" fill="#b22222"/>' +
+        '</svg>';
 
     /* ── Render Chat Widget ──────────────────────────────────────────── */
     var SALO_AVATAR_SVG = [
@@ -350,7 +379,7 @@
         renderSuggestions();
 
         // Greeting message
-        appendMessage('bot', findAnswer('hello'));
+        appendMessage('bot', KB[0].answer);
 
         // Toggle button
         var toggleBtn = document.getElementById('kazi-chat-btn');
