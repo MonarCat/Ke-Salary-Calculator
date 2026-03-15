@@ -894,7 +894,7 @@
 
                 // Cache employer profile for payslip pre-fill
                 const address = data.physical_address || data.postal_address || data.county || '';
-                localStorage.setItem('employerProfile', JSON.stringify({
+                localStorage.setItem('employerProfile_' + user.id, JSON.stringify({
                     name: data.organization_name || '',
                     kraPin: data.organization_kra_pin || '',
                     address: address,
@@ -1174,7 +1174,7 @@
             const d = calcDeductions(gross);
 
             // Get employer profile from localStorage
-            const profile = JSON.parse(localStorage.getItem('employerProfile') || '{}');
+            const profile = JSON.parse(localStorage.getItem('employerProfile_' + currentUser.id) || '{}');
 
             // Pre-fill modal fields
             document.getElementById('ps-pay-period').value = '';
