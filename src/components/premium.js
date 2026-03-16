@@ -1,220 +1,344 @@
 /**
- * premium.js – Frontend premium status checker
+ * /assets/js/premium.js
  *
- * Checks whether the logged-in user has an active premium subscription,
- * using a 5-minute sessionStorage cache to avoid hammering Supabase.
+ * Premium status check, trial period management, and UI gate.
+ * Payment provider: Paystack (replaces PayPal)
  *
- * Public API (on window):
- *   KePremium.check()            → Promise<boolean>
- *   KePremium.gate(el, options)  → void  (attaches lock overlay to an element)
- *   KePremium.showUpgrade()      → void  (shows the full-screen upgrade modal)
+ * TRIAL PERIOD:
+ *   Organisation/Employer accounts → 30-day FREE trial from March 15 2026.
+ *   No payment required during trial. Reminder shown 3 days before expiry.
+ *
+ * PRICING (post-trial) — charged in KES via Paystack:
+ *   Monthly : KES 499  / month
+ *   Yearly  : KES 4,999 / year  (saves KES 989 vs monthly)
+ *
+ * ENV required (set via window.__PAYSTACK_PUBLIC_KEY in your HTML head):
+ *   window.__PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxx";
+ *
+ * Compatible with Vercel and Cloudflare Pages.
  */
 
-(function () {
-    'use strict';
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-    const CACHE_KEY     = 'ke_premium_status';
-    const CACHE_TTL_MS  = 5 * 60 * 1000; // 5 minutes
+const CACHE_KEY     = "sc_premium_status";
+const CACHE_TTL_MS  = 5 * 60 * 1000; // 5 minutes
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+const TRIAL_START   = new Date("2026-03-15T00:00:00Z");
+const TRIAL_DAYS    = 30;
+const TRIAL_END     = new Date(TRIAL_START.getTime() + TRIAL_DAYS * 86400 * 1000);
+const REMINDER_DAYS = 3;
 
-    function getCached() {
-        try {
-            const raw = sessionStorage.getItem(CACHE_KEY);
-            if (!raw) return null;
-            const obj = JSON.parse(raw);
-            if (Date.now() - obj.ts > CACHE_TTL_MS) {
-                sessionStorage.removeItem(CACHE_KEY);
-                return null;
-            }
-            return obj.value;
-        } catch (err) {
-            console.warn('[KePremium] sessionStorage read error:', err.message);
-            return null;
-        }
+// Pricing in KES (Paystack Kenya native currency)
+export const PRICE_MONTHLY_KES = 499;
+export const PRICE_YEARLY_KES  = 4999;
+export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; // 989
+
+export const SITE_URL           = "https://salarycalculator.co.ke";
+export const PAYSTACK_WEBHOOK   = `${SITE_URL}/api/paystack-webhook`;
+
+// Paystack plan/product codes — set these after creating plans in your
+// Paystack dashboard (https://dashboard.paystack.com/#/plans)
+// Leave empty to use one-time charge (no recurring billing for now)
+export const PLAN_CODE_MONTHLY  = ""; // e.g. "PLN_xxxxxxxxxxxx"
+export const PLAN_CODE_YEARLY   = ""; // e.g. "PLN_yyyyyyyyyyyy"
+
+// ── Trial helpers ─────────────────────────────────────────────────────────────
+
+export function getTrialStatus(accountType) {
+  const isOrgTier = ["employer", "organisation", "organization"].includes(
+    (accountType || "").toLowerCase()
+  );
+  if (!isOrgTier) {
+    return { onTrial: false, trialExpired: false, daysLeft: 0, reminderDue: false };
+  }
+  const now      = Date.now();
+  const msLeft   = TRIAL_END.getTime() - now;
+  const daysLeft = Math.max(0, Math.ceil(msLeft / 86400000));
+  const onTrial      = now >= TRIAL_START.getTime() && now < TRIAL_END.getTime();
+  const trialExpired = now >= TRIAL_END.getTime();
+  const reminderDue  = onTrial && daysLeft <= REMINDER_DAYS;
+  return { onTrial, trialExpired, daysLeft, reminderDue };
+}
+
+// ── Premium check ─────────────────────────────────────────────────────────────
+
+export async function checkPremium(supabase) {
+  const cached = sessionStorage.getItem(CACHE_KEY);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.cachedAt < CACHE_TTL_MS) return parsed.data;
+    } catch (_) {}
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return _build({ isLoggedIn: false });
+
+  const { data: profile, error } = await supabase
+    .from("user_profiles")
+    .select("premium, premium_expires_at, account_type, trial_activated_at")
+    .eq("id", user.id)
+    .single();
+
+  if (error || !profile) return _build({ isLoggedIn: true });
+
+  const now          = new Date();
+  const paidExpiry   = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+  const isPaid       = profile.premium && (!paidExpiry || paidExpiry > now);
+  const trial        = getTrialStatus(profile.account_type);
+  const hasAccess    = isPaid || trial.onTrial;
+
+  const result = _build({
+    isLoggedIn:   true,
+    isPremium:    hasAccess,
+    isTrial:      trial.onTrial && !isPaid,
+    trialExpired: trial.trialExpired && !isPaid,
+    daysLeft:     trial.daysLeft,
+    reminderDue:  trial.reminderDue && !isPaid,
+    expiresAt:    isPaid ? paidExpiry : (trial.onTrial ? TRIAL_END : null),
+    accountType:  profile.account_type || null,
+    email:        user.email || null,
+  });
+
+  sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
+  return result;
+}
+
+function _build(o = {}) {
+  return {
+    isLoggedIn:   false,
+    isPremium:    false,
+    isTrial:      false,
+    trialExpired: false,
+    daysLeft:     0,
+    reminderDue:  false,
+    expiresAt:    null,
+    accountType:  null,
+    email:        null,
+    ...o,
+  };
+}
+
+export function invalidatePremiumCache() {
+  sessionStorage.removeItem(CACHE_KEY);
+}
+
+// ── Paystack payment launcher ─────────────────────────────────────────────────
+
+/**
+ * Load the Paystack inline script if not already present, then resolve.
+ */
+function loadPaystack() {
+  return new Promise((resolve, reject) => {
+    if (window.PaystackPop) return resolve();
+    const s = document.createElement("script");
+    s.src = "https://js.paystack.co/v1/inline.js";
+    s.onload  = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+/**
+ * Open the Paystack payment popup.
+ *
+ * @param {{ plan: 'monthly'|'yearly', email: string, onSuccess: Function, onClose?: Function }} opts
+ */
+export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, onClose }) {
+  await loadPaystack();
+
+  const publicKey = window.__PAYSTACK_PUBLIC_KEY;
+  if (!publicKey) {
+    console.error("[Paystack] window.__PAYSTACK_PUBLIC_KEY is not set.");
+    alert("Payment configuration missing. Please contact support.");
+    return;
+  }
+
+  const isYearly = plan === "yearly";
+  const amount   = isYearly ? PRICE_YEARLY_KES  : PRICE_MONTHLY_KES;
+  const planCode = isYearly ? PLAN_CODE_YEARLY   : PLAN_CODE_MONTHLY;
+  const label    = isYearly ? "1-Year Premium"   : "Monthly Premium";
+
+  // Generate a unique reference
+  const ref = `SC-${plan.toUpperCase()}-${Date.now()}`;
+
+  const config = {
+    key:      publicKey,
+    email:    email || "",
+    amount:   amount * 100,        // Paystack amounts are in kobo/cents × 100
+    currency: "KES",
+    ref,
+    label:    `SalaryCalculator.co.ke — ${label}`,
+    metadata: {
+      custom_fields: [
+        { display_name: "Plan",    variable_name: "plan",    value: plan },
+        { display_name: "Product", variable_name: "product", value: "salarycalculator_premium" },
+      ],
+    },
+    callback: function (response) {
+      // response.reference is the transaction reference to verify server-side
+      onSuccess && onSuccess(response);
+      // Optionally verify immediately
+      _verifyPaystackTransaction(response.reference);
+    },
+    onClose: function () {
+      onClose && onClose();
+    },
+  };
+
+  // If you've set up recurring plans in Paystack dashboard, add plan code:
+  if (planCode) config.plan = planCode;
+
+  const handler = window.PaystackPop.setup(config);
+  handler.openIframe();
+}
+
+/**
+ * Optionally call our backend to verify & activate premium after payment.
+ * The webhook handles this automatically, but this provides instant feedback.
+ */
+async function _verifyPaystackTransaction(reference) {
+  try {
+    const res = await fetch(`/api/paystack-verify?ref=${encodeURIComponent(reference)}`, {
+      method: "POST",
+    });
+    if (res.ok) {
+      invalidatePremiumCache();
+      // Redirect to thank-you page
+      window.location.href = "/premium-thank-you";
     }
+  } catch (err) {
+    // Webhook will activate premium in the background — redirect anyway
+    window.location.href = "/premium-thank-you";
+  }
+}
 
-    function setCache(value) {
-        try {
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify({ value, ts: Date.now() }));
-        } catch (err) {
-            console.warn('[KePremium] sessionStorage write error:', err.message);
+// ── Premium gate UI ───────────────────────────────────────────────────────────
+
+export function showPremiumGate(elementId, message = "This is a Premium feature", context = {}) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.style.position = "relative";
+  el.style.overflow = "hidden";
+  if (el.querySelector(".sc-premium-gate")) return;
+
+  const isExpired = context.trialExpired;
+
+  const gate = document.createElement("div");
+  gate.className = "sc-premium-gate";
+  gate.setAttribute("aria-label", "Premium feature locked");
+  gate.innerHTML = `
+    <div class="sc-premium-gate__inner">
+      <div class="sc-premium-gate__icon">${isExpired ? "⏰" : "🔒"}</div>
+      <h3 class="sc-premium-gate__title">
+        ${isExpired ? "Your Free Trial Has Ended" : message}
+      </h3>
+      <p class="sc-premium-gate__body">
+        ${isExpired
+          ? "Your 30-day Organisation trial expired. Upgrade to keep full access."
+          : `Unlock all premium features from just <strong>KES ${PRICE_MONTHLY_KES}/month</strong>.`
         }
-    }
+      </p>
 
-    // ── Core status check ─────────────────────────────────────────────────────
+      <div class="sc-premium-gate__pricing">
+        <div class="sc-price-card sc-price-card--monthly">
+          <span class="sc-price-card__label">Monthly</span>
+          <span class="sc-price-card__amount">KES ${PRICE_MONTHLY_KES}</span>
+          <span class="sc-price-card__period">/ month</span>
+        </div>
+        <div class="sc-price-card sc-price-card--yearly sc-price-card--best">
+          <span class="sc-price-card__badge">Best Value</span>
+          <span class="sc-price-card__label">Yearly</span>
+          <span class="sc-price-card__amount">KES ${PRICE_YEARLY_KES}</span>
+          <span class="sc-price-card__period">/ year</span>
+          <span class="sc-price-card__saving">Save KES ${PRICE_SAVINGS_KES}</span>
+        </div>
+      </div>
 
-    async function check() {
-        const cached = getCached();
-        if (cached !== null) return cached;
+      <div class="sc-premium-gate__actions">
+        <button class="sc-btn sc-btn--primary" data-paystack-plan="yearly" data-gate-id="${elementId}">
+          💳 Upgrade — KES ${PRICE_YEARLY_KES}/year
+        </button>
+        <button class="sc-btn sc-btn--outline" data-paystack-plan="monthly" data-gate-id="${elementId}">
+          Pay Monthly — KES ${PRICE_MONTHLY_KES}/mo
+        </button>
+        <a href="/contact-us" class="sc-btn sc-btn--ghost">
+          Need help? Contact us →
+        </a>
+      </div>
 
-        // Must have Supabase configured
-        if (typeof supabaseClient === 'undefined' || !supabaseClient ||
-            typeof isSupabaseConfigured === 'function' && !isSupabaseConfigured()) {
-            setCache(false);
-            return false;
-        }
+      <p class="sc-premium-gate__includes">
+        ✅ M-Pesa &amp; Card &nbsp;·&nbsp;
+        ✅ PDF payslip &nbsp;·&nbsp;
+        ✅ Bulk export &nbsp;·&nbsp;
+        ✅ Ad-free &nbsp;·&nbsp;
+        ✅ Saved history
+      </p>
+    </div>
+  `;
 
-        try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                setCache(false);
-                return false;
-            }
+  const blur = document.createElement("div");
+  blur.className = "sc-premium-gate__blur";
+  el.appendChild(blur);
+  el.appendChild(gate);
 
-            const { data, error } = await supabaseClient
-                .rpc('check_premium_active', { p_user_id: session.user.id });
+  // Wire up Paystack buttons inside this gate
+  gate.querySelectorAll("[data-paystack-plan]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      // Get user email from Supabase session (stored on window by calculator-enhancements.js)
+      const email = window.__SC_USER_EMAIL || prompt("Enter your email to continue:");
+      if (!email) return;
+      openPaystackCheckout({
+        plan:      btn.dataset.paystackPlan,
+        email,
+        onSuccess: () => { hidePremiumGate(elementId); invalidatePremiumCache(); },
+      });
+    });
+  });
+}
 
-            if (error) {
-                console.warn('[KePremium] check_premium_active error:', error.message);
-                setCache(false);
-                return false;
-            }
+export function hidePremiumGate(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.querySelector(".sc-premium-gate")?.remove();
+  el.querySelector(".sc-premium-gate__blur")?.remove();
+  el.style.overflow = "";
+}
 
-            const isPremium = !!data;
-            setCache(isPremium);
-            return isPremium;
-        } catch (err) {
-            console.warn('[KePremium] check failed:', err.message);
-            setCache(false);
-            return false;
-        }
-    }
+export async function gateFeature(supabase, elementId, message) {
+  const status = await checkPremium(supabase);
+  if (status.isPremium) { hidePremiumGate(elementId); return true; }
 
-    // ── Lock-screen overlay ───────────────────────────────────────────────────
+  // Expose email for Paystack popup
+  if (status.email) window.__SC_USER_EMAIL = status.email;
 
-    /**
-     * gate(element, options)
-     * Wraps `element` in a position:relative container and injects a lock
-     * overlay. If the user is premium the overlay is never shown.
-     *
-     * options:
-     *   featureName  {string}  – human-readable name of the locked feature
-     *   onUnlocked   {fn}      – optional callback when premium is confirmed
-     */
-    async function gate(element, options = {}) {
-        if (!element) return;
+  if (!status.isLoggedIn) {
+    _showSignInNudge(elementId);
+    return false;
+  }
 
-        const isPremium = await check();
-        if (isPremium) {
-            if (typeof options.onUnlocked === 'function') options.onUnlocked();
-            return;
-        }
+  showPremiumGate(elementId, message, { trialExpired: status.trialExpired });
+  return false;
+}
 
-        // Prevent double-gating
-        if (element.dataset.keGated) return;
-        element.dataset.keGated = '1';
-
-        const featureName = options.featureName || 'Premium Feature';
-
-        // Make the parent container relative so the overlay covers it
-        const wrapper = element.parentElement;
-        if (wrapper) {
-            const pos = getComputedStyle(wrapper).position;
-            if (pos === 'static') wrapper.style.position = 'relative';
-        }
-
-        const overlay = document.createElement('div');
-        overlay.className = 'ke-premium-gate';
-        overlay.innerHTML = `
-            <div class="ke-premium-gate__inner">
-                <span class="ke-premium-gate__lock">🔒</span>
-                <h3 class="ke-premium-gate__title">${featureName}</h3>
-                <p class="ke-premium-gate__desc">Unlock this feature with a Premium subscription.</p>
-                <button class="ke-premium-gate__btn" onclick="KePremium.showUpgrade()">
-                    Upgrade to Premium
-                </button>
-                <p class="ke-premium-gate__mpesa">
-                    Paid via M-Pesa?
-                    <a href="mailto:kesalarycalculator@gmail.com?subject=Premium Activation">Contact us</a>
-                </p>
-            </div>`;
-
-        // Insert the overlay as a sibling immediately after the element
-        element.style.filter   = 'blur(4px)';
-        element.style.pointerEvents = 'none';
-        element.style.userSelect    = 'none';
-
-        element.insertAdjacentElement('afterend', overlay);
-    }
-
-    // ── Upgrade modal ─────────────────────────────────────────────────────────
-
-    function showUpgrade() {
-        // Re-use if already in the DOM
-        let modal = document.getElementById('ke-premium-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'ke-premium-modal';
-            modal.className = 'ke-premium-modal';
-            modal.setAttribute('role', 'dialog');
-            modal.setAttribute('aria-modal', 'true');
-            modal.setAttribute('aria-labelledby', 'ke-premium-modal-title');
-            modal.innerHTML = `
-                <div class="ke-premium-modal__backdrop" onclick="KePremium.closeUpgrade()"></div>
-                <div class="ke-premium-modal__box">
-                    <button class="ke-premium-modal__close" onclick="KePremium.closeUpgrade()" aria-label="Close">✕</button>
-                    <div class="ke-premium-modal__icon">⭐</div>
-                    <h2 class="ke-premium-modal__title" id="ke-premium-modal-title">Go Premium</h2>
-                    <p class="ke-premium-modal__subtitle">
-                        Remove ads, unlock advanced tools, and support the project.
-                    </p>
-                    <ul class="ke-premium-modal__features">
-                        <li>✅ No ads – clean, distraction-free experience</li>
-                        <li>✅ Advanced salary comparison tools</li>
-                        <li>✅ Priority support &amp; early access to new features</li>
-                    </ul>
-                    <div class="ke-premium-modal__paypal">
-                        <!-- PayPal Subscribe Button – replace hosted_button_id with your Premium button ID -->
-                        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                            <input type="hidden" name="cmd"      value="_s-xclick" />
-                            <input type="hidden" name="hosted_button_id" value="PREMIUM_BUTTON_ID" />
-                            <input type="hidden" name="custom"   id="ke-paypal-custom-field" value="" />
-                            <input type="image"
-                                   src="https://www.paypalobjects.com/en_US/i/btn/btn_subscribeCC_LG.gif"
-                                   border="0"
-                                   name="submit"
-                                   alt="Subscribe via PayPal" />
-                        </form>
-                    </div>
-                    <p class="ke-premium-modal__mpesa">
-                        Prefer M-Pesa?
-                        <a href="mailto:kesalarycalculator@gmail.com?subject=Premium Activation – M-Pesa">
-                            Email us after paying
-                        </a>
-                        and we'll activate your account within 24 hours.
-                    </p>
-                </div>`;
-            document.body.appendChild(modal);
-        }
-
-        // Pre-fill custom field with user id for webhook matching
-        _prefillPayPalCustom();
-
-        modal.classList.add('ke-premium-modal--open');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeUpgrade() {
-        const modal = document.getElementById('ke-premium-modal');
-        if (modal) modal.classList.remove('ke-premium-modal--open');
-        document.body.style.overflow = '';
-    }
-
-    async function _prefillPayPalCustom() {
-        try {
-            if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return;
-            const el = document.getElementById('ke-paypal-custom-field');
-            if (el) el.value = session.user.id;
-        } catch (err) {
-            console.warn('[KePremium] PayPal custom field pre-fill failed:', err.message);
-        }
-    }
-
-    // ── Export ────────────────────────────────────────────────────────────────
-
-    window.KePremium = { check, gate, showUpgrade, closeUpgrade };
-
-})();
+function _showSignInNudge(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el || el.querySelector(".sc-signin-gate")) return;
+  const nudge = document.createElement("div");
+  nudge.className = "sc-signin-gate";
+  nudge.innerHTML = `
+    <div class="sc-premium-gate__inner" style="background:#f0fdf4;border:1px solid #86efac">
+      <div class="sc-premium-gate__icon">👋</div>
+      <h3 class="sc-premium-gate__title">Create a free account to continue</h3>
+      <p class="sc-premium-gate__body">
+        Sign up free in 30 seconds.<br>
+        Organisation accounts get a free 30-day trial — no card needed.
+      </p>
+      <a href="/auth" class="sc-btn sc-btn--primary" style="text-decoration:none">
+        Sign Up Free →
+      </a>
+    </div>
+  `;
+  el.style.position = "relative";
+  el.appendChild(nudge);
+}
