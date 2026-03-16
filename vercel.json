@@ -1,22 +1,20 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
   "buildCommand": null,
   "outputDirectory": ".",
-  "routes": [
-    { "src": "/api/paystack-webhook", "dest": "/api/paystack-webhook.js" },
-    { "src": "/api/paystack-verify",  "dest": "/api/paystack-verify.js"  },
-    { "src": "/calculator",           "dest": "/calculator.html"         },
-    { "src": "/payslip",              "dest": "/payslip.html"            },
-    { "src": "/blog",                 "dest": "/blog.html"               },
-    { "src": "/salary-news",          "dest": "/salary-news.html"        },
-    { "src": "/salary-index",         "dest": "/salary-index.html"       },
-    { "src": "/auth",                 "dest": "/auth.html"               },
-    { "src": "/contact-us",           "dest": "/contact-us.html"         },
-    { "src": "/premium-thank-you",    "dest": "/premium-thank-you.html"  },
-    { "src": "/salary/(.+)",          "dest": "/salary/$1.html"          },
-    { "src": "/blog/(.+)",            "dest": "/blog/$1.html"            },
-    { "src": "/(.*)",                 "dest": "/index.html"              }
+  "rewrites": [
+    { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
+    { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
+    { "source": "/calculator",           "destination": "/calculator.html"         },
+    { "source": "/payslip",              "destination": "/payslip.html"            },
+    { "source": "/blog",                 "destination": "/blog.html"               },
+    { "source": "/salary-news",          "destination": "/salary-news.html"        },
+    { "source": "/salary-index",         "destination": "/salary-index.html"       },
+    { "source": "/auth",                 "destination": "/auth.html"               },
+    { "source": "/contact-us",           "destination": "/contact-us.html"         },
+    { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"  },
+    { "source": "/salary/:path+",        "destination": "/salary/:path.html"       },
+    { "source": "/blog/:path+",          "destination": "/blog/:path.html"         }
   ],
   "headers": [
     {
@@ -36,6 +34,5 @@
       "source": "/api/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
-  ],
-  
+  ]
 }
