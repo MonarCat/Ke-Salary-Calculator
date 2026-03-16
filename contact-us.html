@@ -2,15 +2,354 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us</title>
+    <title>Contact Us - Kenya Salary Calculator</title>
+    <meta name="description" content="Get in touch with Kenya Salary Calculator. We're here to help with your salary calculation and payroll needs.">
+    <meta name="keywords" content="contact Kenya Salary Calculator, Kenya salary calculator support, salary calculator Kenya contact, get in touch salary calculator Kenya, Kenya payroll help, salary calculator feedback Kenya">
+
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.0">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .contact-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .contact-hero {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .contact-hero h1 {
+            color: white;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+        }
+        .contact-hero p {
+            font-size: 1.2em;
+            color: #f0f0f0;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .contact-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+        .contact-card i {
+            font-size: 3em;
+            color: #006600;
+            margin-bottom: 15px;
+        }
+        .contact-card h3 {
+            color: #006600;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .contact-card p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .contact-card a {
+            color: #006600;
+            text-decoration: none;
+            font-weight: bold;
+            word-break: break-all;
+        }
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+        .faq-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        .faq-section h2 {
+            color: #006600;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        .faq-question {
+            color: #006600;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .faq-answer {
+            color: #555;
+            line-height: 1.6;
+        }
+        .response-time {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .response-time i {
+            font-size: 2em;
+            color: #006600;
+            margin-bottom: 10px;
+        }
+        .response-time h3 {
+            color: #006600;
+            margin-bottom: 10px;
+        }
+        .response-time p {
+            color: #666;
+        }
+        .support-hours {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+        .support-hours h3 {
+            color: #006600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .support-hours p {
+            color: #555;
+            line-height: 1.8;
+            text-align: center;
+        }
+        /* Contact Form */
+        .contact-form-section {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+        }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 </head>
 <body>
-    <h1>Contact Us</h1>
-    <form>
-        <div id="sc-contact-form-container"></div>
-        <!-- Other form fields could be here -->
-    </form>
+    <div class="overlay">
+        <div class="container">
+            <!-- Logo Container -->
+            <div class="logo-container">
+                <a href="/">
+                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
+                </a>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                
+                <!-- Calculators Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                    </div>
+                </div>
+                
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/contact-us.html" class="active">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/external-links.html">External Links</a>
+                
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <!-- Hero Section -->
+            <div class="contact-hero">
+                <h1>Contact Us</h1>
+                <p>We're here to help! Reach out to us with any questions or feedback</p>
+            </div>
+
+            <div class="contact-content">
+                <!-- Contact Methods -->
+                <div class="contact-grid">
+                    <div class="contact-card">
+                        <i class="fas fa-comment-dots"></i>
+                        <h3>Message Us</h3>
+                        <p>Fill in the form below and we'll get back to you within 24–48 hours</p>
+                        <p><a href="#contact-form">Go to contact form ↓</a></p>
+                    </div>
+                </div>
+
+                <!-- Message Us / Feedback Form -->
+                <div class="contact-form-section" id="contact-form">
+                    <div id="sc-contact-form-container"></div>
+                </div>
+
+                <!-- Support Hours -->
+                <div class="support-hours">
+                    <h3><i class="far fa-clock"></i> Support Hours</h3>
+                    <p><strong>Monday - Friday:</strong> 8:00 AM - 6:00 PM EAT<br>
+                    <strong>Saturday:</strong> 9:00 AM - 1:00 PM EAT<br>
+                    <strong>Sunday & Public Holidays:</strong> Closed</p>
+                    <p style="margin-top: 15px; font-size: 0.95em;">Outside business hours, use our contact form and we'll respond as soon as we're back online.</p>
+                </div>
+
+                <!-- Response Time -->
+                <div class="response-time">
+                    <i class="fas fa-clock"></i>
+                    <h3>Response Time</h3>
+                    <p>We typically respond to all inquiries within 24-48 hours during business days. For technical issues, we aim to respond even faster.</p>
+                </div>
+
+                <!-- FAQ Section -->
+                <div class="faq-section">
+                    <h2>Frequently Asked Questions</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> How accurate are the salary calculations?
+                        </div>
+                        <div class="faq-answer">
+                            Our calculations are based on current Kenyan tax laws and KRA regulations. We regularly update our system to reflect any changes. However, we recommend verifying calculations with a qualified accountant for official purposes.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> Is the service really free?
+                        </div>
+                        <div class="faq-answer">
+                            Yes! All our core features including salary calculations, payslip generation, and employee management are completely free. There are no hidden charges or premium tiers.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> How do I generate payslips for multiple employees?
+                        </div>
+                        <div class="faq-answer">
+                            Create a free account, add your employees to the system, and use our bulk payslip generation feature. You can generate and email payslips to all employees with just a few clicks.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> Is my data secure?
+                        </div>
+                        <div class="faq-answer">
+                            Absolutely. We use bank-level encryption to protect your data. All information is securely stored and we never share your personal or business data with third parties. Read our <a href="/privacy-policy.html" style="color: #006600;">Privacy Policy</a> for more details.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> Can I customize the payslips with my company logo?
+                        </div>
+                        <div class="faq-answer">
+                            Yes! You can customize payslips with your company name, logo, and branding. This feature is available to all registered users at no extra cost.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> What if I find an error in the calculations?
+                        </div>
+                        <div class="faq-answer">
+                            Please contact us immediately if you notice any discrepancies. We take accuracy very seriously and will investigate and correct any issues promptly. Your feedback helps us improve the service for everyone.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <i class="fas fa-question-circle"></i> Do you offer training or support for employers?
+                        </div>
+                        <div class="faq-answer">
+                            Yes! We provide online support to help you get started. Use our contact form above. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">About Us</a> and <a href="/blog.html" style="color: #006600;">Blog</a> pages to help you make the most of our platform.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What to Include -->
+                <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 30px 0;">
+                    <h3 style="color: #006600; margin-bottom: 20px; text-align: center;">When Contacting Us, Please Include:</h3>
+                    <ul style="color: #555; line-height: 1.8;">
+                        <li><i class="fas fa-check" style="color: #006600; margin-right: 10px;"></i> Your name and contact information</li>
+                        <li><i class="fas fa-check" style="color: #006600; margin-right: 10px;"></i> A clear description of your question or issue</li>
+                        <li><i class="fas fa-check" style="color: #006600; margin-right: 10px;"></i> Screenshots if reporting a technical problem</li>
+                        <li><i class="fas fa-check" style="color: #006600; margin-right: 10px;"></i> Your account email if you're a registered user</li>
+                        <li><i class="fas fa-check" style="color: #006600; margin-right: 10px;"></i> Any relevant details that will help us assist you better</li>
+                    </ul>
+                </div>
+
+                <!-- Additional Resources -->
+                <div style="text-align: center; margin: 40px 0;">
+                    <h3 style="color: #006600; margin-bottom: 20px;">Before Contacting Us</h3>
+                    <p style="color: #555; margin-bottom: 20px;">You might find the answer you're looking for in these resources:</p>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <a href="/about-us.html" style="padding: 12px 25px; background: #006600; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
+                            <i class="fas fa-info-circle"></i> About Us
+                        </a>
+                        <a href="/calculator.html" style="padding: 12px 25px; background: #006600; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">
+                            <i class="fas fa-calculator"></i> Try Calculator
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
+                </p>
+                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <!-- Mailto-based contact form -->
     <script type="module" src="/assets/js/contact-mailform.js"></script>
+    <!-- Kazi Chatbot -->
+    <script src="assets/js/chatbot.js" defer></script>
 </body>
 </html>
