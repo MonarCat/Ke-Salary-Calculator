@@ -1,24 +1,45 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.salarycalculator.co.ke" }],
-      "destination": "https://salarycalculator.co.ke/:path*",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "routes": [
+    { "src": "/api/paystack-webhook", "dest": "/api/paystack-webhook.js" },
+    { "src": "/api/paystack-verify",  "dest": "/api/paystack-verify.js"  },
+    { "src": "/calculator",           "dest": "/calculator.html"         },
+    { "src": "/payslip",              "dest": "/payslip.html"            },
+    { "src": "/blog",                 "dest": "/blog.html"               },
+    { "src": "/salary-news",          "dest": "/salary-news.html"        },
+    { "src": "/salary-index",         "dest": "/salary-index.html"       },
+    { "src": "/auth",                 "dest": "/auth.html"               },
+    { "src": "/contact-us",           "dest": "/contact-us.html"         },
+    { "src": "/premium-thank-you",    "dest": "/premium-thank-you.html"  },
+    { "src": "/salary/(.+)",          "dest": "/salary/$1.html"          },
+    { "src": "/blog/(.+)",            "dest": "/blog/$1.html"            },
+    { "src": "/(.*)",                 "dest": "/index.html"              }
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/(.*)\\.html",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" }
+        { "key": "Cache-Control",          "value": "public, max-age=0, must-revalidate"   },
+        { "key": "X-Content-Type-Options", "value": "nosniff"                              },
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN"                           },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin"      }
       ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
-  ]
+  ],
+  "env": {
+    "SUPABASE_URL":              "@supabase_url",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "PAYSTACK_SECRET_KEY":       "@paystack_secret_key"
+  }
 }
