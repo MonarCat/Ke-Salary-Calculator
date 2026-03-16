@@ -2675,3 +2675,13 @@ body.dark-mode .bottom-tab-bar a:hover {
         border-radius: 50%;
     }
 }
+
+.announcement-banner {
+    text-align: center;
+    margin: 16px 0;
+}
+.announcement-banner img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}

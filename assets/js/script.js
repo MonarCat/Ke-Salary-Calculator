@@ -274,6 +274,10 @@ function calculateSalary() {
         housingLevy,
         totalIncome
     } }));
+
+    document.dispatchEvent(new CustomEvent('salaryCalculated', {
+        detail: { gross: totalIncome, net: netPay, paye, nssf, shif, housing: housingLevy }
+    }));
 }
 
 function calculatePAYE(taxablePay, rates) {
