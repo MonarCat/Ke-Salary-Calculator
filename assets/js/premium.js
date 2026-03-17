@@ -305,8 +305,8 @@ export function showPremiumGate(elementId, message = "This is a Premium feature"
  * Exported so that other modules (e.g. trial-banner.js) can reuse it rather
  * than duplicating the implementation.
  *
- * @param {string}   plan    — 'monthly' | 'yearly'
- * @param {Function} onEmail — called with the validated email string
+ * @param {string}   plan         — 'monthly' | 'yearly'
+ * @param {Function} onEmail      — called with the validated email string
  */
 export function showEmailCapture(plan, onEmail) {
   const existing = document.getElementById("sc-email-capture-modal");
@@ -393,6 +393,7 @@ export function hidePremiumGate(elementId) {
   el.querySelector(".sc-premium-gate__blur")?.remove();
   el.style.overflow = "";
 }
+
 
 export async function gateFeature(supabase, elementId, message) {
   const status = await checkPremium(supabase);

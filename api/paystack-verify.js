@@ -77,13 +77,15 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const { data: profile } = await supabase
-    .from("user_profiles")
+  // Look up via auth.users — user_profiles has no email column.
+  const { data: authRow } = await supabase
+    .schema("auth")
+    .from("users")
     .select("id")
     .eq("email", payerEmail)
-    .single();
+    .maybeSingle();
 
-  if (!profile) {
+  if (!authRow) {
     // User not registered with this email — webhook will handle it when they sign up
     return res.status(200).json({ success: true, message: "Activation pending sign-up" });
   }
@@ -106,7 +108,7 @@ export default async function handler(req, res) {
         currency:    txData.currency,
         status:      txData.status,
         plan,
-        user_id:     profile.id,
+        user_id:     authRow.id,
       },
       { onConflict: "reference", ignoreDuplicates: true }
     );
@@ -119,13 +121,12 @@ export default async function handler(req, res) {
       premium_expires_at: expiresAt.toISOString(),
       premium_source:     "paystack",
     })
-    .eq("id", profile.id);
+    .eq("id", authRow.id);
 
   if (error) {
     console.error("[Paystack Verify] DB update error:", error);
     return res.status(500).json({ success: false, message: "DB error" });
   }
 
-  console.log(`[Paystack Verify] ✅ Premium activated — ${payerEmail} (${plan})`);
   return res.status(200).json({ success: true, message: "Premium activated" });
 }

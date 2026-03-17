@@ -14,6 +14,7 @@
  */
 
 import { checkPremium, openPaystackCheckout, invalidatePremiumCache,
+         showEmailCapture,
          PRICE_MONTHLY_KES, PRICE_YEARLY_KES } from "./premium.js";
 
 const DISMISS_KEY = "sc_trial_banner_dismissed";
@@ -171,8 +172,20 @@ function renderBanner({ daysLeft, trialExpired, email }) {
   // ── Button handlers ──────────────────────────────────────────────────────
 
   function launchPaystack(plan) {
-    const userEmail = email || prompt("Enter your email address to continue:");
-    if (!userEmail) return;
+    const userEmail = email || window.__SC_USER_EMAIL;
+    if (!userEmail) {
+      showEmailCapture(plan, (captured) => {
+        openPaystackCheckout({
+          plan,
+          email: captured,
+          onSuccess: () => {
+            invalidatePremiumCache();
+            window.location.href = "/premium-thank-you";
+          },
+        });
+      });
+      return;
+    }
     openPaystackCheckout({
       plan,
       email: userEmail,

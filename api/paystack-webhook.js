@@ -33,6 +33,9 @@
 import crypto     from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
+// Disable Vercel body parser — we MUST read the raw stream for HMAC verification.
+export const config = { api: { bodyParser: false } };
+
 // ── Plan / product identifiers ────────────────────────────────────────────────
 // These match the metadata.custom_fields sent from premium.js openPaystackCheckout()
 const PLAN_MONTHLY = "monthly";
@@ -79,12 +82,14 @@ export default async function handler(req, res) {
     return res.status(405).send("Method Not Allowed");
   }
 
-  // ── 1. Read raw body for signature verification ───────────────────────────
-  // Vercel may pre-parse body; we need raw string for HMAC verification.
-  const rawBody =
-    typeof req.body === "string"
-      ? req.body
-      : JSON.stringify(req.body);
+  // ── 1. Read raw body stream for HMAC signature verification ──────────────
+  // bodyParser is disabled above — read the raw stream directly.
+  const rawBody = await new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data",  (chunk) => chunks.push(chunk));
+    req.on("end",   () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("error", reject);
+  });
 
   // ── 2. Verify signature ───────────────────────────────────────────────────
   const signature  = req.headers["x-paystack-signature"] || "";
@@ -136,14 +141,16 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  // ── 5. Record transaction (idempotent on reference) ───────────────────────
-  const { data: profile } = await supabase
-    .from("user_profiles")
+  // ── 5. Look up user via auth.users (service-role) then record transaction ─
+  // IMPORTANT: user_profiles has no email column; always look up via auth.users.
+  const { data: authRow } = await supabase
+    .schema("auth")
+    .from("users")
     .select("id")
     .eq("email", payerEmail)
-    .single();
+    .maybeSingle();
 
-  const userId = profile?.id || null;
+  const userId = authRow?.id || null;
 
   // Upsert to prevent double-activation on duplicate webhook delivery
   const { error: txnErr } = await supabase
@@ -168,8 +175,8 @@ export default async function handler(req, res) {
 
   // ── 6. Activate premium ───────────────────────────────────────────────────
   if (!userId) {
-    console.warn(
-      `[Paystack Webhook] No user found for ${payerEmail} — pending manual activation.`
+    console.error(
+      `[Paystack Webhook] No auth user found for ${payerEmail} — pending manual activation.`
     );
     return res.status(200).send("OK");
   }
@@ -189,10 +196,6 @@ export default async function handler(req, res) {
     console.error("[Paystack Webhook] Premium activation error:", updateErr);
     return res.status(500).send("DB error");
   }
-
-  console.log(
-    `[Paystack Webhook] ✅ Premium activated — ${payerEmail} (${plan}) until ${expiresAt.toISOString()}`
-  );
 
   return res.status(200).send("OK");
 }
@@ -224,12 +227,13 @@ export async function onRequestPost(context) {
 
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
-  const { data: profile } = await supabase
-    .from("user_profiles").select("id").eq("email", payerEmail).single();
-  if (!profile) return new Response("OK");
+  // Look up via auth.users — user_profiles has no email column
+  const { data: authRow } = await supabase
+    .schema("auth").from("users").select("id").eq("email", payerEmail).maybeSingle();
+  if (!authRow) return new Response("OK");
 
   await supabase.from("paystack_transactions").upsert(
-    { reference, payer_email: payerEmail, amount_kobo: data.amount, currency: data.currency, status: data.status, plan, user_id: profile.id },
+    { reference, payer_email: payerEmail, amount_kobo: data.amount, currency: data.currency, status: data.status, plan, user_id: authRow.id },
     { onConflict: "reference", ignoreDuplicates: true }
   );
 
@@ -238,7 +242,7 @@ export async function onRequestPost(context) {
 
   await supabase.from("user_profiles")
     .update({ premium: true, premium_expires_at: expiresAt.toISOString(), premium_source: "paystack" })
-    .eq("id", profile.id);
+    .eq("id", authRow.id);
 
   return new Response("OK");
 }
