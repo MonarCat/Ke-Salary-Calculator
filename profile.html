@@ -405,6 +405,9 @@
                     <div class="profile-section">
                         <h3><i class="fas fa-cog"></i> Account Actions</h3>
                         <div class="action-buttons">
+                            <button class="action-button" onclick="window.location.href='/account'">
+                                <i class="fas fa-credit-card"></i> Account &amp; Billing
+                            </button>
                             <button class="action-button" onclick="window.location.href='/index.html'">
                                 <i class="fas fa-calculator"></i> Go to Calculator
                             </button>
@@ -605,8 +608,8 @@
                 const now = new Date();
                 const planEl  = document.getElementById('billing-plan');
                 const ctaEl   = document.getElementById('billing-cta');
-                const subscribeBtn = '<button class="paystack-btn" onclick="payWithPaystack()">'
-                    + '<i class="fas fa-lock"></i> Subscribe — KES 1,000 / month</button>';
+                const subscribeBtn = '<a href="/account" class="paystack-btn" style="display:inline-block;text-decoration:none;">'
+                    + '<i class="fas fa-credit-card"></i> Manage Billing — KES 499/mo or KES 4,999/yr</a>';
 
                 const isPremiumActive = profile.premium
                     && profile.premium_expires_at
@@ -689,7 +692,7 @@
                 return;
             }
 
-            const amount = (typeof PAYSTACK_MONTHLY_AMOUNT !== 'undefined') ? PAYSTACK_MONTHLY_AMOUNT : 100000;
+            const amount = 49900; // KES 499 × 100 (Paystack uses kobo/cents)
             const ref = 'KSC-' + currentUser.id.replace(/-/g, '').substring(0, 8) + '-' + Date.now();
 
             const handler = PaystackPop.setup({

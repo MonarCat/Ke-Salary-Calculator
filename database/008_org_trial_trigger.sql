@@ -1,6 +1,6 @@
 -- ============================================================
 -- 008_org_trial_trigger.sql
--- Run in the Supabase SQL Editor (after 007_fix_trial_period.sql).
+-- Run in the Supabase SQL Editor (after 007_fix_org_trial_activation.sql).
 --
 -- What this migration does:
 --   1. Adds a BEFORE INSERT OR UPDATE OF account_type trigger on
@@ -73,7 +73,7 @@ BEGIN
     SELECT id
     INTO   v_user_id
     FROM   auth.users
-    WHERE  email = lower(trim(p_email))
+    WHERE  lower(email) = lower(trim(p_email))
     LIMIT  1;
 
     IF v_user_id IS NULL THEN

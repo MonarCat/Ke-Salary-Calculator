@@ -545,6 +545,9 @@ async function updateAuthUI() {
                         <div class="user-dropdown-item" onclick="window.location.href='/profile.html'">
                             <i class="fas fa-id-card"></i> My Profile
                         </div>
+                        <div class="user-dropdown-item" onclick="window.location.href='/account'">
+                            <i class="fas fa-credit-card"></i> Account &amp; Billing
+                        </div>
                         ${isAdmin ? `
                         <div class="user-dropdown-item" onclick="window.location.href='/admin.html'" style="background: #006600; color: white; font-weight: bold;">
                             <i class="fas fa-tachometer-alt"></i> Admin Dashboard
