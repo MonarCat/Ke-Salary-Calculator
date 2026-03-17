@@ -36,11 +36,10 @@ export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; //
 export const SITE_URL           = "https://salarycalculator.co.ke";
 export const PAYSTACK_WEBHOOK   = `${SITE_URL}/api/paystack-webhook`;
 
-// Paystack plan/product codes — set these after creating plans in your
-// Paystack dashboard (https://dashboard.paystack.com/#/plans)
-// Leave empty to use one-time charge (no recurring billing for now)
-export const PLAN_CODE_MONTHLY  = ""; // e.g. "PLN_jzebysw3sdoy5a9"
-export const PLAN_CODE_YEARLY   = ""; // e.g. "PLN_januia0riclc869"
+// Paystack plan/product codes — read from window variables set in HTML <head>.
+// Leave empty (or don't set the window var) for one-time charge (no auto-renew).
+export const PLAN_CODE_MONTHLY  = window.__PAYSTACK_PLAN_MONTHLY  || "";
+export const PLAN_CODE_YEARLY   = window.__PAYSTACK_PLAN_YEARLY   || "";
 
 // ── Trial helpers ─────────────────────────────────────────────────────────────
 
@@ -76,26 +75,38 @@ export async function checkPremium(supabase) {
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
-    .select("premium, premium_expires_at, account_type, trial_activated_at")
+    .select("premium, premium_expires_at, account_type, trial_activated_at, trial_expires_at")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error || !profile) return _build({ isLoggedIn: true });
 
   const now          = new Date();
   const paidExpiry   = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
   const isPaid       = profile.premium && (!paidExpiry || paidExpiry > now);
-  const trial        = getTrialStatus(profile.account_type);
-  const hasAccess    = isPaid || trial.onTrial;
+
+  // Use DB-driven trial dates when available; fall back to hardcoded constants
+  const trialStart   = profile.trial_activated_at ? new Date(profile.trial_activated_at) : TRIAL_START;
+  const trialEnd     = profile.trial_expires_at   ? new Date(profile.trial_expires_at)   : TRIAL_END;
+  const onTrial      = profile.trial_activated_at !== null &&
+                       profile.trial_activated_at !== undefined &&
+                       now >= trialStart && now < trialEnd;
+  const trialExpired = profile.trial_activated_at !== null &&
+                       profile.trial_activated_at !== undefined &&
+                       !onTrial && now >= trialEnd;
+  const msLeft       = onTrial ? trialEnd.getTime() - now.getTime() : 0;
+  const daysLeft     = Math.max(0, Math.ceil(msLeft / 86400000));
+  const reminderDue  = onTrial && daysLeft <= REMINDER_DAYS;
+  const hasAccess    = isPaid || onTrial;
 
   const result = _build({
     isLoggedIn:   true,
     isPremium:    hasAccess,
-    isTrial:      trial.onTrial && !isPaid,
-    trialExpired: trial.trialExpired && !isPaid,
-    daysLeft:     trial.daysLeft,
-    reminderDue:  trial.reminderDue && !isPaid,
-    expiresAt:    isPaid ? paidExpiry : (trial.onTrial ? TRIAL_END : null),
+    isTrial:      onTrial && !isPaid,
+    trialExpired: trialExpired && !isPaid,
+    daysLeft,
+    reminderDue:  reminderDue && !isPaid,
+    expiresAt:    isPaid ? paidExpiry : (onTrial ? trialEnd : null),
     accountType:  profile.account_type || null,
     email:        user.email || null,
   });
