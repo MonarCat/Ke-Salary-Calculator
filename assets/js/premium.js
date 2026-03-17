@@ -39,8 +39,8 @@ export const PAYSTACK_WEBHOOK   = `${SITE_URL}/api/paystack-webhook`;
 // Paystack plan/product codes — set these after creating plans in your
 // Paystack dashboard (https://dashboard.paystack.com/#/plans)
 // Leave empty to use one-time charge (no recurring billing for now)
-export const PLAN_CODE_MONTHLY  = ""; // e.g. "PLN_xxxxxxxxxxxx"
-export const PLAN_CODE_YEARLY   = ""; // e.g. "PLN_yyyyyyyyyyyy"
+export const PLAN_CODE_MONTHLY  = ""; // e.g. "PLN_jzebysw3sdoy5a9"
+export const PLAN_CODE_YEARLY   = ""; // e.g. "PLN_januia0riclc869"
 
 // ── Trial helpers ─────────────────────────────────────────────────────────────
 
