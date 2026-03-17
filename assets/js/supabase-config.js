@@ -29,6 +29,16 @@ function isSupabaseConfigured() {
            SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
 }
 
+// Paystack public key (safe to include in client-side code).
+// Replace with your actual Paystack PUBLIC key from:
+//   Paystack Dashboard → Settings → API Keys & Webhooks → Public Key
+// Format: pk_live_xxxxx (production) or pk_test_xxxxx (test/sandbox)
+const PAYSTACK_PUBLIC_KEY = 'pk_live_REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY';
+
+// Paystack subscription amount in the smallest currency unit (kobo/cents).
+// 100000 = KES 1,000 per month  (1 KES = 100 units)
+const PAYSTACK_MONTHLY_AMOUNT = 100000;
+
 // Designated super-admin email.
 // Used as a fallback when the admin_users table / is_admin() RPC is not yet set up.
 const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
@@ -38,3 +48,5 @@ window.supabaseClient = supabaseClient;
 window.isSupabaseConfigured = isSupabaseConfigured;
 window.ADMIN_EMAIL = ADMIN_EMAIL;
 window.HCAPTCHA_SITE_KEY = HCAPTCHA_SITE_KEY;
+window.PAYSTACK_PUBLIC_KEY = PAYSTACK_PUBLIC_KEY;
+window.PAYSTACK_MONTHLY_AMOUNT = PAYSTACK_MONTHLY_AMOUNT;
