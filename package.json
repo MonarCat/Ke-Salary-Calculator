@@ -1,13 +1,12 @@
 {
-  "name": "ke-salary-calculator",
+  "name": "salarycalculator-ke",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod",
-    "vercel-build": "echo 'Static site – no build step required'"
+  "description": "Kenya Salary Calculator — salarycalculator.co.ke",
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
-    "raw-body": "^2.5.2"
+    "@supabase/supabase-js": "^2.39.0"
   }
 }
