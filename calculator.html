@@ -28,12 +28,11 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
     <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
-    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -293,8 +292,6 @@
                 <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
 
-            <!-- AdSense Header Banner -->
-            <div id="adsense-header-banner" class="adsense-container"></div>
 
             <!-- Trust badge -->
             <div style="text-align:center;">
@@ -531,11 +528,7 @@
                     <div id="ke-financial-tools" style="display:none;"></div>
                 </div>
 
-                <!-- Monetag / AdSense ad slot – hidden automatically for premium users -->
-                <div id="ke-ad-top"></div>
 
-                <!-- AdSense In-Content Ad -->
-                <div id="adsense-in-content" class="adsense-container"></div>
 
                 <!-- What This Salary Calculator Does -->
                 <div class="info-section">
@@ -1171,20 +1164,11 @@
                 </div><!-- /payslip-form-content -->
             </div>
 
-            <!-- Advertisement slots (managed by AdSense) -->
-            <div style="margin: 20px 0;">
-                <div id="adsense-calc-bottom-1" class="adsense-container"></div>
-                <div id="adsense-calc-bottom-2" class="adsense-container"></div>
-            </div>
 
-            <!-- Monetag mid ad slot – hidden automatically for premium users -->
-            <div id="ke-ad-mid"></div>
 
             <!-- Newsletter subscription block -->
             <div data-ke-newsletter="calculator"></div>
 
-            <!-- Monetag bottom ad slot – hidden automatically for premium users -->
-            <div id="ke-ad-bottom"></div>
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
                 <p style="margin-bottom: 10px;">
@@ -1206,7 +1190,6 @@
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
     <script src="assets/js/script.js?v=2.0"></script>
-    <script src="assets/js/adsense-config.js?v=2.0"></script>
     <!-- Premium, sharing, newsletter & financial-tools components -->
     <script src="src/components/calculator-enhancements.js" defer></script>
     <script>
@@ -1232,6 +1215,5 @@
         });
     </script>
     <!-- Kazi Chatbot -->
-    <script src="assets/js/chatbot.js" defer></script>
 </body>
 </html>
