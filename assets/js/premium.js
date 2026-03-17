@@ -76,26 +76,37 @@ export async function checkPremium(supabase) {
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
-    .select("premium, premium_expires_at, account_type, trial_activated_at")
+    .select("premium, premium_expires_at, account_type, trial_activated_at, trial_expires_at")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error || !profile) return _build({ isLoggedIn: true });
 
   const now          = new Date();
   const paidExpiry   = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
   const isPaid       = profile.premium && (!paidExpiry || paidExpiry > now);
-  const trial        = getTrialStatus(profile.account_type);
-  const hasAccess    = isPaid || trial.onTrial;
+
+  // Trial check uses per-user DB dates (not hardcoded global window)
+  const isOrgTier   = ["employer", "organisation", "organization"].includes(
+    (profile.account_type || "").toLowerCase()
+  );
+  const trialStart  = profile.trial_activated_at ? new Date(profile.trial_activated_at) : null;
+  const trialEnd    = profile.trial_expires_at   ? new Date(profile.trial_expires_at)   : null;
+  const onTrial     = isOrgTier && trialStart && trialEnd && now >= trialStart && now < trialEnd;
+  const trialExpired = isOrgTier && trialEnd && now >= trialEnd && !isPaid;
+  const msLeft      = onTrial && trialEnd ? trialEnd.getTime() - now.getTime() : 0;
+  const daysLeft    = Math.max(0, Math.ceil(msLeft / 86400000));
+  const reminderDue = onTrial && daysLeft <= REMINDER_DAYS;
+  const hasAccess   = isPaid || onTrial;
 
   const result = _build({
     isLoggedIn:   true,
     isPremium:    hasAccess,
-    isTrial:      trial.onTrial && !isPaid,
-    trialExpired: trial.trialExpired && !isPaid,
-    daysLeft:     trial.daysLeft,
-    reminderDue:  trial.reminderDue && !isPaid,
-    expiresAt:    isPaid ? paidExpiry : (trial.onTrial ? TRIAL_END : null),
+    isTrial:      !!onTrial && !isPaid,
+    trialExpired: !!trialExpired,
+    daysLeft,
+    reminderDue:  reminderDue && !isPaid,
+    expiresAt:    isPaid ? paidExpiry : (onTrial ? trialEnd : null),
     accountType:  profile.account_type || null,
     email:        user.email || null,
   });
@@ -156,7 +167,10 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
 
   const isYearly = plan === "yearly";
   const amount   = isYearly ? PRICE_YEARLY_KES  : PRICE_MONTHLY_KES;
-  const planCode = isYearly ? PLAN_CODE_YEARLY   : PLAN_CODE_MONTHLY;
+  // Read plan codes from window variables (set in HTML head); fall back to module constants
+  const planCode = isYearly
+    ? (window.__PAYSTACK_PLAN_YEARLY  || PLAN_CODE_YEARLY)
+    : (window.__PAYSTACK_PLAN_MONTHLY || PLAN_CODE_MONTHLY);
   const label    = isYearly ? "1-Year Premium"   : "Monthly Premium";
 
   // Generate a unique reference
