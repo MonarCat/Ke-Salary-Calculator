@@ -23,11 +23,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
 
     <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
-    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6832553346534070" crossorigin="anonymous"></script>
 
     <style>
         .ext-links-hero {
@@ -142,61 +141,6 @@
         }
         .disclaimer-note i { color: #f0c000; margin-right: 6px; }
 
-        /* Ad sidebar */
-        .page-with-sidebar {
-            display: flex;
-            gap: 24px;
-            align-items: flex-start;
-        }
-        .main-content-area {
-            flex: 1;
-            min-width: 0;
-        }
-        .ad-sidebar {
-            width: 200px;
-            flex-shrink: 0;
-            position: sticky;
-            top: 80px;
-        }
-        .custom-ad-box {
-            background: #fff;
-            border: 2px dashed #009900;
-            border-radius: 10px;
-            padding: 18px 14px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,102,0,0.07);
-            margin-bottom: 20px;
-        }
-        .custom-ad-box i {
-            font-size: 2em;
-            color: #009900;
-            margin-bottom: 8px;
-        }
-        .custom-ad-box p {
-            color: #444;
-            font-size: 0.82em;
-            line-height: 1.5;
-            margin: 6px 0;
-        }
-        .custom-ad-box a.ad-contact-btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 7px 14px;
-            background: #006600;
-            color: white;
-            text-decoration: none;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .custom-ad-box a.ad-contact-btn:hover { background: #004400; }
-
-        @media (max-width: 840px) {
-            .page-with-sidebar { flex-direction: column; }
-            .ad-sidebar { width: 100%; position: static; display: flex; gap: 14px; flex-wrap: wrap; }
-            .custom-ad-box { flex: 1; min-width: 200px; }
-        }
     </style>
 </head>
 <body>
@@ -233,7 +177,6 @@
             </nav>
 
             <!-- AdSense Header Banner -->
-            <div id="adsense-header-banner" class="adsense-container"></div>
 
             <!-- Hero -->
             <div class="ext-links-hero">
@@ -246,13 +189,9 @@
                 <strong>Disclaimer:</strong> These links lead to external, independent government websites. Kenya Salary Calculator is not affiliated with these agencies. Always verify information directly on the official site.
             </div>
 
-            <!-- Main content + ad sidebar layout -->
-            <div class="page-with-sidebar">
-                <div class="main-content-area">
-
-                    <!-- Tax & Revenue -->
-                    <h2 class="category-title"><i class="fas fa-receipt"></i> Tax &amp; Revenue</h2>
-                    <div class="links-grid">
+            <!-- Tax & Revenue -->
+            <h2 class="category-title"><i class="fas fa-receipt"></i> Tax &amp; Revenue</h2>
+            <div class="links-grid">
                         <div class="link-card">
                             <div class="link-card-header">
                                 <img src="https://www.google.com/s2/favicons?domain=kra.go.ke&sz=32" alt="KRA favicon" class="site-favicon">
@@ -485,17 +424,9 @@
                         </div>
                     </div>
 
-                </div><!-- end .main-content-area -->
+                
 
-                <!-- Ad Sidebar -->
-                <aside class="ad-sidebar" aria-label="Advertisement sidebar">
-                    <!-- AdSense ad slots -->
-                    <div id="adsense-sidebar" class="adsense-container"></div>
-                </aside>
-            </div><!-- end .page-with-sidebar -->
-
-            <!-- AdSense Footer Ad -->
-            <div id="adsense-footer" class="adsense-container"></div>
+            
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
                 <p style="margin-bottom: 10px;">
@@ -516,6 +447,5 @@
     <script src="assets/js/nav-toggle.js?v=2.1"></script>
     <script src="assets/js/supabase-config.js?v=2.1"></script>
     <script src="assets/js/auth.js?v=2.1"></script>
-    <script src="assets/js/adsense-config.js?v=2.1"></script>
 </body>
 </html>
