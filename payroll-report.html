@@ -273,6 +273,7 @@
             </div>
             <a href="/employees.html">Manage Employees</a>
             <a href="/payroll-report.html" class="active">Payroll Report</a>
+            <a href="/payroll-history.html">Payroll History</a>
             <a href="/about-us.html">About Us</a>
             <a href="/blog.html">Blog</a>
             <a href="/contact-us.html">Contact Us</a>
@@ -286,7 +287,7 @@
                 <i class="fas fa-chart-bar"></i>
                 <h3>Payroll Report — Premium Feature</h3>
                 <p>The Payroll Report gives your organisation a comprehensive view of salary totals, deductions, taxes, and employee statistics across any pay period. Available on the Premium plan.</p>
-                <a href="/account-billing.html" class="upgrade-btn"><i class="fas fa-crown"></i> Upgrade to Premium</a>
+                <a href="/account" class="upgrade-btn"><i class="fas fa-crown"></i> Upgrade to Premium</a>
                 <p style="margin-top:16px;font-size:0.85em;color:#888;">Already subscribed? <a href="/auth.html?redirect=/payroll-report.html" style="color:#006600;">Sign in</a></p>
             </div>
 
@@ -471,12 +472,13 @@ async function init() {
     }
     currentUser = user;
 
-    // Check premium (premium.js exposes checkPremium)
+    // Check premium (premium.js exposes checkPremium which returns an object)
     let isPremium = false;
     if (typeof checkPremium === 'function') {
         try {
             const supabase = getSupabaseClient();
-            isPremium = await checkPremium(supabase);
+            const status = await checkPremium(supabase);
+            isPremium = status.isPremium === true;
         } catch(e) { /* ignore */ }
     }
 

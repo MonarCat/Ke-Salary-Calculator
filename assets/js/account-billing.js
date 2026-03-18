@@ -328,16 +328,26 @@ function injectStyles() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { label: "Salary breakdown",          free: true  },
-  { label: "PAYE / NSSF / SHIF / HL",  free: true  },
-  { label: "Salary comparison",         free: true  },
-  { label: "Percentile ranking",        free: true  },
-  { label: "Gross-up calculator",       free: true  },
-  { label: "PDF payslip download",      free: false },
-  { label: "Bulk payroll export",       free: false },
-  { label: "Ad-free experience",        free: false },
-  { label: "Saved calculation history", free: false },
-  { label: "Priority support",          free: false },
+  // Free features
+  { label: "Salary breakdown",              free: true  },
+  { label: "PAYE / NSSF / SHIF / HL",      free: true  },
+  { label: "Salary comparison",             free: true  },
+  { label: "Percentile ranking",            free: true  },
+  { label: "Gross-up calculator",           free: true  },
+  { label: "Share results (WhatsApp / X)",  free: true  },
+  { label: "Watermarked SAMPLE payslip",    free: true  },
+  // Premium features
+  { label: "Clean PDF payslip (no watermark)", free: false },
+  { label: "Manage up to 1,000 employees",     free: false },
+  { label: "Bulk payslip generation",          free: false },
+  { label: "Full payroll history",             free: false },
+  { label: "Payroll analytics & reports",      free: false },
+  { label: "KRA compliance reports",           free: false },
+  { label: "Organization profile & branding",  free: false },
+  { label: "Multiple department management",   free: false },
+  { label: "Export payroll data (CSV / PDF)",  free: false },
+  { label: "Ad-free experience",               free: false },
+  { label: "Priority support",                 free: false },
 ];
 
 function formatDate(d) {
