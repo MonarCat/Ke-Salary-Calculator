@@ -620,9 +620,191 @@ function handleLogoUpload() {
     }
 }
 
-// Print Function
+// Print Function — opens a clean new window so the print preview works correctly
 function printPayslip() {
-    window.print();
+    const payslipEl = document.getElementById('payslipOutput');
+    if (!payslipEl || payslipEl.style.display === 'none') {
+        alert('Please generate a payslip first.');
+        return;
+    }
+
+    // Collect all current values
+    const company        = (document.getElementById('companyName').value        || 'Organization Name').toUpperCase();
+    const companyAddress = document.getElementById('companyAddress').value      || '';
+    const companyKra     = document.getElementById('companyKra').value          || '';
+    const companyContacts= document.getElementById('companyContacts').value     || '';
+    const payslipNumber  = document.getElementById('payslipNumber').value       || '';
+    const department     = document.getElementById('department').value          || '';
+    const sigFields      = document.querySelectorAll('.signature-field');
+    const preparedBy     = sigFields[0] ? sigFields[0].value : '';
+    const approvedBy     = sigFields[1] ? sigFields[1].value : '';
+    const logoImg        = document.getElementById('companyLogo');
+    const logoSrc        = (logoImg && logoImg.style.display !== 'none') ? logoImg.src : '';
+
+    const period         = document.getElementById('slipPeriod').textContent;
+    const name           = document.getElementById('slipName').textContent;
+    const empId          = document.getElementById('slipID').textContent;
+    const pin            = document.getElementById('slipPin').textContent;
+    const gross          = document.getElementById('slipGross').textContent;
+    const paye           = document.getElementById('slipPAYE').textContent;
+    const nssf           = document.getElementById('slipNSSF').textContent;
+    const shif           = document.getElementById('slipSHIF').textContent;
+    const ahl            = document.getElementById('slipAHL').textContent;
+    const totalEarnings  = document.getElementById('slipGrossSummary').textContent;
+    const totalDeductions= document.getElementById('slipDeductionsSummary').textContent;
+    const netPay         = document.getElementById('slipNet').textContent;
+
+    const loanVal   = parseFloat(document.getElementById('loanDeduction').value)   || 0;
+    const saccoRow  = document.getElementById('saccoRow');
+    const saccoVal  = parseFloat(document.getElementById('saccoDeduction') ? document.getElementById('saccoDeduction').value : 0) || 0;
+    const pensionRow= document.getElementById('pensionRow');
+    const pensionVal= parseFloat(document.getElementById('pensionDeduction') ? document.getElementById('pensionDeduction').value : 0) || 0;
+    const insRow    = document.getElementById('insuranceRow');
+    const insVal    = parseFloat(document.getElementById('insuranceDeduction') ? document.getElementById('insuranceDeduction').value : 0) || 0;
+
+    function fmtRow(label, val, row) {
+        if (!val || (row && row.style.display === 'none')) return '';
+        return `<tr><td>${label}</td><td>${val.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
+    }
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payslip – ${name}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
+@page{size:A5 portrait;margin:10mm;}
+.wrap{max-width:148mm;margin:0 auto;}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #006600;padding-bottom:4mm;margin-bottom:4mm;}
+.hdr-left{display:flex;align-items:flex-start;gap:6px;}
+.logo{max-width:55px;max-height:55px;}
+.co-name{color:#006600;font-size:12pt;font-weight:bold;}
+.co-sub{font-size:7.5pt;color:#555;margin-top:2px;}
+.hdr-right{text-align:right;}
+.hdr-right h1{color:#006600;font-size:15pt;letter-spacing:2px;}
+.hdr-right p{font-size:8pt;color:#666;margin-top:2px;}
+.emp-table{width:100%;border-collapse:collapse;margin-bottom:4mm;font-size:8.5pt;}
+.emp-table td{padding:1.5mm 3mm;}
+.emp-table td:nth-child(odd){font-weight:bold;color:#555;width:28%;}
+.cols{display:flex;gap:4mm;margin-bottom:4mm;}
+.col{flex:1;}
+.sec-hdr{background:#006600;color:#fff;font-size:8.5pt;font-weight:bold;padding:2mm 3mm;}
+.items{width:100%;border-collapse:collapse;font-size:8pt;}
+.items th{background:#f2f2f2;padding:1.5mm 3mm;text-align:left;}
+.items th:last-child,.items td:last-child{text-align:right;}
+.items td{padding:1.5mm 3mm;border-bottom:1px solid #f0f0f0;}
+.summary-wrap{display:flex;justify-content:flex-end;margin-bottom:6mm;}
+.summary{width:55%;border-collapse:collapse;font-size:8.5pt;}
+.summary td{padding:2mm 3mm;}
+.summary td:last-child{text-align:right;}
+.net-row{background:#006600;}
+.net-row td{color:#fff;font-weight:bold;}
+.sigs{display:flex;justify-content:space-around;margin-top:6mm;}
+.sig-box{text-align:center;}
+.sig-line{border-top:1px solid #444;width:48mm;margin:0 auto 2mm;}
+.sig-lbl{font-size:7.5pt;color:#555;}
+.footer{text-align:center;margin-top:5mm;font-size:7pt;color:#999;border-top:1px solid #ddd;padding-top:2mm;}
+.print-btn{text-align:center;margin:12px 0;}
+@media print{.print-btn{display:none;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-left">
+      ${logoSrc ? `<img src="${logoSrc}" class="logo" alt="logo">` : ''}
+      <div>
+        <div class="co-name">${company}</div>
+        ${companyAddress  ? `<div class="co-sub">${companyAddress}</div>` : ''}
+        ${companyKra      ? `<div class="co-sub">KRA PIN: ${companyKra}</div>` : ''}
+        ${companyContacts ? `<div class="co-sub">${companyContacts}</div>` : ''}
+      </div>
+    </div>
+    <div class="hdr-right">
+      <h1>PAYSLIP</h1>
+      <p>Period: ${period}</p>
+      ${payslipNumber ? `<p>No: ${payslipNumber}</p>` : ''}
+    </div>
+  </div>
+
+  <table class="emp-table">
+    <tr>
+      <td>Employee Name:</td><td>${name}</td>
+      <td>Department:</td><td>${department || '—'}</td>
+    </tr>
+    <tr>
+      <td>Employee No:</td><td>${empId}</td>
+      <td>KRA PIN:</td><td>${pin || '—'}</td>
+    </tr>
+  </table>
+
+  <div class="cols">
+    <div class="col">
+      <div class="sec-hdr">EARNINGS</div>
+      <table class="items">
+        <tr><th>Description</th><th>Amount (KES)</th></tr>
+        <tr><td>Basic Salary</td><td>${gross}</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <div class="sec-hdr">DEDUCTIONS</div>
+      <table class="items">
+        <tr><th>Description</th><th>Amount (KES)</th></tr>
+        <tr><td>PAYE</td><td>${paye}</td></tr>
+        <tr><td>NSSF</td><td>${nssf}</td></tr>
+        <tr><td>SHIF</td><td>${shif}</td></tr>
+        <tr><td>Housing Levy</td><td>${ahl}</td></tr>
+        ${fmtRow('Loan Deduction', loanVal, null)}
+        ${fmtRow('SACCO Loan', saccoVal, saccoRow)}
+        ${fmtRow('Pension Scheme', pensionVal, pensionRow)}
+        ${fmtRow('Insurance Premium', insVal, insRow)}
+      </table>
+    </div>
+  </div>
+
+  <div class="summary-wrap">
+    <table class="summary">
+      <tr><td><strong>TOTAL EARNINGS</strong></td><td>${totalEarnings}</td></tr>
+      <tr><td><strong>TOTAL DEDUCTIONS</strong></td><td>${totalDeductions}</td></tr>
+      <tr class="net-row"><td><strong>NET PAY</strong></td><td><strong>${netPay}</strong></td></tr>
+    </table>
+  </div>
+
+  <div class="sigs">
+    <div class="sig-box">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">${preparedBy || 'Prepared by'}</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-line"></div>
+      <div class="sig-lbl">${approvedBy || 'Approved by'}</div>
+    </div>
+  </div>
+
+  <div class="footer">This is a computer-generated payslip and does not require a signature</div>
+
+  <div class="print-btn">
+    <button onclick="window.print()" style="padding:8px 24px;background:#006600;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11pt;margin-right:8px;">
+      🖨️ Print / Save as PDF
+    </button>
+    <button onclick="window.close()" style="padding:8px 18px;background:#888;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11pt;">
+      ✕ Close
+    </button>
+  </div>
+</div>
+<script>window.onload = function(){ window.print(); };<\/script>
+</body>
+</html>`;
+
+    const pw = window.open('', '_blank', 'width=650,height=850');
+    if (!pw) {
+        alert('Pop-ups are blocked. Please allow pop-ups for this site to print the payslip, then try again.');
+        return;
+    }
+    pw.document.write(html);
+    pw.document.close();
 }
 
 
