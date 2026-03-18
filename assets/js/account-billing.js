@@ -1,7 +1,7 @@
 /**
  * /assets/js/account-billing.js
  *
- * Plan status widget for account.html.
+ * Plan status widget + upgrade button for account.html.
  * Renders into <div id="sc-billing-widget">.
  *
  * Shows:
@@ -11,271 +11,254 @@
  *  - Always-visible upgrade section with monthly/yearly selector
  *  - Pay button that opens Paystack popup directly
  *
- * Re-renders itself after a successful payment to reflect the updated plan.
+ * The widget re-renders itself after a successful payment to reflect
+ * the updated plan status.
  *
- * Usage in account.html:
+ * Usage (account.html):
  *   <div id="sc-billing-widget"></div>
  *   <script type="module" src="/assets/js/account-billing.js"></script>
  */
 
-import { createClient }         from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import {
   checkPremium,
   openPaystackCheckout,
   invalidatePremiumCache,
-  showEmailCapture,
   PRICE_MONTHLY_KES,
   PRICE_YEARLY_KES,
   PRICE_SAVINGS_KES,
-} from "/assets/js/premium.js";
+} from "./premium.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 // ── Supabase client ───────────────────────────────────────────────────────────
+// Re-use the global client from supabase-config.js when available, so both
+// scripts authenticate against the same Supabase project.
 
-const supabase = createClient(
-  window.__SUPABASE_URL      || "https://wznopthjoaqusalqoyru.supabase.co",
-  window.__SUPABASE_ANON_KEY || ""
-);
+let supabase;
+if (window.supabaseClient) {
+  supabase = window.supabaseClient;
+} else {
+  const supabaseUrl = window.__SUPABASE_URL  || "https://wklhcmaodxatavuoduhd.supabase.co";
+  const supabaseKey = window.__SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk";
+ 
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
 
-// ── Styles (injected once) ────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 function injectStyles() {
   if (document.getElementById("sc-ab-styles")) return;
   const s = document.createElement("style");
   s.id = "sc-ab-styles";
   s.textContent = `
+    /* ── Billing widget container ── */
     #sc-billing-widget {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      max-width: 720px;
+      max-width: 680px;
       margin: 0 auto;
     }
 
-    /* ── Plan card ───────────────────────────────────────────────────────── */
-    .sc-ab-plan-card {
+    .sc-ab-card {
       background: #fff;
-      border: 1.5px solid #e2e8f0;
+      border: 1px solid #e2e8f0;
       border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 20px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    [data-theme="dark"] .sc-ab-plan-card {
+
+    [data-theme="dark"] .sc-ab-card {
       background: #1e293b;
       border-color: #334155;
     }
 
-    .sc-ab-plan-header {
+    /* ── Plan badge row ── */
+    .sc-ab-plan-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 0.75rem;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 0.5rem;
     }
 
-    .sc-ab-plan-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-    }
-    [data-theme="dark"] .sc-ab-plan-label { color: #94a3b8; }
-
-    /* Badges */
     .sc-ab-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-size: 0.82rem;
+      gap: 0.3rem;
+      font-size: 0.8rem;
       font-weight: 700;
+      padding: 0.25rem 0.85rem;
+      border-radius: 20px;
     }
-    .sc-ab-badge--free    { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-    .sc-ab-badge--trial   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
-    .sc-ab-badge--premium { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+    .sc-ab-badge--free     { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+    .sc-ab-badge--trial    { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+    .sc-ab-badge--premium  { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .sc-ab-badge--expired  { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .sc-ab-plan-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    [data-theme="dark"] .sc-ab-plan-name { color: #f1f5f9; }
 
     .sc-ab-expiry {
-      font-size: 0.83rem;
-      color: #64748b;
-      margin-top: 4px;
+      font-size: 0.82rem;
+      color: #475569;
+      margin-top: 0.2rem;
     }
     [data-theme="dark"] .sc-ab-expiry { color: #94a3b8; }
 
-    /* ── Trial countdown bar ─────────────────────────────────────────────── */
+    /* ── Trial progress bar ── */
     .sc-ab-trial-bar {
-      margin-top: 14px;
+      margin: 1rem 0 0;
     }
+
     .sc-ab-trial-bar__label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.78rem;
-      color: #64748b;
-      margin-bottom: 5px;
+      font-size: 0.8rem;
+      color: #475569;
+      margin-bottom: 0.3rem;
     }
     [data-theme="dark"] .sc-ab-trial-bar__label { color: #94a3b8; }
+
     .sc-ab-trial-bar__track {
       height: 8px;
       background: #e2e8f0;
-      border-radius: 4px;
+      border-radius: 99px;
       overflow: hidden;
     }
-    [data-theme="dark"] .sc-ab-trial-bar__track { background: #334155; }
+
     .sc-ab-trial-bar__fill {
       height: 100%;
-      border-radius: 4px;
-      transition: width 0.4s ease;
+      border-radius: 99px;
+      transition: width 0.6s ease;
+      background: #16a34a;
     }
-    .sc-ab-trial-bar__fill--ok      { background: #22c55e; }
-    .sc-ab-trial-bar__fill--warning { background: #f59e0b; }
-    .sc-ab-trial-bar__fill--danger  { background: #ef4444; }
 
-    /* ── Features list ───────────────────────────────────────────────────── */
+    .sc-ab-trial-bar__fill--warning { background: #f59e0b; }
+    .sc-ab-trial-bar__fill--danger  { background: #dc2626; }
+
+    /* ── Feature list ── */
     .sc-ab-features {
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
-    }
-    [data-theme="dark"] .sc-ab-features {
-      background: #1e293b;
-      border-color: #334155;
-    }
-    .sc-ab-features__title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-      margin-bottom: 12px;
-    }
-    [data-theme="dark"] .sc-ab-features__title { color: #94a3b8; }
-    .sc-ab-features__list {
       list-style: none;
       padding: 0;
       margin: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.4rem 1rem;
     }
-    .sc-ab-features__item {
+
+    .sc-ab-features li {
+      font-size: 0.88rem;
+      color: #0f172a;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.88rem;
+      gap: 0.4rem;
     }
-    .sc-ab-features__item--locked { color: #94a3b8; }
-    [data-theme="dark"] .sc-ab-features__item { color: #e2e8f0; }
-    [data-theme="dark"] .sc-ab-features__item--locked { color: #475569; }
-    .sc-ab-features__icon { font-size: 1rem; flex-shrink: 0; width: 20px; text-align: center; }
 
-    /* ── Upgrade card ────────────────────────────────────────────────────── */
-    .sc-ab-upgrade {
-      background: #fff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    [data-theme="dark"] .sc-ab-features li { color: #e2e8f0; }
+
+    .sc-ab-features li.locked {
+      color: #94a3b8;
+      text-decoration: line-through;
     }
-    [data-theme="dark"] .sc-ab-upgrade {
-      background: #1e293b;
-      border-color: #334155;
-    }
-    .sc-ab-upgrade__title {
+
+    .sc-ab-features li .sc-ab-feat-icon { flex-shrink: 0; font-size: 0.9rem; }
+
+    /* ── Upgrade section ── */
+    .sc-ab-upgrade-title {
       font-size: 1.05rem;
       font-weight: 700;
       color: #0f172a;
-      margin: 0 0 4px;
+      margin: 0 0 0.75rem;
     }
-    [data-theme="dark"] .sc-ab-upgrade__title { color: #f1f5f9; }
-    .sc-ab-upgrade__sub {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin: 0 0 18px;
-    }
-    [data-theme="dark"] .sc-ab-upgrade__sub { color: #94a3b8; }
+    [data-theme="dark"] .sc-ab-upgrade-title { color: #f1f5f9; }
 
-    /* Plan toggle */
     .sc-ab-plan-toggle {
       display: flex;
-      gap: 8px;
-      margin-bottom: 18px;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
       flex-wrap: wrap;
     }
-    .sc-ab-plan-toggle__btn {
+
+    .sc-ab-plan-option {
       flex: 1;
-      min-width: 120px;
-      padding: 12px 16px;
+      min-width: 140px;
       border: 2px solid #e2e8f0;
       border-radius: 10px;
-      background: #fff;
+      padding: 0.75rem 1rem;
       cursor: pointer;
+      background: #fff;
       text-align: center;
-      transition: all 0.15s;
-    }
-    [data-theme="dark"] .sc-ab-plan-toggle__btn {
-      background: #0f172a;
-      border-color: #334155;
-      color: #e2e8f0;
-    }
-    .sc-ab-plan-toggle__btn.active {
-      border-color: #16a34a;
-      box-shadow: 0 0 0 2px #dcfce7;
-    }
-    [data-theme="dark"] .sc-ab-plan-toggle__btn.active {
-      border-color: #22c55e;
-      box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
-    }
-    .sc-ab-plan-toggle__name {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #64748b;
-      margin-bottom: 2px;
-    }
-    .sc-ab-plan-toggle__btn.active .sc-ab-plan-toggle__name { color: #15803d; }
-    [data-theme="dark"] .sc-ab-plan-toggle__btn.active .sc-ab-plan-toggle__name { color: #22c55e; }
-    .sc-ab-plan-toggle__price {
-      display: block;
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    [data-theme="dark"] .sc-ab-plan-toggle__price { color: #f1f5f9; }
-    .sc-ab-plan-toggle__period {
-      display: block;
-      font-size: 0.72rem;
-      color: #64748b;
-    }
-    [data-theme="dark"] .sc-ab-plan-toggle__period { color: #94a3b8; }
-    .sc-ab-plan-toggle__saving {
-      display: inline-block;
-      background: #dcfce7;
-      color: #15803d;
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 1px 7px;
-      border-radius: 10px;
-      margin-top: 3px;
-    }
-    .sc-ab-plan-toggle__badge {
-      display: inline-block;
-      background: #16a34a;
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 1px 7px;
-      border-radius: 10px;
-      margin-bottom: 4px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative;
     }
 
-    /* Pay button */
+    [data-theme="dark"] .sc-ab-plan-option {
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    .sc-ab-plan-option.selected {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+    }
+
+    .sc-ab-plan-option__badge {
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .sc-ab-plan-option__label {
+      display: block;
+      font-size: 0.8rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.2rem;
+    }
+
+    .sc-ab-plan-option__price {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    [data-theme="dark"] .sc-ab-plan-option__price { color: #f1f5f9; }
+
+    .sc-ab-plan-option__period {
+      display: block;
+      font-size: 0.76rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+
+    .sc-ab-plan-option__saving {
+      display: block;
+      font-size: 0.75rem;
+      color: #16a34a;
+      font-weight: 600;
+      margin-top: 0.2rem;
+    }
+
     .sc-ab-pay-btn {
+      display: flex;
       width: 100%;
-      padding: 14px 20px;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.5rem;
       background: #16a34a;
       color: #fff;
       border: none;
@@ -284,36 +267,60 @@ function injectStyles() {
       font-weight: 700;
       cursor: pointer;
       transition: background 0.15s, transform 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 50px;
+      min-height: 48px;
+      touch-action: manipulation;
     }
-    .sc-ab-pay-btn:hover { background: #15803d; transform: translateY(-1px); }
+
+    .sc-ab-pay-btn:hover  { background: #15803d; transform: translateY(-1px); }
+    .sc-ab-pay-btn:active { transform: translateY(0); }
     .sc-ab-pay-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .sc-ab-methods {
+    .sc-ab-pay-note {
       text-align: center;
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 10px;
+      font-size: 0.76rem;
+      color: #64748b;
+      margin-top: 0.6rem;
     }
 
-    /* Loading / error states */
+    /* ── Loading / auth states ── */
     .sc-ab-loading {
-      padding: 40px 0;
       text-align: center;
-      color: #64748b;
+      padding: 2.5rem 1rem;
+      color: #475569;
       font-size: 0.9rem;
     }
-    .sc-ab-error {
-      padding: 16px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
+
+    .sc-ab-login-prompt {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .sc-ab-login-prompt p {
+      color: #475569;
+      margin-bottom: 1rem;
+    }
+
+    .sc-ab-login-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.5rem;
+      background: #16a34a;
+      color: #fff;
+      text-decoration: none;
       border-radius: 8px;
-      color: #dc2626;
-      font-size: 0.88rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+
+    .sc-ab-login-link:hover { background: #15803d; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .sc-ab-card { padding: 1.1rem; }
+      .sc-ab-plan-option { min-width: 120px; padding: 0.6rem 0.75rem; }
+      .sc-ab-plan-option__price { font-size: 1.15rem; }
     }
   `;
   document.head.appendChild(s);
@@ -321,243 +328,202 @@ function injectStyles() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtDate(d) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-KE", { year: "numeric", month: "long", day: "numeric" });
+const FEATURES = [
+  { label: "Salary breakdown",          free: true  },
+  { label: "PAYE / NSSF / SHIF / HL",  free: true  },
+  { label: "Salary comparison",         free: true  },
+  { label: "Percentile ranking",        free: true  },
+  { label: "Gross-up calculator",       free: true  },
+  { label: "PDF payslip download",      free: false },
+  { label: "Bulk payroll export",       free: false },
+  { label: "Ad-free experience",        free: false },
+  { label: "Saved calculation history", free: false },
+  { label: "Priority support",          free: false },
+];
+
+function formatDate(d) {
+  if (!d) return "";
+  return new Date(d).toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" });
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 
-async function render() {
-  const container = document.getElementById("sc-billing-widget");
-  if (!container) return;
-
-  injectStyles();
-  container.innerHTML = `<div class="sc-ab-loading">⏳ Loading your plan…</div>`;
-
-  let status;
-  try {
-    status = await checkPremium(supabase);
-  } catch (err) {
-    container.innerHTML = `<div class="sc-ab-error">⚠️ Could not load plan status. Please refresh the page.</div>`;
-    return;
-  }
+function render(status) {
+  const widget = document.getElementById("sc-billing-widget");
+  if (!widget) return;
+  widget.innerHTML = "";
 
   if (!status.isLoggedIn) {
-    window.location.href = "/auth?redirect=/account";
+    widget.innerHTML = `
+      <div class="sc-ab-card sc-ab-login-prompt">
+        <p>Sign in to view your plan status and manage your subscription.</p>
+        <a href="/auth" class="sc-ab-login-link">🔑 Sign In / Sign Up →</a>
+      </div>`;
     return;
   }
 
-  // Expose email for Paystack
-  if (status.email) window.__SC_USER_EMAIL = status.email;
+  // ── Plan status card ──────────────────────────────────────────────────────
+  let badgeClass, badgeLabel, planName, expiryLine;
 
-  container.innerHTML = buildHTML(status);
-  wireButtons(container, status);
-}
-
-function buildHTML(status) {
-  return `
-    ${planCardHTML(status)}
-    ${featuresHTML(status)}
-    ${upgradeHTML(status)}
-  `;
-}
-
-// ── Plan card ─────────────────────────────────────────────────────────────────
-
-function planCardHTML(status) {
-  let badge;
   if (status.isPremium && !status.isTrial) {
-    badge = `<span class="sc-ab-badge sc-ab-badge--premium">⭐ Premium</span>`;
+    badgeClass  = "sc-ab-badge--premium";
+    badgeLabel  = "⭐ Premium";
+    planName    = "Premium Plan";
+    expiryLine  = status.expiresAt ? `Renews / expires: ${formatDate(status.expiresAt)}` : "Active — no expiry set";
   } else if (status.isTrial) {
-    badge = `<span class="sc-ab-badge sc-ab-badge--trial">🕐 Organisation Trial</span>`;
+    badgeClass  = "sc-ab-badge--trial";
+    badgeLabel  = "🕐 Organisation Trial";
+    planName    = "Organisation Trial";
+    expiryLine  = status.expiresAt ? `Trial ends: ${formatDate(status.expiresAt)}` : "";
   } else if (status.trialExpired) {
-    badge = `<span class="sc-ab-badge sc-ab-badge--trial">⏰ Trial Expired</span>`;
+    badgeClass  = "sc-ab-badge--expired";
+    badgeLabel  = "⏰ Trial Ended";
+    planName    = "Free Plan";
+    expiryLine  = "Your free trial has expired.";
   } else {
-    badge = `<span class="sc-ab-badge sc-ab-badge--free">Free Plan</span>`;
+    badgeClass  = "sc-ab-badge--free";
+    badgeLabel  = "Free";
+    planName    = "Free Plan";
+    expiryLine  = "Upgrade to unlock all features.";
   }
 
-  let expiryLine = "";
-  if (status.isPremium && !status.isTrial && status.expiresAt) {
-    expiryLine = `<p class="sc-ab-expiry">Premium expires: ${fmtDate(status.expiresAt)}</p>`;
-  } else if (status.isTrial && status.expiresAt) {
-    expiryLine = `<p class="sc-ab-expiry">Trial ends: ${fmtDate(status.expiresAt)}</p>`;
+  // Trial progress bar (only shown when on active trial)
+  let trialBarHtml = "";
+  if (status.isTrial && status.expiresAt) {
+    // Total trial duration (must match interval in migration 005_trial_period.sql)
+    const TRIAL_TOTAL_DAYS = 30;
+    const daysUsed = Math.max(0, TRIAL_TOTAL_DAYS - status.daysLeft);
+    const pct      = Math.min(100, Math.round((daysUsed / TRIAL_TOTAL_DAYS) * 100));
+    const fillClass    = status.daysLeft <= 1 ? "sc-ab-trial-bar__fill--danger"
+                       : status.daysLeft <= 3 ? "sc-ab-trial-bar__fill--warning"
+                       : "";
+    trialBarHtml = `
+      <div class="sc-ab-trial-bar">
+        <div class="sc-ab-trial-bar__label">
+          <span>Trial progress</span>
+          <span>${status.daysLeft} day${status.daysLeft !== 1 ? "s" : ""} left</span>
+        </div>
+        <div class="sc-ab-trial-bar__track">
+          <div class="sc-ab-trial-bar__fill ${fillClass}" style="width:${pct}%"></div>
+        </div>
+      </div>`;
   }
 
-  const trialBar = status.isTrial ? trialBarHTML(status) : "";
-
-  return `
-    <div class="sc-ab-plan-card">
-      <div class="sc-ab-plan-header">
-        <span class="sc-ab-plan-label">Current Plan</span>
-        ${badge}
+  const planCardHtml = `
+    <div class="sc-ab-card">
+      <div class="sc-ab-plan-row">
+        <span class="sc-ab-badge ${badgeClass}">${badgeLabel}</span>
+        <span class="sc-ab-plan-name">${planName}</span>
       </div>
-      ${expiryLine}
-      ${trialBar}
-    </div>
-  `;
-}
+      <p class="sc-ab-expiry">${expiryLine}</p>
+      ${trialBarHtml}
+    </div>`;
 
-function trialBarHTML(status) {
-  const TRIAL_DAYS = 30;
-  const pct        = Math.max(0, Math.min(100, (status.daysLeft / TRIAL_DAYS) * 100));
-  const fillClass  = pct > 40 ? "sc-ab-trial-bar__fill--ok"
-                   : pct > 15 ? "sc-ab-trial-bar__fill--warning"
-                               : "sc-ab-trial-bar__fill--danger";
-  return `
-    <div class="sc-ab-trial-bar">
-      <div class="sc-ab-trial-bar__label">
-        <span>Trial period</span>
-        <span>${status.daysLeft} day${status.daysLeft !== 1 ? "s" : ""} remaining</span>
-      </div>
-      <div class="sc-ab-trial-bar__track">
-        <div class="sc-ab-trial-bar__fill ${fillClass}" style="width:${pct}%"></div>
-      </div>
-    </div>
-  `;
-}
-
-// ── Features list ─────────────────────────────────────────────────────────────
-
-const FEATURES = [
-  { label: "PAYE / net salary calculator",  always: true  },
-  { label: "Salary comparison & percentile", always: true  },
-  { label: "Gross-up calculator",            always: true  },
-  { label: "PDF payslip download",           always: false },
-  { label: "Bulk payroll export",            always: false },
-  { label: "Ad-free experience",             always: false },
-  { label: "Saved calculation history",      always: false },
-  { label: "Priority support",               always: false },
-];
-
-function featuresHTML(status) {
+  // ── Feature list card ─────────────────────────────────────────────────────
   const hasAccess = status.isPremium;
-  const items = FEATURES.map((f) => {
-    const unlocked = f.always || hasAccess;
+  const featureItems = FEATURES.map((f) => {
+    const unlocked = f.free || hasAccess;
     const icon     = unlocked ? "✅" : "🔒";
-    const cls      = unlocked ? "" : " sc-ab-features__item--locked";
-    return `<li class="sc-ab-features__item${cls}">
-      <span class="sc-ab-features__icon">${icon}</span>
-      ${f.label}
-    </li>`;
+    const cls      = unlocked ? "" : "locked";
+    return `<li class="${cls}"><span class="sc-ab-feat-icon">${icon}</span>${f.label}</li>`;
   }).join("");
 
-  return `
-    <div class="sc-ab-features">
-      <p class="sc-ab-features__title">Features</p>
-      <ul class="sc-ab-features__list">${items}</ul>
-    </div>
-  `;
-}
+  const featuresCardHtml = `
+    <div class="sc-ab-card">
+      <h3 style="font-size:0.82rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.75rem;">Your Features</h3>
+      <ul class="sc-ab-features">${featureItems}</ul>
+    </div>`;
 
-// ── Upgrade section ───────────────────────────────────────────────────────────
+  // ── Upgrade card (always visible) ─────────────────────────────────────────
+  let selectedPlan = "yearly"; // default selection
 
-function upgradeHTML(status) {
-  const isPaidPremium = status.isPremium && !status.isTrial;
-
-  const subtitle = isPaidPremium
-    ? "Your premium is active. You can renew or change your plan below."
-    : status.trialExpired
-      ? "Your free trial has ended. Upgrade to keep all premium features."
-      : status.isTrial
-        ? `Your free trial ends in ${status.daysLeft} day${status.daysLeft !== 1 ? "s" : ""}. Lock in your plan now.`
-        : "Upgrade to unlock PDF payslips, bulk exports, and more.";
-
-  return `
-    <div class="sc-ab-upgrade">
-      <p class="sc-ab-upgrade__title">
-        ${isPaidPremium ? "✅ Manage Your Plan" : "🚀 Upgrade to Premium"}
+  const upgradeCardHtml = `
+    <div class="sc-ab-card" id="sc-ab-upgrade-card">
+      <p class="sc-ab-upgrade-title">
+        ${status.isPremium && !status.isTrial
+          ? "🔄 Extend or Change Your Plan"
+          : (status.trialExpired ? "⚡ Upgrade to Keep Your Access" : "⬆️ Upgrade to Premium")
+        }
       </p>
-      <p class="sc-ab-upgrade__sub">${subtitle}</p>
 
-      <div class="sc-ab-plan-toggle">
-        <button class="sc-ab-plan-toggle__btn active" data-plan="monthly" id="sc-ab-btn-monthly">
-          <span class="sc-ab-plan-toggle__name">Monthly</span>
-          <span class="sc-ab-plan-toggle__price">KES ${PRICE_MONTHLY_KES}</span>
-          <span class="sc-ab-plan-toggle__period">/ month</span>
-        </button>
-        <button class="sc-ab-plan-toggle__btn" data-plan="yearly" id="sc-ab-btn-yearly">
-          <span class="sc-ab-plan-toggle__badge">Best Value</span>
-          <span class="sc-ab-plan-toggle__name">Yearly</span>
-          <span class="sc-ab-plan-toggle__price">KES ${PRICE_YEARLY_KES}</span>
-          <span class="sc-ab-plan-toggle__period">/ year</span>
-          <span class="sc-ab-plan-toggle__saving">Save KES ${PRICE_SAVINGS_KES}</span>
-        </button>
+      <div class="sc-ab-plan-toggle" id="sc-ab-toggle">
+        <div class="sc-ab-plan-option selected" data-plan="yearly" tabindex="0" role="button" aria-pressed="true">
+          <span class="sc-ab-plan-option__badge">Best Value</span>
+          <span class="sc-ab-plan-option__label">Yearly</span>
+          <span class="sc-ab-plan-option__price">KES ${PRICE_YEARLY_KES.toLocaleString()}</span>
+          <span class="sc-ab-plan-option__period">per year</span>
+          <span class="sc-ab-plan-option__saving">Save KES ${PRICE_SAVINGS_KES.toLocaleString()}</span>
+        </div>
+        <div class="sc-ab-plan-option" data-plan="monthly" tabindex="0" role="button" aria-pressed="false">
+          <span class="sc-ab-plan-option__label">Monthly</span>
+          <span class="sc-ab-plan-option__price">KES ${PRICE_MONTHLY_KES.toLocaleString()}</span>
+          <span class="sc-ab-plan-option__period">per month</span>
+        </div>
       </div>
 
       <button class="sc-ab-pay-btn" id="sc-ab-pay-btn">
-        💳 Pay via M-Pesa / Card — KES <span id="sc-ab-price-display">${PRICE_MONTHLY_KES}</span>/mo
+        💳 Pay with M-Pesa / Card
       </button>
+      <p class="sc-ab-pay-note">Secure payment via Paystack &nbsp;·&nbsp; M-Pesa, Visa, Mastercard</p>
+    </div>`;
 
-      <p class="sc-ab-methods">
-        Accepts M-Pesa &nbsp;·&nbsp; Visa &nbsp;·&nbsp; Mastercard &nbsp;·&nbsp; Secured by Paystack
-      </p>
-    </div>
-  `;
-}
+  widget.innerHTML = planCardHtml + featuresCardHtml + upgradeCardHtml;
 
-// ── Wire buttons ──────────────────────────────────────────────────────────────
+  // ── Wire up plan toggle ───────────────────────────────────────────────────
+  const toggle  = widget.querySelector("#sc-ab-toggle");
+  const payBtn  = widget.querySelector("#sc-ab-pay-btn");
 
-function wireButtons(container, status) {
-  let selectedPlan = "monthly";
-
-  const btnMonthly     = container.querySelector("#sc-ab-btn-monthly");
-  const btnYearly      = container.querySelector("#sc-ab-btn-yearly");
-  const payBtn         = container.querySelector("#sc-ab-pay-btn");
-  const priceDisplay   = container.querySelector("#sc-ab-price-display");
-
-  function selectPlan(plan) {
-    selectedPlan = plan;
-    [btnMonthly, btnYearly].forEach((b) => b?.classList.remove("active"));
-    (plan === "yearly" ? btnYearly : btnMonthly)?.classList.add("active");
-
-    const price  = plan === "yearly" ? PRICE_YEARLY_KES : PRICE_MONTHLY_KES;
-    const period = plan === "yearly" ? "/yr" : "/mo";
-    if (priceDisplay) priceDisplay.textContent = `${price}`;
-    if (payBtn) {
-      payBtn.innerHTML = `💳 Pay via M-Pesa / Card — KES ${price}${period}`;
+  toggle?.querySelectorAll(".sc-ab-plan-option").forEach((opt) => {
+    function selectOption() {
+      toggle.querySelectorAll(".sc-ab-plan-option").forEach((o) => {
+        o.classList.remove("selected");
+        o.setAttribute("aria-pressed", "false");
+      });
+      opt.classList.add("selected");
+      opt.setAttribute("aria-pressed", "true");
+      selectedPlan = opt.dataset.plan;
     }
-  }
+    opt.addEventListener("click",   selectOption);
+    opt.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectOption(); } });
+  });
 
-  btnMonthly?.addEventListener("click", () => selectPlan("monthly"));
-  btnYearly?.addEventListener("click",  () => selectPlan("yearly"));
-
+  // ── Wire up pay button ────────────────────────────────────────────────────
   payBtn?.addEventListener("click", async () => {
-    payBtn.disabled = true;
-    payBtn.textContent = "⏳ Opening payment…";
-
     const email = status.email || window.__SC_USER_EMAIL;
     if (!email) {
-      payBtn.disabled = false;
-      selectPlan(selectedPlan); // restore button text
+      // Import lazily to avoid circular dep issues
+      const { showEmailCapture } = await import("./premium.js");
       showEmailCapture(selectedPlan, (captured) => {
-        window.__SC_USER_EMAIL = captured;
-        launchCheckout(selectedPlan, captured, payBtn);
+        _launchPaystack(captured, selectedPlan, status);
       });
       return;
     }
-
-    launchCheckout(selectedPlan, email, payBtn);
+    _launchPaystack(email, selectedPlan, status);
   });
 }
 
-function launchCheckout(plan, email, payBtn) {
+function _launchPaystack(email, plan, currentStatus) {
+  const payBtn = document.querySelector("#sc-ab-pay-btn");
+  if (payBtn) {
+    payBtn.disabled = true;
+    payBtn.textContent = "Opening payment…";
+  }
+
   openPaystackCheckout({
     plan,
     email,
     onSuccess: async () => {
       invalidatePremiumCache();
-      // Re-render the widget to show updated plan status
-      await render();
-      // Redirect to the thank-you page
+      // Re-fetch and re-render the widget with updated status
+      const updated = await checkPremium(supabase);
+      render(updated);
+      // Redirect to thank-you page
       window.location.href = "/premium-thank-you";
     },
     onClose: () => {
       if (payBtn) {
         payBtn.disabled = false;
-        const price  = plan === "yearly" ? PRICE_YEARLY_KES : PRICE_MONTHLY_KES;
-        const period = plan === "yearly" ? "/yr" : "/mo";
-        payBtn.innerHTML = `💳 Pay via M-Pesa / Card — KES ${price}${period}`;
+        payBtn.innerHTML = "💳 Pay with M-Pesa / Card";
       }
     },
   });
@@ -565,8 +531,20 @@ function launchCheckout(plan, email, payBtn) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", render);
-} else {
-  render();
+async function init() {
+  injectStyles();
+
+  const widget = document.getElementById("sc-billing-widget");
+  if (!widget) return;
+
+  widget.innerHTML = `<div class="sc-ab-loading">⏳ Loading your plan status…</div>`;
+
+  const status = await checkPremium(supabase);
+
+  // Expose email globally so Paystack gate can use it
+  if (status.email) window.__SC_USER_EMAIL = status.email;
+
+  render(status);
 }
+
+document.addEventListener("DOMContentLoaded", init);
