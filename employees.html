@@ -904,9 +904,9 @@
                         .eq('id', user.id)
                         .maybeSingle();
                     if (profile && profile.premium === true) {
-                        const expiry = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
-                        isPremium = !expiry || expiry > new Date();
-                    }
+                    const expiry = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+                    isPremium = !expiry || expiry > new Date();
+                }
                 } catch(e) { /* fail open — let user access if DB unavailable */ }
             }
 

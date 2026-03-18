@@ -23,11 +23,9 @@ WHERE
         OR premium_source NOT IN ('paystack', 'mpesa', 'airtel')
     );
 
--- ── Also drop the old trigger that auto-started trials on org signup ─────────
--- (migration 008 already nullified existing trial data; this ensures no new
--- trials are started if the trigger still exists in some environments.)
-
-DROP TRIGGER IF EXISTS trg_org_trial ON public.user_profiles;
+-- ── Also drop the old trigger's associated function ─────────────────────────
+DROP TRIGGER  IF EXISTS trg_org_trial ON public.user_profiles;
+DROP FUNCTION IF EXISTS public.handle_org_trial();
 
 -- ── Confirm: show affected rows after manual run ─────────────────────────────
 -- SELECT count(*) FROM public.user_profiles WHERE premium = true AND premium_source IN ('paystack','mpesa','airtel');
