@@ -11,6 +11,7 @@
     { "source": "/salary-news",          "destination": "/salary-news.html"        },
     { "source": "/salary-index",         "destination": "/salary-index.html"       },
     { "source": "/auth",                 "destination": "/auth.html"               },
+    { "source": "/account",             "destination": "/account.html"            },
     { "source": "/contact-us",           "destination": "/contact-us.html"         },
     { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"  },
     { "source": "/account",              "destination": "/account.html"             },

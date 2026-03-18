@@ -167,7 +167,10 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
 
   const isYearly = plan === "yearly";
   const amount   = isYearly ? PRICE_YEARLY_KES  : PRICE_MONTHLY_KES;
-  const planCode = isYearly ? PLAN_CODE_YEARLY   : PLAN_CODE_MONTHLY;
+  // Read plan codes from window variables (set in HTML head); fall back to module constants
+  const planCode = isYearly
+    ? (window.__PAYSTACK_PLAN_YEARLY  || PLAN_CODE_YEARLY)
+    : (window.__PAYSTACK_PLAN_MONTHLY || PLAN_CODE_MONTHLY);
   const label    = isYearly ? "1-Year Premium"   : "Monthly Premium";
 
   // Generate a unique reference
