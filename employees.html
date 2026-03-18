@@ -412,12 +412,34 @@
                 <a href="/contact-us.html">Contact Us</a>
                 <a href="/employees.html" class="active">Manage Employees</a>
                 <a href="/payroll-report.html">Payroll Report</a>
+                <a href="/payroll-history.html">Payroll History</a>
                 <a href="/external-links.html">External Links</a>
                 
                 <div id="auth-links" class="auth-links-container"></div>
             </nav>
 
             <div class="employees-container">
+                <!-- Premium gate — shown when user is logged in but not on premium plan -->
+                <div id="premium-gate" style="display:none; text-align:center; padding:48px 20px; background:#fff; border:1px solid #e0e0e0; border-radius:12px; margin-bottom:24px;">
+                    <div style="font-size:3.5em; margin-bottom:16px;">🔒</div>
+                    <h3 style="color:#006600; margin-bottom:12px; font-size:1.4em;"><i class="fas fa-crown"></i> Premium Feature</h3>
+                    <p style="color:#555; max-width:520px; margin:0 auto 20px; line-height:1.6;">
+                        Employee management, bulk payslip generation, payroll analytics, and KRA compliance reports
+                        are available on the <strong>Premium plan</strong>.
+                    </p>
+                    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;">
+                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">👥 1,000 employees</span>
+                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📄 Bulk payslips</span>
+                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📊 Payroll reports</span>
+                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">🏦 KRA compliance</span>
+                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📅 Payroll history</span>
+                    </div>
+                    <a href="/account" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#006600,#009900);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:1em;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+                        <i class="fas fa-credit-card"></i>&nbsp; Subscribe — KES 499/mo or KES 4,999/yr
+                    </a>
+                    <p style="margin-top:14px;font-size:0.82em;color:#888;">Already subscribed? <a href="/auth.html?redirect=/employees.html" style="color:#006600;">Sign in</a></p>
+                </div>
+
                 <!-- Employer Profile Banner (populated from employers table when logged in) -->
                 <div id="employer-profile-banner" style="display:none; background:linear-gradient(135deg,#f0f7f0,#e0f0e0); border-left:4px solid #006600; border-radius:8px; padding:16px 20px; margin-bottom:20px;">
                     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
@@ -863,7 +885,7 @@
             return { paye, nssf, shif, ahl, net };
         }
 
-        // Check if user is authenticated
+        // Check if user is authenticated AND on a premium plan
         async function checkPremiumAccess() {
             const user = await checkAuthStatus();
             if (!user) {
@@ -871,6 +893,28 @@
                 return;
             }
             currentUser = user;
+
+            // Check premium via user_profiles
+            let isPremium = false;
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { data: profile } = await supabaseClient
+                        .from('user_profiles')
+                        .select('premium, premium_expires_at')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    if (profile && profile.premium === true) {
+                    const expiry = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+                    isPremium = !expiry || expiry > new Date();
+                }
+                } catch(e) { /* fail open — let user access if DB unavailable */ }
+            }
+
+            if (!isPremium) {
+                document.getElementById('premium-gate').style.display = 'block';
+                return;
+            }
+
             loadEmployerProfile(user);
             loadEmployees(user);
         }

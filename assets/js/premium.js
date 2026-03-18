@@ -1,66 +1,45 @@
 /**
  * /assets/js/premium.js
  *
- * Premium status check, trial period management, and UI gate.
- * Payment provider: Paystack (replaces PayPal)
+ * Premium status check and UI gate.
+ * Payment provider: Paystack
  *
- * TRIAL PERIOD:
- *   Organisation/Employer accounts → 30-day FREE trial from March 15 2026.
- *   No payment required during trial. Reminder shown 3 days before expiry.
- *
- * PRICING (post-trial) — charged in KES via Paystack:
+ * PRICING — charged in KES via Paystack:
  *   Monthly : KES 499  / month
  *   Yearly  : KES 4,999 / year  (saves KES 989 vs monthly)
  *
  * ENV required (set via window.__PAYSTACK_PUBLIC_KEY in your HTML head):
  *   window.__PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxx";
  *
+ * checkPremium() returns: { isPremium, expiresAt, isLoggedIn, email }
+ *
  * Compatible with Vercel and Cloudflare Pages.
  */
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const CACHE_KEY     = "sc_premium_status";
-const CACHE_TTL_MS  = 5 * 60 * 1000; // 5 minutes
-
-const TRIAL_START   = new Date("2026-03-15T00:00:00Z");
-const TRIAL_DAYS    = 30;
-const TRIAL_END     = new Date("2026-04-14T23:59:59Z"); // hardcoded, NOT computed
-const REMINDER_DAYS = 3;
+const CACHE_KEY    = "sc_premium_status";
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Pricing in KES (Paystack Kenya native currency)
 export const PRICE_MONTHLY_KES = 499;
 export const PRICE_YEARLY_KES  = 4999;
 export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; // 989
 
-export const SITE_URL           = "https://salarycalculator.co.ke";
-export const PAYSTACK_WEBHOOK   = `${SITE_URL}/api/paystack-webhook`;
+export const SITE_URL         = "https://salarycalculator.co.ke";
+export const PAYSTACK_WEBHOOK = `${SITE_URL}/api/paystack-webhook`;
 
 // Paystack plan/product codes — read from window variables set in HTML <head>.
 // Leave empty (or don't set the window var) for one-time charge (no auto-renew).
-export const PLAN_CODE_MONTHLY  = window.__PAYSTACK_PLAN_MONTHLY  || "";
-export const PLAN_CODE_YEARLY   = window.__PAYSTACK_PLAN_YEARLY   || "";
-
-// ── Trial helpers ─────────────────────────────────────────────────────────────
-
-export function getTrialStatus(accountType) {
-  const isOrgTier = ["employer", "organisation", "organization"].includes(
-    (accountType || "").toLowerCase()
-  );
-  if (!isOrgTier) {
-    return { onTrial: false, trialExpired: false, daysLeft: 0, reminderDue: false };
-  }
-  const now      = Date.now();
-  const msLeft   = TRIAL_END.getTime() - now;
-  const daysLeft = Math.max(0, Math.ceil(msLeft / 86400000));
-  const onTrial      = now >= TRIAL_START.getTime() && now < TRIAL_END.getTime();
-  const trialExpired = now >= TRIAL_END.getTime();
-  const reminderDue  = onTrial && daysLeft <= REMINDER_DAYS;
-  return { onTrial, trialExpired, daysLeft, reminderDue };
-}
+export const PLAN_CODE_MONTHLY = window.__PAYSTACK_PLAN_MONTHLY || "";
+export const PLAN_CODE_YEARLY  = window.__PAYSTACK_PLAN_YEARLY  || "";
 
 // ── Premium check ─────────────────────────────────────────────────────────────
 
+/**
+ * @param {import('@supabase/supabase-js').SupabaseClient} supabase
+ * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null }>}
+ */
 export async function checkPremium(supabase) {
   const cached = sessionStorage.getItem(CACHE_KEY);
   if (cached) {
@@ -75,40 +54,21 @@ export async function checkPremium(supabase) {
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
-    .select("premium, premium_expires_at, account_type, trial_activated_at, trial_expires_at")
+    .select("premium, premium_expires_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error || !profile) return _build({ isLoggedIn: true });
+  if (error || !profile) return _build({ isLoggedIn: true, email: user.email || null });
 
-  const now          = new Date();
-  const paidExpiry   = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
-  const isPaid       = profile.premium && (!paidExpiry || paidExpiry > now);
-
-  // Use DB-driven trial dates when available; fall back to hardcoded constants
-  const trialStart   = profile.trial_activated_at ? new Date(profile.trial_activated_at) : TRIAL_START;
-  const trialEnd     = profile.trial_expires_at   ? new Date(profile.trial_expires_at)   : TRIAL_END;
-  const onTrial      = profile.trial_activated_at !== null &&
-                       profile.trial_activated_at !== undefined &&
-                       now >= trialStart && now < trialEnd;
-  const trialExpired = profile.trial_activated_at !== null &&
-                       profile.trial_activated_at !== undefined &&
-                       !onTrial && now >= trialEnd;
-  const msLeft       = onTrial ? trialEnd.getTime() - now.getTime() : 0;
-  const daysLeft     = Math.max(0, Math.ceil(msLeft / 86400000));
-  const reminderDue  = onTrial && daysLeft <= REMINDER_DAYS;
-  const hasAccess    = isPaid || onTrial;
+  const now        = new Date();
+  const paidExpiry = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+  const isPremium  = profile.premium === true && (!paidExpiry || paidExpiry > now);
 
   const result = _build({
-    isLoggedIn:   true,
-    isPremium:    hasAccess,
-    isTrial:      onTrial && !isPaid,
-    trialExpired: trialExpired && !isPaid,
-    daysLeft,
-    reminderDue:  reminderDue && !isPaid,
-    expiresAt:    isPaid ? paidExpiry : (onTrial ? trialEnd : null),
-    accountType:  profile.account_type || null,
-    email:        user.email || null,
+    isLoggedIn: true,
+    isPremium,
+    expiresAt:  isPremium ? paidExpiry : null,
+    email:      user.email || null,
   });
 
   sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
@@ -117,15 +77,10 @@ export async function checkPremium(supabase) {
 
 function _build(o = {}) {
   return {
-    isLoggedIn:   false,
-    isPremium:    false,
-    isTrial:      false,
-    trialExpired: false,
-    daysLeft:     0,
-    reminderDue:  false,
-    expiresAt:    null,
-    accountType:  null,
-    email:        null,
+    isLoggedIn: false,
+    isPremium:  false,
+    expiresAt:  null,
+    email:      null,
     ...o,
   };
 }
@@ -229,29 +184,22 @@ async function _verifyPaystackTransaction(reference) {
 
 // ── Premium gate UI ───────────────────────────────────────────────────────────
 
-export function showPremiumGate(elementId, message = "This is a Premium feature", context = {}) {
+export function showPremiumGate(elementId, message = "This is a Premium feature") {
   const el = document.getElementById(elementId);
   if (!el) return;
   el.style.position = "relative";
   el.style.overflow = "hidden";
   if (el.querySelector(".sc-premium-gate")) return;
 
-  const isExpired = context.trialExpired;
-
   const gate = document.createElement("div");
   gate.className = "sc-premium-gate";
   gate.setAttribute("aria-label", "Premium feature locked");
   gate.innerHTML = `
     <div class="sc-premium-gate__inner">
-      <div class="sc-premium-gate__icon">${isExpired ? "⏰" : "🔒"}</div>
-      <h3 class="sc-premium-gate__title">
-        ${isExpired ? "Your Free Trial Has Ended" : message}
-      </h3>
+      <div class="sc-premium-gate__icon">🔒</div>
+      <h3 class="sc-premium-gate__title">${message}</h3>
       <p class="sc-premium-gate__body">
-        ${isExpired
-          ? "Your 30-day Organisation trial expired. Upgrade to keep full access."
-          : `Unlock all premium features from just <strong>KES ${PRICE_MONTHLY_KES}/month</strong>.`
-        }
+        Unlock all premium features from just <strong>KES ${PRICE_MONTHLY_KES}/month</strong>.
       </p>
 
       <div class="sc-premium-gate__pricing">
@@ -421,7 +369,7 @@ export async function gateFeature(supabase, elementId, message) {
     return false;
   }
 
-  showPremiumGate(elementId, message, { trialExpired: status.trialExpired });
+  showPremiumGate(elementId, message);
   return false;
 }
 
@@ -435,8 +383,7 @@ function _showSignInNudge(elementId) {
       <div class="sc-premium-gate__icon">👋</div>
       <h3 class="sc-premium-gate__title">Create a free account to continue</h3>
       <p class="sc-premium-gate__body">
-        Sign up free in 30 seconds.<br>
-        Organisation accounts get a free 30-day trial — no card needed.
+        Sign up free in 30 seconds to access premium features.
       </p>
       <a href="/auth" class="sc-btn sc-btn--primary" style="text-decoration:none">
         Sign Up Free →

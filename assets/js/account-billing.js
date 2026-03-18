@@ -5,8 +5,7 @@
  * Renders into <div id="sc-billing-widget">.
  *
  * Shows:
- *  - Current plan badge: Free / Organisation Trial / Premium
- *  - Trial countdown bar (if on trial)
+ *  - Current plan badge: Free / Premium
  *  - Feature list (locked/unlocked per tier)
  *  - Always-visible upgrade section with monthly/yearly selector
  *  - Pay button that opens Paystack popup directly
@@ -329,16 +328,26 @@ function injectStyles() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const FEATURES = [
-  { label: "Salary breakdown",          free: true  },
-  { label: "PAYE / NSSF / SHIF / HL",  free: true  },
-  { label: "Salary comparison",         free: true  },
-  { label: "Percentile ranking",        free: true  },
-  { label: "Gross-up calculator",       free: true  },
-  { label: "PDF payslip download",      free: false },
-  { label: "Bulk payroll export",       free: false },
-  { label: "Ad-free experience",        free: false },
-  { label: "Saved calculation history", free: false },
-  { label: "Priority support",          free: false },
+  // Free features
+  { label: "Salary breakdown",              free: true  },
+  { label: "PAYE / NSSF / SHIF / HL",      free: true  },
+  { label: "Salary comparison",             free: true  },
+  { label: "Percentile ranking",            free: true  },
+  { label: "Gross-up calculator",           free: true  },
+  { label: "Share results (WhatsApp / X)",  free: true  },
+  { label: "Watermarked SAMPLE payslip",    free: true  },
+  // Premium features
+  { label: "Clean PDF payslip (no watermark)", free: false },
+  { label: "Manage up to 1,000 employees",     free: false },
+  { label: "Bulk payslip generation",          free: false },
+  { label: "Full payroll history",             free: false },
+  { label: "Payroll analytics & reports",      free: false },
+  { label: "KRA compliance reports",           free: false },
+  { label: "Organization profile & branding",  free: false },
+  { label: "Multiple department management",   free: false },
+  { label: "Export payroll data (CSV / PDF)",  free: false },
+  { label: "Ad-free experience",               free: false },
+  { label: "Priority support",                 free: false },
 ];
 
 function formatDate(d) {
@@ -365,48 +374,16 @@ function render(status) {
   // ── Plan status card ──────────────────────────────────────────────────────
   let badgeClass, badgeLabel, planName, expiryLine;
 
-  if (status.isPremium && !status.isTrial) {
+  if (status.isPremium) {
     badgeClass  = "sc-ab-badge--premium";
     badgeLabel  = "⭐ Premium";
     planName    = "Premium Plan";
     expiryLine  = status.expiresAt ? `Renews / expires: ${formatDate(status.expiresAt)}` : "Active — no expiry set";
-  } else if (status.isTrial) {
-    badgeClass  = "sc-ab-badge--trial";
-    badgeLabel  = "🕐 Organisation Trial";
-    planName    = "Organisation Trial";
-    expiryLine  = status.expiresAt ? `Trial ends: ${formatDate(status.expiresAt)}` : "";
-  } else if (status.trialExpired) {
-    badgeClass  = "sc-ab-badge--expired";
-    badgeLabel  = "⏰ Trial Ended";
-    planName    = "Free Plan";
-    expiryLine  = "Your free trial has expired.";
   } else {
     badgeClass  = "sc-ab-badge--free";
     badgeLabel  = "Free";
     planName    = "Free Plan";
     expiryLine  = "Upgrade to unlock all features.";
-  }
-
-  // Trial progress bar (only shown when on active trial)
-  let trialBarHtml = "";
-  if (status.isTrial && status.expiresAt) {
-    // Total trial duration (must match interval in migration 005_trial_period.sql)
-    const TRIAL_TOTAL_DAYS = 30;
-    const daysUsed = Math.max(0, TRIAL_TOTAL_DAYS - status.daysLeft);
-    const pct      = Math.min(100, Math.round((daysUsed / TRIAL_TOTAL_DAYS) * 100));
-    const fillClass    = status.daysLeft <= 1 ? "sc-ab-trial-bar__fill--danger"
-                       : status.daysLeft <= 3 ? "sc-ab-trial-bar__fill--warning"
-                       : "";
-    trialBarHtml = `
-      <div class="sc-ab-trial-bar">
-        <div class="sc-ab-trial-bar__label">
-          <span>Trial progress</span>
-          <span>${status.daysLeft} day${status.daysLeft !== 1 ? "s" : ""} left</span>
-        </div>
-        <div class="sc-ab-trial-bar__track">
-          <div class="sc-ab-trial-bar__fill ${fillClass}" style="width:${pct}%"></div>
-        </div>
-      </div>`;
   }
 
   const planCardHtml = `
@@ -416,7 +393,6 @@ function render(status) {
         <span class="sc-ab-plan-name">${planName}</span>
       </div>
       <p class="sc-ab-expiry">${expiryLine}</p>
-      ${trialBarHtml}
     </div>`;
 
   // ── Feature list card ─────────────────────────────────────────────────────
@@ -440,9 +416,9 @@ function render(status) {
   const upgradeCardHtml = `
     <div class="sc-ab-card" id="sc-ab-upgrade-card">
       <p class="sc-ab-upgrade-title">
-        ${status.isPremium && !status.isTrial
+        ${status.isPremium
           ? "🔄 Extend or Change Your Plan"
-          : (status.trialExpired ? "⚡ Upgrade to Keep Your Access" : "⬆️ Upgrade to Premium")
+          : "⬆️ Upgrade to Premium"
         }
       </p>
 
