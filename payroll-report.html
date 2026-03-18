@@ -575,7 +575,10 @@ function renderStats(employees) {
 function renderCharts(employees) {
     // Status breakdown
     const statusCounts = { Active: 0, Off: 0, Suspended: 0, Terminated: 0 };
-    employees.forEach(e => { const s = e.status || 'Active'; if (statusCounts[s] !== undefined) statusCounts[s]++; else statusCounts[s] = 1; });
+    employees.forEach(e => {
+        const s = e.status || 'Active';
+        statusCounts[s] = (statusCounts[s] || 0) + 1;
+    });
     const total = employees.length || 1;
 
     document.getElementById('statusPills').innerHTML =
@@ -791,18 +794,28 @@ function exportReportPDF() {
 
 function buildTotals() {
     const employees = getEmployees();
-    return employees.reduce((acc, emp) => {
-        const g = Number(emp.salary)||0;
+    const nums = employees.reduce((acc, emp) => {
+        const g = Number(emp.salary) || 0;
         const d = calcDeductions(g);
-        acc.gross = (parseFloat(acc.gross||0) + g).toFixed(2);
-        acc.paye  = (parseFloat(acc.paye||0) + d.paye).toFixed(2);
-        acc.nssf  = (parseFloat(acc.nssf||0) + d.nssf).toFixed(2);
-        acc.shif  = (parseFloat(acc.shif||0) + d.shif).toFixed(2);
-        acc.ahl   = (parseFloat(acc.ahl||0) + d.ahl).toFixed(2);
-        acc.totalDeductions = (parseFloat(acc.totalDeductions||0) + d.totalDeductions).toFixed(2);
-        acc.net   = (parseFloat(acc.net||0) + d.net).toFixed(2);
+        acc.gross           += g;
+        acc.paye            += d.paye;
+        acc.nssf            += d.nssf;
+        acc.shif            += d.shif;
+        acc.ahl             += d.ahl;
+        acc.totalDeductions += d.totalDeductions;
+        acc.net             += d.net;
         return acc;
-    }, { gross:'0', paye:'0', nssf:'0', shif:'0', ahl:'0', totalDeductions:'0', net:'0' });
+    }, { gross: 0, paye: 0, nssf: 0, shif: 0, ahl: 0, totalDeductions: 0, net: 0 });
+    // Format once at the end
+    return {
+        gross:           nums.gross.toFixed(2),
+        paye:            nums.paye.toFixed(2),
+        nssf:            nums.nssf.toFixed(2),
+        shif:            nums.shif.toFixed(2),
+        ahl:             nums.ahl.toFixed(2),
+        totalDeductions: nums.totalDeductions.toFixed(2),
+        net:             nums.net.toFixed(2),
+    };
 }
 
 function buildStatsSummaryHtml(employees) {
