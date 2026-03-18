@@ -510,15 +510,10 @@ async function updateAuthUI() {
             let isAdmin = false;
             if (supabaseClient && isSupabaseConfigured()) {
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('admin_users')
-                        .select('id')
-                        .eq('user_id', user.id)
-                        .maybeSingle();
-                    isAdmin = !error && !!data;
+                    const { data, error } = await supabaseClient.rpc('is_admin');
+                    isAdmin = !error && data === true;
                 } catch (e) {
-                    // Not an admin or table doesn't exist yet
-                    isAdmin = false;
+                    // RPC not available yet — fall through to email check
                 }
             }
             // Email-based fallback so kesalarycalculator@gmail.com always sees the link

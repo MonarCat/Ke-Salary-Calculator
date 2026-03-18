@@ -943,7 +943,7 @@
             }
 
             loadEmployerProfile(user);
-            loadEmployees(user);
+            await loadEmployees(user);
         }
 
         // Load employer profile from the employers table and display in banner
@@ -992,19 +992,139 @@
             }
         }
 
-        // Load employees from localStorage (user-specific key)
-        function loadEmployees(user) {
+        // ── Supabase ↔ local employee mapping helpers ─────────────────────────────
+
+        // Check if a string is a valid UUID
+        function isUuid(str) {
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        }
+
+        // Map a Supabase DB row to the local employee object format
+        function dbEmpToLocal(row) {
+            return {
+                id:              row.id,
+                name:            row.employee_name  || '',
+                employeeId:      row.employee_id    || '',
+                email:           row.email          || '',
+                phone:           row.phone_number   || '',
+                kraPin:          row.kra_pin        || '',
+                department:      row.department     || '',
+                position:        row.position       || '',
+                status:          row.status         || 'Active',
+                salary:          row.gross_salary   || 0,
+                allowances:      row.allowances     || 0,
+                bankName:        row.bank_name      || '',
+                bankBranch:      row.bank_branch    || '',
+                accountName:     row.account_name   || '',
+                accountNumber:   row.account_number || '',
+                nokName:         row.nok_name       || '',
+                nokRelationship: row.nok_relationship || '',
+                nokPhone:        row.nok_phone      || ''
+            };
+        }
+
+        // Map a local employee object to the Supabase DB row format
+        function localEmpToDb(emp, employerId) {
+            return {
+                employer_id:      employerId,
+                employee_name:    emp.name,
+                employee_id:      emp.employeeId,
+                email:            emp.email        || null,
+                phone_number:     emp.phone        || null,
+                kra_pin:          emp.kraPin       || null,
+                department:       emp.department   || null,
+                position:         emp.position     || null,
+                status:           emp.status       || 'Active',
+                gross_salary:     parseFloat(emp.salary)     || 0,
+                allowances:       parseFloat(emp.allowances) || 0,
+                bank_name:        emp.bankName      || null,
+                bank_branch:      emp.bankBranch    || null,
+                account_name:     emp.accountName   || null,
+                account_number:   emp.accountNumber || null,
+                nok_name:         emp.nokName       || null,
+                nok_relationship: emp.nokRelationship || null,
+                nok_phone:        emp.nokPhone       || null
+            };
+        }
+
+        // Migrate existing localStorage employees to Supabase (one-time, on first empty load)
+        async function migrateEmployeesToSupabase(localEmployees, employerId) {
+            if (!supabaseClient || !isSupabaseConfigured() || !localEmployees.length) return;
+            try {
+                const dbRows = localEmployees.map(emp => localEmpToDb(emp, employerId));
+                await supabaseClient.from('employees').insert(dbRows);
+            } catch (e) {
+                // Migration failed — data stays in localStorage until next attempt
+            }
+        }
+
+        // Load employees: Supabase first, localStorage as fallback/cache
+        async function loadEmployees(user) {
             const userKey = 'employees_' + user.id;
+
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('employees')
+                        .select('*')
+                        .eq('employer_id', user.id)
+                        .order('created_at', { ascending: true });
+
+                    if (!error && data) {
+                        if (data.length > 0) {
+                            // Supabase is the source of truth
+                            employees = data.map(dbEmpToLocal);
+                            localStorage.setItem(userKey, JSON.stringify(employees));
+                            renderEmployees();
+                            return;
+                        }
+
+                        // Supabase returned empty — check if there is local data to migrate
+                        const rawLocal = localStorage.getItem(userKey) || localStorage.getItem('employees');
+                        if (rawLocal) {
+                            try {
+                                const localList = JSON.parse(rawLocal);
+                                if (localList.length > 0) {
+                                    await migrateEmployeesToSupabase(localList, user.id);
+                                    // Reload from Supabase after migration
+                                    const { data: migrated } = await supabaseClient
+                                        .from('employees')
+                                        .select('*')
+                                        .eq('employer_id', user.id)
+                                        .order('created_at', { ascending: true });
+                                    if (migrated && migrated.length > 0) {
+                                        employees = migrated.map(dbEmpToLocal);
+                                        localStorage.setItem(userKey, JSON.stringify(employees));
+                                        localStorage.removeItem('employees');
+                                        renderEmployees();
+                                        return;
+                                    }
+                                }
+                            } catch (parseErr) { /* ignore corrupt cache */ }
+                        }
+
+                        employees = [];
+                        renderEmployees();
+                        return;
+                    }
+                } catch (e) {
+                    // Supabase unavailable — fall through to localStorage
+                }
+            }
+
+            // Fallback: localStorage only
             const saved = localStorage.getItem(userKey);
             if (saved) {
-                employees = JSON.parse(saved);
+                try { employees = JSON.parse(saved); } catch (e) { employees = []; }
             } else {
                 // Migrate any existing generic-key data to this user's key
                 const generic = localStorage.getItem('employees');
                 if (generic) {
-                    employees = JSON.parse(generic);
-                    localStorage.setItem(userKey, generic);
-                    localStorage.removeItem('employees');
+                    try {
+                        employees = JSON.parse(generic);
+                        localStorage.setItem(userKey, generic);
+                        localStorage.removeItem('employees');
+                    } catch (e) { employees = []; }
                 } else {
                     employees = [];
                 }
@@ -1199,7 +1319,7 @@
         }
 
         // Save employee
-        function saveEmployee(event) {
+        async function saveEmployee(event) {
             event.preventDefault();
             // Defense-in-depth: enforce free plan limit when adding a new employee
             if (isFreePlan && !currentEmployeeId && employees.length >= FREE_EMPLOYEE_LIMIT) {
@@ -1207,8 +1327,8 @@
                 _showFreeEmployeeLimitModal();
                 return;
             }
-            const employee = {
-                id: currentEmployeeId || Date.now().toString(),
+            const employeeData = {
+                id: currentEmployeeId || null,
                 name: document.getElementById('emp-name').value,
                 employeeId: document.getElementById('emp-id').value,
                 email: document.getElementById('emp-email').value,
@@ -1228,11 +1348,44 @@
                 nokPhone: document.getElementById('emp-nok-phone').value
             };
 
+            // Persist to Supabase when available
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const dbRow = localEmpToDb(employeeData, currentUser.id);
+                    if (currentEmployeeId && isUuid(currentEmployeeId)) {
+                        // Update existing DB record
+                        await supabaseClient
+                            .from('employees')
+                            .update(dbRow)
+                            .eq('id', currentEmployeeId)
+                            .eq('employer_id', currentUser.id);
+                        employeeData.id = currentEmployeeId;
+                    } else {
+                        // Insert new DB record and use the DB-generated UUID
+                        const { data, error } = await supabaseClient
+                            .from('employees')
+                            .insert(dbRow)
+                            .select()
+                            .single();
+                        if (!error && data) {
+                            employeeData.id = data.id;
+                        }
+                    }
+                } catch (e) {
+                    // Supabase unavailable — assign a local fallback ID
+                }
+            }
+
+            // Assign a fallback ID if Supabase did not provide one
+            if (!employeeData.id) {
+                employeeData.id = Date.now().toString();
+            }
+
             if (currentEmployeeId) {
                 const index = employees.findIndex(e => e.id === currentEmployeeId);
-                employees[index] = employee;
+                if (index !== -1) employees[index] = employeeData;
             } else {
-                employees.push(employee);
+                employees.push(employeeData);
             }
 
             localStorage.setItem('employees_' + currentUser.id, JSON.stringify(employees));
@@ -1267,8 +1420,22 @@
         }
 
         // Delete employee
-        function deleteEmployee(id) {
+        async function deleteEmployee(id) {
             if (!confirm('Are you sure you want to delete this employee?')) return;
+
+            // Remove from Supabase when available
+            if (supabaseClient && isSupabaseConfigured() && isUuid(id)) {
+                try {
+                    await supabaseClient
+                        .from('employees')
+                        .delete()
+                        .eq('id', id)
+                        .eq('employer_id', currentUser.id);
+                } catch (e) {
+                    // Supabase unavailable — still remove from local list
+                }
+            }
+
             employees = employees.filter(e => e.id !== id);
             localStorage.setItem('employees_' + currentUser.id, JSON.stringify(employees));
             renderEmployees();

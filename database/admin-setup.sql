@@ -14,50 +14,48 @@ CREATE TABLE IF NOT EXISTS admin_users (
 -- Enable RLS on admin_users
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
+-- Helper: check whether the currently signed-in user is a super-admin.
+-- SECURITY DEFINER with an empty search_path means PostgreSQL evaluates the
+-- query *without* applying the RLS policies on admin_users, breaking the
+-- infinite-recursion that would otherwise occur when a policy on admin_users
+-- itself references admin_users.
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE user_id = auth.uid() AND is_super_admin = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+GRANT EXECUTE ON FUNCTION public.is_super_admin TO authenticated;
+
 -- Policy: Anyone can check if they are admin (needed for UI)
 DROP POLICY IF EXISTS "Users can check own admin status" ON admin_users;
 CREATE POLICY "Users can check own admin status" ON admin_users
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy: Super admins can view all admins
+-- Uses is_super_admin() (SECURITY DEFINER) to avoid infinite RLS recursion.
 DROP POLICY IF EXISTS "Super admins can view all admins" ON admin_users;
 CREATE POLICY "Super admins can view all admins" ON admin_users
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM admin_users 
-      WHERE user_id = auth.uid() AND is_super_admin = TRUE
-    )
-  );
+  FOR SELECT USING (public.is_super_admin());
 
 -- Policy: Super admins can grant admin access
 DROP POLICY IF EXISTS "Super admins can grant admin" ON admin_users;
 CREATE POLICY "Super admins can grant admin" ON admin_users
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM admin_users 
-      WHERE user_id = auth.uid() AND is_super_admin = TRUE
-    )
-  );
+  FOR INSERT WITH CHECK (public.is_super_admin());
 
 -- Policy: Super admins can update admin records
 DROP POLICY IF EXISTS "Super admins can update admin records" ON admin_users;
 CREATE POLICY "Super admins can update admin records" ON admin_users
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM admin_users
-      WHERE user_id = auth.uid() AND is_super_admin = TRUE
-    )
-  );
+  FOR UPDATE USING (public.is_super_admin());
 
 -- Policy: Super admins can revoke admin access
 DROP POLICY IF EXISTS "Super admins can delete admin records" ON admin_users;
 CREATE POLICY "Super admins can delete admin records" ON admin_users
-  FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM admin_users
-      WHERE user_id = auth.uid() AND is_super_admin = TRUE
-    )
-  );
+  FOR DELETE USING (public.is_super_admin());
 
 -- 2. Create helper function to check if user is admin
 -- SECURITY DEFINER with search_path='' prevents search-path injection.
