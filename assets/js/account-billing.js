@@ -336,9 +336,12 @@ const FEATURES = [
   { label: "Gross-up calculator",           free: true  },
   { label: "Share results (WhatsApp / X)",  free: true  },
   { label: "Watermarked SAMPLE payslip",    free: true  },
+  { label: "Up to 2 employees",             free: true  },
+  { label: "2 payslip downloads / month",   free: true  },
   // Premium features
   { label: "Clean PDF payslip (no watermark)", free: false },
-  { label: "Manage up to 1,000 employees",     free: false },
+  { label: "Unlimited employees",              free: false },
+  { label: "Unlimited payslip downloads",      free: false },
   { label: "Bulk payslip generation",          free: false },
   { label: "Full payroll history",             free: false },
   { label: "Payroll analytics & reports",      free: false },

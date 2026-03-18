@@ -419,25 +419,22 @@
             </nav>
 
             <div class="employees-container">
-                <!-- Premium gate — shown when user is logged in but not on premium plan -->
-                <div id="premium-gate" style="display:none; text-align:center; padding:48px 20px; background:#fff; border:1px solid #e0e0e0; border-radius:12px; margin-bottom:24px;">
-                    <div style="font-size:3.5em; margin-bottom:16px;">🔒</div>
-                    <h3 style="color:#006600; margin-bottom:12px; font-size:1.4em;"><i class="fas fa-crown"></i> Premium Feature</h3>
-                    <p style="color:#555; max-width:520px; margin:0 auto 20px; line-height:1.6;">
-                        Employee management, bulk payslip generation, payroll analytics, and KRA compliance reports
-                        are available on the <strong>Premium plan</strong>.
-                    </p>
-                    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;">
-                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">👥 1,000 employees</span>
-                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📄 Bulk payslips</span>
-                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📊 Payroll reports</span>
-                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">🏦 KRA compliance</span>
-                        <span style="background:#f0fdf4;border:1px solid #86efac;padding:6px 14px;border-radius:20px;font-size:0.85em;color:#166534;">📅 Payroll history</span>
+                <!-- Free plan banner — shown to free (non-premium) users -->
+                <div id="free-plan-banner" style="display:none; background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
+                    <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+                        <div style="font-size:1.6em;line-height:1;">⭐</div>
+                        <div style="flex:1;min-width:200px;">
+                            <strong style="color:#92400e;font-size:1em;">Free Plan</strong>
+                            <div style="margin-top:6px;display:flex;gap:16px;flex-wrap:wrap;font-size:0.88em;color:#555;">
+                                <span>👥 Employees: <strong id="free-emp-count">0</strong> / 2</span>
+                                <span>📄 Downloads this month: <strong id="free-dl-count">0</strong> / 2</span>
+                            </div>
+                            <p style="margin:6px 0 0;font-size:0.82em;color:#78350f;">
+                                Upgrade to <strong>Premium</strong> for unlimited employees, unlimited payslip downloads, payroll reports, and more.
+                                <a href="/account.html" style="color:#006600;font-weight:600;margin-left:4px;">Upgrade now →</a>
+                            </p>
+                        </div>
                     </div>
-                    <a href="/account" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#006600,#009900);color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:1em;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-                        <i class="fas fa-credit-card"></i>&nbsp; Subscribe — KES 499/mo or KES 4,999/yr
-                    </a>
-                    <p style="margin-top:14px;font-size:0.82em;color:#888;">Already subscribed? <a href="/auth.html?redirect=/employees.html" style="color:#006600;">Sign in</a></p>
                 </div>
 
                 <!-- Employer Profile Banner (populated from employers table when logged in) -->
@@ -474,10 +471,10 @@
                                     <i class="fas fa-file-pdf"></i> PDF
                                 </button>
                             </div>
-                            <button class="add-employee-btn" onclick="openAddEmployeeModal()">
+                            <button class="add-employee-btn" id="add-employee-btn" onclick="openAddEmployeeModal()">
                                 <i class="fas fa-plus"></i> Add Employee
                             </button>
-                            <a href="/payroll-report.html" class="add-employee-btn" style="text-decoration:none;">
+                            <a href="/payroll-report.html" id="payroll-report-link" class="add-employee-btn" style="text-decoration:none;">
                                 <i class="fas fa-chart-bar"></i> Payroll Report
                             </a>
                         </div>
@@ -849,6 +846,32 @@
         let employees = [];
         let currentEmployeeId = null;
         let currentUser = null;
+        let isFreePlan = false;
+
+        const FREE_EMPLOYEE_LIMIT = 2;
+        const FREE_DOWNLOAD_LIMIT = 2;
+
+        // ── Free plan download tracking (localStorage, monthly reset via key) ──
+        function _buildMonthlyDownloadKey(userId) {
+            const d = new Date();
+            return `payslip_dl_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}_${userId}`;
+        }
+        function getMonthlyDownloads(userId) {
+            return parseInt(localStorage.getItem(_buildMonthlyDownloadKey(userId)) || '0', 10);
+        }
+        function incrementDownloads(userId) {
+            const k = _buildMonthlyDownloadKey(userId);
+            localStorage.setItem(k, String((parseInt(localStorage.getItem(k) || '0', 10)) + 1));
+        }
+
+        // Update the free plan banner counters
+        function updateFreePlanBanner() {
+            if (!isFreePlan || !currentUser) return;
+            const empEl = document.getElementById('free-emp-count');
+            const dlEl  = document.getElementById('free-dl-count');
+            if (empEl) empEl.textContent = employees.length;
+            if (dlEl)  dlEl.textContent  = getMonthlyDownloads(currentUser.id);
+        }
 
         // Calculate statutory deductions for a given gross salary (2026 rates)
         function calcDeductions(gross) {
@@ -885,8 +908,9 @@
             return { paye, nssf, shif, ahl, net };
         }
 
-        // Check if user is authenticated AND on a premium plan
-        async function checkPremiumAccess() {
+        // Initialise user access: redirects unauthenticated users, detects plan,
+        // and loads employees — applying free-plan limits when not on premium.
+        async function initializeUserAccess() {
             const user = await checkAuthStatus();
             if (!user) {
                 window.location.href = '/auth.html?redirect=/employees.html';
@@ -910,9 +934,12 @@
                 } catch(e) { /* fail open — let user access if DB unavailable */ }
             }
 
-            if (!isPremium) {
-                document.getElementById('premium-gate').style.display = 'block';
-                return;
+            isFreePlan = !isPremium;
+
+            if (isFreePlan) {
+                // Show free-plan banner and hide premium-only controls
+                document.getElementById('free-plan-banner').style.display = 'block';
+                document.getElementById('payroll-report-link').style.display = 'none';
             }
 
             loadEmployerProfile(user);
@@ -1034,11 +1061,13 @@
                 emptyState.style.display = 'block';
                 exportBar.style.display = 'none';
                 document.getElementById('compliance-summary').style.display = 'none';
+                updateFreePlanBanner();
                 return;
             }
 
             emptyState.style.display = 'none';
-            exportBar.style.display = 'flex';
+            // Export bar and compliance summary are premium-only
+            exportBar.style.display = isFreePlan ? 'none' : 'flex';
 
             list.innerHTML = employees.map(emp => {
                 const gross = Number(emp.salary) || 0;
@@ -1129,16 +1158,39 @@
             document.getElementById('totalShif').textContent  = fmtKES(totals.shif);
             document.getElementById('totalAhl').textContent   = fmtKES(totals.ahl);
             document.getElementById('totalNet').textContent   = fmtKES(totals.net);
-            document.getElementById('compliance-summary').style.display = 'block';
+            // Compliance summary is a premium feature
+            document.getElementById('compliance-summary').style.display = isFreePlan ? 'none' : 'block';
+
+            updateFreePlanBanner();
         }
 
         // Open add employee modal
         function openAddEmployeeModal() {
+            if (isFreePlan && employees.length >= FREE_EMPLOYEE_LIMIT) {
+                _showFreeEmployeeLimitModal();
+                return;
+            }
             currentEmployeeId = null;
             document.getElementById('modal-title').textContent = 'Add Employee';
             document.getElementById('employee-form').reset();
             document.getElementById('emp-status').value = 'Active';
             document.getElementById('employee-modal').classList.add('active');
+        }
+
+        // Show upgrade prompt when free plan employee limit is reached
+        function _showFreeEmployeeLimitModal() {
+            const msg = [
+                `You've reached the free plan limit of ${FREE_EMPLOYEE_LIMIT} employees.\n\n`,
+                `Upgrade to Premium (KES 499/mo) for:\n`,
+                `  • Unlimited employees\n`,
+                `  • Unlimited payslip downloads\n`,
+                `  • Payroll reports & analytics\n`,
+                `  • Bulk payslip generation\n\n`,
+                `Visit Account & Billing to upgrade.`
+            ].join('');
+            if (confirm(msg + '\n\nGo to Account & Billing now?')) {
+                window.location.href = '/account.html';
+            }
         }
 
         // Close employee modal
@@ -1149,6 +1201,12 @@
         // Save employee
         function saveEmployee(event) {
             event.preventDefault();
+            // Defense-in-depth: enforce free plan limit when adding a new employee
+            if (isFreePlan && !currentEmployeeId && employees.length >= FREE_EMPLOYEE_LIMIT) {
+                closeEmployeeModal();
+                _showFreeEmployeeLimitModal();
+                return;
+            }
             const employee = {
                 id: currentEmployeeId || Date.now().toString(),
                 name: document.getElementById('emp-name').value,
@@ -1312,6 +1370,22 @@
         }
 
         function printEmployeePayslip() {
+            if (isFreePlan) {
+                const used = getMonthlyDownloads(currentUser.id);
+                if (used >= FREE_DOWNLOAD_LIMIT) {
+                    const msg = [
+                        `You've used all ${FREE_DOWNLOAD_LIMIT} payslip downloads for this month.\n\n`,
+                        `Upgrade to Premium (KES 499/mo) for unlimited payslip downloads.\n\n`,
+                        `Go to Account & Billing to upgrade?`
+                    ].join('');
+                    if (confirm(msg)) {
+                        window.location.href = '/account.html';
+                    }
+                    return;
+                }
+                incrementDownloads(currentUser.id);
+                updateFreePlanBanner();
+            }
             window.print();
         }
 
@@ -1430,9 +1504,9 @@
 
         // Check premium access on page load
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkPremiumAccess);
+            document.addEventListener('DOMContentLoaded', initializeUserAccess);
         } else {
-            checkPremiumAccess();
+            initializeUserAccess();
         }
     </script>
     <!-- Kazi Chatbot -->
