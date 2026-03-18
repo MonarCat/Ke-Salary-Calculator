@@ -506,18 +506,15 @@ async function updateAuthUI() {
             // User is logged in
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
             
-            // Check if user is admin
+            // Check if user is admin via the SECURITY DEFINER RPC to avoid
+            // recursive RLS evaluation on the admin_users table (which causes 500).
             let isAdmin = false;
             if (supabaseClient && isSupabaseConfigured()) {
                 try {
-                    const { data, error } = await supabaseClient
-                        .from('admin_users')
-                        .select('id')
-                        .eq('user_id', user.id)
-                        .maybeSingle();
-                    isAdmin = !error && !!data;
+                    const { data, error } = await supabaseClient.rpc('is_admin');
+                    isAdmin = !error && data === true;
                 } catch (e) {
-                    // Not an admin or table doesn't exist yet
+                    // RPC not available yet – fall through to email fallback
                     isAdmin = false;
                 }
             }

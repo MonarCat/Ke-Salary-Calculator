@@ -488,10 +488,54 @@ async function init() {
     }
 
     document.getElementById('report-content').style.display = 'block';
+    // Sync employees from Supabase into localStorage cache before generating
+    // the report so the data is fresh even after clearing browser storage.
+    await syncEmployeesFromSupabase(currentUser);
     generateReport();
 }
 
 // ── Data loading ──────────────────────────────────────────────────────────
+
+// Fetch the latest employees from Supabase and update the localStorage cache.
+// Falls back silently if Supabase is unavailable.
+async function syncEmployeesFromSupabase(user) {
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+    if (typeof isSupabaseConfigured !== 'function' || !isSupabaseConfigured()) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('employees')
+            .select('*')
+            .eq('employer_id', user.id)
+            .order('created_at', { ascending: true });
+        if (!error && data && data.length > 0) {
+            // Map Supabase rows to the same shape expected by the rest of the page.
+            const mapped = data.map(row => ({
+                id:              row.id,
+                name:            row.employee_name,
+                employeeId:      row.employee_id,
+                email:           row.email           || '',
+                phone:           row.phone_number    || '',
+                kraPin:          row.kra_pin         || '',
+                department:      row.department      || '',
+                position:        row.position        || '',
+                status:          row.status          || 'Active',
+                salary:          row.gross_salary    || 0,
+                allowances:      row.allowances      || 0,
+                bankName:        row.bank_name       || '',
+                bankBranch:      row.bank_branch     || '',
+                accountName:     row.account_name    || '',
+                accountNumber:   row.account_number  || '',
+                nokName:         row.nok_name        || '',
+                nokRelationship: row.nok_relationship || '',
+                nokPhone:        row.nok_phone       || ''
+            }));
+            localStorage.setItem('employees_' + user.id, JSON.stringify(mapped));
+        }
+    } catch (e) {
+        // Fail silently — localStorage data will be used instead
+    }
+}
+
 function getEmployees() {
     if (!currentUser) return [];
     const key = 'employees_' + currentUser.id;
