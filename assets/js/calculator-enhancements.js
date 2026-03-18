@@ -14,7 +14,6 @@
  */
 
 import { checkPremium, gateFeature, invalidatePremiumCache } from "./premium.js";
-import { initTrialBanner }    from "./trial-banner.js";
 import { initFinancialCards } from "./financial-tools.js";
 import { renderShareCard }    from "./share-result.js";
 import { initNewsletter }     from "./newsletter.js";
@@ -33,34 +32,21 @@ const adManager = new AdSlotManager();
 
 async function initEnhancements() {
   const status = await checkPremium(supabase);
-  const { isPremium, isTrial, email } = status;
+  const { isPremium, email } = status;
 
   // Expose user email globally — Paystack popup needs it
   if (email) window.__SC_USER_EMAIL = email;
 
-  // ── 1. Trial reminder banner ──────────────────────────────────────────────
-  await initTrialBanner(supabase);
-
-  // ── 2. Ad slots (hidden for premium) ─────────────────────────────────────
+  // ── 1. Ad slots (hidden for premium) ─────────────────────────────────────
   adManager.init(isPremium);
 
-  // ── 3. Gate PDF payslip behind premium ───────────────────────────────────
-  const canDownloadPdf = await gateFeature(
-    supabase,
-    "payslip-pdf-section",
-    "PDF Payslip Download is a Premium feature"
-  );
-  if (!canDownloadPdf) {
-    document.getElementById("payslip-print-btn")?.setAttribute("disabled", "true");
-  }
-
-  // ── 4. Newsletter widget ──────────────────────────────────────────────────
+  // ── 2. Newsletter widget ──────────────────────────────────────────────────
   initNewsletter(supabase, "newsletter-widget-calc", { source: "calculator" });
 
-  // ── 5. Financial affiliate cards ─────────────────────────────────────────
+  // ── 3. Financial affiliate cards ─────────────────────────────────────────
   initFinancialCards({ afterElementId: "salary-breakdown-table" });
 
-  // ── 6. Share card on each calculation ────────────────────────────────────
+  // ── 4. Share card on each calculation ────────────────────────────────────
   document.addEventListener("salaryCalculated", (e) => {
     const data = e.detail;
     renderShareCard("share-result-container", data, "salary-breakdown-table");
@@ -68,15 +54,15 @@ async function initEnhancements() {
     if (el) el.style.display = "block";
   });
 
-  // ── 7. Nav badge (Premium / Trial) ───────────────────────────────────────
+  // ── 5. Nav badge (Premium) ────────────────────────────────────────────────
   if (isPremium) {
     const nav = document.getElementById("nav-user-area");
     if (nav) {
       const badge = document.createElement("span");
       badge.className = "sc-premium-badge";
-      badge.textContent = isTrial ? "✨ Trial" : "⭐ Premium";
+      badge.textContent = "⭐ Premium";
       Object.assign(badge.style, {
-        background:   isTrial ? "#0ea5e9" : "#16a34a",
+        background:   "#16a34a",
         color:        "#fff",
         fontSize:     "0.72rem",
         fontWeight:   "700",
@@ -96,21 +82,3 @@ if (document.readyState === "loading") {
 } else {
   initEnhancements();
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HOW TO FIRE salaryCalculated from your existing calculator function:
-// ─────────────────────────────────────────────────────────────────────────────
-/*
-  Add this ONE LINE at the end of your calculateSalary() function:
-
-  document.dispatchEvent(new CustomEvent('salaryCalculated', {
-    detail: {
-      gross:   parseFloat(grossSalary),
-      net:     parseFloat(netPay),
-      paye:    parseFloat(payeAmount),
-      nssf:    parseFloat(nssfAmount),
-      shif:    parseFloat(shifAmount),
-      housing: parseFloat(housingLevy),
-    }
-  }));
-*/

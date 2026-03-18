@@ -1077,7 +1077,7 @@
 
                     <div class="payslip-actions">
                         <button onclick="resetPayslip()" class="no-print">Reset</button>
-                        <button onclick="printPayslip()" class="no-print">Print/Download</button>
+                        <button id="payslip-print-btn" class="no-print">Print/Download</button>
                     </div>
                 </div>
 
@@ -1192,6 +1192,16 @@
     <script src="assets/js/script.js?v=2.0"></script>
     <!-- Premium, sharing, newsletter & financial-tools components -->
     <script src="src/components/calculator-enhancements.js" defer></script>
+    <!-- Payslip watermark download (free = SAMPLE PNG, premium = clean print) -->
+    <script type="module">
+      import { initPayslipDownload } from '/assets/js/payslip-watermark.js';
+      import { createClient }        from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+      const _sb = window.supabaseClient || createClient(
+        window.__SUPABASE_URL      || 'https://wklhcmaodxatavuoduhd.supabase.co',
+        window.__SUPABASE_ANON_KEY || ''
+      );
+      initPayslipDownload(_sb, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
+    </script>
     <script>
         // Dark mode
         (function() {
