@@ -73,9 +73,10 @@ CREATE TABLE employees (
   phone_number     TEXT,
   department       TEXT,
   position         TEXT,
-  gross_salary     NUMERIC(10, 2) DEFAULT 0,
+  status           TEXT DEFAULT 'Active'
+                     CHECK (status IN ('Active', 'Off', 'Suspended', 'Terminated')),
+  gross_salary     NUMERIC(10, 2),
   allowances       NUMERIC(10, 2) DEFAULT 0,
-  status           TEXT DEFAULT 'Active',
   bank_name        TEXT,
   bank_branch      TEXT,
   account_name     TEXT,
@@ -90,6 +91,9 @@ CREATE TABLE employees (
 
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ```
+
+> **Migration note:** If you created the `employees` table before these columns were
+> added, run `database/employees-extra-columns.sql` in the Supabase SQL Editor.
 
 **RLS Policies:**
 

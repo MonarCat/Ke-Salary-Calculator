@@ -79,6 +79,44 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 -- elevated privileges, call with the service_role key instead.
 GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;
 
+-- 2b. Helper function to check super-admin status.
+-- SECURITY DEFINER bypasses RLS so this function can safely query admin_users
+-- from within admin_users RLS policies without causing infinite recursion.
+CREATE OR REPLACE FUNCTION public.is_super_admin(check_user_id UUID DEFAULT NULL)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_user_id UUID;
+BEGIN
+  v_user_id := COALESCE(check_user_id, auth.uid());
+  RETURN EXISTS (
+    SELECT 1 FROM public.admin_users
+    WHERE user_id = v_user_id AND is_super_admin = TRUE
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+GRANT EXECUTE ON FUNCTION public.is_super_admin TO authenticated;
+
+-- 2c. Re-create the admin_users policies that previously caused infinite recursion.
+-- The inline "EXISTS (SELECT 1 FROM admin_users ...)" subqueries inside the RLS
+-- policies for admin_users trigger recursive RLS evaluation, returning HTTP 500.
+-- Replacing them with SECURITY DEFINER helper functions breaks the cycle.
+DROP POLICY IF EXISTS "Super admins can view all admins" ON admin_users;
+CREATE POLICY "Super admins can view all admins" ON admin_users
+  FOR SELECT USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admins can grant admin" ON admin_users;
+CREATE POLICY "Super admins can grant admin" ON admin_users
+  FOR INSERT WITH CHECK (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admins can update admin records" ON admin_users;
+CREATE POLICY "Super admins can update admin records" ON admin_users
+  FOR UPDATE USING (public.is_super_admin());
+
+DROP POLICY IF EXISTS "Super admins can delete admin records" ON admin_users;
+CREATE POLICY "Super admins can delete admin records" ON admin_users
+  FOR DELETE USING (public.is_super_admin());
+
 -- 3. Update blog_posts policies to allow admin full access
 DROP POLICY IF EXISTS "Admins can update any post" ON blog_posts;
 CREATE POLICY "Admins can update any post" ON blog_posts
