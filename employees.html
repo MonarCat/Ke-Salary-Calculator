@@ -992,9 +992,95 @@
             }
         }
 
-        // Load employees from localStorage (user-specific key)
-        function loadEmployees(user) {
+        // ── Supabase ↔ localStorage helpers ──────────────────────────────────
+
+        // Map a Supabase row to the in-memory employee object shape.
+        function _fromRow(row) {
+            return {
+                id:              row.id,
+                name:            row.employee_name,
+                employeeId:      row.employee_id,
+                email:           row.email           || '',
+                phone:           row.phone_number    || '',
+                kraPin:          row.kra_pin         || '',
+                department:      row.department      || '',
+                position:        row.position        || '',
+                status:          row.status          || 'Active',
+                salary:          row.gross_salary    || 0,
+                allowances:      row.allowances      || 0,
+                bankName:        row.bank_name       || '',
+                bankBranch:      row.bank_branch     || '',
+                accountName:     row.account_name    || '',
+                accountNumber:   row.account_number  || '',
+                nokName:         row.nok_name        || '',
+                nokRelationship: row.nok_relationship || '',
+                nokPhone:        row.nok_phone       || ''
+            };
+        }
+
+        // Map an in-memory employee object to a Supabase insert/update payload.
+        function _toRow(emp, userId) {
+            const row = {
+                employee_name:    emp.name,
+                employee_id:      emp.employeeId,
+                email:            emp.email           || null,
+                phone_number:     emp.phone           || null,
+                kra_pin:          emp.kraPin          || null,
+                department:       emp.department      || null,
+                position:         emp.position        || null,
+                status:           emp.status          || 'Active',
+                gross_salary:     parseFloat(emp.salary)     || 0,
+                allowances:       parseFloat(emp.allowances) || 0,
+                bank_name:        emp.bankName        || null,
+                bank_branch:      emp.bankBranch      || null,
+                account_name:     emp.accountName     || null,
+                account_number:   emp.accountNumber   || null,
+                nok_name:         emp.nokName         || null,
+                nok_relationship: emp.nokRelationship || null,
+                nok_phone:        emp.nokPhone        || null
+            };
+            if (userId) row.employer_id = userId;
+            return row;
+        }
+
+        // Persist current employees array to localStorage cache.
+        function _saveCache(userId) {
+            localStorage.setItem('employees_' + userId, JSON.stringify(employees));
+        }
+
+        // Load employees — Supabase is the source of truth.
+        // Falls back to localStorage if Supabase is unavailable.
+        async function loadEmployees(user) {
             const userKey = 'employees_' + user.id;
+
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('employees')
+                        .select('*')
+                        .eq('employer_id', user.id)
+                        .order('created_at', { ascending: true });
+
+                    if (!error && data) {
+                        employees = data.map(_fromRow);
+                        // Migrate any localStorage-only employees to Supabase
+                        const cached = (() => {
+                            try { return JSON.parse(localStorage.getItem(userKey) || '[]'); } catch { return []; }
+                        })();
+                        if (employees.length === 0 && cached.length > 0) {
+                            await _migrateLocalStorageToSupabase(cached, user.id);
+                        } else {
+                            _saveCache(user.id);
+                        }
+                        renderEmployees();
+                        return;
+                    }
+                } catch (e) {
+                    // Supabase unavailable — fall through to localStorage
+                }
+            }
+
+            // localStorage fallback
             const saved = localStorage.getItem(userKey);
             if (saved) {
                 employees = JSON.parse(saved);
@@ -1010,6 +1096,24 @@
                 }
             }
             renderEmployees();
+        }
+
+        // Migrate employees stored only in localStorage to Supabase.
+        async function _migrateLocalStorageToSupabase(cached, userId) {
+            const rows = cached.map(e => _toRow(e, userId));
+            try {
+                const { data, error } = await supabaseClient
+                    .from('employees')
+                    .insert(rows)
+                    .select();
+                if (!error && data) {
+                    employees = data.map(_fromRow);
+                    _saveCache(userId);
+                }
+            } catch (e) {
+                // Migration failed — keep localStorage data as-is
+                employees = cached;
+            }
         }
 
         // Helper: escape HTML to prevent XSS
@@ -1198,8 +1302,8 @@
             document.getElementById('employee-modal').classList.remove('active');
         }
 
-        // Save employee
-        function saveEmployee(event) {
+        // Save employee (Supabase-primary, localStorage cache)
+        async function saveEmployee(event) {
             event.preventDefault();
             // Defense-in-depth: enforce free plan limit when adding a new employee
             if (isFreePlan && !currentEmployeeId && employees.length >= FREE_EMPLOYEE_LIMIT) {
@@ -1207,35 +1311,73 @@
                 _showFreeEmployeeLimitModal();
                 return;
             }
-            const employee = {
-                id: currentEmployeeId || Date.now().toString(),
-                name: document.getElementById('emp-name').value,
-                employeeId: document.getElementById('emp-id').value,
-                email: document.getElementById('emp-email').value,
-                phone: document.getElementById('emp-phone').value,
-                kraPin: document.getElementById('emp-kra').value,
-                department: document.getElementById('emp-department').value,
-                position: document.getElementById('emp-position').value,
-                status: document.getElementById('emp-status').value,
-                salary: document.getElementById('emp-salary').value,
-                allowances: document.getElementById('emp-allowances').value || 0,
-                bankName: document.getElementById('emp-bank-name').value,
-                bankBranch: document.getElementById('emp-bank-branch').value,
-                accountName: document.getElementById('emp-account-name').value,
-                accountNumber: document.getElementById('emp-account-number').value,
-                nokName: document.getElementById('emp-nok-name').value,
+            const empData = {
+                name:            document.getElementById('emp-name').value,
+                employeeId:      document.getElementById('emp-id').value,
+                email:           document.getElementById('emp-email').value,
+                phone:           document.getElementById('emp-phone').value,
+                kraPin:          document.getElementById('emp-kra').value,
+                department:      document.getElementById('emp-department').value,
+                position:        document.getElementById('emp-position').value,
+                status:          document.getElementById('emp-status').value,
+                salary:          document.getElementById('emp-salary').value,
+                allowances:      document.getElementById('emp-allowances').value || 0,
+                bankName:        document.getElementById('emp-bank-name').value,
+                bankBranch:      document.getElementById('emp-bank-branch').value,
+                accountName:     document.getElementById('emp-account-name').value,
+                accountNumber:   document.getElementById('emp-account-number').value,
+                nokName:         document.getElementById('emp-nok-name').value,
                 nokRelationship: document.getElementById('emp-nok-relationship').value,
-                nokPhone: document.getElementById('emp-nok-phone').value
+                nokPhone:        document.getElementById('emp-nok-phone').value
             };
 
-            if (currentEmployeeId) {
-                const index = employees.findIndex(e => e.id === currentEmployeeId);
-                employees[index] = employee;
-            } else {
-                employees.push(employee);
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    if (currentEmployeeId) {
+                        // Update existing record in Supabase
+                        const { data, error } = await supabaseClient
+                            .from('employees')
+                            .update(_toRow(empData))
+                            .eq('id', currentEmployeeId)
+                            .eq('employer_id', currentUser.id)
+                            .select()
+                            .single();
+                        if (!error && data) {
+                            const idx = employees.findIndex(e => e.id === currentEmployeeId);
+                            if (idx !== -1) employees[idx] = _fromRow(data);
+                            _saveCache(currentUser.id);
+                            renderEmployees();
+                            closeEmployeeModal();
+                            return;
+                        }
+                    } else {
+                        // Insert new record in Supabase
+                        const { data, error } = await supabaseClient
+                            .from('employees')
+                            .insert(_toRow(empData, currentUser.id))
+                            .select()
+                            .single();
+                        if (!error && data) {
+                            employees.push(_fromRow(data));
+                            _saveCache(currentUser.id);
+                            renderEmployees();
+                            closeEmployeeModal();
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // Supabase unavailable — fall through to localStorage
+                }
             }
 
-            localStorage.setItem('employees_' + currentUser.id, JSON.stringify(employees));
+            // localStorage fallback
+            if (currentEmployeeId) {
+                const index = employees.findIndex(e => e.id === currentEmployeeId);
+                employees[index] = Object.assign({ id: currentEmployeeId }, empData);
+            } else {
+                employees.push(Object.assign({ id: Date.now().toString() }, empData));
+            }
+            _saveCache(currentUser.id);
             renderEmployees();
             closeEmployeeModal();
         }
@@ -1266,11 +1408,30 @@
             document.getElementById('employee-modal').classList.add('active');
         }
 
-        // Delete employee
-        function deleteEmployee(id) {
+        // Delete employee (Supabase-primary, localStorage cache)
+        async function deleteEmployee(id) {
             if (!confirm('Are you sure you want to delete this employee?')) return;
+
+            if (supabaseClient && isSupabaseConfigured()) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('employees')
+                        .delete()
+                        .eq('id', id)
+                        .eq('employer_id', currentUser.id);
+                    if (!error) {
+                        employees = employees.filter(e => e.id !== id);
+                        _saveCache(currentUser.id);
+                        renderEmployees();
+                        return;
+                    }
+                } catch (e) {
+                    // Supabase unavailable — fall through to localStorage
+                }
+            }
+
             employees = employees.filter(e => e.id !== id);
-            localStorage.setItem('employees_' + currentUser.id, JSON.stringify(employees));
+            _saveCache(currentUser.id);
             renderEmployees();
         }
 

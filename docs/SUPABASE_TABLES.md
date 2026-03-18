@@ -64,24 +64,36 @@ Stores employee records that belong to an employer account.
 
 ```sql
 CREATE TABLE employees (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  employer_id   UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  employee_name TEXT NOT NULL,
-  employee_id   TEXT NOT NULL,
-  kra_pin       TEXT,
-  email         TEXT,
-  phone_number  TEXT,
-  department    TEXT,
-  position      TEXT,
-  gross_salary  NUMERIC(10, 2),
-  allowances    NUMERIC(10, 2) DEFAULT 0,
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ DEFAULT NOW(),
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employer_id      UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  employee_name    TEXT NOT NULL,
+  employee_id      TEXT NOT NULL,
+  kra_pin          TEXT,
+  email            TEXT,
+  phone_number     TEXT,
+  department       TEXT,
+  position         TEXT,
+  status           TEXT DEFAULT 'Active'
+                     CHECK (status IN ('Active', 'Off', 'Suspended', 'Terminated')),
+  gross_salary     NUMERIC(10, 2),
+  allowances       NUMERIC(10, 2) DEFAULT 0,
+  bank_name        TEXT,
+  bank_branch      TEXT,
+  account_name     TEXT,
+  account_number   TEXT,
+  nok_name         TEXT,
+  nok_relationship TEXT,
+  nok_phone        TEXT,
+  created_at       TIMESTAMPTZ DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(employer_id, employee_id)
 );
 
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ```
+
+> **Migration note:** If you created the `employees` table before these columns were
+> added, run `database/employees-extra-columns.sql` in the Supabase SQL Editor.
 
 **RLS Policies:**
 
