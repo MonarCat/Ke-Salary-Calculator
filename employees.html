@@ -943,7 +943,7 @@
             }
 
             loadEmployerProfile(user);
-            loadEmployees(user);
+            await loadEmployees(user);
         }
 
         // Load employer profile from the employers table and display in banner
@@ -1083,14 +1083,22 @@
             // localStorage fallback
             const saved = localStorage.getItem(userKey);
             if (saved) {
-                employees = JSON.parse(saved);
+                try { employees = JSON.parse(saved); } catch (e) {
+                    console.warn('Corrupt employee cache in localStorage — resetting:', e);
+                    employees = [];
+                }
             } else {
                 // Migrate any existing generic-key data to this user's key
                 const generic = localStorage.getItem('employees');
                 if (generic) {
-                    employees = JSON.parse(generic);
-                    localStorage.setItem(userKey, generic);
-                    localStorage.removeItem('employees');
+                    try {
+                        employees = JSON.parse(generic);
+                        localStorage.setItem(userKey, generic);
+                        localStorage.removeItem('employees');
+                    } catch (e) {
+                        console.warn('Corrupt generic employee cache — resetting:', e);
+                        employees = [];
+                    }
                 } else {
                     employees = [];
                 }

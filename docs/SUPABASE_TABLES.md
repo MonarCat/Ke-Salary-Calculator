@@ -106,6 +106,8 @@ ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 
 Employers can only access employees they created.
 
+> **Migration note:** existing deployments that used the original schema (without `status`, `bank_name`, `bank_branch`, `account_name`, `account_number`, `nok_name`, `nok_relationship`, `nok_phone`) should run `database/009_employees_extended.sql` to add the missing columns.
+
 ---
 
 ### 3. `employers`
@@ -388,12 +390,16 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 | Policy | Operation | Rule |
 |--------|-----------|------|
 | Users can check own admin status | SELECT | `auth.uid() = user_id` |
-| Super admins can view all admins | SELECT | `EXISTS (SELECT 1 FROM admin_users WHERE user_id = auth.uid() AND is_super_admin = TRUE)` |
-| Super admins can grant admin | INSERT | `EXISTS (SELECT 1 FROM admin_users WHERE user_id = auth.uid() AND is_super_admin = TRUE)` |
-| Super admins can update admin records | UPDATE | `EXISTS (SELECT 1 FROM admin_users WHERE user_id = auth.uid() AND is_super_admin = TRUE)` |
-| Super admins can delete admin records | DELETE | `EXISTS (SELECT 1 FROM admin_users WHERE user_id = auth.uid() AND is_super_admin = TRUE)` |
+| Super admins can view all admins | SELECT | `public.is_super_admin()` |
+| Super admins can grant admin | INSERT | `public.is_super_admin()` |
+| Super admins can update admin records | UPDATE | `public.is_super_admin()` |
+| Super admins can delete admin records | DELETE | `public.is_super_admin()` |
 
-A user can only read their own admin row (to find out whether they are an admin). All write operations on this table are restricted to super-admins. The `is_admin()` helper function (defined in `admin-setup.sql`) is used by other tables' policies; it is granted `SECURITY DEFINER` so it bypasses RLS internally while remaining safe.
+A user can only read their own admin row (to find out whether they are an admin). All write operations on this table are restricted to super-admins.
+
+The `is_admin()` helper function (defined in `admin-setup.sql`) is used by other tables' policies; it is granted `SECURITY DEFINER` so it bypasses RLS internally while remaining safe.
+
+The `is_super_admin()` helper function is also `SECURITY DEFINER` and is used exclusively by the `admin_users` table's own policies. This prevents infinite RLS recursion that would otherwise occur if the policies referenced `admin_users` directly.
 
 ---
 
@@ -414,6 +420,7 @@ Run the SQL scripts in this order in the Supabase **SQL Editor**:
 1. **`DATABASE_SCHEMA.md`** — creates `user_profiles`, `employees`, `payslip_history`, `saved_calculations`, their RLS policies, indexes, and the `update_updated_at()` trigger function.
 2. **`employers-setup.sql`** — creates the `employers` table, its RLS policies, index, and trigger. Run after step 1 because the trigger reuses `update_updated_at()`.
 3. **`blog-setup.sql`** — creates `blog_posts`, `post_comments`, `post_reactions`, `comment_reactions`, their RLS policies, indexes, and helper functions.
-4. **`admin-setup.sql`** — creates `admin_users`, the `is_admin()` and `grant_admin_access()` functions, and adds admin-aware policies to the blog tables.
+4. **`admin-setup.sql`** — creates `admin_users`, the `is_super_admin()`, `is_admin()` and `grant_admin_access()` functions, and adds admin-aware policies to the blog tables.
+5. **`database/009_employees_extended.sql`** — adds the extra columns (`status`, `bank_name`, `bank_branch`, `account_name`, `account_number`, `nok_name`, `nok_relationship`, `nok_phone`) to the `employees` table. Safe to run on both new and existing deployments (uses `ADD COLUMN IF NOT EXISTS`).
 
 See `SUPABASE_SETUP.md` for the complete step-by-step setup guide including how to create the first admin user.

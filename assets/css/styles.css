@@ -13,10 +13,7 @@ body {
     margin: 0;
     padding: 0;
     color: #333;
-    background-image: url('by wirestock on Freepik.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background-color: #f5f5f5;
     position: relative;
     scroll-behavior: smooth;
     overflow-x: hidden;
