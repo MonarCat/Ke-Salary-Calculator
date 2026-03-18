@@ -557,6 +557,16 @@
         .poll-result-bar { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 6px; overflow: hidden; }
         .poll-result-fill { height: 100%; background: #006600; border-radius: 4px; transition: width 0.5s ease; }
         .poll-result-label { font-size: 0.8em; color: #666; margin-top: 3px; }
+        .poll-vote-count { font-size: 0.82em; color: #888; margin-top: 8px; }
+        .poll-share { margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee; }
+        .poll-share p { font-size: 0.85em; color: #555; margin: 0 0 8px; font-weight: 600; }
+        .poll-share-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .poll-share-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px; font-size: 0.8em; font-weight: 600; text-decoration: none; color: #fff; border: none; cursor: pointer; transition: opacity 0.2s; }
+        .poll-share-btn:hover { opacity: 0.85; }
+        .poll-share-btn.x-btn   { background: #000; }
+        .poll-share-btn.fb-btn  { background: #1877F2; }
+        .poll-share-btn.li-btn  { background: #0A66C2; }
+        .poll-share-btn.wa-btn  { background: #25D366; }
 
         /* Salary Trends */
         .trends-card {
@@ -908,6 +918,25 @@
                 <p id="pollThanks" style="display:none; color:#006600; font-weight:bold; margin-top:10px;">
                     <i class="fas fa-check-circle"></i> Thanks for your vote! See more: <a href="/salary-comparison.html" style="color:#006600;">Salary Comparison Tool</a>
                 </p>
+                <p id="pollVoteCount" class="poll-vote-count"></p>
+                <div id="pollShare" class="poll-share" style="display:none;">
+                    <p><i class="fas fa-share-alt"></i> Share this poll with your friends:</p>
+                    <div class="poll-share-btns">
+                        <a id="pollShareX"  class="poll-share-btn x-btn"  href="#" target="_blank" rel="noopener noreferrer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.735-8.835L1.254 2.25H8.08l4.258 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+                            Post on X
+                        </a>
+                        <a id="pollShareFb" class="poll-share-btn fb-btn" href="#" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a id="pollShareLi" class="poll-share-btn li-btn" href="#" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-linkedin-in"></i> LinkedIn
+                        </a>
+                        <a id="pollShareWa" class="poll-share-btn wa-btn" href="#" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                    </div>
+                </div>
                 <p style="font-size:0.8em; color:#999; margin-top:10px; margin-bottom:0;">Results shown after voting. New poll each week.</p>
             </div>
 
@@ -1355,6 +1384,12 @@
                 btn.onclick = function() { castPollVote(i); };
                 optsEl.appendChild(btn);
             });
+            // Show existing vote count even before user votes
+            var voteCountEl = document.getElementById('pollVoteCount');
+            if (voteCountEl) {
+                var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+            }
         }
         function castPollVote(idx) {
             var poll = POLLS[pollIdx];
@@ -1366,6 +1401,8 @@
             var total = poll.votes.reduce(function(a,b){return a+b;},0);
             var optsEl = document.getElementById('pollOptions');
             var thanks = document.getElementById('pollThanks');
+            var voteCountEl = document.getElementById('pollVoteCount');
+            var shareEl = document.getElementById('pollShare');
             if (!optsEl) return;
             optsEl.innerHTML = '';
             poll.opts.forEach(function(opt, i) {
@@ -1378,6 +1415,24 @@
                 optsEl.appendChild(div);
             });
             if (thanks) thanks.style.display = 'block';
+            // Show formatted vote count
+            if (voteCountEl) {
+                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+            }
+            // Build and show share buttons
+            if (shareEl) {
+                var shareUrl = encodeURIComponent(window.location.href.split('?')[0]);
+                var shareText = encodeURIComponent('I just voted on this Kenya salary poll: "' + poll.q + '" — check it out!');
+                var xBtn  = document.getElementById('pollShareX');
+                var fbBtn = document.getElementById('pollShareFb');
+                var liBtn = document.getElementById('pollShareLi');
+                var waBtn = document.getElementById('pollShareWa');
+                if (xBtn)  xBtn.href  = 'https://x.com/intent/tweet?text=' + shareText + '&url=' + shareUrl;
+                if (fbBtn) fbBtn.href = 'https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '&quote=' + shareText;
+                if (liBtn) liBtn.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
+                if (waBtn) waBtn.href = 'https://api.whatsapp.com/send?text=' + shareText + '%20' + shareUrl;
+                shareEl.style.display = 'block';
+            }
         }
 
         // ── Email Alert Signup ────────────────────────────────────────────────
