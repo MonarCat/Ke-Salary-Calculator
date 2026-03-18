@@ -1367,6 +1367,15 @@
         const pollIdx = new Date().getDay() % POLLS.length;
         function initPoll() {
             const poll = POLLS[pollIdx];
+            const savedVotes = localStorage.getItem('poll_votes_' + pollIdx);
+            if (savedVotes) {
+                try {
+                    const parsed = JSON.parse(savedVotes);
+                    if (Array.isArray(parsed) && parsed.length === poll.votes.length) {
+                        poll.votes = parsed;
+                    }
+                } catch(e) {}
+            }
             const qEl = document.getElementById('pollQuestion');
             const optsEl = document.getElementById('pollOptions');
             if (!qEl || !optsEl) return;
@@ -1392,9 +1401,10 @@
             }
         }
         function castPollVote(idx) {
-            var poll = POLLS[pollIdx];
+            const poll = POLLS[pollIdx];
             poll.votes[idx]++;
             localStorage.setItem('poll_voted_' + pollIdx, idx);
+            localStorage.setItem('poll_votes_' + pollIdx, JSON.stringify(poll.votes));
             showPollResults(poll, idx);
         }
         function showPollResults(poll, selected) {
