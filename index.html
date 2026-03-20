@@ -1208,7 +1208,7 @@
                     <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
                     <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
                 </p>
-                <p>Designed by <a href="https://salarycalculator.co.ke/" target="_blank" rel="noopener noreferrer" style="color: #006600;">a Patriotic Kenyan</a></p>
+                <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
             </footer>
         </div>
     </div>
@@ -1365,8 +1365,23 @@
             }
         ];
         const pollIdx = new Date().getDay() % POLLS.length;
+        function loadPollVotes(poll, idx) {
+            var saved = localStorage.getItem('poll_votes_' + idx);
+            if (saved) {
+                try {
+                    var savedVotes = JSON.parse(saved);
+                    if (Array.isArray(savedVotes) && savedVotes.length === poll.votes.length) {
+                        poll.votes = savedVotes;
+                    }
+                } catch(e) {}
+            }
+        }
+        function savePollVotes(poll, idx) {
+            localStorage.setItem('poll_votes_' + idx, JSON.stringify(poll.votes));
+        }
         function initPoll() {
             const poll = POLLS[pollIdx];
+            loadPollVotes(poll, pollIdx);
             const qEl = document.getElementById('pollQuestion');
             const optsEl = document.getElementById('pollOptions');
             if (!qEl || !optsEl) return;
@@ -1394,6 +1409,7 @@
         function castPollVote(idx) {
             var poll = POLLS[pollIdx];
             poll.votes[idx]++;
+            savePollVotes(poll, pollIdx);
             localStorage.setItem('poll_voted_' + pollIdx, idx);
             showPollResults(poll, idx);
         }
