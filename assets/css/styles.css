@@ -6,6 +6,7 @@
 
 html {
     overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -642,7 +643,6 @@ footer a:hover {
     100% { transform: scale(1); }
 }
 
-
 .input-highlight {
     border: 1px solid #006600 !important;
 }
@@ -915,301 +915,6 @@ footer a:hover {
     width: 100%;
     max-width: 100px;
 }
-
-.donate-toggle {
-    background: linear-gradient(to right, #000000, #CC0000, #006600);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 20px auto;
-    display: block;
-    width: fit-content;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transition: all 0.3s;
-}
-
-.donate-toggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-}
-
-.donate-method-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 12px 0 16px;
-}
-
-.donate-method-tab {
-    padding: 8px 22px;
-    border: 2px solid #006600;
-    background: white;
-    color: #006600;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s;
-}
-
-.donate-method-tab.active,
-.donate-method-tab:hover {
-    background: #006600;
-    color: white;
-}
-
-.donate-info {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 10px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.payment-method {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 15px 0;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 6px;
-}
-
-.payment-number {
-    font-weight: bold;
-    font-size: 18px;
-    color: #006600;
-}
-
-.paypal-donate-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: #0070ba;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    text-decoration: none;
-    margin: 15px 0;
-    transition: all 0.3s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-.paypal-donate-btn:hover {
-    background: #005ea6;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.paypal-donate-btn i {
-    font-size: 20px;
-}
-
-.donate-note {
-    font-size: 14px;
-    color: #666;
-    margin-top: 10px;
-}
-
-.payment-note {
-    font-style: italic;
-    margin-top: 15px;
-    color: #666;
-}
-
-/* Divider between PayPal and Mobile Payment */
-.donate-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 18px 0;
-    color: #aaa;
-    font-size: 13px;
-}
-
-.donate-divider::before,
-.donate-divider::after {
-    content: '';
-    flex: 1;
-    border-top: 1px solid #ddd;
-}
-
-.donate-divider span {
-    padding: 0 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Mobile payment panel */
-.mobile-payment-panel {
-    background: linear-gradient(135deg, #f0fff4, #e8f5e9);
-    border: 1px solid #a5d6a7;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin-top: 8px;
-    text-align: left;
-}
-
-.mobile-payment-panel h4 {
-    text-align: center;
-    font-size: 16px;
-    color: #2e7d32;
-    margin: 0 0 12px;
-}
-
-.mobile-payment-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.mobile-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #fff;
-    border: 1px solid #c8e6c9;
-    border-radius: 8px;
-    padding: 12px 14px;
-    box-shadow: 0 1px 4px rgba(0,102,0,0.08);
-}
-
-.mobile-option-logo {
-    width: 64px;
-    height: 64px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    overflow: hidden;
-}
-
-.mobile-option-logo.mpesa {
-    background: transparent;
-}
-
-.mobile-option-logo.airtel {
-    background: transparent;
-}
-
-.mobile-option-logo svg {
-    width: 64px;
-    height: 64px;
-    display: block;
-}
-
-.mobile-option-details {
-    flex: 1;
-}
-
-.mobile-option-details .provider-name {
-    font-weight: 700;
-    font-size: 15px;
-    color: #1b5e20;
-    margin-bottom: 2px;
-}
-
-.phone-number-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.mobile-option-details .phone-number {
-    font-size: clamp(1rem, 3vw, 1.125rem);
-    font-weight: 800;
-    color: #2e7d32;
-    letter-spacing: 1px;
-    font-family: monospace;
-    user-select: text;
-    cursor: text;
-}
-
-.copy-btn {
-    background: none;
-    border: 1px solid #a5d6a7;
-    border-radius: 5px;
-    cursor: pointer;
-    padding: 3px 6px;
-    color: #2e7d32;
-    font-size: 13px;
-    line-height: 1;
-    transition: background 0.2s, color 0.2s;
-    display: inline-flex;
-    align-items: center;
-}
-
-.copy-btn:hover {
-    background: #e8f5e9;
-    color: #1b5e20;
-}
-
-.copy-btn.copied {
-    background: #c8e6c9;
-    color: #1b5e20;
-    border-color: #81c784;
-}
-
-.mobile-option-details .recipient-name {
-    font-size: 12px;
-    color: #555;
-    margin-top: 2px;
-}
-
-.mobile-payment-steps {
-    margin: 14px 0 10px;
-    padding: 12px 16px;
-    background: #fff;
-    border-left: 4px solid #43a047;
-    border-radius: 0 8px 8px 0;
-    text-align: left;
-}
-
-.mobile-payment-steps p {
-    font-weight: 700;
-    font-size: 13px;
-    color: #2e7d32;
-    margin: 0 0 6px;
-}
-
-.mobile-payment-steps ol {
-    margin: 0;
-    padding-left: 20px;
-    font-size: 13px;
-    color: #444;
-    line-height: 1.7;
-}
-
-.mobile-thanks-msg {
-    background: linear-gradient(135deg, #fff8e1, #fff3cd);
-    border: 1px solid #ffe082;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
-    font-size: 14px;
-    color: #5d4037;
-    text-align: center;
-    font-style: italic;
-}
-
-.mobile-thanks-msg span {
-    font-size: 18px;
-    vertical-align: middle;
-    margin-right: 4px;
-}
-
 .disclaimer-banner {
     background: linear-gradient(90deg, #000000 0%, #006600 40%, #CC0000 70%, #000000 100%);
     color: white;
@@ -1746,8 +1451,6 @@ footer a:hover {
     font-weight: bold;
 }
 
-
-
 /* Feature card hover animation */
 .feature-card {
     transition: transform 0.25s, box-shadow 0.25s;
@@ -1859,7 +1562,6 @@ footer a:hover {
     font-size: 0.95em;
     line-height: 1.7;
 }
-
 
 /* ── Enhanced Mobile Responsiveness ───────────────────────────────────── */
 
@@ -2088,11 +1790,8 @@ table {
     .disclaimer-banner { font-size: 13px; padding: 8px 12px; }
     .rates-selector-row { gap: 8px; }
     .breakdown-table th, .breakdown-table td { font-size: 13px; padding: 7px 10px; }
-    .donate-method-tabs { flex-wrap: wrap; }
     .comparison-result-table td, .comparison-result-table th { font-size: 13px; padding: 7px 8px; }
 }
-
-
 
 /* ── Enhanced mobile overflow guards ────────────────────────────────── */
 @media (max-width: 600px) {
@@ -2121,6 +1820,16 @@ table {
     /* Payslip actions stack on small screens */
     .payslip-actions { flex-direction: column; }
     .payslip-actions button { width: 100%; }
+    /* Wrap any general flex row that may overflow */
+    .flex-row, .form-row, .button-row, .action-row { flex-wrap: wrap; }
+    /* Ensure tables scroll horizontally within their wrappers */
+    .breakdown-table-wrapper > table,
+    .comparison-table-wrapper > table,
+    .results-section table { max-width: 100%; }
+    /* Prevent long text from breaking layout */
+    .container, .container * { word-break: break-word; overflow-wrap: break-word; }
+    /* Ensure images stay within bounds */
+    img, video, iframe { max-width: 100%; height: auto; }
 }
 
 @media (max-width: 400px) {
@@ -2128,8 +1837,6 @@ table {
     .overlay .quick-nav-grid { gap: 8px; }
     .quick-nav-card { padding: 10px 6px; }
     .quick-nav-card span { font-size: 0.72em; }
-    /* Stack donate-method tabs */
-    .donate-method-tabs { flex-direction: column; }
     /* Ensure the main container doesn't clip content */
     .container { padding: 10px 10px; }
 }

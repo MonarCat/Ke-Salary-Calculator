@@ -887,62 +887,6 @@ function updateDeductions() {
     document.getElementById('slipDeductionsSummary').textContent = formatKES(totalDeductions);
 }
 
-// Donation Toggle Function
-function toggleDonateInfo() {
-    const donateInfo = document.getElementById('donateInfo');
-    const donateInfoCalc = document.getElementById('donateInfoCalc');
-    
-    if (donateInfo) {
-        donateInfo.style.display = donateInfo.style.display === 'none' ? 'block' : 'none';
-    }
-    if (donateInfoCalc) {
-        donateInfoCalc.style.display = donateInfoCalc.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-function copyPhoneNumber(btn, number) {
-    function selectFallback() {
-        var span = btn.previousElementSibling;
-        if (span) {
-            var range = document.createRange();
-            range.selectNodeContents(span);
-            var sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(number).then(function() {
-            var original = btn.innerHTML;
-            btn.innerHTML = '✓';
-            btn.classList.add('copied');
-            setTimeout(function() { btn.innerHTML = original; btn.classList.remove('copied'); }, 2000);
-        }).catch(selectFallback);
-    } else {
-        selectFallback();
-    }
-}
-
-function selectDonateMethod(section, method) {
-    const prefix = section === 'calc' ? 'donateCalc' : 'donateMain';
-    const paypalDiv = document.getElementById(prefix + '-paypal');
-    const mobileDiv = document.getElementById(prefix + '-mobile');
-    const container = paypalDiv ? paypalDiv.closest('.donate-info') : null;
-    if (!paypalDiv || !mobileDiv) return;
-    if (method === 'paypal') {
-        paypalDiv.style.display = '';
-        mobileDiv.style.display = 'none';
-    } else {
-        paypalDiv.style.display = 'none';
-        mobileDiv.style.display = '';
-    }
-    if (container) {
-        container.querySelectorAll('.donate-method-tab').forEach(function(btn) {
-            btn.classList.toggle('active', btn.dataset.method === method);
-        });
-    }
-}
-
 // Helper Functions
 function formatKES(amount) {
     return 'KES ' + amount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
