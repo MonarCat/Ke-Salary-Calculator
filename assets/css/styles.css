@@ -1612,7 +1612,9 @@ footer a:hover {
 
 /* xs: very small phones (< 480px) */
 @media (max-width: 480px) {
-    .quick-nav-grid { grid-template-columns: repeat(2, 1fr); }
+    /* 1.2 Quick Tool Icons Row: 3-column grid */
+    .quick-nav-grid { grid-template-columns: repeat(3, 1fr); }
+    .quick-nav-card span { font-size: clamp(0.65rem, 2.5vw, 0.75rem); word-break: break-word; }
     .tools-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
