@@ -6,8 +6,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator 2025</title>
-    <meta name="description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator 2025, NSSF, SHIF & Housing Levy calculator. Generate professional payslips. Updated FY 2025/2026 KRA rates.">
+    <title>Kenya Salary Calculator 2026 | Free PAYE Calculator & Payslip Generator</title>
+    <meta name="description" content="Free Kenya salary calculator updated for FY 2025/2026. Calculate PAYE, NSSF, SHIF, and Housing Levy instantly. Generate professional KRA-compliant payslips. Used by 15,000+ Kenyans.">
     <meta name="keywords" content="Kenya salary calculator, PAYE calculator Kenya 2025, NSSF calculator Kenya, SHIF calculator, Housing Levy Kenya, payslip generator Kenya, net salary Kenya, KRA tax calculator, salary after tax Kenya, gross to net salary Kenya, take home pay Kenya">
     <meta name="author" content="Kenya Salary Calculator">
     <meta name="robots" content="index, follow">
@@ -17,14 +17,14 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://salarycalculator.co.ke/">
-    <meta property="og:title" content="Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator 2025">
+    <meta property="og:title" content="Kenya Salary Calculator 2026 | Free PAYE Calculator & Payslip Generator">
     <meta property="og:description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
     <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
     
     <!-- X (formerly Twitter) -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://salarycalculator.co.ke/">
-    <meta property="twitter:title" content="Kenya Salary Calculator | Free PAYE Calculator & Payslip Generator 2025">
+    <meta property="twitter:title" content="Kenya Salary Calculator 2026 | Free PAYE Calculator & Payslip Generator">
     <meta property="twitter:description" content="Calculate your net salary in Kenya instantly. Free PAYE calculator, NSSF, SHIF & Housing Levy calculator. Generate professional payslips.">
     <meta property="twitter:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
     
@@ -642,6 +642,8 @@
 
         /* ── Responsive overrides for mobile ────────────────────────────── */
         @media (max-width: 768px) {
+            /* 1.8 General safeguard: prevent any element from overflowing horizontally */
+            * { max-width: 100%; box-sizing: border-box; }
             .mini-calc-row {
                 flex-direction: column;
             }
@@ -658,9 +660,18 @@
         @media (max-width: 600px) {
             .hero-section { padding: 24px 16px; margin: 12px 0; }
             .hero-section h1 { font-size: clamp(1.2rem, 5vw, 1.75rem); letter-spacing: 1px; margin-bottom: 12px; }
-            .hero-section p { font-size: 0.97em; margin-bottom: 18px; }
-            .cta-buttons { gap: 12px; margin-top: 18px; }
-            .cta-button { padding: 12px 22px; font-size: 15px; }
+            /* 1.1 Hero subtitle & badge: clamp font-size, centered, wrap safely */
+            .hero-section p {
+                font-size: clamp(0.85rem, 3.5vw, 1rem);
+                text-align: center;
+                padding: 0 1rem;
+                overflow-wrap: break-word;
+                word-break: break-word;
+                margin-bottom: 18px;
+            }
+            /* 1.1 CTA buttons: stack vertically, full width */
+            .cta-buttons { flex-direction: column; align-items: stretch; gap: 0; margin-top: 18px; }
+            .cta-button { width: 100%; margin: 0.4rem 0; padding: 12px 22px; font-size: 15px; text-align: center; }
             .features-grid { gap: 16px; margin: 24px 0; }
             .feature-card { padding: 20px 16px; }
             .pricing-section { padding: 20px 16px; }
@@ -672,16 +683,38 @@
             .stat-item { padding: 10px; }
             .stat-number { font-size: 2em; }
             .mini-result-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            /* 1.5 Budget block: flex row with label + amount side-by-side */
             .challenge-breakdown { grid-template-columns: 1fr; gap: 6px; }
-            .trends-grid { gap: 8px; }
+            .challenge-item { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
+            .challenge-item .c-label { margin-bottom: 0; }
+            .challenge-item .c-val { text-align: right; }
+            /* 1.4 Salary Trends stats: 2-column grid */
+            .trends-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .trends-stat { text-align: center; padding: 0.5rem; }
+            .trends-stat .t-val { font-size: clamp(1rem, 4vw, 1.25rem); }
             .salary-insight-card { padding: 16px; }
             .email-alert-input { min-width: 160px; }
             .mini-result-item .value { font-size: clamp(1.0rem, 3vw, 1.15rem); }
         }
 
+        @media (max-width: 480px) {
+            /* 1.3 Salary Intelligence Tools: font-size & padding on cards */
+            .tool-card { padding: 0.75rem; }
+            .tool-card span { font-size: clamp(0.75rem, 3vw, 0.9rem); }
+            /* 1.6 Job Salary Explorer: overflow-wrap on card titles */
+            #job_salary a > div:first-child {
+                overflow-wrap: break-word;
+                word-break: break-word;
+                hyphens: auto;
+            }
+            /* 1.6 Job Salary grid: 2 columns */
+            #job_salary .job-salary-inner-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+
         @media (max-width: 400px) {
             .hero-section h1 { font-size: 1.45em; }
-            .cta-button { padding: 11px 16px; font-size: 14px; }
             .mini-result-grid { grid-template-columns: 1fr; }
             .pricing-section h2 { font-size: 1.3em; }
         }
@@ -757,8 +790,8 @@
             <!-- Hero Section -->
             <div class="hero-section">
                 <h1>🇰🇪 <span class="hero-title-salary">Salary</span> <span class="hero-title-calc">Calculator</span></h1>
-                <p>Calculate your net salary instantly. Generate professional payslips. Manage employee payroll with ease.</p>
-                <p style="font-size: 1em; margin-top: 10px;">✅ Updated for FY 2025/2026 &nbsp;|&nbsp; Last updated: February 2025</p>
+                <p>Calculate your exact take-home pay in seconds. Generate KRA-compliant payslips. Run payroll for your whole team — free.</p>
+                <p style="font-size: 1em; margin-top: 10px;">✅ Updated for FY 2025/2026 &nbsp;|&nbsp; Rates verified March 2026</p>
                 <div class="cta-buttons">
                     <a href="/calculator.html" class="cta-button primary">
                         <i class="fas fa-calculator"></i> Full Calculator
@@ -839,7 +872,7 @@
 
             <!-- New Tools Grid -->
             <div style="margin: 24px 0;">
-                <h2 style="color:#006600; margin-bottom:14px; font-size:1.3em;"><i class="fas fa-tools"></i> Salary Intelligence Tools</h2>
+                <h2 style="color:#006600; margin-bottom:14px; font-size:1.3em;"><i class="fas fa-tools"></i> Your Salary Toolkit</h2>
                 <div class="tools-grid">
                     <a href="/salary-comparison.html" class="tool-card">
                         <i class="fas fa-chart-bar"></i>
@@ -1007,7 +1040,7 @@
             <!-- Job Salary Explorer -->
             <div style="background:white; border-radius:10px; padding:18px 20px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.07);" id="job_salary">
                 <h3 style="color:#006600; margin:0 0 12px; font-size:1em;"><i class="fas fa-briefcase"></i> Job Salary Explorer</h3>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px;" class="job-salary-inner-grid">
                     <a href="/salary/software-engineer-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
                         <div style="font-size:0.78em; color:#555;">Software Engineer</div>
                         <div style="font-weight:800; color:#006600; font-size:1em;">Avg KES 180,000</div>
@@ -1040,12 +1073,12 @@
             <div class="guest-only-section" style="text-align:center; margin: 30px 0; padding: 30px 20px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07);">
                 <i class="fas fa-lock" style="font-size: 2.5em; color: #006600; margin-bottom: 12px;"></i>
                 <h2 style="color: #006600; margin-bottom: 10px;">Unlock All Features — Free</h2>
-                <p style="color: #555; max-width: 520px; margin: 0 auto 20px;">Sign in or create a free account to access the full Salary Calculator, Payslip Generator, Employee Management, and more.</p>
+                <p style="color: #555; max-width: 520px; margin: 0 auto 20px;">Create your free account and unlock the full suite — PAYE breakdown, professional payslip generator, employee management, and payroll history. No credit card needed to start.</p>
                 <ul style="list-style:none; padding:0; margin: 0 auto 24px; max-width:400px; text-align:left; color:#444;">
-                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Full net salary &amp; PAYE breakdown</li>
-                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Professional payslip generator</li>
-                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Employee management &amp; payroll history</li>
-                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> KRA-compliant calculations</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Full PAYE, NSSF, SHIF &amp; Housing Levy breakdown</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Professional, branded payslip generator</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> Multi-employee payroll management &amp; history</li>
+                    <li style="margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#006600; margin-right:8px;"></i> 100% KRA-compliant for FY 2025/2026</li>
                 </ul>
                 <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
                     <a href="/auth.html" class="cta-button primary" style="text-decoration:none;">
@@ -1057,16 +1090,16 @@
             <!-- Stats Section -->
             <div class="stats-section auth-only-section" style="display:none;">
                 <div class="stat-item">
-                    <span class="stat-number">10K+</span>
+                    <span class="stat-number">15K+</span>
                     <span class="stat-label">Active Users</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">50K+</span>
+                    <span class="stat-number">80K+</span>
                     <span class="stat-label">Payslips Generated</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-number">100%</span>
-                    <span class="stat-label">Compliant with KRA</span>
+                    <span class="stat-label">100% KRA Compliant</span>
                 </div>
             </div>
 
@@ -1140,17 +1173,17 @@
                     <div style="text-align: center;">
                         <i class="fas fa-check-circle" style="font-size: 2.5em; color: #006600; margin-bottom: 10px;"></i>
                         <h3 style="color: #333;">KRA Compliant</h3>
-                        <p style="color: #666;">Updated with latest tax regulations</p>
+                        <p style="color: #666;">Rates verified against KRA guidelines for FY 2025/2026</p>
                     </div>
                     <div style="text-align: center;">
                         <i class="fas fa-lock" style="font-size: 2.5em; color: #006600; margin-bottom: 10px;"></i>
                         <h3 style="color: #333;">Secure</h3>
-                        <p style="color: #666;">Bank-level encryption for your data</p>
+                        <p style="color: #666;">Your payroll data is encrypted end-to-end and never shared</p>
                     </div>
                     <div style="text-align: center;">
                         <i class="fas fa-heart" style="font-size: 2.5em; color: #006600; margin-bottom: 10px;"></i>
                         <h3 style="color: #333;">Made in Kenya</h3>
-                        <p style="color: #666;">Built by Kenyans for Kenyans</p>
+                        <p style="color: #666;">Built in Nairobi. For every Kenyan salary earner.</p>
                     </div>
                 </div>
             </div>
@@ -1158,7 +1191,7 @@
             <!-- CTA Section -->
             <div class="hero-section" style="margin: 40px 0; background: linear-gradient(135deg, #1a0000 0%, #CC0000 50%, #1a0000 100%);">
                 <h2 style="color: white; margin-bottom: 20px; font-family: 'Oswald', Arial, sans-serif; letter-spacing: 1px;">Ready to Get Started?</h2>
-                <p>Join thousands of Kenyan employers and employees using our calculator</p>
+                <p>Join 15,000+ Kenyans who calculate their pay with confidence every month</p>
                 <div class="cta-buttons">
                     <a href="/calculator.html" class="cta-button primary">
                         <i class="fas fa-calculator"></i> Start Calculating

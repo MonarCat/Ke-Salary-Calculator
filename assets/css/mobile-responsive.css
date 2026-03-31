@@ -479,3 +479,28 @@ img.lazy.loaded { opacity: 1; }
   a { color: inherit; text-decoration: none; }
   .sc-premium-gate, .sc-signin-gate { display: none !important; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   7. HOMEPAGE-SPECIFIC MOBILE FIXES (≤768px)
+══════════════════════════════════════════════════════════ */
+
+/* 1.7 Mobile bottom nav: clamp font-size, prevent label clipping */
+@media (max-width: 768px) {
+  .bottom-tab-bar a {
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem) !important;
+    overflow: hidden;
+  }
+  .bottom-tab-bar a span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    display: block;
+  }
+
+  /* 1.7 Footer links: wrap naturally, no overflow */
+  footer a, .site-footer a, .footer a {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
