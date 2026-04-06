@@ -117,9 +117,10 @@ export default async function handler(req, res) {
   const { error } = await supabase
     .from("user_profiles")
     .update({
-      premium:            true,
-      premium_expires_at: expiresAt.toISOString(),
-      premium_source:     "paystack",
+      premium:              true,
+      premium_expires_at:   expiresAt.toISOString(),
+      premium_source:       "paystack",
+      premium_activated_at: new Date().toISOString(),
     })
     .eq("id", authRow.id);
 

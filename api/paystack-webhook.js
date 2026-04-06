@@ -186,9 +186,10 @@ export default async function handler(req, res) {
   const { error: updateErr } = await supabase
     .from("user_profiles")
     .update({
-      premium:            true,
-      premium_expires_at: expiresAt.toISOString(),
-      premium_source:     "paystack",
+      premium:              true,
+      premium_expires_at:   expiresAt.toISOString(),
+      premium_source:       "paystack",
+      premium_activated_at: new Date().toISOString(),
     })
     .eq("id", userId);
 
@@ -241,7 +242,7 @@ export async function onRequestPost(context) {
   plan === "yearly" ? expiresAt.setFullYear(expiresAt.getFullYear() + 1) : expiresAt.setMonth(expiresAt.getMonth() + 1);
 
   await supabase.from("user_profiles")
-    .update({ premium: true, premium_expires_at: expiresAt.toISOString(), premium_source: "paystack" })
+    .update({ premium: true, premium_expires_at: expiresAt.toISOString(), premium_source: "paystack", premium_activated_at: new Date().toISOString() })
     .eq("id", authRow.id);
 
   return new Response("OK");
