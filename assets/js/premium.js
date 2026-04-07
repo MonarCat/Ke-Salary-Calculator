@@ -21,6 +21,9 @@
 const CACHE_KEY    = "sc_premium_status";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+// Easter 2026 Holiday Promotion — free premium access for all users until end of April 2026 (EAT, UTC+3).
+export const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
+
 // Pricing in KES (Paystack Kenya native currency)
 export const PRICE_MONTHLY_KES = 499;
 export const PRICE_YEARLY_KES  = 4999;
@@ -41,6 +44,22 @@ export const PLAN_CODE_YEARLY  = window.__PAYSTACK_PLAN_YEARLY  || "";
  * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null }>}
  */
 export async function checkPremium(supabase) {
+  // Easter 2026 Holiday Promotion: grant free premium access to all users.
+  if (Date.now() < EASTER_FREE_UNTIL.getTime()) {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.cachedAt < CACHE_TTL_MS) return parsed.data;
+      } catch (_) {}
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    // Only grant free access to signed-in users; visitors must sign up.
+    const result = _build({ isPremium: !!user, isLoggedIn: !!user, email: user?.email || null });
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
+    return result;
+  }
+
   const cached = sessionStorage.getItem(CACHE_KEY);
   if (cached) {
     try {
