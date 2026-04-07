@@ -72,10 +72,15 @@ export default async function handler(req, res) {
   }
 
   // ── 3. Activate premium in Supabase ──────────────────────────────────────
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseUrl = process.env.SUPABASE_URL
+    || process.env.VITE_SUPABASE_URL
+    || process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return res.status(500).json({ success: false, message: "Server misconfiguration" });
+  }
+
+  const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   // Look up via auth.users — user_profiles has no email column.
   const { data: authRow } = await supabase
@@ -121,6 +126,7 @@ export default async function handler(req, res) {
       premium_expires_at:   expiresAt.toISOString(),
       premium_source:       "paystack",
       premium_activated_at: new Date().toISOString(),
+      paystack_reference:   reference,
     })
     .eq("id", authRow.id);
 

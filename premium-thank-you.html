@@ -151,7 +151,13 @@
     </p>
   </div>
 
+  <!-- Supabase client for live premium status check -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Supabase project credentials (same as supabase-config.js) -->
+  <script src="/assets/js/supabase-config.js"></script>
+
   <script>
+    /* ── Confetti ───────────────────────────────────────────────────────── */
     const colors = ['#16a34a','#22c55e','#4ade80','#fbbf24','#f59e0b','#0ea5e9','#a78bfa'];
     function burst() {
       for (let i = 0; i < 70; i++) {
@@ -170,6 +176,80 @@
       }
     }
     window.addEventListener('load', burst);
+
+    /* ── Premium status verification ───────────────────────────────────── */
+    (async function verifyPremiumOnLoad() {
+      // 1. Clear any cached premium status so the next check is always fresh.
+      try { sessionStorage.removeItem('sc_premium_status'); } catch (_) {}
+
+      const params    = new URLSearchParams(window.location.search);
+      const reference = params.get('ref') || params.get('reference') || params.get('trxref');
+      const noteEl    = document.querySelector('.note');
+      const badgeEl   = document.querySelector('.badge');
+
+      // 2. If a reference is in the URL, attempt to activate premium via the
+      //    verify endpoint (second-chance activation in case the popup
+      //    callback call failed or was the first attempt).
+      if (reference) {
+        try {
+          await fetch('/api/paystack-verify?ref=' + encodeURIComponent(reference), {
+            method: 'POST',
+          });
+        } catch (_) {
+          // Network error — webhook will activate async; continue to status check.
+        }
+      }
+
+      // 3. Re-fetch premium status from Supabase to confirm activation.
+      //    Requires the supabaseClient global from supabase-config.js.
+      if (!window.supabaseClient) return;
+
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return; // Not signed in — static page is sufficient.
+
+        // Poll up to 3 times (3-second gaps) to allow the webhook to activate
+        // premium if it arrives slightly after the page loads.
+        let isPremium = false;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt > 0) {
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+          const { data: profile } = await window.supabaseClient
+            .from('user_profiles')
+            .select('premium, premium_expires_at')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const now    = new Date();
+          const expiry = profile && profile.premium_expires_at
+            ? new Date(profile.premium_expires_at) : null;
+          isPremium = !!(profile && profile.premium === true && (!expiry || expiry > now));
+          if (isPremium) break;
+        }
+
+        if (isPremium) {
+          if (badgeEl) badgeEl.textContent = '⭐ Premium Confirmed ✓';
+          if (noteEl)  noteEl.style.display = 'none';
+        } else {
+          // Premium not yet reflected — webhook may still be in flight.
+          if (badgeEl) {
+            badgeEl.style.background  = '#fef9c3';
+            badgeEl.style.color       = '#854d0e';
+            badgeEl.style.borderColor = '#fde68a';
+            badgeEl.textContent = '⏳ Activating…';
+          }
+          if (noteEl) {
+            noteEl.innerHTML = `Your payment was received. Premium access is being activated &mdash;
+              please <a href="/account">check your account</a> in a few seconds.<br><br>
+              Still having trouble? <a href="/contact-us">Contact us</a> with your payment reference
+              and we'll activate manually within a few hours.`;
+          }
+        }
+      } catch (err) {
+        console.warn('[ThankYou] Premium check error:', err);
+      }
+    })();
   </script>
 </body>
 </html>
