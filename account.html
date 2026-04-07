@@ -194,6 +194,14 @@
     <!-- ★ Billing widget ★ -->
     <script type="module" src="/assets/js/account-billing.js"></script>
 
+    <!-- Easter gift banner -->
+    <script type="module">
+        import { initEasterGiftBanner } from '/assets/js/easter-gift-banner.js';
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        const supabase = window.supabaseClient || createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+        initEasterGiftBanner(supabase);
+    </script>
+
     <!-- Trial banner -->
     <script type="module">
         import { initTrialBanner } from '/assets/js/trial-banner.js';
