@@ -163,23 +163,25 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
 }
 
 /**
- * Optionally call our backend to verify & activate premium after payment.
- * The webhook handles this automatically, but this provides instant feedback.
+ * Call our backend to verify & activate premium after payment, then
+ * redirect to the thank-you page unconditionally.
+ *
+ * The webhook (/api/paystack-webhook) is the authoritative activation path
+ * and will retry on failure. This call provides instant feedback but we must
+ * NOT block the redirect on its success — if the verify call itself errors,
+ * the user would be stuck on the current page with no feedback.
  */
 async function _verifyPaystackTransaction(reference) {
   try {
-    const res = await fetch(`/api/paystack-verify?ref=${encodeURIComponent(reference)}`, {
+    await fetch(`/api/paystack-verify?ref=${encodeURIComponent(reference)}`, {
       method: "POST",
     });
-    if (res.ok) {
-      invalidatePremiumCache();
-      // Redirect to thank-you page
-      window.location.href = "/premium-thank-you";
-    }
-  } catch (err) {
-    // Webhook will activate premium in the background — redirect anyway
-    window.location.href = "/premium-thank-you";
+  } catch (_) {
+    // Network error — webhook will activate premium in the background.
   }
+  // Always clear the cache and redirect, regardless of verify result.
+  invalidatePremiumCache();
+  window.location.href = `/premium-thank-you?ref=${encodeURIComponent(reference)}`;
 }
 
 // ── Premium gate UI ───────────────────────────────────────────────────────────

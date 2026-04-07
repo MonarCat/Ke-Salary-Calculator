@@ -136,10 +136,16 @@ export default async function handler(req, res) {
   }
 
   // ── 4. Initialise Supabase service client ─────────────────────────────────
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const supabaseUrl = process.env.SUPABASE_URL
+    || process.env.VITE_SUPABASE_URL
+    || process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("[Paystack Webhook] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars.");
+    return res.status(500).send("Server misconfiguration");
+  }
+
+  const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   // ── 5. Look up user via auth.users (service-role) then record transaction ─
   // IMPORTANT: user_profiles has no email column; always look up via auth.users.
@@ -190,6 +196,7 @@ export default async function handler(req, res) {
       premium_expires_at:   expiresAt.toISOString(),
       premium_source:       "paystack",
       premium_activated_at: new Date().toISOString(),
+      paystack_reference:   reference,
     })
     .eq("id", userId);
 
