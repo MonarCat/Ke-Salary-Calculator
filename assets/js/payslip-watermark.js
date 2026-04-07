@@ -126,10 +126,14 @@ function showUpgradeModal(opts = {}) {
   ].join(";");
 
   const expiredBanner = opts.hasExpired && opts.expiredOn
-    ? `<p style="color:#e63946;margin:0 0 12px;font-size:0.88rem;background:#fff5f5;border:1px solid #fecaca;border-radius:6px;padding:8px 12px;">
-        ⚠️ Your premium access expired on <strong>${opts.expiredOn}</strong>.
-        Subscribe below to restore full access.
-       </p>`
+    ? (() => {
+        const p = document.createElement("p");
+        p.style.cssText = "color:#e63946;margin:0 0 12px;font-size:0.88rem;background:#fff5f5;border:1px solid #fecaca;border-radius:6px;padding:8px 12px;";
+        const strong = document.createElement("strong");
+        strong.textContent = opts.expiredOn;
+        p.append("⚠️ Your premium access expired on ", strong, ". Subscribe below to restore full access.");
+        return p.outerHTML;
+      })()
     : "";
 
   modal.innerHTML = `

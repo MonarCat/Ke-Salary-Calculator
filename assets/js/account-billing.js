@@ -340,6 +340,16 @@ function injectStyles() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function _esc(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const FEATURES = [
   // Free features
   { label: "Salary breakdown",              free: true  },
@@ -397,8 +407,8 @@ function render(status) {
     badgeLabel  = "⭐ Premium";
     planName    = "Premium Plan";
     expiryLine  = expiryLabel
-      ? `<span class="sc-ab-source">${sourceLabel}</span> &nbsp;·&nbsp; Expires: ${expiryLabel}`
-      : `<span class="sc-ab-source">${sourceLabel}</span> &nbsp;·&nbsp; Active — no expiry set`;
+      ? `<span class="sc-ab-source">${_esc(sourceLabel)}</span> &nbsp;·&nbsp; Expires: ${_esc(expiryLabel)}`
+      : `<span class="sc-ab-source">${_esc(sourceLabel)}</span> &nbsp;·&nbsp; Active — no expiry set`;
   } else {
     const profileExpiresAt = status.premiumExpiresAt;
     const hasExpired = profileExpiresAt && new Date(profileExpiresAt) < new Date();
@@ -407,7 +417,7 @@ function render(status) {
     badgeLabel  = "Free";
     planName    = "Free Plan";
     expiryLine  = hasExpired
-      ? `⚠️ Your premium expired on <strong>${expiredOn}</strong>. Subscribe below to restore access.`
+      ? `⚠️ Your premium expired on <strong>${_esc(expiredOn)}</strong>. Subscribe below to restore access.`
       : "Upgrade to unlock all features.";
   }
 

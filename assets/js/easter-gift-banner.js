@@ -44,10 +44,9 @@ function _injectBanner(expiryStr) {
     "flex-wrap:wrap",
   ].join(";");
 
-  const expiryText = expiryStr ? ` until <strong>${expiryStr}</strong>` : "";
   banner.innerHTML = `
-    <span style="flex:1;min-width:200px;">
-      🐣 <strong>Easter Holiday Gift:</strong> You have full Premium access${expiryText}.
+    <span id="sc-easter-banner-text" style="flex:1;min-width:200px;">
+      🐣 <strong>Easter Holiday Gift:</strong> You have full Premium access<span id="sc-easter-expiry-placeholder"></span>.
       Enjoy all features — from us to you! 🎉
     </span>
     <button
@@ -66,6 +65,19 @@ function _injectBanner(expiryStr) {
       "
     >Got it ✓</button>
   `;
+
+  // Set expiry via DOM to avoid any XSS risk with database-sourced content
+  if (expiryStr) {
+    const placeholder = banner.querySelector("#sc-easter-expiry-placeholder");
+    if (placeholder) {
+      const strong = document.createElement("strong");
+      strong.textContent = expiryStr;
+      const frag = document.createDocumentFragment();
+      frag.appendChild(document.createTextNode(" until "));
+      frag.appendChild(strong);
+      placeholder.replaceWith(frag);
+    }
+  }
 
   // Insert at top of <body> so it appears above all other content
   document.body.insertAdjacentElement("afterbegin", banner);
