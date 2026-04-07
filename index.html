@@ -1384,41 +1384,52 @@
             {
                 q: 'Do you think Kenyan salaries are fair relative to the cost of living?',
                 opts: ['Yes, they are fair', 'No, too low', 'Depends on profession', 'Not sure'],
-                votes: [18, 52, 20, 10]
+                votes: [0, 0, 0, 0]
             },
             {
                 q: 'Would you accept a job paying KES 60,000 in Nairobi?',
                 opts: ['Yes, definitely', 'Only if remote/WFH', 'No, too low for Nairobi', 'Depends on benefits'],
-                votes: [22, 35, 28, 15]
+                votes: [0, 0, 0, 0]
             },
             {
                 q: 'Which deduction do you find most burdensome?',
                 opts: ['PAYE (income tax)', 'NSSF contributions', 'SHIF (health levy)', 'Housing Levy'],
-                votes: [45, 15, 22, 18]
+                votes: [0, 0, 0, 0]
             }
         ];
         const pollIdx = new Date().getDay() % POLLS.length;
-        function loadPollVotes(poll, idx) {
-            var saved = localStorage.getItem('poll_votes_' + idx);
-            if (saved) {
-                try {
-                    var savedVotes = JSON.parse(saved);
-                    if (Array.isArray(savedVotes) && savedVotes.length === poll.votes.length) {
-                        poll.votes = savedVotes;
+        async function fetchPollVotesFromDB(poll, idx) {
+            if (!window.supabaseClient) return;
+            try {
+                var { data, error } = await window.supabaseClient
+                    .from('poll_votes')
+                    .select('option_idx, count')
+                    .eq('poll_idx', idx);
+                if (error || !data) return;
+                data.forEach(function(row) {
+                    if (row.option_idx >= 0 && row.option_idx < poll.votes.length) {
+                        poll.votes[row.option_idx] = row.count;
                     }
-                } catch(e) {}
-            }
+                });
+            } catch(e) {}
         }
-        function savePollVotes(poll, idx) {
-            localStorage.setItem('poll_votes_' + idx, JSON.stringify(poll.votes));
+        async function castPollVoteDB(pIdx, optionIdx) {
+            if (!window.supabaseClient) return;
+            try {
+                var { error } = await window.supabaseClient.rpc('increment_poll_vote', {
+                    p_poll_idx: pIdx,
+                    p_option_idx: optionIdx
+                });
+                if (error) console.error('Poll vote error:', error.message);
+            } catch(e) { console.error('Poll vote error:', e); }
         }
-        function initPoll() {
+        async function initPoll() {
             const poll = POLLS[pollIdx];
-            loadPollVotes(poll, pollIdx);
             const qEl = document.getElementById('pollQuestion');
             const optsEl = document.getElementById('pollOptions');
             if (!qEl || !optsEl) return;
             qEl.textContent = poll.q;
+            await fetchPollVotesFromDB(poll, pollIdx);
             const voted = localStorage.getItem('poll_voted_' + pollIdx);
             if (voted !== null) {
                 showPollResults(poll, parseInt(voted));
@@ -1432,19 +1443,27 @@
                 btn.onclick = function() { castPollVote(i); };
                 optsEl.appendChild(btn);
             });
-            // Show existing vote count even before user votes
+            // Show real vote count from DB
             var voteCountEl = document.getElementById('pollVoteCount');
             if (voteCountEl) {
                 var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
         }
-        function castPollVote(idx) {
+        async function castPollVote(idx) {
             var poll = POLLS[pollIdx];
+            // Optimistically update for immediate feedback, then sync with DB
             poll.votes[idx]++;
-            savePollVotes(poll, pollIdx);
             localStorage.setItem('poll_voted_' + pollIdx, idx);
             showPollResults(poll, idx);
+            await castPollVoteDB(pollIdx, idx);
+            // Re-fetch from DB to show accurate total after the vote is persisted
+            await fetchPollVotesFromDB(poll, pollIdx);
+            var voteCountEl = document.getElementById('pollVoteCount');
+            if (voteCountEl) {
+                var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+            }
         }
         function showPollResults(poll, selected) {
             var total = poll.votes.reduce(function(a,b){return a+b;},0);
