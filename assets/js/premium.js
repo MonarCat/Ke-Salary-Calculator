@@ -54,7 +54,8 @@ export async function checkPremium(supabase) {
       } catch (_) {}
     }
     const { data: { user } } = await supabase.auth.getUser();
-    const result = _build({ isPremium: true, isLoggedIn: !!user, email: user?.email || null });
+    // Only grant free access to signed-in users; visitors must sign up.
+    const result = _build({ isPremium: !!user, isLoggedIn: !!user, email: user?.email || null });
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
     return result;
   }
