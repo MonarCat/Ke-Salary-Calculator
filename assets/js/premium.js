@@ -37,29 +37,62 @@ export const PAYSTACK_WEBHOOK = `${SITE_URL}/api/paystack-webhook`;
 export const PLAN_CODE_MONTHLY = window.__PAYSTACK_PLAN_MONTHLY || "";
 export const PLAN_CODE_YEARLY  = window.__PAYSTACK_PLAN_YEARLY  || "";
 
+// ── Profile-based premium helpers ─────────────────────────────────────────────
+
+/**
+ * Returns true if the user currently has active premium access.
+ * Checks both the boolean flag AND premium_expires_at.
+ * A null expiry means the premium never expires (treat as active).
+ *
+ * @param {{ premium?: boolean, premium_expires_at?: string|null }} profile
+ * @returns {boolean}
+ */
+export function isPremium(profile) {
+  if (!profile) return false;
+  if (!profile.premium) return false;
+  if (!profile.premium_expires_at) return true;
+  return new Date(profile.premium_expires_at) > new Date();
+}
+
+/**
+ * Returns the premium source label for UI display.
+ *
+ * @param {{ premium_source?: string|null }} profile
+ * @returns {string}
+ */
+export function getPremiumLabel(profile) {
+  const sourceMap = {
+    paystack:          "Paystack Subscription",
+    mpesa:             "M-Pesa Subscription",
+    manual:            "Manual Grant",
+    promo:             "Promo Access",
+    easter_gift_2026:  "🐣 Easter Holiday Gift",
+  };
+  return sourceMap[profile?.premium_source] || "Premium";
+}
+
+/**
+ * Returns formatted expiry string, e.g. "30 Apr 2026".
+ *
+ * @param {{ premium_expires_at?: string|null }} profile
+ * @returns {string|null}
+ */
+export function getPremiumExpiry(profile) {
+  if (!profile?.premium_expires_at) return null;
+  return new Date(profile.premium_expires_at).toLocaleDateString("en-KE", {
+    day:   "numeric",
+    month: "short",
+    year:  "numeric",
+  });
+}
+
 // ── Premium check ─────────────────────────────────────────────────────────────
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null }>}
+ * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null, premiumSource: string|null, premiumExpiresAt: string|null }>}
  */
 export async function checkPremium(supabase) {
-  // Easter 2026 Holiday Promotion: grant free premium access to all users.
-  if (Date.now() < EASTER_FREE_UNTIL.getTime()) {
-    const cached = sessionStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.cachedAt < CACHE_TTL_MS) return parsed.data;
-      } catch (_) {}
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    // Only grant free access to signed-in users; visitors must sign up.
-    const result = _build({ isPremium: !!user, isLoggedIn: !!user, email: user?.email || null });
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
-    return result;
-  }
-
   const cached = sessionStorage.getItem(CACHE_KEY);
   if (cached) {
     try {
@@ -73,21 +106,26 @@ export async function checkPremium(supabase) {
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
-    .select("premium, premium_expires_at")
+    .select("premium, premium_expires_at, premium_source")
     .eq("id", user.id)
     .maybeSingle();
 
   if (error || !profile) return _build({ isLoggedIn: true, email: user.email || null });
 
-  const now        = new Date();
+  // Easter 2026 Holiday Promotion: grant free premium access to all signed-in users.
+  const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
+  const profilePremium = isPremium(profile);
+  const premiumActive  = profilePremium || duringEaster;
+
   const paidExpiry = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
-  const isPremium  = profile.premium === true && (!paidExpiry || paidExpiry > now);
 
   const result = _build({
-    isLoggedIn: true,
-    isPremium,
-    expiresAt:  isPremium ? paidExpiry : null,
-    email:      user.email || null,
+    isLoggedIn:       true,
+    isPremium:        premiumActive,
+    expiresAt:        premiumActive ? paidExpiry : null,
+    email:            user.email || null,
+    premiumSource:    profile.premium_source || null,
+    premiumExpiresAt: profile.premium_expires_at || null,
   });
 
   sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
@@ -96,10 +134,12 @@ export async function checkPremium(supabase) {
 
 function _build(o = {}) {
   return {
-    isLoggedIn: false,
-    isPremium:  false,
-    expiresAt:  null,
-    email:      null,
+    isLoggedIn:       false,
+    isPremium:        false,
+    expiresAt:        null,
+    email:            null,
+    premiumSource:    null,
+    premiumExpiresAt: null,
     ...o,
   };
 }

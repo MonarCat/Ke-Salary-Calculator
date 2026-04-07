@@ -1052,6 +1052,16 @@
       );
       initPayslipDownload(_sb, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
     </script>
+    <!-- Easter gift banner -->
+    <script type="module">
+      import { initEasterGiftBanner } from '/assets/js/easter-gift-banner.js';
+      import { createClient }         from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+      const _sbE = window.supabaseClient || createClient(
+        window.__SUPABASE_URL      || 'https://wklhcmaodxatavuoduhd.supabase.co',
+        window.__SUPABASE_ANON_KEY || ''
+      );
+      initEasterGiftBanner(_sbE);
+    </script>
     <script>
         // Dark mode
         (function() {

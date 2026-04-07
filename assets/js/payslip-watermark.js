@@ -20,6 +20,7 @@ import {
   openPaystackCheckout,
   invalidatePremiumCache,
   showEmailCapture,
+  getPremiumExpiry,
   PRICE_MONTHLY_KES,
   PRICE_YEARLY_KES,
   PRICE_SAVINGS_KES,
@@ -107,7 +108,10 @@ function downloadCanvas(canvas, filename) {
 
 // ── Upgrade modal (shown immediately after free download) ─────────────────────
 
-function showUpgradeModal() {
+/**
+ * @param {{ hasExpired?: boolean, expiredOn?: string|null }} [opts]
+ */
+function showUpgradeModal(opts = {}) {
   document.getElementById("sc-upgrade-modal")?.remove();
 
   const modal = document.createElement("div");
@@ -120,6 +124,17 @@ function showUpgradeModal() {
     "display:flex", "align-items:center", "justify-content:center",
     "background:rgba(0,0,0,0.60)", "padding:16px",
   ].join(";");
+
+  const expiredBanner = opts.hasExpired && opts.expiredOn
+    ? (() => {
+        const p = document.createElement("p");
+        p.style.cssText = "color:#e63946;margin:0 0 12px;font-size:0.88rem;background:#fff5f5;border:1px solid #fecaca;border-radius:6px;padding:8px 12px;";
+        const strong = document.createElement("strong");
+        strong.textContent = opts.expiredOn;
+        p.append("⚠️ Your premium access expired on ", strong, ". Subscribe below to restore full access.");
+        return p.outerHTML;
+      })()
+    : "";
 
   modal.innerHTML = `
     <div style="
@@ -136,6 +151,7 @@ function showUpgradeModal() {
       <h3 style="margin:0 0 6px;font-size:1.15rem;font-weight:700;color:#0f172a;">
         Your SAMPLE payslip is downloading!
       </h3>
+      ${expiredBanner}
       <p style="margin:0 0 20px;font-size:0.88rem;color:#475569;">
         Upgrade to Premium to download clean, watermark-free payslips.
       </p>
@@ -282,7 +298,10 @@ export async function initPayslipDownload(supabase, opts = {}) {
       const filename = (rawFilename || "payslip-sample") + ".png";
 
       downloadCanvas(canvas, filename);
-      showUpgradeModal();
+      // Show expiry-aware upgrade modal for users with an expired premium
+      const hasExpired = !!(status.premiumExpiresAt && new Date(status.premiumExpiresAt) < new Date());
+      const expiredOn  = hasExpired ? getPremiumExpiry({ premium_expires_at: status.premiumExpiresAt }) : null;
+      showUpgradeModal({ hasExpired, expiredOn });
     } catch (err) {
       console.error("[PayslipWatermark]", err);
       // Fall back to clean print if html2canvas fails

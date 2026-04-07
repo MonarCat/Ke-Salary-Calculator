@@ -22,6 +22,8 @@ import {
   checkPremium,
   openPaystackCheckout,
   invalidatePremiumCache,
+  getPremiumLabel,
+  getPremiumExpiry,
   PRICE_MONTHLY_KES,
   PRICE_YEARLY_KES,
   PRICE_SAVINGS_KES,
@@ -107,6 +109,17 @@ function injectStyles() {
       margin-top: 0.2rem;
     }
     [data-theme="dark"] .sc-ab-expiry { color: #94a3b8; }
+
+    .sc-ab-source {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #166534;
+      background: #dcfce7;
+      border-radius: 12px;
+      padding: 1px 8px;
+      display: inline-block;
+    }
+    [data-theme="dark"] .sc-ab-source { background: #14532d; color: #86efac; }
 
     /* ── Trial progress bar ── */
     .sc-ab-trial-bar {
@@ -327,6 +340,16 @@ function injectStyles() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+function _esc(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const FEATURES = [
   // Free features
   { label: "Salary breakdown",              free: true  },
@@ -378,15 +401,24 @@ function render(status) {
   let badgeClass, badgeLabel, planName, expiryLine;
 
   if (status.isPremium) {
+    const sourceLabel = getPremiumLabel({ premium_source: status.premiumSource });
+    const expiryLabel = getPremiumExpiry({ premium_expires_at: status.premiumExpiresAt });
     badgeClass  = "sc-ab-badge--premium";
     badgeLabel  = "⭐ Premium";
     planName    = "Premium Plan";
-    expiryLine  = status.expiresAt ? `Renews / expires: ${formatDate(status.expiresAt)}` : "Active — no expiry set";
+    expiryLine  = expiryLabel
+      ? `<span class="sc-ab-source">${_esc(sourceLabel)}</span> &nbsp;·&nbsp; Expires: ${_esc(expiryLabel)}`
+      : `<span class="sc-ab-source">${_esc(sourceLabel)}</span> &nbsp;·&nbsp; Active — no expiry set`;
   } else {
+    const profileExpiresAt = status.premiumExpiresAt;
+    const hasExpired = profileExpiresAt && new Date(profileExpiresAt) < new Date();
+    const expiredOn  = hasExpired ? getPremiumExpiry({ premium_expires_at: profileExpiresAt }) : null;
     badgeClass  = "sc-ab-badge--free";
     badgeLabel  = "Free";
     planName    = "Free Plan";
-    expiryLine  = "Upgrade to unlock all features.";
+    expiryLine  = hasExpired
+      ? `⚠️ Your premium expired on <strong>${_esc(expiredOn)}</strong>. Subscribe below to restore access.`
+      : "Upgrade to unlock all features.";
   }
 
   const planCardHtml = `

@@ -41,20 +41,29 @@ export const config = { api: { bodyParser: false } };
 const PLAN_MONTHLY = "monthly";
 const PLAN_YEARLY  = "yearly";
 
+// Duration in days per plan
+const PLAN_DURATION_DAYS = {
+  [PLAN_MONTHLY]: 30,
+  [PLAN_YEARLY]:  365,
+};
+
 /**
- * Calculate premium expiry from plan name.
- * @param {string} plan
+ * Calculate new premium expiry, extending from the user's existing expiry
+ * when their current premium is still active (early renewal).
+ *
+ * @param {string} plan               — "monthly" | "yearly"
+ * @param {string|null} currentExpiry — ISO timestamp of existing premium_expires_at
  * @returns {Date}
  */
-function getPremiumExpiry(plan) {
-  const d = new Date();
-  if (plan === PLAN_YEARLY) {
-    d.setFullYear(d.getFullYear() + 1);
-  } else {
-    // monthly (default fallback)
-    d.setMonth(d.getMonth() + 1);
-  }
-  return d;
+function getPremiumExpiry(plan, currentExpiry) {
+  const durationDays = PLAN_DURATION_DAYS[plan] ?? 30;
+  const now = new Date();
+  const existingExpiry = currentExpiry ? new Date(currentExpiry) : null;
+  // Extend from current expiry if it's still in the future; otherwise extend from now
+  const baseDate = existingExpiry && existingExpiry > now ? existingExpiry : now;
+  const result = new Date(baseDate);
+  result.setDate(result.getDate() + durationDays);
+  return result;
 }
 
 /**
@@ -113,8 +122,48 @@ export default async function handler(req, res) {
     return res.status(400).send("Invalid JSON");
   }
 
-  // Only process successful charges
-  if (event?.event !== "charge.success") {
+  const eventType = event?.event;
+
+  // Only process relevant events
+  if (eventType !== "charge.success" && eventType !== "subscription.disable") {
+    return res.status(200).send("OK");
+  }
+
+  // ── 4. Initialise Supabase service client ─────────────────────────────────
+  const supabaseUrl = process.env.SUPABASE_URL
+    || process.env.VITE_SUPABASE_URL
+    || process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("[Paystack Webhook] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars.");
+    return res.status(500).send("Server misconfiguration");
+  }
+
+  const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  // ── Handle subscription.disable (cancellation / non-renewal) ─────────────
+  if (eventType === "subscription.disable") {
+    const disableEmail = event.data?.customer?.email?.toLowerCase();
+    if (disableEmail) {
+      const { data: disableAuth } = await supabase
+        .schema("auth")
+        .from("users")
+        .select("id")
+        .eq("email", disableEmail)
+        .maybeSingle();
+
+      if (disableAuth?.id) {
+        await supabase
+          .from("user_profiles")
+          .update({
+            premium:        false,
+            premium_source: null,
+            updated_at:     new Date().toISOString(),
+          })
+          .eq("id", disableAuth.id);
+        console.log(`[Paystack Webhook] Premium revoked for ${disableEmail} (subscription.disable).`);
+      }
+    }
     return res.status(200).send("OK");
   }
 
@@ -134,18 +183,6 @@ export default async function handler(req, res) {
     console.warn("[Paystack Webhook] No customer email in event.");
     return res.status(200).send("OK");
   }
-
-  // ── 4. Initialise Supabase service client ─────────────────────────────────
-  const supabaseUrl = process.env.SUPABASE_URL
-    || process.env.VITE_SUPABASE_URL
-    || process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error("[Paystack Webhook] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars.");
-    return res.status(500).send("Server misconfiguration");
-  }
-
-  const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   // ── 5. Look up user via auth.users (service-role) then record transaction ─
   // IMPORTANT: user_profiles has no email column; always look up via auth.users.
@@ -187,7 +224,15 @@ export default async function handler(req, res) {
     return res.status(200).send("OK");
   }
 
-  const expiresAt = getPremiumExpiry(plan);
+  // Fetch current profile to check existing expiry (for early-renewal extension)
+  const { data: currentProfile } = await supabase
+    .from("user_profiles")
+    .select("premium_expires_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const now       = new Date();
+  const expiresAt = getPremiumExpiry(plan, currentProfile?.premium_expires_at || null);
 
   const { error: updateErr } = await supabase
     .from("user_profiles")
@@ -195,8 +240,9 @@ export default async function handler(req, res) {
       premium:              true,
       premium_expires_at:   expiresAt.toISOString(),
       premium_source:       "paystack",
-      premium_activated_at: new Date().toISOString(),
+      premium_activated_at: now.toISOString(),
       paystack_reference:   reference,
+      updated_at:           now.toISOString(),
     })
     .eq("id", userId);
 
@@ -204,6 +250,8 @@ export default async function handler(req, res) {
     console.error("[Paystack Webhook] Premium activation error:", updateErr);
     return res.status(500).send("DB error");
   }
+
+  console.log(`✅ Premium extended for ${payerEmail} until ${expiresAt.toISOString()}`);
 
   return res.status(200).send("OK");
 }
@@ -226,14 +274,28 @@ export async function onRequestPost(context) {
   if (hash !== signature) return new Response("Invalid signature", { status: 400 });
 
   const event = JSON.parse(rawBody);
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
+
+  if (event?.event === "subscription.disable") {
+    const disableEmail = event.data?.customer?.email?.toLowerCase();
+    if (disableEmail) {
+      const { data: authRow } = await supabase
+        .schema("auth").from("users").select("id").eq("email", disableEmail).maybeSingle();
+      if (authRow?.id) {
+        await supabase.from("user_profiles")
+          .update({ premium: false, premium_source: null, updated_at: new Date().toISOString() })
+          .eq("id", authRow.id);
+      }
+    }
+    return new Response("OK");
+  }
+
   if (event?.event !== "charge.success") return new Response("OK");
 
   const data       = event.data || {};
   const payerEmail = data.customer?.email?.toLowerCase();
   const reference  = data.reference;
   const plan       = (data.metadata?.custom_fields || []).find(f => f.variable_name === "plan")?.value || "monthly";
-
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
   // Look up via auth.users — user_profiles has no email column
   const { data: authRow } = await supabase
@@ -245,11 +307,19 @@ export async function onRequestPost(context) {
     { onConflict: "reference", ignoreDuplicates: true }
   );
 
-  const expiresAt = new Date();
-  plan === "yearly" ? expiresAt.setFullYear(expiresAt.getFullYear() + 1) : expiresAt.setMonth(expiresAt.getMonth() + 1);
+  // Fetch current expiry to support early-renewal extension
+  const { data: profile } = await supabase
+    .from("user_profiles").select("premium_expires_at").eq("id", authRow.id).maybeSingle();
+
+  const now           = new Date();
+  const durationDays  = plan === "yearly" ? 365 : 30;
+  const currentExpiry = profile?.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+  const baseDate      = currentExpiry && currentExpiry > now ? currentExpiry : now;
+  const expiresAt     = new Date(baseDate);
+  expiresAt.setDate(expiresAt.getDate() + durationDays);
 
   await supabase.from("user_profiles")
-    .update({ premium: true, premium_expires_at: expiresAt.toISOString(), premium_source: "paystack", premium_activated_at: new Date().toISOString() })
+    .update({ premium: true, premium_expires_at: expiresAt.toISOString(), premium_source: "paystack", premium_activated_at: now.toISOString(), paystack_reference: reference, updated_at: now.toISOString() })
     .eq("id", authRow.id);
 
   return new Response("OK");

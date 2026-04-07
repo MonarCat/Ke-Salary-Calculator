@@ -881,5 +881,11 @@
     });
     if (scrollBtn) scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     </script>
+    <!-- Easter gift banner -->
+    <script type="module">
+        import { initEasterGiftBanner } from '/assets/js/easter-gift-banner.js';
+        const supabase = window.supabaseClient;
+        if (supabase) initEasterGiftBanner(supabase);
+    </script>
 </body>
 </html>
