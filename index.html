@@ -1379,25 +1379,116 @@
             initPoll();
         });
 
-        // ── Daily Poll ────────────────────────────────────────────────────────
+        // ── Weekly Poll ───────────────────────────────────────────────────────
+        // IMPORTANT: polls are append-only. Never reorder or remove an existing
+        // entry — its position (index) is the poll_idx stored in the database.
         const POLLS = [
+            // ── idx 0 ────────────────────────────────────────────────────────
             {
                 q: 'Do you think Kenyan salaries are fair relative to the cost of living?',
                 opts: ['Yes, they are fair', 'No, too low', 'Depends on profession', 'Not sure'],
                 votes: [0, 0, 0, 0]
             },
+            // ── idx 1 ────────────────────────────────────────────────────────
             {
                 q: 'Would you accept a job paying KES 60,000 in Nairobi?',
                 opts: ['Yes, definitely', 'Only if remote/WFH', 'No, too low for Nairobi', 'Depends on benefits'],
                 votes: [0, 0, 0, 0]
             },
+            // ── idx 2 ────────────────────────────────────────────────────────
             {
                 q: 'Which deduction do you find most burdensome?',
                 opts: ['PAYE (income tax)', 'NSSF contributions', 'SHIF (health levy)', 'Housing Levy'],
                 votes: [0, 0, 0, 0]
+            },
+            // ── idx 3 ────────────────────────────────────────────────────────
+            {
+                q: 'Do you have a side hustle or additional income source?',
+                opts: ['Yes, it earns more than my job', 'Yes, a small supplement', 'No, but I plan to', 'No, my salary is enough'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 4 ────────────────────────────────────────────────────────
+            {
+                q: 'What percentage of your monthly salary do you manage to save?',
+                opts: ['Nothing — it\'s all spent', '1–10%', '11–20%', 'More than 20%'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 5 ────────────────────────────────────────────────────────
+            {
+                q: 'Would you consider working abroad (e.g. Middle East, Europe) for higher pay?',
+                opts: ['Already working abroad', 'Yes, actively considering it', 'Maybe, depends on the offer', 'No, I prefer to stay in Kenya'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 6 ────────────────────────────────────────────────────────
+            {
+                q: 'How has the cost of living in Kenya changed for you over the past year?',
+                opts: ['Much more expensive', 'Slightly more expensive', 'About the same', 'Actually cheaper'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 7 ────────────────────────────────────────────────────────
+            {
+                q: 'What is your biggest financial goal right now?',
+                opts: ['Build an emergency fund', 'Buy land or property', 'Clear debts/loans', 'Start or grow a business'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 8 ────────────────────────────────────────────────────────
+            {
+                q: 'Does your employer pay your salary on time every month?',
+                opts: ['Always on time', 'Usually on time', 'Frequently delayed', 'Very irregular'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 9 ────────────────────────────────────────────────────────
+            {
+                q: 'How satisfied are you with Kenya\'s current minimum wage?',
+                opts: ['Very satisfied', 'Somewhat satisfied', 'Unsatisfied — too low', 'Unsatisfied — enforcement is poor'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 10 ───────────────────────────────────────────────────────
+            {
+                q: 'Which benefit matters most to you when choosing a job?',
+                opts: ['Medical/health cover', 'Pension / NSSF matching', 'Flexible working hours', 'Annual leave & bonuses'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 11 ───────────────────────────────────────────────────────
+            {
+                q: 'How do you primarily manage your personal finances?',
+                opts: ['Strict monthly budget', 'Mobile money (M-Pesa) tracking', 'I rely on my bank app', 'I don\'t track — I just spend'],
+                votes: [0, 0, 0, 0]
             }
         ];
-        const pollIdx = new Date().getDay() % POLLS.length;
+
+        // Rotate to a new poll every calendar week.
+        // Uses weeks-since-Unix-epoch so the poll is the same for every visitor
+        // during the same week, regardless of their timezone offset.
+        // Existing poll_idx values (0-2) in the DB remain valid — never remove
+        // or reorder entries above; only append new ones.
+        const pollIdx = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % POLLS.length;
+
+        // Retrieve or generate a persistent anonymous token for this browser.
+        // This token is used to deduplicate votes for unauthenticated visitors.
+        function getPollAnonToken() {
+            var key = 'poll_anon_token';
+            var token = localStorage.getItem(key);
+            if (!token) {
+                // Use the Web Crypto API for a cryptographically strong UUID v4
+                if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                    token = crypto.randomUUID();
+                } else {
+                    var bytes = new Uint8Array(16);
+                    crypto.getRandomValues(bytes);
+                    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+                    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant bits
+                    var hex = Array.from(bytes, function(b) {
+                        return b.toString(16).padStart(2, '0');
+                    }).join('');
+                    token = [hex.slice(0,8), hex.slice(8,12), hex.slice(12,16),
+                             hex.slice(16,20), hex.slice(20,32)].join('-');
+                }
+                localStorage.setItem(key, token);
+            }
+            return token;
+        }
+
         async function fetchPollVotesFromDB(poll, idx) {
             if (!window.supabaseClient) return;
             try {
@@ -1413,16 +1504,39 @@
                 });
             } catch(e) {}
         }
-        async function castPollVoteDB(pIdx, optionIdx) {
-            if (!window.supabaseClient) return;
+
+        // Check server-side whether this browser/user has already voted.
+        // Returns the option_idx they voted for, or null if they have not voted.
+        async function checkPollVoteDB(pIdx) {
+            if (!window.supabaseClient) return null;
             try {
-                var { error } = await window.supabaseClient.rpc('increment_poll_vote', {
+                var { data, error } = await window.supabaseClient.rpc('check_poll_vote', {
                     p_poll_idx: pIdx,
-                    p_option_idx: optionIdx
+                    p_anon_token: getPollAnonToken()
                 });
-                if (error) console.error('Poll vote error:', error.message);
-            } catch(e) { console.error('Poll vote error:', e); }
+                if (error || !data) return null;
+                if (!data.already_voted) return null;
+                // option_idx is present after migration 013; fall back to null
+                // (show results without highlighting) when it's not yet available.
+                return data.option_idx !== undefined && data.option_idx !== null
+                    ? data.option_idx : -1;
+            } catch(e) { return null; }
         }
+
+        // Submit vote server-side. Returns { already_voted, option_idx }.
+        async function submitPollVoteDB(pIdx, optionIdx) {
+            if (!window.supabaseClient) return null;
+            try {
+                var { data, error } = await window.supabaseClient.rpc('submit_poll_vote', {
+                    p_poll_idx: pIdx,
+                    p_option_idx: optionIdx,
+                    p_anon_token: getPollAnonToken()
+                });
+                if (error) { console.error('Poll vote error:', error.message); return null; }
+                return data;
+            } catch(e) { console.error('Poll vote error:', e); return null; }
+        }
+
         async function initPoll() {
             const poll = POLLS[pollIdx];
             const qEl = document.getElementById('pollQuestion');
@@ -1430,11 +1544,26 @@
             if (!qEl || !optsEl) return;
             qEl.textContent = poll.q;
             await fetchPollVotesFromDB(poll, pollIdx);
-            const voted = localStorage.getItem('poll_voted_' + pollIdx);
-            if (voted !== null) {
-                showPollResults(poll, parseInt(voted));
+
+            // Prefer server-side check; fall back to localStorage cache when
+            // supabaseClient is unavailable (e.g. offline or DB not yet migrated).
+            var serverVoted = await checkPollVoteDB(pollIdx);
+            if (serverVoted !== null) {
+                // Sync the authoritative server result into localStorage (only when
+                // we have a valid option, not the sentinel -1 value).
+                if (serverVoted >= 0) {
+                    localStorage.setItem('poll_voted_' + pollIdx, serverVoted);
+                }
+                showPollResults(poll, serverVoted);
                 return;
             }
+            // localStorage fallback (for offline / pre-migration visits)
+            var localVoted = localStorage.getItem('poll_voted_' + pollIdx);
+            if (localVoted !== null) {
+                showPollResults(poll, parseInt(localVoted));
+                return;
+            }
+
             optsEl.innerHTML = '';
             poll.opts.forEach(function(opt, i) {
                 var btn = document.createElement('button');
@@ -1450,13 +1579,40 @@
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
         }
+
         async function castPollVote(idx) {
             var poll = POLLS[pollIdx];
-            // Optimistically update for immediate feedback, then sync with DB
+
+            // Submit to server first; the function enforces one vote per participant
+            var result = await submitPollVoteDB(pollIdx, idx);
+            if (result && result.already_voted) {
+                // Server says they already voted – show results for that option.
+                // Only use the server-returned option_idx; do not fall back to idx
+                // as that could display the wrong selection.
+                if (result.option_idx !== null && result.option_idx !== undefined) {
+                    var votedOption = result.option_idx;
+                    localStorage.setItem('poll_voted_' + pollIdx, votedOption);
+                    showPollResults(poll, votedOption);
+                } else {
+                    // Server confirmed duplicate but did not return the option –
+                    // refresh the page state without highlighting any option.
+                    await fetchPollVotesFromDB(poll, pollIdx);
+                    showPollResults(poll, -1);
+                }
+                return;
+            }
+
+            // If submit_poll_vote RPC is not yet deployed, fall back to the legacy
+            // increment_poll_vote so the vote is still counted in poll_votes.
+            if (result === null) {
+                await legacyIncrementPollVoteDB(pollIdx, idx);
+            }
+
+            // New vote accepted – update local state and cache
             poll.votes[idx]++;
             localStorage.setItem('poll_voted_' + pollIdx, idx);
             showPollResults(poll, idx);
-            await castPollVoteDB(pollIdx, idx);
+
             // Re-fetch from DB to show accurate total after the vote is persisted
             await fetchPollVotesFromDB(poll, pollIdx);
             var voteCountEl = document.getElementById('pollVoteCount');
@@ -1464,6 +1620,18 @@
                 var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
+        }
+
+        // Legacy fallback: used when submit_poll_vote RPC is not yet deployed
+        async function legacyIncrementPollVoteDB(pIdx, optionIdx) {
+            if (!window.supabaseClient) return;
+            try {
+                var { error } = await window.supabaseClient.rpc('increment_poll_vote', {
+                    p_poll_idx: pIdx,
+                    p_option_idx: optionIdx
+                });
+                if (error) console.error('Poll vote (legacy) error:', error.message);
+            } catch(e) { console.error('Poll vote (legacy) error:', e); }
         }
         function showPollResults(poll, selected) {
             var total = poll.votes.reduce(function(a,b){return a+b;},0);
