@@ -918,9 +918,13 @@
             }
             currentUser = user;
 
+            // Easter 2026 Holiday Promotion — free premium access for all signed-in users until end of April 2026.
+            const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
+            const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
+
             // Check premium via user_profiles
-            let isPremium = false;
-            if (supabaseClient && isSupabaseConfigured()) {
+            let isPremium = duringEaster; // all logged-in users are premium during Easter
+            if (!isPremium && supabaseClient && isSupabaseConfigured()) {
                 try {
                     const { data: profile } = await supabaseClient
                         .from('user_profiles')
