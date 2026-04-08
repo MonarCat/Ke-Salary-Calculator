@@ -472,13 +472,23 @@ async function init() {
     }
     currentUser = user;
 
-    // Check premium (premium.js exposes checkPremium which returns an object)
-    let isPremium = false;
-    if (typeof checkPremium === 'function') {
+    // Easter 2026 Holiday Promotion — free premium access for all signed-in users until end of April 2026.
+    const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
+    const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
+
+    // Check premium via user_profiles (with Easter promotion fallback)
+    let isPremium = duringEaster; // all logged-in users are premium during Easter
+    if (!isPremium && typeof supabaseClient !== 'undefined' && supabaseClient && isSupabaseConfigured()) {
         try {
-            const supabase = getSupabaseClient();
-            const status = await checkPremium(supabase);
-            isPremium = status.isPremium === true;
+            const { data: profile } = await supabaseClient
+                .from('user_profiles')
+                .select('premium, premium_expires_at')
+                .eq('id', user.id)
+                .maybeSingle();
+            if (profile && profile.premium === true) {
+                const exp = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+                isPremium = !exp || exp > new Date();
+            }
         } catch(e) { /* ignore */ }
     }
 
