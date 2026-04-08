@@ -1379,25 +1379,90 @@
             initPoll();
         });
 
-        // ── Daily Poll ────────────────────────────────────────────────────────
+        // ── Weekly Poll ───────────────────────────────────────────────────────
+        // IMPORTANT: polls are append-only. Never reorder or remove an existing
+        // entry — its position (index) is the poll_idx stored in the database.
         const POLLS = [
+            // ── idx 0 ────────────────────────────────────────────────────────
             {
                 q: 'Do you think Kenyan salaries are fair relative to the cost of living?',
                 opts: ['Yes, they are fair', 'No, too low', 'Depends on profession', 'Not sure'],
                 votes: [0, 0, 0, 0]
             },
+            // ── idx 1 ────────────────────────────────────────────────────────
             {
                 q: 'Would you accept a job paying KES 60,000 in Nairobi?',
                 opts: ['Yes, definitely', 'Only if remote/WFH', 'No, too low for Nairobi', 'Depends on benefits'],
                 votes: [0, 0, 0, 0]
             },
+            // ── idx 2 ────────────────────────────────────────────────────────
             {
                 q: 'Which deduction do you find most burdensome?',
                 opts: ['PAYE (income tax)', 'NSSF contributions', 'SHIF (health levy)', 'Housing Levy'],
                 votes: [0, 0, 0, 0]
+            },
+            // ── idx 3 ────────────────────────────────────────────────────────
+            {
+                q: 'Do you have a side hustle or additional income source?',
+                opts: ['Yes, it earns more than my job', 'Yes, a small supplement', 'No, but I plan to', 'No, my salary is enough'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 4 ────────────────────────────────────────────────────────
+            {
+                q: 'What percentage of your monthly salary do you manage to save?',
+                opts: ['Nothing — it\'s all spent', '1–10%', '11–20%', 'More than 20%'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 5 ────────────────────────────────────────────────────────
+            {
+                q: 'Would you consider working abroad (e.g. Middle East, Europe) for higher pay?',
+                opts: ['Already working abroad', 'Yes, actively considering it', 'Maybe, depends on the offer', 'No, I prefer to stay in Kenya'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 6 ────────────────────────────────────────────────────────
+            {
+                q: 'How has the cost of living in Kenya changed for you over the past year?',
+                opts: ['Much more expensive', 'Slightly more expensive', 'About the same', 'Actually cheaper'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 7 ────────────────────────────────────────────────────────
+            {
+                q: 'What is your biggest financial goal right now?',
+                opts: ['Build an emergency fund', 'Buy land or property', 'Clear debts/loans', 'Start or grow a business'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 8 ────────────────────────────────────────────────────────
+            {
+                q: 'Does your employer pay your salary on time every month?',
+                opts: ['Always on time', 'Usually on time', 'Frequently delayed', 'Very irregular'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 9 ────────────────────────────────────────────────────────
+            {
+                q: 'How satisfied are you with Kenya\'s current minimum wage?',
+                opts: ['Very satisfied', 'Somewhat satisfied', 'Unsatisfied — too low', 'Unsatisfied — enforcement is poor'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 10 ───────────────────────────────────────────────────────
+            {
+                q: 'Which benefit matters most to you when choosing a job?',
+                opts: ['Medical/health cover', 'Pension / NSSF matching', 'Flexible working hours', 'Annual leave & bonuses'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 11 ───────────────────────────────────────────────────────
+            {
+                q: 'How do you primarily manage your personal finances?',
+                opts: ['Strict monthly budget', 'Mobile money (M-Pesa) tracking', 'I rely on my bank app', 'I don\'t track — I just spend'],
+                votes: [0, 0, 0, 0]
             }
         ];
-        const pollIdx = new Date().getDay() % POLLS.length;
+
+        // Rotate to a new poll every calendar week.
+        // Uses weeks-since-Unix-epoch so the poll is the same for every visitor
+        // during the same week, regardless of their timezone offset.
+        // Existing poll_idx values (0-2) in the DB remain valid — never remove
+        // or reorder entries above; only append new ones.
+        const pollIdx = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % POLLS.length;
 
         // Retrieve or generate a persistent anonymous token for this browser.
         // This token is used to deduplicate votes for unauthenticated visitors.
