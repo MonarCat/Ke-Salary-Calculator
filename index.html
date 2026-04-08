@@ -1530,6 +1530,12 @@
                 return;
             }
 
+            // If submit_poll_vote RPC is not yet deployed, fall back to the legacy
+            // increment_poll_vote so the vote is still counted in poll_votes.
+            if (result === null) {
+                await legacyIncrementPollVoteDB(pollIdx, idx);
+            }
+
             // New vote accepted – update local state and cache
             poll.votes[idx]++;
             localStorage.setItem('poll_voted_' + pollIdx, idx);
@@ -1542,6 +1548,18 @@
                 var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
+        }
+
+        // Legacy fallback: used when submit_poll_vote RPC is not yet deployed
+        async function legacyIncrementPollVoteDB(pIdx, optionIdx) {
+            if (!window.supabaseClient) return;
+            try {
+                var { error } = await window.supabaseClient.rpc('increment_poll_vote', {
+                    p_poll_idx: pIdx,
+                    p_option_idx: optionIdx
+                });
+                if (error) console.error('Poll vote (legacy) error:', error.message);
+            } catch(e) { console.error('Poll vote (legacy) error:', e); }
         }
         function showPollResults(poll, selected) {
             var total = poll.votes.reduce(function(a,b){return a+b;},0);

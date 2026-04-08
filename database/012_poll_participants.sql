@@ -15,9 +15,9 @@ create table if not exists poll_participants (
 
 -- Partial unique indexes prevent duplicates while correctly ignoring NULL values:
 --   authenticated users: one vote per (poll, user_id)
-create unique index uq_poll_user on poll_participants (poll_idx, user_id) where user_id is not null;
+create unique index if not exists uq_poll_user on poll_participants (poll_idx, user_id) where user_id is not null;
 --   anonymous users: one vote per (poll, anon_token)
-create unique index uq_poll_anon on poll_participants (poll_idx, anon_token) where anon_token is not null;
+create unique index if not exists uq_poll_anon on poll_participants (poll_idx, anon_token) where anon_token is not null;
 
 -- Enable Row Level Security – all access goes through SECURITY DEFINER functions
 alter table poll_participants enable row level security;
