@@ -1450,7 +1450,11 @@
                     p_anon_token: getPollAnonToken()
                 });
                 if (error || !data) return null;
-                return data.voted ? data.option_idx : null;
+                if (!data.already_voted) return null;
+                // option_idx is present after migration 013; fall back to null
+                // (show results without highlighting) when it's not yet available.
+                return data.option_idx !== undefined && data.option_idx !== null
+                    ? data.option_idx : -1;
             } catch(e) { return null; }
         }
 
@@ -1480,8 +1484,11 @@
             // supabaseClient is unavailable (e.g. offline or DB not yet migrated).
             var serverVoted = await checkPollVoteDB(pollIdx);
             if (serverVoted !== null) {
-                // Sync the authoritative server result into localStorage
-                localStorage.setItem('poll_voted_' + pollIdx, serverVoted);
+                // Sync the authoritative server result into localStorage (only when
+                // we have a valid option, not the sentinel -1 value).
+                if (serverVoted >= 0) {
+                    localStorage.setItem('poll_voted_' + pollIdx, serverVoted);
+                }
                 showPollResults(poll, serverVoted);
                 return;
             }
