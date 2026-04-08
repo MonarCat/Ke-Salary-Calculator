@@ -1398,6 +1398,32 @@
             }
         ];
         const pollIdx = new Date().getDay() % POLLS.length;
+
+        // Retrieve or generate a persistent anonymous token for this browser.
+        // This token is used to deduplicate votes for unauthenticated visitors.
+        function getPollAnonToken() {
+            var key = 'poll_anon_token';
+            var token = localStorage.getItem(key);
+            if (!token) {
+                // Use the Web Crypto API for a cryptographically strong UUID v4
+                if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                    token = crypto.randomUUID();
+                } else {
+                    var bytes = new Uint8Array(16);
+                    crypto.getRandomValues(bytes);
+                    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+                    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant bits
+                    var hex = Array.from(bytes, function(b) {
+                        return b.toString(16).padStart(2, '0');
+                    }).join('');
+                    token = [hex.slice(0,8), hex.slice(8,12), hex.slice(12,16),
+                             hex.slice(16,20), hex.slice(20,32)].join('-');
+                }
+                localStorage.setItem(key, token);
+            }
+            return token;
+        }
+
         async function fetchPollVotesFromDB(poll, idx) {
             if (!window.supabaseClient) return;
             try {
@@ -1413,16 +1439,35 @@
                 });
             } catch(e) {}
         }
-        async function castPollVoteDB(pIdx, optionIdx) {
-            if (!window.supabaseClient) return;
+
+        // Check server-side whether this browser/user has already voted.
+        // Returns the option_idx they voted for, or null if they have not voted.
+        async function checkPollVoteDB(pIdx) {
+            if (!window.supabaseClient) return null;
             try {
-                var { error } = await window.supabaseClient.rpc('increment_poll_vote', {
+                var { data, error } = await window.supabaseClient.rpc('check_poll_vote', {
                     p_poll_idx: pIdx,
-                    p_option_idx: optionIdx
+                    p_anon_token: getPollAnonToken()
                 });
-                if (error) console.error('Poll vote error:', error.message);
-            } catch(e) { console.error('Poll vote error:', e); }
+                if (error || !data) return null;
+                return data.voted ? data.option_idx : null;
+            } catch(e) { return null; }
         }
+
+        // Submit vote server-side. Returns { already_voted, option_idx }.
+        async function submitPollVoteDB(pIdx, optionIdx) {
+            if (!window.supabaseClient) return null;
+            try {
+                var { data, error } = await window.supabaseClient.rpc('submit_poll_vote', {
+                    p_poll_idx: pIdx,
+                    p_option_idx: optionIdx,
+                    p_anon_token: getPollAnonToken()
+                });
+                if (error) { console.error('Poll vote error:', error.message); return null; }
+                return data;
+            } catch(e) { console.error('Poll vote error:', e); return null; }
+        }
+
         async function initPoll() {
             const poll = POLLS[pollIdx];
             const qEl = document.getElementById('pollQuestion');
@@ -1430,11 +1475,23 @@
             if (!qEl || !optsEl) return;
             qEl.textContent = poll.q;
             await fetchPollVotesFromDB(poll, pollIdx);
-            const voted = localStorage.getItem('poll_voted_' + pollIdx);
-            if (voted !== null) {
-                showPollResults(poll, parseInt(voted));
+
+            // Prefer server-side check; fall back to localStorage cache when
+            // supabaseClient is unavailable (e.g. offline or DB not yet migrated).
+            var serverVoted = await checkPollVoteDB(pollIdx);
+            if (serverVoted !== null) {
+                // Sync the authoritative server result into localStorage
+                localStorage.setItem('poll_voted_' + pollIdx, serverVoted);
+                showPollResults(poll, serverVoted);
                 return;
             }
+            // localStorage fallback (for offline / pre-migration visits)
+            var localVoted = localStorage.getItem('poll_voted_' + pollIdx);
+            if (localVoted !== null) {
+                showPollResults(poll, parseInt(localVoted));
+                return;
+            }
+
             optsEl.innerHTML = '';
             poll.opts.forEach(function(opt, i) {
                 var btn = document.createElement('button');
@@ -1450,13 +1507,34 @@
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
         }
+
         async function castPollVote(idx) {
             var poll = POLLS[pollIdx];
-            // Optimistically update for immediate feedback, then sync with DB
+
+            // Submit to server first; the function enforces one vote per participant
+            var result = await submitPollVoteDB(pollIdx, idx);
+            if (result && result.already_voted) {
+                // Server says they already voted – show results for that option.
+                // Only use the server-returned option_idx; do not fall back to idx
+                // as that could display the wrong selection.
+                if (result.option_idx !== null && result.option_idx !== undefined) {
+                    var votedOption = result.option_idx;
+                    localStorage.setItem('poll_voted_' + pollIdx, votedOption);
+                    showPollResults(poll, votedOption);
+                } else {
+                    // Server confirmed duplicate but did not return the option –
+                    // refresh the page state without highlighting any option.
+                    await fetchPollVotesFromDB(poll, pollIdx);
+                    showPollResults(poll, -1);
+                }
+                return;
+            }
+
+            // New vote accepted – update local state and cache
             poll.votes[idx]++;
             localStorage.setItem('poll_voted_' + pollIdx, idx);
             showPollResults(poll, idx);
-            await castPollVoteDB(pollIdx, idx);
+
             // Re-fetch from DB to show accurate total after the vote is persisted
             await fetchPollVotesFromDB(poll, pollIdx);
             var voteCountEl = document.getElementById('pollVoteCount');
