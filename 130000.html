@@ -144,7 +144,10 @@
             </div>
 
             <!-- Context -->
-            <div class="info-section" style="margin-top:24px;">
+            
+            <!-- Monetag Ad Slot -->
+            <div class="ad-container" style="text-align:center; margin: 24px 0; min-height: 90px;" aria-label="Advertisement"></div>
+<div class="info-section" style="margin-top:24px;">
                 <h2>KES 130,000 Salary — What Does It Mean?</h2>
                 <ul>
                     <li>Your gross salary of KES 130,000/month is <strong>KES 58,000 (80.6%) above the average Kenyan salary</strong> of KES 72,000.</li>
@@ -241,5 +244,33 @@
     });
     </script>
     <script src="/assets/js/disclaimer-banner.js"></script>
+    <!-- Monetag: load only for non-premium users -->
+    <script>
+    (async () => {
+        function loadMonetag() {
+            var s = document.createElement('script');
+            s.src = 'https://quge5.com/88/tag.min.js';
+            s.setAttribute('data-zone', '219979');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            document.head.appendChild(s);
+        }
+        try {
+            if (window.supabaseClient) {
+                var res = await window.supabaseClient.auth.getSession();
+                var session = res.data && res.data.session;
+                if (session) {
+                    var pRes = await window.supabaseClient
+                        .from('user_profiles')
+                        .select('premium')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (pRes.data && pRes.data.premium) return;
+                }
+            }
+        } catch (e) { /* proceed */ }
+        loadMonetag();
+    })();
+    </script>
 </body>
 </html>

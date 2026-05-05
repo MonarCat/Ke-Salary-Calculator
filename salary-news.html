@@ -389,7 +389,10 @@
             </div>
 
             <!-- Related Tools -->
-            <div class="info-section">
+            
+            <!-- Monetag Ad Slot -->
+            <div class="ad-container" style="text-align:center; margin: 24px 0; min-height: 90px;" aria-label="Advertisement"></div>
+<div class="info-section">
                 <h2><i class="fas fa-tools"></i> Quick Access — Salary Tools</h2>
                 <ul class="sn-quick-links">
                     <li><a href="/calculator.html"><i class="fas fa-calculator"></i> Full Salary Calculator</a></li>
@@ -501,5 +504,33 @@
     </script>
     <!-- Kazi Chatbot -->
     <script src="/assets/js/disclaimer-banner.js"></script>
+    <!-- Monetag: load only for non-premium users -->
+    <script>
+    (async () => {
+        function loadMonetag() {
+            var s = document.createElement('script');
+            s.src = 'https://quge5.com/88/tag.min.js';
+            s.setAttribute('data-zone', '219979');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            document.head.appendChild(s);
+        }
+        try {
+            if (window.supabaseClient) {
+                var res = await window.supabaseClient.auth.getSession();
+                var session = res.data && res.data.session;
+                if (session) {
+                    var pRes = await window.supabaseClient
+                        .from('user_profiles')
+                        .select('premium')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (pRes.data && pRes.data.premium) return;
+                }
+            }
+        } catch (e) { /* proceed */ }
+        loadMonetag();
+    })();
+    </script>
 </body>
 </html>
