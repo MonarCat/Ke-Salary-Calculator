@@ -468,6 +468,11 @@
                 let logoUrl = existingLogoUrl;
                 const logoFile = document.getElementById('logo-file').files[0];
                 if (logoFile) {
+                    const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+                    const ALLOWED_EXT  = /\.(jpe?g|png|gif|webp|svg)$/i;
+                    if (!ALLOWED_MIME.includes(logoFile.type) || !ALLOWED_EXT.test(logoFile.name)) {
+                        throw new Error('Only image files (JPEG, PNG, GIF, WebP, SVG) are allowed for the logo.');
+                    }
                     const filePath = user.id.replace(/[^a-z0-9-]/gi, '') + '/' + Date.now() + '-' + logoFile.name.replace(/[^a-z0-9._-]/gi, '_');
                     const { error: uploadError } = await supabaseClient.storage
                         .from('org-logos')
@@ -511,6 +516,9 @@
                     .update({ organization_name: payload.organization_name })
                     .eq('id', user.id)
                     .catch(() => {});
+                await supabaseClient.auth.updateUser({
+                    data: { organization_name: payload.organization_name || null },
+                }).catch(e => console.warn('Failed to sync org name to auth metadata:', e));
 
                 msgEl.className = 'org-msg success';
                 msgEl.textContent = '✅ Organisation profile saved successfully!';
@@ -518,8 +526,8 @@
                 document.getElementById('banner-incomplete').style.display = 'none';
                 updateCompleteness();
 
-                // Cache for payslip pre-fill
-                localStorage.setItem('employerProfile_' + user.id, JSON.stringify({
+                // Cache for payslip pre-fill — write both per-user key and legacy key for backward compatibility
+                const profileCache = {
                     name:    payload.organization_name || '',
                     kraPin:  payload.organization_kra_pin || '',
                     address: payload.physical_address || payload.county || '',
@@ -527,7 +535,9 @@
                     email:   payload.contact_email || '',
                     phone:   payload.contact_phone || '',
                     logo_url: logoUrl || '',
-                }));
+                };
+                localStorage.setItem('employerProfile_' + user.id, JSON.stringify(profileCache));
+                localStorage.setItem('employerProfile', JSON.stringify(profileCache));
 
             } catch (err) {
                 msgEl.className = 'org-msg error';

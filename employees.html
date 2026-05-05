@@ -1572,31 +1572,26 @@
                 updateFreePlanBanner();
             }
 
-            // Save to payslip_history before printing
+            // Save to payslip_history — fire-and-forget so print is never blocked
             if (currentUser && typeof supabaseClient !== 'undefined' && supabaseClient) {
-                try {
-                    const empId  = document.getElementById('ps-payslip-modal').dataset.empId;
-                    const emp    = employees.find(e => e.id === empId);
-                    const gross  = emp ? (Number(emp.salary) || 0) : 0;
-                    const d      = emp ? calcDeductions(gross) : {};
-                    const net    = d.net || 0;
-                    const period = document.getElementById('ps-pay-period').value || '';
-                    await supabaseClient.from('payslip_history').insert({
-                        user_id:       currentUser.id,
-                        employee_id:   empId || null,
-                        employee_name: emp ? (emp.name || '') : '',
-                        pay_period:    period,
-                        gross_salary:  gross,
-                        net_salary:    net,
-                        paye:          d.paye || 0,
-                        nssf:          d.nssf || 0,
-                        shif:          d.shif || 0,
-                        housing_levy:  d.ahl  || 0,
-                    });
-                } catch (e) {
-                    // Non-fatal — print proceeds regardless
-                    console.warn('Failed to save payslip history:', e);
-                }
+                const empId  = document.getElementById('ps-payslip-modal').dataset.empId;
+                const emp    = employees.find(e => e.id === empId);
+                const gross  = emp ? (Number(emp.salary) || 0) : 0;
+                const d      = emp ? calcDeductions(gross) : {};
+                const net    = d.net || 0;
+                const period = document.getElementById('ps-pay-period').value || '';
+                supabaseClient.from('payslip_history').insert({
+                    user_id:       currentUser.id,
+                    employee_id:   empId || null,
+                    employee_name: emp ? (emp.name || '') : '',
+                    pay_period:    period,
+                    gross_salary:  gross,
+                    net_salary:    net,
+                    paye:          d.paye || 0,
+                    nssf:          d.nssf || 0,
+                    shif:          d.shif || 0,
+                    housing_levy:  d.ahl  || 0,
+                }).catch(e => console.warn('Failed to save payslip history:', e));
             }
 
             window.print();
