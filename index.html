@@ -1742,6 +1742,10 @@
                         } else {
                             if (msg) { msg.style.display='block'; msg.style.color='#006600'; msg.textContent='✓ You\'re subscribed! You\'ll be notified when Kenya tax rules change.'; }
                         }
+                    })
+                    .catch(function(err) {
+                        console.warn('Newsletter subscribe unexpected error:', err);
+                        _localSubscribe(email);
                     });
             } else {
                 _localSubscribe(email);
