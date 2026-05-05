@@ -26,9 +26,15 @@ async function _subscribe(supabase, email, source) {
     return { ok: false, message: "Please enter a valid email address." };
   }
 
+  let userId = null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    userId = session?.user?.id ?? null;
+  } catch (_) {}
+
   const { error } = await supabase
     .from("newsletter_subscribers")
-    .upsert({ email, source: source || "website" }, { onConflict: "email" });
+    .upsert({ email, user_id: userId, confirmed: false, source: source || "website" }, { onConflict: "email" });
 
   if (error) {
     console.error("[Newsletter] subscribe error:", error.message);

@@ -1572,9 +1572,18 @@
                 btn.onclick = function() { castPollVote(i); };
                 optsEl.appendChild(btn);
             });
-            // Show real vote count from DB
+            // Show real participant count from DB using the dedicated RPC
             var voteCountEl = document.getElementById('pollVoteCount');
-            if (voteCountEl) {
+            if (voteCountEl && window.supabaseClient) {
+                try {
+                    var pcRes = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx });
+                    var participantCount = (pcRes && pcRes.data != null) ? pcRes.data : poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = participantCount.toLocaleString('en-KE') + ' Participated in this Poll';
+                } catch(e) {
+                    var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                }
+            } else if (voteCountEl) {
                 var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
@@ -1616,7 +1625,16 @@
             // Re-fetch from DB to show accurate total after the vote is persisted
             await fetchPollVotesFromDB(poll, pollIdx);
             var voteCountEl = document.getElementById('pollVoteCount');
-            if (voteCountEl) {
+            if (voteCountEl && window.supabaseClient) {
+                try {
+                    var pcRes = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx });
+                    var participantCount = (pcRes && pcRes.data != null) ? pcRes.data : poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = participantCount.toLocaleString('en-KE') + ' Participated in this Poll';
+                } catch(e) {
+                    var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                }
+            } else if (voteCountEl) {
                 var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
                 voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
@@ -1651,9 +1669,20 @@
                 optsEl.appendChild(div);
             });
             if (thanks) thanks.style.display = 'block';
-            // Show formatted vote count
+            // Show participant count — prefer the authoritative RPC; fall back to summing poll_votes.count
             if (voteCountEl) {
-                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                if (window.supabaseClient) {
+                    window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx })
+                        .then(function(res) {
+                            var count = (res && res.data != null) ? res.data : total;
+                            voteCountEl.textContent = count.toLocaleString('en-KE') + ' Participated in this Poll';
+                        })
+                        .catch(function() {
+                            voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                        });
+                } else {
+                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                }
             }
             // Build and show share buttons
             if (shareEl) {
@@ -1693,7 +1722,18 @@
             var msg = document.getElementById('alertMsg');
             // Store subscriber list in Supabase if available, else fallback to localStorage
             if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
-                supabaseClient.from('newsletter_subscribers').upsert({ email: email }, { onConflict: 'email' })
+                // Resolve user_id asynchronously before upserting
+                (supabaseClient.auth.getSession ? supabaseClient.auth.getSession() : Promise.resolve({ data: {} }))
+                    .then(function(sessionRes) {
+                        var userId = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user
+                            ? sessionRes.data.session.user.id : null;
+                        return supabaseClient.from('newsletter_subscribers').upsert({
+                            email:     email,
+                            user_id:   userId,
+                            confirmed: false,
+                            source:    'homepage',
+                        }, { onConflict: 'email' });
+                    })
                     .then(function(res) {
                         if (res.error) {
                             // Table may not exist yet or RLS denied — fallback to localStorage

@@ -102,11 +102,34 @@ async function handleLogin(event) {
         
         showMessage('login-message', '✅ Login successful! Redirecting...', 'success');
         
-        // Redirect after 1 second, respecting the ?redirect= query param
+        // Redirect after 1 second, respecting the ?redirect= query param.
+        // Employer accounts with an incomplete profile are sent to the Organisation
+        // Profile setup page so they can fill in their company details.
         const loginParams = new URLSearchParams(window.location.search);
         const rawLoginRedirect = loginParams.get('redirect') || '/';
         const loginRedirectTo = (typeof rawLoginRedirect === 'string' && rawLoginRedirect.startsWith('/')) ? rawLoginRedirect : '/';
-        setTimeout(() => {
+        setTimeout(async () => {
+            try {
+                // Only check for employer redirect when no specific redirect is requested
+                if (loginRedirectTo === '/' && supabaseClient && isSupabaseConfigured() && data && data.user) {
+                    const { data: profile } = await supabaseClient
+                        .from('user_profiles')
+                        .select('account_type')
+                        .eq('id', data.user.id)
+                        .maybeSingle();
+                    if (profile && profile.account_type === 'employer') {
+                        const { data: employer } = await supabaseClient
+                            .from('employers')
+                            .select('profile_complete')
+                            .eq('user_id', data.user.id)
+                            .maybeSingle();
+                        if (!employer || !employer.profile_complete) {
+                            window.location.href = '/organisation-profile.html';
+                            return;
+                        }
+                    }
+                }
+            } catch (_) {}
             window.location.href = loginRedirectTo;
         }, 1000);
         
@@ -505,6 +528,7 @@ async function updateAuthUI() {
         if (user) {
             // User is logged in
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
+            const isEmployer = user.user_metadata?.account_type === 'employer';
             
             // Check if user is admin via the SECURITY DEFINER RPC to avoid
             // recursive RLS evaluation on the admin_users table (which causes 500).
@@ -545,6 +569,11 @@ async function updateAuthUI() {
                         <div class="user-dropdown-item" onclick="window.location.href='/account'">
                             <i class="fas fa-credit-card"></i> Account &amp; Billing
                         </div>
+                        ${isEmployer ? `
+                        <div class="user-dropdown-item" onclick="window.location.href='/organisation-profile.html'">
+                            <i class="fas fa-building"></i> Organisation Profile
+                        </div>
+                        ` : ''}
                         ${isAdmin ? `
                         <div class="user-dropdown-item" onclick="window.location.href='/admin.html'" style="background: #006600; color: white; font-weight: bold;">
                             <i class="fas fa-tachometer-alt"></i> Admin Dashboard
