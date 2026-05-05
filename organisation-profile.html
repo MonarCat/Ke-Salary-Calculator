@@ -468,7 +468,7 @@
                 let logoUrl = existingLogoUrl;
                 const logoFile = document.getElementById('logo-file').files[0];
                 if (logoFile) {
-                    const filePath = user.id + '/' + Date.now() + '-' + logoFile.name.replace(/[^a-z0-9._-]/gi, '_');
+                    const filePath = user.id.replace(/[^a-z0-9-]/gi, '') + '/' + Date.now() + '-' + logoFile.name.replace(/[^a-z0-9._-]/gi, '_');
                     const { error: uploadError } = await supabaseClient.storage
                         .from('org-logos')
                         .upload(filePath, logoFile, { upsert: true, contentType: logoFile.type });
