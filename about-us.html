@@ -210,7 +210,10 @@
                     </div>
                 </div>
 
-                <h2>What We Offer</h2>
+                
+            <!-- Monetag Ad Slot -->
+            <div class="ad-container" style="text-align:center; margin: 24px 0; min-height: 90px;" aria-label="Advertisement"></div>
+<h2>What We Offer</h2>
                 <p>Our tools are available across two plans designed to meet individual and organisational needs:</p>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin:20px 0;">
                     <div style="background:#f9f9f9;border:2px solid #e0e0e0;border-radius:10px;padding:25px;">
@@ -329,5 +332,33 @@
     <script src="assets/js/auth.js?v=2.0"></script>
     <!-- Kazi Chatbot -->
     <script src="/assets/js/disclaimer-banner.js"></script>
+    <!-- Monetag: load only for non-premium users -->
+    <script>
+    (async () => {
+        function loadMonetag() {
+            var s = document.createElement('script');
+            s.src = 'https://quge5.com/88/tag.min.js';
+            s.setAttribute('data-zone', '219979');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            document.head.appendChild(s);
+        }
+        try {
+            if (window.supabaseClient) {
+                var res = await window.supabaseClient.auth.getSession();
+                var session = res.data && res.data.session;
+                if (session) {
+                    var pRes = await window.supabaseClient
+                        .from('user_profiles')
+                        .select('premium')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (pRes.data && pRes.data.premium) return;
+                }
+            }
+        } catch (e) { /* proceed */ }
+        loadMonetag();
+    })();
+    </script>
 </body>
 </html>

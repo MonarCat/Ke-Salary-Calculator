@@ -292,5 +292,33 @@
     <script src="assets/js/auth.js?v=2.0"></script>
     <script>(function(){var b=document.getElementById('scrollToTop');if(!b)return;window.addEventListener('scroll',function(){b.style.display=window.scrollY>300?'block':'none';});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});})();</script>
     <script src="/assets/js/disclaimer-banner.js"></script>
+    <!-- Monetag: load only for non-premium users -->
+    <script>
+    (async () => {
+        function loadMonetag() {
+            var s = document.createElement('script');
+            s.src = 'https://quge5.com/88/tag.min.js';
+            s.setAttribute('data-zone', '219979');
+            s.async = true;
+            s.setAttribute('data-cfasync', 'false');
+            document.head.appendChild(s);
+        }
+        try {
+            if (window.supabaseClient) {
+                var res = await window.supabaseClient.auth.getSession();
+                var session = res.data && res.data.session;
+                if (session) {
+                    var pRes = await window.supabaseClient
+                        .from('user_profiles')
+                        .select('premium')
+                        .eq('id', session.user.id)
+                        .single();
+                    if (pRes.data && pRes.data.premium) return;
+                }
+            }
+        } catch (e) { /* proceed */ }
+        loadMonetag();
+    })();
+    </script>
 </body>
 </html>
