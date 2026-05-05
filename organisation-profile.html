@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisation Profile - Kenya Salary Calculator</title>
+    <meta name="description" content="Set up your organisation profile on Kenya Salary Calculator to auto-populate payslips with your company details.">
+    <meta name="robots" content="noindex">
+
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.0">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .org-profile-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .org-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 28px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        .org-card h3 {
+            color: #006600;
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .org-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 600px) {
+            .org-form-grid { grid-template-columns: 1fr; }
+        }
+        .org-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .org-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .org-form-group label {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #444;
+        }
+        .org-form-group input,
+        .org-form-group select,
+        .org-form-group textarea {
+            padding: 9px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 7px;
+            font-size: 0.95em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .org-form-group input:focus,
+        .org-form-group select:focus,
+        .org-form-group textarea:focus {
+            border-color: #006600;
+        }
+        .org-save-btn {
+            background: linear-gradient(135deg, #006600, #009900);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+        .org-save-btn:hover { opacity: 0.9; }
+        .org-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .org-msg {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            display: none;
+        }
+        .org-msg.success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #006600; }
+        .org-msg.error   { background: #fce4ec; color: #c62828; border-left: 4px solid #c62828; }
+        .logo-upload-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .logo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1.5px solid #ddd;
+            display: none;
+        }
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            border: 1.5px dashed #bbb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 1.8em;
+        }
+        .completeness-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 8px 0 4px;
+        }
+        .completeness-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #006600, #4caf50);
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+        .banner-incomplete {
+            background: #fff8e1;
+            border-left: 4px solid #ffa000;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 0.92em;
+            color: #5d4037;
+            display: none;
+        }
+        .banner-incomplete a { color: #006600; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="/">
+                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
+                </a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                    </div>
+                </div>
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/organisation-profile.html" style="font-weight:700;color:#006600;">Org Profile</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="org-profile-container">
+            <!-- Page heading -->
+            <div class="org-card" style="padding:20px 30px;">
+                <h2 style="color:#006600;margin:0 0 4px;">
+                    <i class="fas fa-building"></i> Organisation Profile
+                </h2>
+                <p style="color:#666;margin:0;font-size:0.92em;">
+                    Fill in your company details once — they will be auto-populated every time you generate a payslip.
+                </p>
+                <!-- Profile completeness -->
+                <div style="margin-top:14px;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.82em;color:#555;">
+                        <span>Profile completeness</span>
+                        <span id="completeness-pct">0%</span>
+                    </div>
+                    <div class="completeness-bar">
+                        <div class="completeness-fill" id="completeness-fill" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incomplete profile banner (shown when profile_complete = false) -->
+            <div class="banner-incomplete" id="banner-incomplete">
+                <i class="fas fa-exclamation-triangle"></i>
+                Your organisation profile is incomplete. Fill in the details below so your payslips are pre-populated automatically.
+            </div>
+
+            <!-- Company Identity -->
+            <div class="org-card">
+                <h3><i class="fas fa-id-card"></i> Company Identity</h3>
+                <div class="org-form-grid">
+                    <div class="org-form-group">
+                        <label for="org-name">Company Name *</label>
+                        <input type="text" id="org-name" placeholder="e.g. Acme Kenya Ltd" maxlength="200">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-kra">KRA PIN *</label>
+                        <input type="text" id="org-kra" placeholder="e.g. P051234567Z" maxlength="20">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-nssf">NSSF Number</label>
+                        <input type="text" id="org-nssf" placeholder="e.g. 12345678" maxlength="30">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-nhif">NHIF / SHIF Number</label>
+                        <input type="text" id="org-nhif" placeholder="e.g. 9876543" maxlength="30">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-reg">Registration Number</label>
+                        <input type="text" id="org-reg" placeholder="e.g. CPR/2020/123456" maxlength="50">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-business-type">Business Type</label>
+                        <select id="org-business-type">
+                            <option value="">— Select —</option>
+                            <option value="sole_proprietor">Sole Proprietor</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="limited_company">Limited Company</option>
+                            <option value="ngo">NGO</option>
+                            <option value="government">Government</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-industry">Industry</label>
+                        <input type="text" id="org-industry" placeholder="e.g. Technology, Healthcare" maxlength="100">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-county">County</label>
+                        <input type="text" id="org-county" placeholder="e.g. Nairobi" maxlength="50">
+                    </div>
+                    <div class="org-form-group full-width">
+                        <label for="org-address">Physical Address</label>
+                        <input type="text" id="org-address" placeholder="e.g. 2nd Floor, ABC Building, Westlands" maxlength="200">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Details -->
+            <div class="org-card">
+                <h3><i class="fas fa-phone-alt"></i> Contact Details</h3>
+                <div class="org-form-grid">
+                    <div class="org-form-group">
+                        <label for="org-email">Contact Email</label>
+                        <input type="email" id="org-email" placeholder="hr@company.co.ke" maxlength="200">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-phone">Contact Phone</label>
+                        <input type="tel" id="org-phone" placeholder="+254 700 000 000" maxlength="30">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-website">Website</label>
+                        <input type="url" id="org-website" placeholder="https://www.company.co.ke" maxlength="200">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-payroll-day">Payroll Day (day of month)</label>
+                        <input type="number" id="org-payroll-day" placeholder="e.g. 25" min="1" max="31">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banking Details -->
+            <div class="org-card">
+                <h3><i class="fas fa-university"></i> Banking &amp; Payment Details</h3>
+                <div class="org-form-grid">
+                    <div class="org-form-group">
+                        <label for="org-bank-name">Bank Name</label>
+                        <input type="text" id="org-bank-name" placeholder="e.g. KCB, Equity, Co-operative" maxlength="100">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-bank-account">Bank Account Number</label>
+                        <input type="text" id="org-bank-account" placeholder="e.g. 1234567890" maxlength="30">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-bank-branch">Bank Branch</label>
+                        <input type="text" id="org-bank-branch" placeholder="e.g. Westlands Branch" maxlength="100">
+                    </div>
+                    <div class="org-form-group">
+                        <label for="org-paybill">M-Pesa Paybill Number</label>
+                        <input type="text" id="org-paybill" placeholder="e.g. 522533" maxlength="20">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Logo -->
+            <div class="org-card">
+                <h3><i class="fas fa-image"></i> Company Logo</h3>
+                <p style="color:#666;font-size:0.88em;margin:0 0 16px;">
+                    Upload your company logo (PNG/JPG, max 2 MB). It will appear on all generated payslips.
+                </p>
+                <div class="logo-upload-wrap">
+                    <div class="logo-placeholder" id="logo-placeholder"><i class="fas fa-building"></i></div>
+                    <img src="" alt="Company logo" class="logo-preview" id="logo-preview">
+                    <div>
+                        <label for="logo-file" style="cursor:pointer;display:inline-block;padding:8px 16px;background:#006600;color:white;border-radius:7px;font-size:0.88em;font-weight:600;">
+                            <i class="fas fa-upload"></i> Choose Logo
+                        </label>
+                        <input type="file" id="logo-file" accept="image/png,image/jpeg,image/webp" style="display:none">
+                        <p id="logo-upload-status" style="margin:6px 0 0;font-size:0.82em;color:#555;"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="org-card" style="padding:20px 30px;">
+                <button class="org-save-btn" id="save-btn" onclick="saveOrgProfile()">
+                    <i class="fas fa-save"></i> Save Organisation Profile
+                </button>
+                <div class="org-msg" id="org-msg"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 Kenya Salary Calculator. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script>
+        let currentUserId = null;
+        let existingLogoUrl = null;
+
+        // Completeness fields — used to calculate the progress bar
+        const COMPLETENESS_FIELDS = [
+            'org-name', 'org-kra', 'org-nssf', 'org-nhif', 'org-reg',
+            'org-business-type', 'org-industry', 'org-county', 'org-address',
+            'org-email', 'org-phone', 'org-payroll-day',
+            'org-bank-name', 'org-bank-account',
+        ];
+
+        function updateCompleteness() {
+            const filled = COMPLETENESS_FIELDS.filter(id => {
+                const el = document.getElementById(id);
+                return el && el.value && el.value.trim() !== '';
+            }).length;
+            const logoFilled = existingLogoUrl || (document.getElementById('logo-file').files.length > 0);
+            const total = COMPLETENESS_FIELDS.length + 1; // +1 for logo
+            const pct = Math.round(((filled + (logoFilled ? 1 : 0)) / total) * 100);
+            document.getElementById('completeness-pct').textContent = pct + '%';
+            document.getElementById('completeness-fill').style.width = pct + '%';
+        }
+
+        COMPLETENESS_FIELDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', updateCompleteness);
+        });
+
+        document.getElementById('logo-file').addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                document.getElementById('logo-upload-status').textContent = '⚠️ File too large. Max 2 MB.';
+                this.value = '';
+                return;
+            }
+            document.getElementById('logo-upload-status').textContent = file.name + ' selected';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('logo-preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                document.getElementById('logo-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+            updateCompleteness();
+        });
+
+        async function loadOrgProfile() {
+            if (!supabaseClient || !isSupabaseConfigured()) return;
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    window.location.href = '/auth.html?redirect=/organisation-profile.html';
+                    return;
+                }
+                currentUserId = user.id;
+
+                const { data, error } = await supabaseClient
+                    .from('employers')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (error) { console.warn('Failed to load org profile:', error.message); return; }
+                if (!data) return;
+
+                // Populate fields
+                const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+                set('org-name',          data.organization_name);
+                set('org-kra',           data.organization_kra_pin);
+                set('org-nssf',          data.nssf_number);
+                set('org-nhif',          data.nhif_number);
+                set('org-reg',           data.registration_number);
+                set('org-business-type', data.business_type);
+                set('org-industry',      data.industry);
+                set('org-county',        data.county);
+                set('org-address',       data.physical_address);
+                set('org-email',         data.contact_email);
+                set('org-phone',         data.contact_phone);
+                set('org-website',       data.website);
+                set('org-payroll-day',   data.payroll_day);
+                set('org-bank-name',     data.bank_name);
+                set('org-bank-account',  data.bank_account);
+                set('org-bank-branch',   data.bank_branch);
+                set('org-paybill',       data.paybill_number);
+
+                if (data.logo_url) {
+                    existingLogoUrl = data.logo_url;
+                    const preview = document.getElementById('logo-preview');
+                    preview.src = data.logo_url;
+                    preview.style.display = 'block';
+                    document.getElementById('logo-placeholder').style.display = 'none';
+                }
+
+                if (!data.profile_complete) {
+                    document.getElementById('banner-incomplete').style.display = 'block';
+                }
+
+                updateCompleteness();
+            } catch (e) {
+                console.warn('loadOrgProfile error:', e);
+            }
+        }
+
+        async function saveOrgProfile() {
+            const btn = document.getElementById('save-btn');
+            const msgEl = document.getElementById('org-msg');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+            msgEl.style.display = 'none';
+
+            try {
+                if (!supabaseClient || !isSupabaseConfigured()) throw new Error('Service not configured.');
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) throw new Error('Not signed in.');
+                currentUserId = user.id;
+
+                let logoUrl = existingLogoUrl;
+                const logoFile = document.getElementById('logo-file').files[0];
+                if (logoFile) {
+                    const filePath = user.id.replace(/[^a-z0-9-]/gi, '') + '/' + Date.now() + '-' + logoFile.name.replace(/[^a-z0-9._-]/gi, '_');
+                    const { error: uploadError } = await supabaseClient.storage
+                        .from('org-logos')
+                        .upload(filePath, logoFile, { upsert: true, contentType: logoFile.type });
+                    if (uploadError) throw new Error('Logo upload failed: ' + uploadError.message);
+                    logoUrl = supabaseClient.storage.from('org-logos').getPublicUrl(filePath).data.publicUrl;
+                    existingLogoUrl = logoUrl;
+                    document.getElementById('logo-upload-status').textContent = '✓ Logo uploaded';
+                }
+
+                const getVal = (id) => { const el = document.getElementById(id); return el ? el.value.trim() || null : null; };
+
+                const payload = {
+                    user_id:              user.id,
+                    organization_name:    getVal('org-name'),
+                    organization_kra_pin: getVal('org-kra'),
+                    nssf_number:          getVal('org-nssf'),
+                    nhif_number:          getVal('org-nhif'),
+                    registration_number:  getVal('org-reg'),
+                    business_type:        getVal('org-business-type'),
+                    industry:             getVal('org-industry'),
+                    county:               getVal('org-county'),
+                    physical_address:     getVal('org-address'),
+                    contact_email:        getVal('org-email'),
+                    contact_phone:        getVal('org-phone'),
+                    website:              getVal('org-website'),
+                    payroll_day:          getVal('org-payroll-day') ? parseInt(getVal('org-payroll-day')) : null,
+                    bank_name:            getVal('org-bank-name'),
+                    bank_account:         getVal('org-bank-account'),
+                    bank_branch:          getVal('org-bank-branch'),
+                    paybill_number:       getVal('org-paybill'),
+                    logo_url:             logoUrl,
+                    profile_complete:     !!(getVal('org-name') && getVal('org-kra')),
+                };
+
+                const { error } = await supabaseClient.from('employers').upsert(payload, { onConflict: 'user_id' });
+                if (error) throw error;
+
+                // Also sync organization_name into user_profiles and auth metadata
+                await supabaseClient.from('user_profiles')
+                    .update({ organization_name: payload.organization_name })
+                    .eq('id', user.id)
+                    .catch(() => {});
+
+                msgEl.className = 'org-msg success';
+                msgEl.textContent = '✅ Organisation profile saved successfully!';
+                msgEl.style.display = 'block';
+                document.getElementById('banner-incomplete').style.display = 'none';
+                updateCompleteness();
+
+                // Cache for payslip pre-fill
+                localStorage.setItem('employerProfile_' + user.id, JSON.stringify({
+                    name:    payload.organization_name || '',
+                    kraPin:  payload.organization_kra_pin || '',
+                    address: payload.physical_address || payload.county || '',
+                    county:  payload.county || '',
+                    email:   payload.contact_email || '',
+                    phone:   payload.contact_phone || '',
+                    logo_url: logoUrl || '',
+                }));
+
+            } catch (err) {
+                msgEl.className = 'org-msg error';
+                msgEl.textContent = '❌ ' + (err.message || 'Save failed. Please try again.');
+                msgEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Organisation Profile';
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadOrgProfile);
+        } else {
+            loadOrgProfile();
+        }
+    </script>
+    <script src="assets/js/disclaimer-banner.js"></script>
+</body>
+</html>

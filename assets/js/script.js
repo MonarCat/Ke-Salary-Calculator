@@ -1031,6 +1031,34 @@ function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pe
     }
 
     shareSection.style.display = 'block';
+
+    // Save calculation to Supabase for authenticated users (fire-and-forget)
+    if (typeof supabaseClient !== 'undefined' && supabaseClient &&
+        typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+        supabaseClient.auth.getSession().then(function(sessionRes) {
+            const session = sessionRes && sessionRes.data && sessionRes.data.session;
+            if (!session || !session.user) return;
+            const netPayEl  = document.getElementById('netPay');
+            const payeEl    = document.getElementById('paye');
+            const nssfEl    = document.getElementById('nssf');
+            const shifEl    = document.getElementById('shif');
+            const ahlfEl    = document.getElementById('housingLevy');
+            supabaseClient.from('saved_calculations').insert({
+                user_id:     session.user.id,
+                gross_salary: grossPay,
+                net_salary:   netPayEl  ? parseFloat(netPayEl.textContent.replace(/[^0-9.]/g, ''))  || null : null,
+                paye:         payeEl    ? parseFloat(payeEl.textContent.replace(/[^0-9.]/g, ''))    || null : null,
+                nssf:         nssfEl    ? parseFloat(nssfEl.textContent.replace(/[^0-9.]/g, ''))    || null : null,
+                shif:         shifEl    ? parseFloat(shifEl.textContent.replace(/[^0-9.]/g, ''))    || null : null,
+                housing_levy: ahlfEl    ? parseFloat(ahlfEl.textContent.replace(/[^0-9.]/g, ''))   || null : null,
+                tax_year:     year || null,
+                share_url:    url,
+            }).catch(function(e) {
+                // Non-fatal — log and continue
+                console.warn('Failed to save calculation:', e && e.message ? e.message : e);
+            });
+        }).catch(function() {});
+    }
 }
 
 // Copy the share link to clipboard

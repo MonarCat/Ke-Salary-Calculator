@@ -5,8 +5,8 @@
  * Payment provider: Paystack
  *
  * PRICING — charged in KES via Paystack:
- *   Monthly : KES 499  / month
- *   Yearly  : KES 4,999 / year  (saves KES 989 vs monthly)
+ *   Monthly : KES 99  / month
+ *   Yearly  : KES 999 / year  (saves KES 189 vs monthly)
  *
  * ENV required (set via window.__PAYSTACK_PUBLIC_KEY in your HTML head):
  *   window.__PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxx";
@@ -25,9 +25,9 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 export const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
 
 // Pricing in KES (Paystack Kenya native currency)
-export const PRICE_MONTHLY_KES = 499;
-export const PRICE_YEARLY_KES  = 4999;
-export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; // 989
+export const PRICE_MONTHLY_KES = 99;
+export const PRICE_YEARLY_KES  = 999;
+export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; // 189
 
 export const SITE_URL         = "https://salarycalculator.co.ke";
 export const PAYSTACK_WEBHOOK = `${SITE_URL}/api/paystack-webhook`;

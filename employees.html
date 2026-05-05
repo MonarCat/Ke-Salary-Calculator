@@ -448,11 +448,17 @@
                             <div style="font-size:0.85em;color:#555;margin-top:2px;" id="employer-banner-meta"></div>
                         </div>
                         <div style="margin-left:auto;">
-                            <button onclick="window.location.href='/profile.html'" style="padding:7px 16px;border:2px solid #006600;background:white;color:#006600;border-radius:20px;font-weight:600;cursor:pointer;font-size:13px;">
+                            <button onclick="window.location.href='/organisation-profile.html'" style="padding:7px 16px;border:2px solid #006600;background:white;color:#006600;border-radius:20px;font-weight:600;cursor:pointer;font-size:13px;">
                                 <i class="fas fa-building"></i> Edit Org Profile
                             </button>
                         </div>
                     </div>
+                </div>
+
+                <!-- Profile Incomplete Banner -->
+                <div id="employer-profile-incomplete" style="display:none; background:#fff8e1; border-left:4px solid #ffa000; border-radius:8px; padding:12px 18px; margin-bottom:16px; font-size:0.9em; color:#5d4037;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Your organisation profile is incomplete. <a href="/organisation-profile.html" style="color:#006600;font-weight:600;">Complete your profile</a> to auto-populate payslips with your company details.
                 </div>
 
                 <!-- Employees Section -->
@@ -956,7 +962,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('employers')
-                    .select('organization_name, organization_kra_pin, industry, county, physical_address, postal_address, contact_email, contact_phone, logo_url')
+                    .select('organization_name, organization_kra_pin, industry, county, physical_address, postal_address, contact_email, contact_phone, logo_url, profile_complete')
                     .eq('user_id', user.id)
                     .maybeSingle();
                 if (error || !data) return;
@@ -991,6 +997,12 @@
                 }
 
                 banner.style.display = 'block';
+
+                // Show "profile incomplete" nudge when key fields are missing
+                if (!data.profile_complete) {
+                    const incompleteEl = document.getElementById('employer-profile-incomplete');
+                    if (incompleteEl) incompleteEl.style.display = 'block';
+                }
             } catch (e) {
                 // employers table may not exist yet — fail silently
             }
@@ -1297,7 +1309,7 @@
         function _showFreeEmployeeLimitModal() {
             const msg = [
                 `You've reached the free plan limit of ${FREE_EMPLOYEE_LIMIT} employees.\n\n`,
-                `Upgrade to Premium (KES 499/mo) for:\n`,
+                `Upgrade to Premium (KES 99/mo) for:\n`,
                 `  • Unlimited employees\n`,
                 `  • Unlimited payslip downloads\n`,
                 `  • Payroll reports & analytics\n`,
@@ -1542,13 +1554,13 @@
             document.getElementById('ps-payslip-modal').classList.remove('active');
         }
 
-        function printEmployeePayslip() {
+        async function printEmployeePayslip() {
             if (isFreePlan) {
                 const used = getMonthlyDownloads(currentUser.id);
                 if (used >= FREE_DOWNLOAD_LIMIT) {
                     const msg = [
                         `You've used all ${FREE_DOWNLOAD_LIMIT} payslip downloads for this month.\n\n`,
-                        `Upgrade to Premium (KES 499/mo) for unlimited payslip downloads.\n\n`,
+                        `Upgrade to Premium (KES 99/mo) for unlimited payslip downloads.\n\n`,
                         `Go to Account & Billing to upgrade?`
                     ].join('');
                     if (confirm(msg)) {
@@ -1559,6 +1571,34 @@
                 incrementDownloads(currentUser.id);
                 updateFreePlanBanner();
             }
+
+            // Save to payslip_history before printing
+            if (currentUser && typeof supabaseClient !== 'undefined' && supabaseClient) {
+                try {
+                    const empId  = document.getElementById('ps-payslip-modal').dataset.empId;
+                    const emp    = employees.find(e => e.id === empId);
+                    const gross  = emp ? (Number(emp.salary) || 0) : 0;
+                    const d      = emp ? calcDeductions(gross) : {};
+                    const net    = d.net || 0;
+                    const period = document.getElementById('ps-pay-period').value || '';
+                    await supabaseClient.from('payslip_history').insert({
+                        user_id:       currentUser.id,
+                        employee_id:   empId || null,
+                        employee_name: emp ? (emp.name || '') : '',
+                        pay_period:    period,
+                        gross_salary:  gross,
+                        net_salary:    net,
+                        paye:          d.paye || 0,
+                        nssf:          d.nssf || 0,
+                        shif:          d.shif || 0,
+                        housing_levy:  d.ahl  || 0,
+                    });
+                } catch (e) {
+                    // Non-fatal — print proceeds regardless
+                    console.warn('Failed to save payslip history:', e);
+                }
+            }
+
             window.print();
         }
 
