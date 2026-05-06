@@ -36,8 +36,8 @@ function isSupabaseConfigured() {
 const PAYSTACK_PUBLIC_KEY = 'pk_live_598132f0ebe09cef45d6f7f7286f87db57f8429e';
 
 // Paystack subscription amount in the smallest currency unit (kobo/cents).
-// 100000 = KES 1,000 per month  (1 KES = 100 units)
-const PAYSTACK_MONTHLY_AMOUNT = 100000;
+// 9900 = KES 99 per month  (1 KES = 100 units)
+const PAYSTACK_MONTHLY_AMOUNT = 9900;
 
 // Designated super-admin email.
 // Used as a fallback when the admin_users table / is_admin() RPC is not yet set up.
