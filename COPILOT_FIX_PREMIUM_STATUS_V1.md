@@ -3,7 +3,7 @@
 **Repo:** `MonarCat/Ke-Salary-Calculator`  
 **Hosting:** Vercel | **Node.js:** 24.x  
 **Supabase Project:** `wklhcmaodxatavuoduhd.supabase.co`  
-**Payment:** Paystack (KES 499/month, KES 4,999/year)  
+**Payment:** Paystack (KES 99/month, KES 999/year)  
 **Contact:** kesalarycalculator@gmail.com  
 
 ---

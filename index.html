@@ -568,6 +568,40 @@
         .poll-share-btn.li-btn  { background: #0A66C2; }
         .poll-share-btn.wa-btn  { background: #25D366; }
 
+        /* More Polls */
+        .more-polls-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px 22px;
+            margin: 22px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        .more-polls-card h3 { color: #006600; margin: 0 0 14px; font-size: 1.05em; }
+        .mini-poll {
+            border: 1px solid #e8f5e9;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            background: #fafff9;
+        }
+        .mini-poll:last-child { margin-bottom: 0; }
+        .mini-poll__q { font-weight: 600; color: #333; font-size: 0.92em; margin-bottom: 10px; }
+        .mini-poll__btn {
+            display: block; width: 100%;
+            background: #fff; border: 1.5px solid #006600;
+            border-radius: 6px; padding: 8px 12px;
+            margin-bottom: 6px; cursor: pointer;
+            text-align: left; font-size: 0.85em;
+            color: #1a1a1a; transition: all 0.2s;
+        }
+        .mini-poll__btn:hover { background: #e8f5e9; }
+        .mini-poll__result-bar { height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+        .mini-poll__result-fill { height: 100%; background: #006600; border-radius: 3px; transition: width 0.5s ease; }
+        .mini-poll__share { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e8f5e9; display: none; }
+        .mini-poll__share-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .mini-poll__count { font-size: 0.78em; color: #888; margin-top: 6px; }
+
         /* Salary Trends */
         .trends-card {
             background: white;
@@ -974,6 +1008,12 @@
                 <p style="font-size:0.8em; color:#999; margin-top:10px; margin-bottom:0;">Results shown after voting. New poll each week.</p>
             </div>
 
+            <!-- More Polls -->
+            <div class="more-polls-card" id="more-polls-section">
+                <h3><i class="fas fa-poll-h"></i> More Polls — Share With Friends</h3>
+                <div id="morePollsList"></div>
+            </div>
+
             <!-- Monthly Salary Challenge -->
             <div class="challenge-card" id="challenge">
                 <h3>🏙️ Can You Survive in Nairobi on KES 50,000?</h3>
@@ -1378,6 +1418,7 @@
             var el = document.getElementById('insightText');
             if (el) el.innerHTML = SALARY_INSIGHTS[insightIndex];
             initPoll();
+            initMorePolls();
         });
 
         // ── Weekly Poll ───────────────────────────────────────────────────────
@@ -1698,6 +1739,153 @@
                 if (liBtn) liBtn.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl;
                 if (waBtn) waBtn.href = 'https://api.whatsapp.com/send?text=' + shareText + '%20' + shareUrl;
                 shareEl.style.display = 'block';
+            }
+        }
+
+        // ── More Polls (3 additional polls) ──────────────────────────────────
+        // Shows polls at offsets +1, +2, +3 from the current weekly poll.
+        // Each mini-poll is independently voteable and shareable.
+        const MORE_POLLS_COUNT = 3;
+
+        async function initMorePolls() {
+            var container = document.getElementById('morePollsList');
+            if (!container) return;
+            var shareUrl = encodeURIComponent(window.location.href.split('?')[0]);
+
+            for (var offset = 1; offset <= MORE_POLLS_COUNT; offset++) {
+                var idx = (pollIdx + offset) % POLLS.length;
+                var poll = POLLS[idx];
+                // Clone votes array so main poll isn't affected
+                poll = { q: poll.q, opts: poll.opts.slice(), votes: poll.votes.slice() };
+
+                await fetchMiniPollVotes(poll, idx);
+
+                var serverVoted = await checkPollVoteDB(idx);
+                var localVoted  = localStorage.getItem('poll_voted_' + idx);
+                var alreadyVoted = serverVoted !== null ? serverVoted
+                    : (localVoted !== null ? parseInt(localVoted) : null);
+
+                var cardId  = 'mp-' + idx;
+                var card = document.createElement('div');
+                card.className = 'mini-poll';
+                card.id = cardId;
+                card.innerHTML = '<div class="mini-poll__q">' + poll.q + '</div>'
+                    + '<div class="mini-poll__opts"></div>'
+                    + '<div class="mini-poll__count"></div>'
+                    + '<div class="mini-poll__share">'
+                    +   '<span style="font-size:0.8em;color:#555;font-weight:600;"><i class="fas fa-share-alt"></i> Share this poll:</span>'
+                    +   '<div class="mini-poll__share-btns">'
+                    +     '<a class="poll-share-btn x-btn mp-share-x" href="#" target="_blank" rel="noopener noreferrer" style="font-size:0.75em;padding:5px 10px;">'
+                    +       '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.735-8.835L1.254 2.25H8.08l4.258 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg> X'
+                    +     '</a>'
+                    +     '<a class="poll-share-btn fb-btn mp-share-fb" href="#" target="_blank" rel="noopener noreferrer" style="font-size:0.75em;padding:5px 10px;"><i class="fab fa-facebook-f"></i> Facebook</a>'
+                    +     '<a class="poll-share-btn wa-btn mp-share-wa" href="#" target="_blank" rel="noopener noreferrer" style="font-size:0.75em;padding:5px 10px;"><i class="fab fa-whatsapp"></i> WhatsApp</a>'
+                    +   '</div>'
+                    + '</div>';
+                container.appendChild(card);
+
+                if (alreadyVoted !== null) {
+                    renderMiniPollResults(card, poll, alreadyVoted, idx, shareUrl);
+                } else {
+                    renderMiniPollButtons(card, poll, idx, shareUrl);
+                }
+            }
+        }
+
+        async function fetchMiniPollVotes(poll, idx) {
+            if (!window.supabaseClient) return;
+            try {
+                var res = await window.supabaseClient
+                    .from('poll_votes')
+                    .select('option_idx, count')
+                    .eq('poll_idx', idx);
+                if (res.error || !res.data) return;
+                res.data.forEach(function(row) {
+                    if (row.option_idx >= 0 && row.option_idx < poll.votes.length) {
+                        poll.votes[row.option_idx] = row.count;
+                    }
+                });
+            } catch(e) {}
+        }
+
+        function renderMiniPollButtons(card, poll, idx, shareUrl) {
+            var optsEl = card.querySelector('.mini-poll__opts');
+            var countEl = card.querySelector('.mini-poll__count');
+            optsEl.innerHTML = '';
+            poll.opts.forEach(function(opt, i) {
+                var btn = document.createElement('button');
+                btn.className = 'mini-poll__btn';
+                btn.textContent = opt;
+                btn.onclick = function() { castMiniPollVote(card, poll, idx, i, shareUrl); };
+                optsEl.appendChild(btn);
+            });
+            updateMiniPollCount(countEl, poll, idx);
+        }
+
+        async function castMiniPollVote(card, poll, idx, optionIdx, shareUrl) {
+            var result = await submitPollVoteDB(idx, optionIdx);
+            if (result && result.already_voted) {
+                var voted = (result.option_idx !== null && result.option_idx !== undefined)
+                    ? result.option_idx : optionIdx;
+                localStorage.setItem('poll_voted_' + idx, voted);
+                await fetchMiniPollVotes(poll, idx);
+                renderMiniPollResults(card, poll, voted, idx, shareUrl);
+                return;
+            }
+            if (result === null) {
+                await legacyIncrementPollVoteDB(idx, optionIdx);
+            }
+            poll.votes[optionIdx]++;
+            localStorage.setItem('poll_voted_' + idx, optionIdx);
+            await fetchMiniPollVotes(poll, idx);
+            renderMiniPollResults(card, poll, optionIdx, idx, shareUrl);
+        }
+
+        function renderMiniPollResults(card, poll, selected, idx, shareUrl) {
+            var optsEl  = card.querySelector('.mini-poll__opts');
+            var countEl = card.querySelector('.mini-poll__count');
+            var shareEl = card.querySelector('.mini-poll__share');
+            var total   = poll.votes.reduce(function(a,b){ return a+b; }, 0);
+            optsEl.innerHTML = '';
+            poll.opts.forEach(function(opt, i) {
+                var pct = total > 0 ? Math.round(poll.votes[i]/total*100) : 0;
+                var div = document.createElement('div');
+                div.style.marginBottom = '8px';
+                div.innerHTML = '<div style="display:flex;justify-content:space-between;font-size:0.83em;'
+                    + (i === selected ? 'font-weight:700;color:#006600;' : '') + '">'
+                    + '<span>' + opt + (i === selected ? ' ✓' : '') + '</span><span>' + pct + '%</span></div>'
+                    + '<div class="mini-poll__result-bar"><div class="mini-poll__result-fill" style="width:' + pct + '%;"></div></div>';
+                optsEl.appendChild(div);
+            });
+            updateMiniPollCount(countEl, poll, idx);
+            // Wire share links
+            var text = encodeURIComponent('I voted on a Kenya salary poll: "' + poll.q + '" — check it out!');
+            var xBtn = card.querySelector('.mp-share-x');
+            var fbBtn = card.querySelector('.mp-share-fb');
+            var waBtn = card.querySelector('.mp-share-wa');
+            if (xBtn)  xBtn.href  = 'https://x.com/intent/tweet?text=' + text + '&url=' + shareUrl;
+            if (fbBtn) fbBtn.href = 'https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '&quote=' + text;
+            if (waBtn) waBtn.href = 'https://api.whatsapp.com/send?text=' + text + '%20' + shareUrl;
+            if (shareEl) shareEl.style.display = 'block';
+        }
+
+        function updateMiniPollCount(countEl, poll, idx) {
+            if (!countEl) return;
+            if (window.supabaseClient) {
+                window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: idx })
+                    .then(function(res) {
+                        var count = (res && res.data != null)
+                            ? res.data
+                            : poll.votes.reduce(function(a,b){return a+b;},0);
+                        countEl.textContent = count.toLocaleString('en-KE') + ' Participated in this Poll';
+                    })
+                    .catch(function() {
+                        var total = poll.votes.reduce(function(a,b){return a+b;},0);
+                        countEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                    });
+            } else {
+                var total = poll.votes.reduce(function(a,b){return a+b;},0);
+                countEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
         }
 
