@@ -172,7 +172,7 @@ body.dark-mode .scf-error,
 `;
 
     // ── HTML ─────────────────────────────────────────────────────────────────
-    const RECIPIENT = 'kesalarycalculator@gmail.com';
+    const RECIPIENT = 'info@salarycalculator.co.ke';
     const SUBJECT_PREFIX = '[SalaryCalculator.co.ke]';
 
     const HTML = `
