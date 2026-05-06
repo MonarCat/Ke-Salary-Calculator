@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P9A Tax Form Generator Kenya | Annual Employee Tax Card | Kenya Salary Calculator</title>
+    <meta name="description" content="Generate KRA-compliant P9A annual tax deduction cards for employees. Auto-populated from payroll data with instant PDF download.">
+    <meta name="keywords" content="P9A generator Kenya, KRA P9A form, annual tax card Kenya, employee P9A download, Kenya tax form 2026">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/p9a-generator.html">
+    <meta name="google-adsense-account" content="ca-pub-6832553346534070">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/p9a-generator.html">
+    <meta property="og:title" content="P9A Tax Form Generator Kenya | Kenya Salary Calculator">
+    <meta property="og:description" content="Generate KRA-compliant P9A annual tax deduction cards. Auto-populated from payroll data.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="P9A Tax Form Generator Kenya">
+    <meta name="twitter:description" content="Generate P9A annual employee tax cards with instant PDF download.">
+    <meta name="twitter:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .page-hero {
+            background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
+            color: #fff; border-radius: 12px; padding: 32px 28px 24px;
+            margin-bottom: 28px; text-align: center;
+        }
+        .page-hero h1 { margin: 0 0 8px; font-size: 1.7em; }
+        .page-hero p  { margin: 0; opacity: 0.9; }
+        .card {
+            background: #fff; border: 1px solid #e0e0e0; border-radius: 12px;
+            padding: 24px; margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        body.dark-mode .card { background: #16213e; border-color: #333; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; font-size: 0.93em; }
+        body.dark-mode .form-group label { color: #ccc; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 9px 12px; border: 2px solid #ddd; border-radius: 7px;
+            font-size: 0.95em; box-sizing: border-box; transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #006600; outline: none; }
+        body.dark-mode .form-group input, body.dark-mode .form-group select {
+            background: #0f3460; border-color: #444; color: #e0e0e0;
+        }
+        .btn-primary {
+            padding: 12px 28px; background: #006600; color: #fff; border: none;
+            border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer;
+            transition: background 0.2s; margin: 4px 4px 4px 0;
+        }
+        .btn-primary:hover { background: #004d00; }
+        .btn-secondary {
+            padding: 12px 28px; background: transparent; color: #006600; border: 2px solid #006600;
+            border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; margin: 4px 4px 4px 0;
+        }
+        .btn-secondary:hover { background: #006600; color: #fff; }
+        .btn-orange {
+            padding: 12px 28px; background: #e8830a; color: #fff; border: none;
+            border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer;
+            transition: background 0.2s; margin: 4px 4px 4px 0;
+        }
+        .btn-orange:hover { background: #c0690a; }
+        .p9a-table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+        .p9a-table th { background: #1a6b3c; color: #fff; padding: 8px 6px; text-align: center; white-space: nowrap; }
+        .p9a-table td { padding: 6px; border: 1px solid #ddd; text-align: center; }
+        body.dark-mode .p9a-table td { border-color: #333; color: #e0e0e0; }
+        .p9a-table td input {
+            width: 90px; border: 1px solid #ccc; border-radius: 4px;
+            padding: 4px 6px; font-size: 0.9em; text-align: right;
+        }
+        body.dark-mode .p9a-table td input { background: #0f3460; border-color: #444; color: #e0e0e0; }
+        .p9a-table .auto-cell { background: #f0f9f0; font-weight: 600; }
+        body.dark-mode .p9a-table .auto-cell { background: #0f2a0f; }
+        .records-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        .records-table th { background: #1a6b3c; color: #fff; padding: 10px; text-align: left; }
+        .records-table td { padding: 9px 10px; border-bottom: 1px solid #eee; }
+        body.dark-mode .records-table td { border-color: #333; color: #e0e0e0; }
+        .totals-row td { background: #e8f5e9; font-weight: bold; color: #1a6b3c; }
+        body.dark-mode .totals-row td { background: #0f2a0f; }
+        .dark-mode-toggle {
+            background: none; border: 2px solid #006600; border-radius: 20px;
+            padding: 5px 14px; cursor: pointer; font-size: 14px; color: #006600;
+            transition: all 0.2s; margin-left: 8px;
+        }
+        .dark-mode-toggle:hover { background: #006600; color: white; }
+        body.dark-mode .dark-mode-toggle { border-color: #4caf50; color: #4caf50; }
+        body.dark-mode .dark-mode-toggle:hover { background: #4caf50; color: #1a1a2e; }
+        .status-msg { padding: 10px 14px; border-radius: 8px; margin: 10px 0; font-size: 0.9em; }
+        .status-success { background: #e8f5e9; color: #2e7d32; }
+        .status-error { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <div class="container">
+            <div class="logo-container">
+                <a href="/"><img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo"></a>
+            </div>
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu"><i class="fas fa-bars"></i></button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">Calculators <i class="fas fa-chevron-down"></i></span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/calculator.html#percentile" onclick="event.preventDefault();window.location='/calculator.html?tab=percentile';">Kenya Percentile</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/payroll-import.html">Payroll Import <span style="background:#e8830a;color:#fff;font-size:0.7em;padding:2px 6px;border-radius:4px;margin-left:4px;">Premium</span></a>
+                        <a href="/p9a-generator.html" class="active">P9A Generator <span style="background:#e8830a;color:#fff;font-size:0.7em;padding:2px 6px;border-radius:4px;margin-left:4px;">Premium</span></a>
+                    </div>
+                </div>
+                <a href="/budget-planner.html">Budget Planner</a>
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/external-links.html">External Links</a>
+                <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
+            </nav>
+
+            <div class="page-hero">
+                <h1><i class="fas fa-file-invoice-dollar"></i> P9A Annual Tax Card Generator</h1>
+                <p>Generate KRA-compliant P9A forms for employees — auto-populated from payroll history</p>
+            </div>
+
+            <div id="main-content">
+                <!-- Premium gate or P9A UI rendered here -->
+                <div id="p9a-ui" style="display:none;">
+
+                    <!-- Employee & Year Selector -->
+                    <div class="card">
+                        <h3 style="margin-top:0;color:#1a6b3c;"><i class="fas fa-user-tie"></i> Employee & Tax Year</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="empSelect"><i class="fas fa-user"></i> Employee</label>
+                                <select id="empSelect" onchange="loadP9AData()">
+                                    <option value="">— Select Employee —</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="taxYearSelect"><i class="fas fa-calendar"></i> Tax Year</label>
+                                <select id="taxYearSelect" onchange="loadP9AData()"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employer Details -->
+                    <div class="card">
+                        <h3 style="margin-top:0;color:#1a6b3c;"><i class="fas fa-building"></i> Employer Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="empName">Employer Name</label>
+                                <input type="text" id="empName" placeholder="e.g. ABC Company Ltd">
+                            </div>
+                            <div class="form-group">
+                                <label for="empKRA">Employer KRA PIN</label>
+                                <input type="text" id="empKRA" placeholder="e.g. P051234567A">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- P9A Monthly Table -->
+                    <div class="card">
+                        <h3 style="margin-top:0;color:#1a6b3c;"><i class="fas fa-table"></i> Monthly Breakdown</h3>
+                        <p style="font-size:0.88em;color:#666;margin-top:0;">
+                            Enter gross pay per month. Taxable pay, PAYE, NSSF, SHIF, Housing Levy and Net Pay are auto-calculated.
+                        </p>
+                        <div id="statusMsg"></div>
+                        <div style="overflow-x:auto;">
+                            <table class="p9a-table" id="p9aTable">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Gross Pay</th>
+                                        <th>Taxable Pay</th>
+                                        <th>Tax on Income</th>
+                                        <th>Personal Relief</th>
+                                        <th>Ins. Relief</th>
+                                        <th>Net PAYE</th>
+                                        <th>NSSF</th>
+                                        <th>SHIF</th>
+                                        <th>Housing Levy</th>
+                                        <th>Pension</th>
+                                        <th>Net Pay</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="p9aBody"></tbody>
+                                <tfoot>
+                                    <tr class="totals-row" id="p9aTotals"></tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn-primary" onclick="generatePDF()"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                            <button class="btn-secondary" onclick="saveDraft()"><i class="fas fa-save"></i> Save Draft</button>
+                            <button class="btn-orange" onclick="recalcAll()"><i class="fas fa-sync"></i> Recalculate All</button>
+                        </div>
+                    </div>
+
+                    <!-- Past Records -->
+                    <div class="card">
+                        <h3 style="margin-top:0;color:#1a6b3c;"><i class="fas fa-history"></i> Past P9A Records</h3>
+                        <div id="pastRecords"><p style="color:#999;">Loading records…</p></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="assets/js/supabase-config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/nav-toggle.js"></script>
+    <script src="assets/js/salary-engine.js"></script>
+    <script src="assets/js/format-utils.js"></script>
+    <script>
+        // Dark mode
+        const dmToggle = document.getElementById('darkModeToggle');
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            if (dmToggle) dmToggle.textContent = '☀️ Light';
+        }
+        if (dmToggle) dmToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            const on = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', on);
+            dmToggle.textContent = on ? '☀️ Light' : '🌙 Dark';
+        });
+
+        const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        let currentUser = null;
+        let currentEmployee = null;
+        let monthlyData = Array(12).fill(null).map(() => ({ gross: 0, pension: 0, insurancePremium: 0 }));
+
+        function showAuthPrompt() {
+            document.getElementById('main-content').innerHTML = `
+                <div style="text-align:center;padding:60px 20px;">
+                    <i class="fas fa-lock" style="font-size:3em;color:#006600;margin-bottom:16px;"></i>
+                    <h2>Sign In Required</h2>
+                    <p>Please sign in to access this feature.</p>
+                    <a href="/auth.html" style="display:inline-block;padding:12px 30px;background:#006600;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Sign In / Register</a>
+                </div>`;
+        }
+        function showUpgradePrompt() {
+            document.getElementById('main-content').innerHTML = `
+                <div style="text-align:center;padding:60px 20px;background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:15px;color:#fff;margin:20px 0;">
+                    <i class="fas fa-crown" style="font-size:3em;margin-bottom:16px;"></i>
+                    <h2>P9A Generator — Premium Feature</h2>
+                    <p>Upgrade to Premium to generate P9A tax forms.</p>
+                    <p><strong>KES 99/month</strong> or <strong>KES 999/year</strong></p>
+                    <a href="/account.html#upgrade" style="display:inline-block;padding:14px 36px;background:#006600;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:10px;">Upgrade to Premium →</a>
+                </div>`;
+        }
+
+        function fmt(v) { return Math.round(v).toLocaleString('en-KE'); }
+
+        async function init() {
+            if (!window.supabaseClient) { showAuthPrompt(); return; }
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            if (!user) { showAuthPrompt(); return; }
+            currentUser = user;
+            const { data: profile } = await window.supabaseClient
+                .from('user_profiles').select('is_premium,premium_expires_at').eq('id', user.id).single();
+            const isPremium = profile?.is_premium &&
+                (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
+            if (!isPremium) { showUpgradePrompt(); return; }
+
+            document.getElementById('p9a-ui').style.display = 'block';
+            populateYearSelector();
+            await loadEmployees();
+            renderTable();
+            loadPastRecords();
+        }
+
+        function populateYearSelector() {
+            const sel = document.getElementById('taxYearSelect');
+            const now = new Date().getFullYear();
+            for (let y = now; y >= 2020; y--) {
+                const opt = document.createElement('option');
+                opt.value = y; opt.textContent = y;
+                if (y === now - 1) opt.selected = true;
+                sel.appendChild(opt);
+            }
+        }
+
+        async function loadEmployees() {
+            const { data, error } = await window.supabaseClient
+                .from('employees')
+                .select('id,full_name,kra_pin,nssf_number')
+                .eq('user_id', currentUser.id)
+                .order('full_name');
+            if (error || !data) return;
+            const sel = document.getElementById('empSelect');
+            data.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.id;
+                opt.textContent = e.full_name + (e.kra_pin ? ' — ' + e.kra_pin : '');
+                opt.dataset.kra = e.kra_pin || '';
+                opt.dataset.nssf = e.nssf_number || '';
+                sel.appendChild(opt);
+            });
+        }
+
+        async function loadP9AData() {
+            const empId = document.getElementById('empSelect').value;
+            const year  = document.getElementById('taxYearSelect').value;
+            if (!empId || !year) return;
+
+            // Try RPC first, fall back to empty table
+            const { data, error } = await window.supabaseClient.rpc('fn_build_p9a', { p_employee_id: empId, p_year: parseInt(year) });
+            if (!error && data && Array.isArray(data)) {
+                data.forEach((row, i) => {
+                    if (i < 12) monthlyData[i] = { gross: row.gross || 0, pension: row.pension || 0, insurancePremium: row.insurance || 0 };
+                });
+            } else {
+                // Check annual_tax_records for saved draft
+                const { data: saved } = await window.supabaseClient
+                    .from('annual_tax_records')
+                    .select('monthly_data')
+                    .eq('employee_id', empId)
+                    .eq('tax_year', parseInt(year))
+                    .maybeSingle();
+                if (saved?.monthly_data) {
+                    monthlyData = saved.monthly_data;
+                } else {
+                    monthlyData = Array(12).fill(null).map(() => ({ gross: 0, pension: 0, insurancePremium: 0 }));
+                }
+            }
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('p9aBody');
+            tbody.innerHTML = MONTHS.map((m, i) => {
+                const d = monthlyData[i] || { gross: 0, pension: 0, insurancePremium: 0 };
+                const r = window.SalaryEngine.calculateDeductions(d.gross, { pension: d.pension, insurancePremium: d.insurancePremium });
+                const taxOnIncome = r.paye + (window.SalaryEngine.RATES_2026.personalRelief + r.insuranceRelief);
+                return `<tr data-idx="${i}">
+                    <td style="font-weight:600;white-space:nowrap;">${m}</td>
+                    <td><input type="number" class="gross-input" value="${d.gross || ''}" placeholder="0" oninput="onGrossChange(${i},this.value)"></td>
+                    <td class="auto-cell" id="taxable${i}">${fmt(r.taxablePay)}</td>
+                    <td class="auto-cell" id="taxOnInc${i}">${fmt(Math.max(taxOnIncome, r.paye))}</td>
+                    <td class="auto-cell">2,400</td>
+                    <td class="auto-cell" id="insRel${i}">${fmt(r.insuranceRelief)}</td>
+                    <td class="auto-cell" id="netPaye${i}">${fmt(r.paye)}</td>
+                    <td class="auto-cell" id="nssf${i}">${fmt(r.nssf)}</td>
+                    <td class="auto-cell" id="shif${i}">${fmt(r.shif)}</td>
+                    <td class="auto-cell" id="housing${i}">${fmt(r.housingLevy)}</td>
+                    <td><input type="number" class="pension-input" value="${d.pension || ''}" placeholder="0" oninput="onPensionChange(${i},this.value)"></td>
+                    <td class="auto-cell" id="netPay${i}">${fmt(r.netSalary)}</td>
+                </tr>`;
+            }).join('');
+            updateTotals();
+        }
+
+        function onGrossChange(i, val) {
+            monthlyData[i].gross = parseFloat(val) || 0;
+            recalcRow(i);
+            updateTotals();
+        }
+        function onPensionChange(i, val) {
+            monthlyData[i].pension = parseFloat(val) || 0;
+            recalcRow(i);
+            updateTotals();
+        }
+
+        function recalcRow(i) {
+            const d = monthlyData[i];
+            const r = window.SalaryEngine.calculateDeductions(d.gross, { pension: d.pension, insurancePremium: d.insurancePremium });
+            document.getElementById('taxable'+i).textContent = fmt(r.taxablePay);
+            document.getElementById('netPaye'+i).textContent  = fmt(r.paye);
+            document.getElementById('insRel'+i).textContent   = fmt(r.insuranceRelief);
+            document.getElementById('nssf'+i).textContent     = fmt(r.nssf);
+            document.getElementById('shif'+i).textContent     = fmt(r.shif);
+            document.getElementById('housing'+i).textContent  = fmt(r.housingLevy);
+            document.getElementById('netPay'+i).textContent   = fmt(r.netSalary);
+        }
+
+        function recalcAll() {
+            for (let i = 0; i < 12; i++) recalcRow(i);
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const keys = ['gross','taxable','paye','nssf','shif','housing','net'];
+            let totals = { gross: 0, taxable: 0, paye: 0, nssf: 0, shif: 0, housing: 0, net: 0 };
+            for (let i = 0; i < 12; i++) {
+                const d = monthlyData[i];
+                const r = window.SalaryEngine.calculateDeductions(d.gross, { pension: d.pension, insurancePremium: d.insurancePremium });
+                totals.gross   += r.gross;
+                totals.taxable += r.taxablePay;
+                totals.paye    += r.paye;
+                totals.nssf    += r.nssf;
+                totals.shif    += r.shif;
+                totals.housing += r.housingLevy;
+                totals.net     += r.netSalary;
+            }
+            document.getElementById('p9aTotals').innerHTML = `
+                <td style="font-weight:bold;text-align:left;padding:8px 6px;">TOTALS</td>
+                <td style="font-weight:bold;">${fmt(totals.gross)}</td>
+                <td style="font-weight:bold;">${fmt(totals.taxable)}</td>
+                <td style="font-weight:bold;">—</td>
+                <td style="font-weight:bold;">28,800</td>
+                <td style="font-weight:bold;">—</td>
+                <td style="font-weight:bold;">${fmt(totals.paye)}</td>
+                <td style="font-weight:bold;">${fmt(totals.nssf)}</td>
+                <td style="font-weight:bold;">${fmt(totals.shif)}</td>
+                <td style="font-weight:bold;">${fmt(totals.housing)}</td>
+                <td>—</td>
+                <td style="font-weight:bold;">${fmt(totals.net)}</td>`;
+        }
+
+        async function saveDraft() {
+            const empId = document.getElementById('empSelect').value;
+            const year  = parseInt(document.getElementById('taxYearSelect').value);
+            if (!empId || !year) { showStatus('Please select an employee and year first.', false); return; }
+            const { error } = await window.supabaseClient.from('annual_tax_records').upsert({
+                user_id: currentUser.id, employee_id: empId, tax_year: year,
+                monthly_data: monthlyData, updated_at: new Date().toISOString()
+            }, { onConflict: 'employee_id,tax_year' });
+            if (error) { showStatus('Error saving: ' + error.message, false); return; }
+            showStatus('Draft saved successfully.', true);
+            loadPastRecords();
+        }
+
+        function showStatus(msg, ok) {
+            const el = document.getElementById('statusMsg');
+            el.className = 'status-msg ' + (ok ? 'status-success' : 'status-error');
+            el.textContent = msg;
+            setTimeout(() => el.textContent = '', 4000);
+        }
+
+        function generatePDF() {
+            const empSel = document.getElementById('empSelect');
+            const empName = empSel.options[empSel.selectedIndex]?.text || 'Employee';
+            const empKRA  = empSel.options[empSel.selectedIndex]?.dataset.kra || '';
+            const year    = document.getElementById('taxYearSelect').value;
+            const erName  = document.getElementById('empName').value || 'Employer';
+            const erKRA   = document.getElementById('empKRA').value || '';
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            // Header
+            doc.setFillColor(26, 107, 60);
+            doc.rect(0, 0, 297, 22, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.text('KRA P9A — Annual Employee Tax Deduction Card', 148.5, 10, { align: 'center' });
+            doc.setFontSize(10);
+            doc.text('Tax Year: ' + year, 148.5, 17, { align: 'center' });
+
+            // Employee & employer info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(9);
+            doc.text('Employee: ' + empName, 14, 30);
+            doc.text('Employee KRA PIN: ' + empKRA, 14, 36);
+            doc.text('Employer: ' + erName, 148.5, 30);
+            doc.text('Employer KRA PIN: ' + erKRA, 148.5, 36);
+
+            // Table header
+            const cols = ['Month','Gross Pay','Taxable Pay','Tax on Inc','Personal Relief','Ins Relief','Net PAYE','NSSF','SHIF','Housing Levy','Pension','Net Pay'];
+            const colW = [22, 22, 22, 22, 20, 18, 18, 18, 18, 20, 18, 22];
+            let x = 10, y = 44;
+            doc.setFillColor(26, 107, 60);
+            doc.rect(10, y, 277, 8, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(7);
+            cols.forEach((c, i) => {
+                let cx = x;
+                doc.text(c, cx + colW[i] / 2, y + 5.5, { align: 'center' });
+                x += colW[i];
+            });
+
+            // Rows
+            doc.setTextColor(0, 0, 0);
+            y += 8;
+            let totals = { gross: 0, taxable: 0, paye: 0, nssf: 0, shif: 0, housing: 0, net: 0 };
+            MONTHS.forEach((m, idx) => {
+                const d = monthlyData[idx];
+                const r = window.SalaryEngine.calculateDeductions(d.gross, { pension: d.pension, insurancePremium: d.insurancePremium });
+                totals.gross += r.gross; totals.taxable += r.taxablePay;
+                totals.paye += r.paye; totals.nssf += r.nssf;
+                totals.shif += r.shif; totals.housing += r.housingLevy; totals.net += r.netSalary;
+                if (idx % 2 === 1) { doc.setFillColor(240, 249, 240); doc.rect(10, y, 277, 7, 'F'); }
+                const vals = [m, fmt(r.gross), fmt(r.taxablePay), '—', '2,400', fmt(r.insuranceRelief), fmt(r.paye), fmt(r.nssf), fmt(r.shif), fmt(r.housingLevy), fmt(d.pension||0), fmt(r.netSalary)];
+                x = 10; doc.setFontSize(7);
+                vals.forEach((v, i) => { doc.text(String(v), x + colW[i] / 2, y + 4.5, { align: 'center' }); x += colW[i]; });
+                y += 7;
+            });
+
+            // Totals row
+            doc.setFillColor(230, 245, 230);
+            doc.rect(10, y, 277, 8, 'F');
+            doc.setFontSize(7.5);
+            const totVals = ['TOTALS', fmt(totals.gross), fmt(totals.taxable), '—', '28,800', '—', fmt(totals.paye), fmt(totals.nssf), fmt(totals.shif), fmt(totals.housing), '—', fmt(totals.net)];
+            x = 10;
+            totVals.forEach((v, i) => { doc.text(String(v), x + colW[i] / 2, y + 5, { align: 'center' }); x += colW[i]; });
+
+            // Footer
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Generated by Kenya Salary Calculator — salarycalculator.co.ke', 148.5, 198, { align: 'center' });
+
+            doc.save(`P9A_${empName.replace(/\s+/g,'_')}_${year}.pdf`);
+        }
+
+        async function loadPastRecords() {
+            if (!currentUser) return;
+            const { data, error } = await window.supabaseClient
+                .from('annual_tax_records')
+                .select('id,employee_id,tax_year,updated_at,employees(full_name)')
+                .eq('user_id', currentUser.id)
+                .order('tax_year', { ascending: false })
+                .limit(20);
+            const cont = document.getElementById('pastRecords');
+            if (error || !data || data.length === 0) {
+                cont.innerHTML = '<p style="color:#999;">No saved P9A records yet.</p>'; return;
+            }
+            cont.innerHTML = `<div style="overflow-x:auto;">
+                <table class="records-table">
+                    <thead><tr><th>Employee</th><th>Tax Year</th><th>Last Updated</th><th>Action</th></tr></thead>
+                    <tbody>${data.map(r => `<tr>
+                        <td>${r.employees?.full_name || r.employee_id}</td>
+                        <td>${r.tax_year}</td>
+                        <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
+                        <td><button onclick="loadRecord('${r.employee_id}',${r.tax_year})" style="padding:5px 12px;background:#006600;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:0.85em;">Open</button></td>
+                    </tr>`).join('')}</tbody>
+                </table></div>`;
+        }
+
+        async function loadRecord(empId, year) {
+            document.getElementById('empSelect').value = empId;
+            document.getElementById('taxYearSelect').value = year;
+            await loadP9AData();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
