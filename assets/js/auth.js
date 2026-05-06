@@ -382,7 +382,7 @@ function showTerms(event) {
             <li>Protect your account credentials</li>
             <li>Not misuse the service</li>
         </ol>
-        <p>For more information, contact support@salarycalculator.co.ke</p>
+        <p>For more information, contact info@salarycalculator.co.ke</p>
     `;
     
     showMessage('signup-message', termsText, 'info');
