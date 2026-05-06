@@ -1755,8 +1755,8 @@
             for (var offset = 1; offset <= MORE_POLLS_COUNT; offset++) {
                 var idx = (pollIdx + offset) % POLLS.length;
                 var poll = POLLS[idx];
-                // Clone votes array so main poll isn't affected
-                poll = { q: poll.q, opts: poll.opts.slice(), votes: poll.votes.slice() };
+                // Clone the poll so local vote updates don't affect the source array
+                poll = Object.assign({}, poll, { opts: poll.opts.slice(), votes: poll.votes.slice() });
 
                 await fetchMiniPollVotes(poll, idx);
 
@@ -1769,8 +1769,12 @@
                 var card = document.createElement('div');
                 card.className = 'mini-poll';
                 card.id = cardId;
-                card.innerHTML = '<div class="mini-poll__q">' + poll.q + '</div>'
-                    + '<div class="mini-poll__opts"></div>'
+                // Use a text node for poll.q to prevent any HTML injection
+                var qText = document.createTextNode(poll.q);
+                var qDiv  = document.createElement('div');
+                qDiv.className = 'mini-poll__q';
+                qDiv.appendChild(qText);
+                card.innerHTML = '<div class="mini-poll__opts"></div>'
                     + '<div class="mini-poll__count"></div>'
                     + '<div class="mini-poll__share">'
                     +   '<span style="font-size:0.8em;color:#555;font-weight:600;"><i class="fas fa-share-alt"></i> Share this poll:</span>'
@@ -1782,6 +1786,7 @@
                     +     '<a class="poll-share-btn wa-btn mp-share-wa" href="#" target="_blank" rel="noopener noreferrer" style="font-size:0.75em;padding:5px 10px;"><i class="fab fa-whatsapp"></i> WhatsApp</a>'
                     +   '</div>'
                     + '</div>';
+                card.insertBefore(qDiv, card.firstChild);
                 container.appendChild(card);
 
                 if (alreadyVoted !== null) {
