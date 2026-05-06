@@ -577,7 +577,10 @@
             margin: 22px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.07);
         }
-        .more-polls-card h3 { color: #006600; margin: 0 0 14px; font-size: 1.05em; }
+        .more-polls-card h3 { color: #006600; margin: 0; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .more-polls-toggle-btn { background: none; border: none; cursor: pointer; padding: 0; color: #006600; font-size: 1em; transition: transform 0.25s; }
+        .more-polls-toggle-btn.open { transform: rotate(180deg); }
+        .more-polls-body { margin-top: 14px; }
         .mini-poll {
             border: 1px solid #e8f5e9;
             border-radius: 8px;
@@ -1010,8 +1013,13 @@
 
             <!-- More Polls -->
             <div class="more-polls-card" id="more-polls-section">
-                <h3><i class="fas fa-poll-h"></i> More Polls — Share With Friends</h3>
-                <div id="morePollsList"></div>
+                <h3 id="morePollsToggle" onclick="toggleMorePolls()">
+                    <span><i class="fas fa-poll-h"></i> More Polls — Share With Friends</span>
+                    <button class="more-polls-toggle-btn" id="morePollsChevron" aria-label="Expand more polls" aria-expanded="false">&#9660;</button>
+                </h3>
+                <div class="more-polls-body" id="morePollsBody" style="display:none;">
+                    <div id="morePollsList"></div>
+                </div>
             </div>
 
             <!-- Monthly Salary Challenge -->
@@ -1418,7 +1426,7 @@
             var el = document.getElementById('insightText');
             if (el) el.innerHTML = SALARY_INSIGHTS[insightIndex];
             initPoll();
-            initMorePolls();
+            // More Polls are loaded lazily when the section is expanded
         });
 
         // ── Weekly Poll ───────────────────────────────────────────────────────
@@ -1541,7 +1549,7 @@
                 if (error || !data) return;
                 data.forEach(function(row) {
                     if (row.option_idx >= 0 && row.option_idx < poll.votes.length) {
-                        poll.votes[row.option_idx] = row.count;
+                        poll.votes[row.option_idx] = Number(row.count) || 0;
                     }
                 });
             } catch(e) {}
@@ -1747,6 +1755,24 @@
         // Each mini-poll is independently voteable and shareable.
         const MORE_POLLS_COUNT = 3;
 
+        // Track whether more polls have been loaded already (lazy load)
+        var morePollsLoaded = false;
+
+        function toggleMorePolls() {
+            var body    = document.getElementById('morePollsBody');
+            var chevron = document.getElementById('morePollsChevron');
+            var toggle  = document.getElementById('morePollsToggle');
+            if (!body) return;
+            var open = body.style.display !== 'none';
+            body.style.display = open ? 'none' : 'block';
+            if (chevron) chevron.classList.toggle('open', !open);
+            if (toggle)  toggle.setAttribute('aria-expanded', String(!open));
+            if (!open && !morePollsLoaded) {
+                morePollsLoaded = true;
+                initMorePolls();
+            }
+        }
+
         async function initMorePolls() {
             var container = document.getElementById('morePollsList');
             if (!container) return;
@@ -1807,7 +1833,7 @@
                 if (res.error || !res.data) return;
                 res.data.forEach(function(row) {
                     if (row.option_idx >= 0 && row.option_idx < poll.votes.length) {
-                        poll.votes[row.option_idx] = row.count;
+                        poll.votes[row.option_idx] = Number(row.count) || 0;
                     }
                 });
             } catch(e) {}
@@ -1880,7 +1906,7 @@
                 window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: idx })
                     .then(function(res) {
                         var count = (res && res.data != null)
-                            ? res.data
+                            ? Number(res.data)
                             : poll.votes.reduce(function(a,b){return a+b;},0);
                         countEl.textContent = count.toLocaleString('en-KE') + ' Participated in this Poll';
                     })
@@ -1893,6 +1919,59 @@
                 countEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
             }
         }
+
+        // ── Real-time poll vote updates ───────────────────────────────────────
+        // Subscribes to INSERT/UPDATE changes on poll_votes so vote percentages
+        // refresh automatically when another user casts a vote.
+        (function setupPollRealtime() {
+            if (!window.supabaseClient) return;
+            try {
+                window.supabaseClient
+                    .channel('poll_votes_realtime')
+                    .on('postgres_changes', {
+                        event: '*',
+                        schema: 'public',
+                        table: 'poll_votes'
+                    }, function(payload) {
+                        var changedIdx = payload.new && payload.new.poll_idx != null
+                            ? payload.new.poll_idx : null;
+                        if (changedIdx === null) return;
+
+                        // Refresh main poll display if it matches
+                        if (changedIdx === pollIdx) {
+                            var mainPoll = POLLS[pollIdx];
+                            fetchPollVotesFromDB(mainPoll, pollIdx).then(function() {
+                                var localVoted = localStorage.getItem('poll_voted_' + pollIdx);
+                                if (localVoted !== null) {
+                                    showPollResults(mainPoll, parseInt(localVoted));
+                                }
+                            });
+                        }
+
+                        // Refresh matching mini-poll if More Polls are open
+                        if (morePollsLoaded) {
+                            var card = document.getElementById('mp-' + changedIdx);
+                            if (card) {
+                                var shareUrl = encodeURIComponent(window.location.href.split('?')[0]);
+                                // Re-fetch votes for this mini-poll index
+                                var mpPoll = POLLS[changedIdx];
+                                mpPoll = Object.assign({}, mpPoll, { opts: mpPoll.opts.slice(), votes: mpPoll.votes.slice() });
+                                fetchMiniPollVotes(mpPoll, changedIdx).then(function() {
+                                    var localVoted = localStorage.getItem('poll_voted_' + changedIdx);
+                                    var alreadyVoted = localVoted !== null ? parseInt(localVoted) : null;
+                                    if (alreadyVoted !== null) {
+                                        renderMiniPollResults(card, mpPoll, alreadyVoted, changedIdx, shareUrl);
+                                    } else {
+                                        var countEl = card.querySelector('.mini-poll__count');
+                                        updateMiniPollCount(countEl, mpPoll, changedIdx);
+                                    }
+                                });
+                            }
+                        }
+                    })
+                    .subscribe();
+            } catch(e) { /* real-time not available (e.g. Supabase free tier paused) */ }
+        })();
 
         // ── Email Alert Signup ────────────────────────────────────────────────
         function subscribeAlert() {
