@@ -1147,7 +1147,10 @@
                 return;
             }
 
-            if (!window.SalaryEngine) return;
+            if (!window.SalaryEngine) {
+                console.warn('SalaryEngine not loaded — advanced deductions panel inactive.');
+                return;
+            }
 
             var totalGross = gross + allowances + benefits + houseAllow + transAllow + otherAllow;
 

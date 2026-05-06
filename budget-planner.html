@@ -587,8 +587,8 @@
 
             // Check free tier limit (1 saved budget)
             if (!isPremium) {
-                const { count } = await window.supabaseClient.from('user_budgets').select('id', { count: 'exact' }).eq('user_id', currentUser.id);
-                if (count >= 1) {
+                const { count, error: countErr } = await window.supabaseClient.from('user_budgets').select('id', { count: 'exact' }).eq('user_id', currentUser.id);
+                if (!countErr && count >= 1) {
                     if (!confirm('Free accounts can save 1 budget. Overwrite your existing budget?')) return;
                     await window.supabaseClient.from('user_budgets').delete().eq('user_id', currentUser.id);
                 }

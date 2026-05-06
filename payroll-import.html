@@ -26,8 +26,8 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -451,9 +451,11 @@
             }
 
             validRows = []; errorRows = [];
+            // A row is invalid if more than 1 field is missing (allowing for optional trailing columns)
+            const REQUIRED_FIELD_COUNT = Math.max(Math.floor(expectedHeaders.length * 0.5), 1);
             parsedData.rows.forEach((row, idx) => {
                 const missing = expectedHeaders.filter(h => !row[h] && row[h] !== 0);
-                if (missing.length > 2) {
+                if (missing.length >= REQUIRED_FIELD_COUNT) {
                     errorRows.push({ row: idx + 2, error: 'Missing required fields: ' + missing.slice(0,3).join(', '), data: row });
                 } else {
                     validRows.push(row);

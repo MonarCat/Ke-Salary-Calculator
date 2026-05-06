@@ -87,13 +87,19 @@
      * reverseCalculate(targetNet, options)
      * Binary-search the gross that yields the desired net pay.
      */
+    // Upper bound: 5× the target net covers all realistic Kenyan salary levels
+    // (even at ~45% effective deduction rate, gross ≤ 1.82× net)
+    const REVERSE_CALC_UPPER_MULTIPLIER = 5;
+    // 60 iterations gives sub-cent precision via binary search
+    const REVERSE_CALC_MAX_ITERATIONS   = 60;
+
     function reverseCalculate(targetNet, options) {
         options = options || {};
         const target = Math.max(parseFloat(targetNet) || 0, 0);
         if (target <= 0) return null;
-        let low = target, high = target * 4;
+        let low = target, high = target * REVERSE_CALC_UPPER_MULTIPLIER;
         let result;
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < REVERSE_CALC_MAX_ITERATIONS; i++) {
             const mid = (low + high) / 2;
             result = calculateDeductions(mid, options);
             if (Math.abs(result.netSalary - target) < 0.5) break;

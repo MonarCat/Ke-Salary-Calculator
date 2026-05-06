@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -353,12 +353,12 @@
             tbody.innerHTML = MONTHS.map((m, i) => {
                 const d = monthlyData[i] || { gross: 0, pension: 0, insurancePremium: 0 };
                 const r = window.SalaryEngine.calculateDeductions(d.gross, { pension: d.pension, insurancePremium: d.insurancePremium });
-                const taxOnIncome = r.paye + (window.SalaryEngine.RATES_2026.personalRelief + r.insuranceRelief);
+                const taxOnIncome = r.paye + r.insuranceRelief + window.SalaryEngine.RATES_2026.personalRelief;
                 return `<tr data-idx="${i}">
                     <td style="font-weight:600;white-space:nowrap;">${m}</td>
                     <td><input type="number" class="gross-input" value="${d.gross || ''}" placeholder="0" oninput="onGrossChange(${i},this.value)"></td>
                     <td class="auto-cell" id="taxable${i}">${fmt(r.taxablePay)}</td>
-                    <td class="auto-cell" id="taxOnInc${i}">${fmt(Math.max(taxOnIncome, r.paye))}</td>
+                    <td class="auto-cell" id="taxOnInc${i}">${fmt(taxOnIncome)}</td>
                     <td class="auto-cell">2,400</td>
                     <td class="auto-cell" id="insRel${i}">${fmt(r.insuranceRelief)}</td>
                     <td class="auto-cell" id="netPaye${i}">${fmt(r.paye)}</td>
