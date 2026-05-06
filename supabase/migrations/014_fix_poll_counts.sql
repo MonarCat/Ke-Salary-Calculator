@@ -37,7 +37,7 @@ insert into public.poll_votes (poll_idx, option_idx, count) values
     (9, 0, 0),  (9, 1, 0),  (9, 2, 0),  (9, 3, 0),
     (10, 0, 0), (10, 1, 0), (10, 2, 0), (10, 3, 0),
     (11, 0, 0), (11, 1, 0), (11, 2, 0), (11, 3, 0)
-on conflict do nothing;
+on conflict (poll_idx, option_idx) do nothing;
 
 -- ── 3. Backfill poll_votes.count from poll_participants ───────────────────────
 -- Votes recorded before migration 013 (which added the poll_votes increment to

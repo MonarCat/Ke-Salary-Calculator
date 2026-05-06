@@ -259,7 +259,7 @@ async function handleSignup(event) {
         
         showMessage('signup-message', `✅ Account created! 📧 Please check your email to verify your account.<br><br>
             <small><strong>Tip:</strong> If you don't see our email in your inbox, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" to ensure links work properly.<br>
-            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
+            For assistance, contact <a href="mailto:info@salarycalculator.co.ke">info@salarycalculator.co.ke</a></small>`, 'success');
         
         // Reset form
         event.target.reset();
@@ -275,7 +275,7 @@ async function handleSignup(event) {
         if (msg.includes('database error saving new user')) {
             showMessage('signup-message',
                 'We could not complete your registration due to a temporary server issue. ' +
-                'Please try again in a moment or contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a> if the problem persists.',
+                'Please try again in a moment or contact <a href="mailto:info@salarycalculator.co.ke">info@salarycalculator.co.ke</a> if the problem persists.',
                 'error');
         } else {
             // Escape error.message before inserting into innerHTML to prevent XSS
@@ -361,7 +361,7 @@ async function handleForgotPassword(event) {
         
         showMessage('login-message', `Password reset email sent! 📧 Please check your inbox.<br><br>
             <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
-            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
+            For assistance, contact <a href="mailto:info@salarycalculator.co.ke">info@salarycalculator.co.ke</a></small>`, 'success');
         
     } catch (error) {
         showMessage('login-message', 'Failed to send reset email: ' + error.message, 'error');
@@ -382,7 +382,7 @@ function showTerms(event) {
             <li>Protect your account credentials</li>
             <li>Not misuse the service</li>
         </ol>
-        <p>For more information, contact support@salarycalculator.co.ke</p>
+        <p>For more information, contact info@salarycalculator.co.ke</p>
     `;
     
     showMessage('signup-message', termsText, 'info');

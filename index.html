@@ -1013,9 +1013,9 @@
 
             <!-- More Polls -->
             <div class="more-polls-card" id="more-polls-section">
-                <h3 id="morePollsToggle" onclick="toggleMorePolls()">
+                <h3 id="morePollsToggle">
                     <span><i class="fas fa-poll-h"></i> More Polls — Share With Friends</span>
-                    <button class="more-polls-toggle-btn" id="morePollsChevron" aria-label="Expand more polls" aria-expanded="false">&#9660;</button>
+                    <button class="more-polls-toggle-btn" id="morePollsChevron" aria-label="Expand more polls" aria-expanded="false" onclick="toggleMorePolls()">&#9660;</button>
                 </h3>
                 <div class="more-polls-body" id="morePollsBody" style="display:none;">
                     <div id="morePollsList"></div>
@@ -1761,12 +1761,13 @@
         function toggleMorePolls() {
             var body    = document.getElementById('morePollsBody');
             var chevron = document.getElementById('morePollsChevron');
-            var toggle  = document.getElementById('morePollsToggle');
             if (!body) return;
             var open = body.style.display !== 'none';
             body.style.display = open ? 'none' : 'block';
-            if (chevron) chevron.classList.toggle('open', !open);
-            if (toggle)  toggle.setAttribute('aria-expanded', String(!open));
+            if (chevron) {
+                chevron.classList.toggle('open', !open);
+                chevron.setAttribute('aria-expanded', String(!open));
+            }
             if (!open && !morePollsLoaded) {
                 morePollsLoaded = true;
                 initMorePolls();
