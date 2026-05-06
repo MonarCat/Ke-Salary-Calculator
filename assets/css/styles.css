@@ -2070,13 +2070,3 @@ body.dark-mode .bottom-tab-bar a:hover {
     }
 }
 
-
-/* ──────────────────────────────────────────────────────────────────────────
-   Monetag Ad Integration
-   Prevent sticky Monetag banner from covering the mobile bottom nav bar
-   ────────────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    [id*="monetag"], [class*="monetag"], iframe[src*="quge5.com"] {
-        bottom: 60px !important; /* matches the mobile nav bar height */
-    }
-}

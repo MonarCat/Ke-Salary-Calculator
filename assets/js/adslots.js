@@ -1,7 +1,7 @@
 /**
  * /assets/js/adslots.js
  *
- * Monetag-ready ad slot manager.
+ * Ad slot manager.
  * Hides all ads when isPremium === true (core premium value proposition).
  *
  * Usage:
@@ -42,7 +42,7 @@ export class AdSlotManager {
         el.setAttribute("aria-hidden", "true");
       }
     });
-    // Also hide any existing AdSense / Monetag containers
+    // Also hide any existing AdSense containers
     document.querySelectorAll(
       ".adsense-container, .adsbygoogle, [id^='adsense-']"
     ).forEach((el) => {

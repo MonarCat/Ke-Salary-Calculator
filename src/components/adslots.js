@@ -1,7 +1,7 @@
 /**
- * adslots.js – Monetag ad placeholder management
+ * adslots.js – ad placeholder management
  *
- * Creates standardised ad placeholder divs for Monetag to auto-fill.
+ * Creates standardised ad placeholder divs for ad networks to fill.
  * Critically, hides ALL ads when isPremium === true (premium value proposition).
  *
  * Usage: included by calculator-enhancements.js
@@ -16,10 +16,9 @@
 
     // ── Configuration ─────────────────────────────────────────────────────────
 
-    // Map of slot-id → Monetag zone/placement id
-    // Replace the values with your actual Monetag zone IDs
+    // Map of slot-id → ad zone/placement id
     const AD_SLOTS = {
-        'ke-ad-top':    '',   // e.g. '1234567'
+        'ke-ad-top':    '',
         'ke-ad-mid':    '',
         'ke-ad-bottom': '',
     };
@@ -57,13 +56,6 @@
                 placeholder.innerHTML = `<div class="ke-ad-slot__placeholder">Ad – ${slotId}</div>`;
                 return;
             }
-
-            // Inject the Monetag async zone script
-            const script = document.createElement('script');
-            script.async = true;
-            script.dataset.cfasync = 'false';
-            script.src = `//pl${zoneId}.profitablegatecpm.com/${zoneId}/invoke.js`;
-            placeholder.appendChild(script);
         });
     }
 
@@ -77,7 +69,7 @@
             }
         });
 
-        // Also hide any existing AdSense / Monetag containers for premium users
+        // Also hide any existing AdSense containers for premium users
         document.querySelectorAll('.adsense-container, .adsbygoogle, [id^="adsense-"]')
             .forEach(el => {
                 el.style.display = 'none';
