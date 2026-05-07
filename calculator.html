@@ -1166,7 +1166,9 @@
                 return;
             }
 
-            var totalGross = gross + allowances + benefits + houseAllow + transAllow + otherAllow;
+            var advancedAllowanceTotal = houseAllow + transAllow + otherAllow;
+            var effectiveAllowances = advancedAllowanceTotal > 0 ? advancedAllowanceTotal : allowances;
+            var totalGross = gross + effectiveAllowances + benefits;
 
             // PAYE without advanced
             var baseResult = window.SalaryEngine.calculateDeductions(totalGross, {});
