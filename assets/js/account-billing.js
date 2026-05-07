@@ -15,7 +15,7 @@
  *
  * Usage (account.html):
  *   <div id="sc-billing-widget"></div>
- *   <script type="module" src="/assets/js/account-billing.js"></script>
+ *   <script type="module" src="/assets/js/account-billing.js?v=20260507-1"></script>
  */
 
 import {
@@ -27,7 +27,7 @@ import {
   PRICE_MONTHLY_KES,
   PRICE_YEARLY_KES,
   PRICE_SAVINGS_KES,
-} from "./premium.js";
+} from "./premium.js?v=20260507-1";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -503,7 +503,7 @@ function render(status) {
     const email = status.email || window.__SC_USER_EMAIL;
     if (!email) {
       // Import lazily to avoid circular dep issues
-      const { showEmailCapture } = await import("./premium.js");
+      const { showEmailCapture } = await import("./premium.js?v=20260507-1");
       showEmailCapture(selectedPlan, (captured) => {
         _launchPaystack(captured, selectedPlan, status);
       });
