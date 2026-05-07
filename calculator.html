@@ -278,9 +278,13 @@
                         <a href="/calculator.html#percentile" onclick="event.preventDefault();window.location='/calculator.html?tab=percentile';">Kenya Percentile</a>
                         <a href="/salary-after-tax.html">Salary After Tax</a>
                         <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/payroll-import.html">Payroll Import <span style="background:#e8830a;color:#fff;font-size:0.7em;padding:2px 6px;border-radius:4px;margin-left:4px;">Premium</span></a>
+                        <a href="/p9a-generator.html">P9A Generator <span style="background:#e8830a;color:#fff;font-size:0.7em;padding:2px 6px;border-radius:4px;margin-left:4px;">Premium</span></a>
                     </div>
                 </div>
                 
+                <a href="/budget-planner.html">Budget Planner</a>
                 
                 <a href="/about-us.html">About Us</a>
                 <a href="/blog.html">Blog</a>
@@ -382,6 +386,68 @@
                         </div>
                     </details>
                     
+                    <!-- Advanced Deductions & Tax Relief -->
+                    <details class="voluntary-deductions-toggle" id="advanced-deductions">
+                        <summary><i class="fas fa-sliders-h"></i> Advanced: Allowances, Mortgage & Tax Relief</summary>
+                        <div class="voluntary-deductions-grid">
+                            <div style="grid-column:1/-1;font-size:0.82em;color:#888;padding:4px 0 8px;">
+                                These fields refine your PAYE calculation. Changes are reflected instantly in your results.
+                            </div>
+                            <!-- Taxable Allowances -->
+                            <div style="grid-column:1/-1;font-weight:700;color:#1a6b3c;font-size:0.9em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:4px;">
+                                <i class="fas fa-tag"></i> Taxable Allowances
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-house-allowance"><i class="fas fa-home"></i> House Allowance (KES)</label>
+                                <input type="number" id="adv-house-allowance" placeholder="e.g. 20000" min="0" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-transport-allowance"><i class="fas fa-bus"></i> Transport Allowance (KES)</label>
+                                <input type="number" id="adv-transport-allowance" placeholder="e.g. 5000" min="0" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-other-taxable"><i class="fas fa-plus-circle"></i> Other Taxable Allowances (KES)</label>
+                                <input type="number" id="adv-other-taxable" placeholder="e.g. 3000" min="0" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <!-- Allowable Deductions -->
+                            <div style="grid-column:1/-1;font-weight:700;color:#1a6b3c;font-size:0.9em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:4px;margin-top:8px;">
+                                <i class="fas fa-minus-circle"></i> Allowable Deductions
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-mortgage"><i class="fas fa-home"></i> Mortgage Interest (KES, max 30,000/mo)</label>
+                                <input type="number" id="adv-mortgage" placeholder="e.g. 15000" min="0" max="30000" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <!-- Tax Relief -->
+                            <div style="grid-column:1/-1;font-weight:700;color:#1a6b3c;font-size:0.9em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:4px;margin-top:8px;">
+                                <i class="fas fa-leaf"></i> Tax Relief
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-health-ins">
+                                    <i class="fas fa-shield-alt"></i> Health Insurance Premium (KES)
+                                    <span style="font-size:0.78em;color:#888;display:block;font-weight:400;">15% relief, max KES 5,000/mo combined</span>
+                                </label>
+                                <input type="number" id="adv-health-ins" placeholder="e.g. 3000" min="0" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <div class="form-group">
+                                <label for="adv-life-ins">
+                                    <i class="fas fa-heart"></i> Life Insurance Premium (KES)
+                                    <span style="font-size:0.78em;color:#888;display:block;font-weight:400;">15% relief combined with health, max KES 5,000/mo</span>
+                                </label>
+                                <input type="number" id="adv-life-ins" placeholder="e.g. 1000" min="0" oninput="calculateSalaryDebounced()">
+                            </div>
+                            <!-- Special -->
+                            <div style="grid-column:1/-1;font-weight:700;color:#1a6b3c;font-size:0.9em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;margin-bottom:4px;margin-top:8px;">
+                                <i class="fas fa-star"></i> Special
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:10px;">
+                                <input type="checkbox" id="adv-pwd" style="width:auto;accent-color:#006600;" onchange="calculateSalaryDebounced()">
+                                <label for="adv-pwd" style="margin:0;cursor:pointer;">
+                                    <i class="fas fa-wheelchair"></i> Person with Disability (PWD) — first KES 150,000/mo tax-exempt
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                    
                     <button onclick="calculateSalary()">Calculate Net Pay</button>
                 </div>
                 
@@ -469,6 +535,11 @@
                                     <td><strong>Take-Home After All Deductions</strong></td>
                                     <td id="dispTakeHome"><strong></strong></td>
                                     <td id="dispTakeHomeAnnual"><strong></strong></td>
+                                </tr>
+                                <tr id="row-tax-savings" class="net-row" style="display:none;">
+                                    <td style="color:#006600;"><i class="fas fa-leaf"></i> <strong>Tax Savings (Advanced)</strong></td>
+                                    <td id="dispTaxSavings" style="color:#006600;font-weight:bold;"></td>
+                                    <td id="dispTaxSavingsAnnual" style="color:#006600;font-weight:bold;"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1040,6 +1111,85 @@
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
     <script src="assets/js/script.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js"></script>
+    <script src="assets/js/format-utils.js"></script>
+    <!-- Advanced deductions panel: compute tax savings from advanced inputs -->
+    <script>
+    (function() {
+        'use strict';
+        // Patch calculateSalary to also handle advanced deductions and show tax savings
+        var _origCalculate = window.calculateSalary;
+        window.calculateSalary = function() {
+            if (_origCalculate) _origCalculate();
+            applyAdvancedDeductions();
+        };
+
+        function applyAdvancedDeductions() {
+            var gross    = parseFloat(document.getElementById('grossPay')?.value) || 0;
+            var allowances = parseFloat(document.getElementById('allowances')?.value) || 0;
+            var benefits   = parseFloat(document.getElementById('benefits')?.value) || 0;
+            function getNum() {
+                for (var i = 0; i < arguments.length; i++) {
+                    var el = document.getElementById(arguments[i]);
+                    if (el) return parseFloat(el.value) || 0;
+                }
+                return 0;
+            }
+            function getChecked() {
+                for (var i = 0; i < arguments.length; i++) {
+                    var el = document.getElementById(arguments[i]);
+                    if (el) return !!el.checked;
+                }
+                return false;
+            }
+            var houseAllow = getNum('adv-house-allowance', 'houseAllowance');
+            var transAllow = getNum('adv-transport-allowance', 'transportAllowance');
+            var otherAllow = getNum('adv-other-taxable', 'otherTaxableAllowances');
+            var mortgage   = getNum('adv-mortgage', 'mortgageInterest');
+            var healthIns  = getNum('adv-health-ins', 'healthInsurancePremium');
+            var lifeIns    = getNum('adv-life-ins', 'lifeInsurancePremium');
+            var pwdExempt  = getChecked('adv-pwd', 'pwdExempt');
+
+            var hasAdvanced = houseAllow > 0 || transAllow > 0 || otherAllow > 0 ||
+                              mortgage > 0 || healthIns > 0 || lifeIns > 0 || pwdExempt;
+
+            var savingsRow = document.getElementById('row-tax-savings');
+            if (!savingsRow) return;
+
+            if (!hasAdvanced) {
+                savingsRow.style.display = 'none';
+                return;
+            }
+
+            if (!window.SalaryEngine) {
+                console.warn('SalaryEngine not loaded — advanced deductions panel inactive.');
+                return;
+            }
+
+            var advancedAllowanceTotal = houseAllow + transAllow + otherAllow;
+            var effectiveAllowances = advancedAllowanceTotal > 0 ? advancedAllowanceTotal : allowances;
+            var totalGross = gross + effectiveAllowances + benefits;
+
+            // PAYE without advanced
+            var baseResult = window.SalaryEngine.calculateDeductions(totalGross, {});
+            // PAYE with advanced
+            var advResult  = window.SalaryEngine.calculateDeductions(totalGross, {
+                mortgageInterest: mortgage,
+                insurancePremium: healthIns,
+                lifeInsurance:    lifeIns,
+                pwdExempt:        pwdExempt
+            });
+
+            var savings = Math.max(baseResult.paye - advResult.paye, 0);
+            if (savings <= 0) { savingsRow.style.display = 'none'; return; }
+
+            savingsRow.style.display = '';
+            var fmtFn = window.FormatUtils ? window.FormatUtils.formatKES : function(v) { return 'KES ' + Math.round(v).toLocaleString(); };
+            document.getElementById('dispTaxSavings').textContent      = fmtFn(savings);
+            document.getElementById('dispTaxSavingsAnnual').textContent = fmtFn(savings * 12);
+        }
+    })();
+    </script>
     <!-- Premium, sharing, newsletter & financial-tools components -->
     <script src="src/components/calculator-enhancements.js" defer></script>
     <!-- Payslip watermark download (free = SAMPLE PNG, premium = clean print) -->
