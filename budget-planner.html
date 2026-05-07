@@ -666,7 +666,7 @@
                 await window.supabaseClient.from('budget_line_items').insert(
                     allItems.map(i => ({
                         budget_id: budget.id,
-                        category_id: /^[0-9a-f-]{36}$/i.test(String(i.id || '')) ? i.id : null,
+                        category_id: window.FormatUtils.isUUID(i.id) ? i.id : null,
                         category_name: i.name,
                         category_group: i.group_key,
                         icon: i.icon || 'ti-circle',

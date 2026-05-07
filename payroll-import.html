@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/vendor/papaparse.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+    <script src="assets/js/vendor/xlsx.full.min.js"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -348,6 +348,7 @@
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/nav-toggle.js"></script>
     <script src="assets/js/salary-engine.js"></script>
+    <script src="assets/js/format-utils.js"></script>
     <script>
         // Dark mode
         const dmToggle = document.getElementById('darkModeToggle');
@@ -377,6 +378,13 @@
                 headers: ['employee_id','full_name','kra_pin','tax_year','jan_gross','feb_gross','mar_gross','apr_gross','may_gross','jun_gross','jul_gross','aug_gross','sep_gross','oct_gross','nov_gross','dec_gross']
             }
         };
+        const TEMPLATE_TYPE_MAP = {
+            employee: 'employee_import',
+            payroll: 'monthly_payroll',
+            p9a: 'p9a_annual'
+        };
+
+        const isUUID = value => window.FormatUtils.isUUID(value);
 
         let parsedData = [];
         let validRows  = [];
@@ -608,7 +616,7 @@
                 .insert({
                     user_id: user.id,
                     batch_name: (currentFile?.name || 'payroll-import'),
-                    template_type: importType === 'payroll' ? 'monthly_payroll' : (importType === 'p9a' ? 'p9a_annual' : 'employee_import'),
+                    template_type: TEMPLATE_TYPE_MAP[importType] || 'employee_import',
                     status: 'processing',
                     total_rows: parsedData.rows.length,
                     successful_rows: validRows.length,
@@ -655,7 +663,7 @@
                     });
                     const pm = row.payroll_month ? new Date(row.payroll_month) : new Date();
                     const payrollMonth = new Date(pm.getFullYear(), pm.getMonth(), 1).toISOString().slice(0, 10);
-                    const employeeId = /^[0-9a-f-]{36}$/i.test(String(row.employee_id || '').trim()) ? String(row.employee_id).trim() : null;
+                    const employeeId = isUUID(row.employee_id) ? String(row.employee_id).trim() : null;
                     return {
                         user_id: user.id,
                         batch_id: batch.id,

@@ -371,7 +371,9 @@
                     if (i < 12) monthlyData[i] = {
                         gross: row.gross || 0,
                         pension: row.pension || 0,
-                        insurancePremium: row.insurance_relief ? (row.insurance_relief / 0.15) : 0
+                        insurancePremium: row.insurance_relief
+                            ? (row.insurance_relief / window.SalaryEngine.RATES_2026.insuranceReliefRate)
+                            : 0
                     };
                 });
             } else {
