@@ -27,6 +27,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Who should use the P9A generator in Kenya?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Employers, payroll teams and employees can use this P9A generator to prepare annual employee tax deduction records using monthly payroll values and export them to PDF."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I edit monthly figures before generating a P9A PDF?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Each monthly row is editable, and totals update automatically before you save or export the final P9A PDF."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "P9A Generator — Kenya Salary Calculator",
+      "url": "https://salarycalculator.co.ke/p9a-generator.html",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KES" }
+    }
+    </script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -326,21 +361,30 @@
             if (!empId || !year) return;
 
             // Try RPC first, fall back to empty table
-            const { data, error } = await window.supabaseClient.rpc('fn_build_p9a', { p_employee_id: empId, p_year: parseInt(year) });
-            if (!error && data && Array.isArray(data)) {
-                data.forEach((row, i) => {
-                    if (i < 12) monthlyData[i] = { gross: row.gross || 0, pension: row.pension || 0, insurancePremium: row.insurance || 0 };
+            const { data, error } = await window.supabaseClient.rpc('fn_build_p9a', {
+                p_user_id: currentUser.id,
+                p_employee_id: empId,
+                p_tax_year: parseInt(year)
+            });
+            if (!error && data?.monthly_records && Array.isArray(data.monthly_records)) {
+                data.monthly_records.forEach((row, i) => {
+                    if (i < 12) monthlyData[i] = {
+                        gross: row.gross || 0,
+                        pension: row.pension || 0,
+                        insurancePremium: row.insurance_relief ? (row.insurance_relief / 0.15) : 0
+                    };
                 });
             } else {
                 // Check annual_tax_records for saved draft
                 const { data: saved } = await window.supabaseClient
                     .from('annual_tax_records')
-                    .select('monthly_data')
+                    .select('monthly_records')
+                    .eq('user_id', currentUser.id)
                     .eq('employee_id', empId)
                     .eq('tax_year', parseInt(year))
                     .maybeSingle();
-                if (saved?.monthly_data) {
-                    monthlyData = saved.monthly_data;
+                if (saved?.monthly_records) {
+                    monthlyData = saved.monthly_records;
                 } else {
                     monthlyData = Array(12).fill(null).map(() => ({ gross: 0, pension: 0, insurancePremium: 0 }));
                 }
@@ -433,10 +477,16 @@
             const empId = document.getElementById('empSelect').value;
             const year  = parseInt(document.getElementById('taxYearSelect').value);
             if (!empId || !year) { showStatus('Please select an employee and year first.', false); return; }
+            const selected = document.getElementById('empSelect').options[document.getElementById('empSelect').selectedIndex];
+            const employeeName = (selected?.textContent || '').split(' — ')[0] || 'Employee';
             const { error } = await window.supabaseClient.from('annual_tax_records').upsert({
                 user_id: currentUser.id, employee_id: empId, tax_year: year,
-                monthly_data: monthlyData, updated_at: new Date().toISOString()
-            }, { onConflict: 'employee_id,tax_year' });
+                employee_name: employeeName,
+                monthly_records: monthlyData,
+                employer_name: document.getElementById('empName').value || null,
+                employer_kra_pin: document.getElementById('empKRA').value || null,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id,employee_id,tax_year' });
             if (error) { showStatus('Error saving: ' + error.message, false); return; }
             showStatus('Draft saved successfully.', true);
             loadPastRecords();
@@ -449,7 +499,8 @@
             setTimeout(() => el.textContent = '', 4000);
         }
 
-        function generatePDF() {
+        async function generatePDF() {
+            await saveDraft();
             const empSel = document.getElementById('empSelect');
             const empName = empSel.options[empSel.selectedIndex]?.text || 'Employee';
             const empKRA  = empSel.options[empSel.selectedIndex]?.dataset.kra || '';
@@ -528,7 +579,7 @@
             if (!currentUser) return;
             const { data, error } = await window.supabaseClient
                 .from('annual_tax_records')
-                .select('id,employee_id,tax_year,updated_at,employees(full_name)')
+                .select('id,employee_id,tax_year,updated_at,employee_name')
                 .eq('user_id', currentUser.id)
                 .order('tax_year', { ascending: false })
                 .limit(20);
@@ -540,7 +591,7 @@
                 <table class="records-table">
                     <thead><tr><th>Employee</th><th>Tax Year</th><th>Last Updated</th><th>Action</th></tr></thead>
                     <tbody>${data.map(r => `<tr>
-                        <td>${r.employees?.full_name || r.employee_id}</td>
+                        <td>${r.employee_name || r.employee_id}</td>
                         <td>${r.tax_year}</td>
                         <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
                         <td><button onclick="loadRecord('${r.employee_id}',${r.tax_year})" style="padding:5px 12px;background:#006600;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:0.85em;">Open</button></td>

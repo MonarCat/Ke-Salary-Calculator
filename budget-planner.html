@@ -27,6 +27,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does this budget planner calculate my Kenya net salary?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It applies PAYE, NSSF, SHIF and Housing Levy deductions using current Kenya rates, then helps you allocate your net pay across major spending groups."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I save and track monthly budgets?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can save monthly budgets and premium users can access full history and health score insights."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Personal Budget Planner — Kenya Salary Calculator",
+      "url": "https://salarycalculator.co.ke/budget-planner.html",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KES" }
+    }
+    </script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -391,14 +426,22 @@
 
                     if (profile?.account_type === 'organization') {
                         document.getElementById('main-content').innerHTML =
-                            `<div style="text-align:center;padding:48px;"><i class="fas fa-building" style="font-size:2.5em;color:#006600;"></i><h3>Budget Planner is for individual accounts.</h3><p>Organisation accounts can use the Payroll Import feature instead.</p></div>`;
+                            `<div style="text-align:center;padding:48px;"><i class="fas fa-building" style="font-size:2.5em;color:#006600;"></i><h3>Budget Planner is designed for individual employees.</h3><p>Switch to your personal account to use this feature.</p></div>`;
                         return;
                     }
 
                     // Try loading system categories from Supabase
                     const { data: cats } = await window.supabaseClient
                         .from('budget_categories').select('*').is('user_id', null).eq('is_system', true);
-                    if (cats && cats.length > 0) systemCategories = cats;
+                    if (cats && cats.length > 0) {
+                        systemCategories = cats.map(c => ({
+                            id: c.id,
+                            group: c.category_group,
+                            name: c.name,
+                            default_pct: c.default_pct,
+                            icon: c.icon
+                        }));
+                    }
 
                     // Show health score if premium
                     if (isPremium) document.getElementById('healthLock').style.display = 'none';
@@ -595,12 +638,24 @@
             }
 
             const allItems = Object.entries(budgetItems).flatMap(([group, items]) =>
-                items.map(i => ({ ...i, group_key: group })));
+                items.map((i, idx) => ({ ...i, group_key: group, sort_order: idx + 1 })));
 
             const net = getNetPay();
+            const grossCalc = window.SalaryEngine.calculateDeductions(gross, {
+                helb: parseFloat(document.getElementById('extraDeductions').value) || 0
+            });
             const { data: budget, error } = await window.supabaseClient.from('user_budgets').upsert({
                 user_id: currentUser.id, budget_month: budgetMonth,
-                gross_salary: gross, net_salary: net, total_budgeted: getTotalBudgeted(),
+                gross_salary: gross,
+                net_salary: net,
+                paye: grossCalc.paye,
+                nssf: grossCalc.nssf,
+                shif: grossCalc.shif,
+                housing_levy: grossCalc.housingLevy,
+                helb: grossCalc.helb || 0,
+                other_deductions: 0,
+                total_statutory: grossCalc.totalStatutory || (grossCalc.paye + grossCalc.nssf + grossCalc.shif + grossCalc.housingLevy),
+                total_budgeted: getTotalBudgeted(),
                 updated_at: new Date().toISOString()
             }, { onConflict: 'user_id,budget_month' }).select().single();
             if (error) { alert('Error saving: ' + error.message); return; }
@@ -609,7 +664,15 @@
             await window.supabaseClient.from('budget_line_items').delete().eq('budget_id', budget.id);
             if (allItems.length > 0) {
                 await window.supabaseClient.from('budget_line_items').insert(
-                    allItems.map(i => ({ budget_id: budget.id, user_id: currentUser.id, category_id: i.id, name: i.name, amount: i.amount, group_key: i.group_key }))
+                    allItems.map(i => ({
+                        budget_id: budget.id,
+                        category_id: /^[0-9a-f-]{36}$/i.test(String(i.id || '')) ? i.id : null,
+                        category_name: i.name,
+                        category_group: i.group_key,
+                        icon: i.icon || 'ti-circle',
+                        allocated_amount: i.amount,
+                        sort_order: i.sort_order || 1
+                    }))
                 );
             }
 
@@ -618,7 +681,7 @@
                 const { data: hs } = await window.supabaseClient.rpc('fn_calculate_health_score', { p_budget_id: budget.id });
                 if (hs) renderHealthScore(hs);
                 // Load insights
-                const { data: ins } = await window.supabaseClient.from('budget_insights').select('insight').eq('budget_id', budget.id).limit(5);
+                const { data: ins } = await window.supabaseClient.from('budget_insights').select('message').eq('budget_id', budget.id).limit(5);
                 if (ins) renderInsights(ins);
             }
 
@@ -626,11 +689,12 @@
         }
 
         function renderHealthScore(score) {
-            const grade = score >= 80 ? 'A' : score >= 60 ? 'B' : score >= 40 ? 'C' : 'D';
-            const color = score >= 80 ? '#006600' : score >= 60 ? '#e8830a' : '#c62828';
+            const overall = Number(score?.overall ?? score?.overall_score ?? 0);
+            const grade = score?.grade || (overall >= 80 ? 'A' : overall >= 60 ? 'B' : overall >= 40 ? 'C' : 'D');
+            const color = overall >= 80 ? '#006600' : overall >= 60 ? '#e8830a' : '#c62828';
             document.getElementById('healthContent').innerHTML = `
                 <div class="health-card">
-                    <div class="health-score" style="color:${color};">${score}<small>/100</small></div>
+                    <div class="health-score" style="color:${color};">${overall}<small>/100</small></div>
                     <div style="font-size:1.2em;font-weight:bold;color:${color};">Grade ${grade}</div>
                     <div style="font-size:0.82em;margin-top:4px;color:#666;">Financial Health Score</div>
                 </div>`;
@@ -638,7 +702,7 @@
 
         function renderInsights(insights) {
             document.getElementById('insightsList').innerHTML = insights.map(i =>
-                `<div class="insight-item"><i class="fas fa-lightbulb"></i><span>${i.insight}</span></div>`
+                `<div class="insight-item"><i class="fas fa-lightbulb"></i><span>${i.message || ''}</span></div>`
             ).join('');
         }
 

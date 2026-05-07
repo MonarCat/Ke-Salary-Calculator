@@ -27,6 +27,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What can I see in Budget History?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Budget History shows your saved monthly budgets, estimated savings and your financial health score trend over time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I reuse an old budget for the current month?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Use the copy action on any saved month to duplicate that budget into your current month and continue editing."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Budget History — Kenya Salary Calculator",
+      "url": "https://salarycalculator.co.ke/budget-history.html",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KES" }
+    }
+    </script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -204,7 +239,16 @@
             if (newBudget && items?.length) {
                 await window.supabaseClient.from('budget_line_items').delete().eq('budget_id', newBudget.id);
                 await window.supabaseClient.from('budget_line_items').insert(
-                    items.map(i => ({ ...i, id: undefined, budget_id: newBudget.id, created_at: undefined }))
+                    items.map((i, idx) => ({
+                        budget_id: newBudget.id,
+                        category_id: i.category_id || null,
+                        category_name: i.category_name,
+                        category_group: i.category_group,
+                        icon: i.icon || 'ti-circle',
+                        allocated_amount: i.allocated_amount || 0,
+                        sort_order: i.sort_order || (idx + 1),
+                        notes: i.notes || null
+                    }))
                 );
             }
             alert('Budget copied to ' + month + '! Opening Budget Planner…');
@@ -224,7 +268,7 @@
             // Fetch budgets + health scores (left join via select)
             const { data: budgets, error } = await window.supabaseClient
                 .from('user_budgets')
-                .select('id,budget_month,gross_salary,net_salary,total_budgeted,financial_health_scores(score,grade)')
+                .select('id,budget_month,gross_salary,net_salary,total_budgeted,financial_health_scores(overall_score,grade)')
                 .eq('user_id', user.id)
                 .order('budget_month', { ascending: false })
                 .limit(24);
@@ -245,8 +289,8 @@
 
             // Build chart data (last 12 months ascending)
             const chartBudgets = [...budgets].reverse().slice(-12);
-            const chartLabels = chartBudgets.map(b => FormatUtils.shortMonthLabel(b.budget_month + '-01'));
-            const chartScores = chartBudgets.map(b => b.financial_health_scores?.[0]?.score ?? null);
+            const chartLabels = chartBudgets.map(b => FormatUtils.shortMonthLabel(b.budget_month));
+            const chartScores = chartBudgets.map(b => b.financial_health_scores?.[0]?.overall_score ?? null);
 
             const contentHTML = `
                 <div class="card">
@@ -295,13 +339,13 @@
             const grid = document.getElementById('budgetCardsGrid');
             grid.innerHTML = budgets.map(b => {
                 const hs = b.financial_health_scores?.[0];
-                const { grade, cls } = scoreGrade(hs?.score);
+                const { grade, cls } = scoreGrade(hs?.overall_score);
                 const savings = Math.max(b.net_salary - b.total_budgeted, 0);
-                const monthFmt = FormatUtils.monthLabel(b.budget_month + '-01');
+                const monthFmt = FormatUtils.monthLabel(b.budget_month);
                 return `<div class="budget-history-card">
                     <div class="bh-month"><i class="fas fa-calendar" style="color:#1a6b3c;margin-right:5px;"></i>${monthFmt}</div>
                     <div class="bh-gross">Gross: ${FormatUtils.formatKES(b.gross_salary)} &nbsp;|&nbsp; Net: ${FormatUtils.formatKES(b.net_salary)}</div>
-                    ${hs ? `<span class="bh-score ${cls}">${hs.score}/100 — ${grade}</span>` : `<span class="bh-score score-none">No health score</span>`}
+                    ${hs ? `<span class="bh-score ${cls}">${hs.overall_score}/100 — ${grade}</span>` : `<span class="bh-score score-none">No health score</span>`}
                     <div class="bh-savings"><i class="fas fa-piggy-bank"></i> Unallocated: ${FormatUtils.formatKES(savings)}</div>
                     <div class="bh-actions">
                         <a href="/budget-planner.html?budget=${b.id}" class="btn-sm btn-green"><i class="fas fa-eye"></i> View</a>

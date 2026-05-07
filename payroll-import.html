@@ -28,6 +28,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What file formats can I upload for payroll import?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can upload CSV and XLSX files up to 5MB. The importer validates your data and shows errors before confirmation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I download error reports after validation?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. If validation finds issues, you can export an error report, fix your source file and re-upload."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Bulk Payroll Import — Kenya Salary Calculator",
+      "url": "https://salarycalculator.co.ke/payroll-import.html",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KES" }
+    }
+    </script>
     <style>
         .page-hero {
             background: linear-gradient(135deg, #1a6b3c 0%, #006600 100%);
@@ -312,6 +347,7 @@
     <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/nav-toggle.js"></script>
+    <script src="assets/js/salary-engine.js"></script>
     <script>
         // Dark mode
         const dmToggle = document.getElementById('darkModeToggle');
@@ -428,6 +464,20 @@
 
         function handleFileSelect(file) {
             if (!file) return;
+            const maxBytes = 5 * 1024 * 1024;
+            const name = file.name.toLowerCase();
+            if (!name.endsWith('.csv') && !name.endsWith('.xlsx') && !name.endsWith('.xls')) {
+                const el = document.getElementById('uploadError');
+                el.style.display = '';
+                el.textContent = 'Unsupported file type. Please upload CSV or XLSX.';
+                return;
+            }
+            if (file.size > maxBytes) {
+                const el = document.getElementById('uploadError');
+                el.style.display = '';
+                el.textContent = 'File is too large. Maximum size is 5MB.';
+                return;
+            }
             currentFile = file;
             document.getElementById('fileInfo').style.display = '';
             document.getElementById('fileName').textContent = file.name;
@@ -457,9 +507,26 @@
                 const missing = expectedHeaders.filter(h => !row[h] && row[h] !== 0);
                 if (missing.length >= REQUIRED_FIELD_COUNT) {
                     errorRows.push({ row: idx + 2, error: 'Missing required fields: ' + missing.slice(0,3).join(', '), data: row });
-                } else {
-                    validRows.push(row);
+                    return;
                 }
+
+                const kra = String(row.kra_pin || row.employee_kra_pin || '').trim().toUpperCase();
+                if (kra && !/^[A-Z]\d{9}[A-Z]$/.test(kra)) {
+                    errorRows.push({ row: idx + 2, error: 'Invalid KRA PIN format', data: row });
+                    return;
+                }
+                const idNo = String(row.id_number || row.national_id || '').trim();
+                if (idNo && !/^\d{8}$/.test(idNo)) {
+                    errorRows.push({ row: idx + 2, error: 'Invalid National ID (must be 8 digits)', data: row });
+                    return;
+                }
+                const salary = parseFloat(row.gross_salary || row.basic_salary || 0);
+                if (salary && (salary < 0 || salary > 5000000)) {
+                    errorRows.push({ row: idx + 2, error: 'Salary must be between 0 and 5,000,000', data: row });
+                    return;
+                }
+
+                validRows.push(row);
             });
 
             document.getElementById('countTotal').textContent = parsedData.rows.length;
@@ -538,7 +605,18 @@
             // Create batch record
             const { data: batch, error: batchErr } = await window.supabaseClient
                 .from('payroll_import_batches')
-                .insert({ user_id: user.id, import_type: importType, row_count: validRows.length, status: 'processing' })
+                .insert({
+                    user_id: user.id,
+                    batch_name: (currentFile?.name || 'payroll-import'),
+                    template_type: importType === 'payroll' ? 'monthly_payroll' : (importType === 'p9a' ? 'p9a_annual' : 'employee_import'),
+                    status: 'processing',
+                    total_rows: parsedData.rows.length,
+                    successful_rows: validRows.length,
+                    failed_rows: errorRows.length,
+                    file_name: currentFile?.name || null,
+                    file_size_bytes: currentFile?.size || null,
+                    preview_data: validRows.slice(0, 5)
+                })
                 .select().single();
 
             if (batchErr) { alert('Error creating import batch: ' + batchErr.message); return; }
@@ -547,16 +625,73 @@
             // Insert rows in chunks of 50
             const chunk = 50;
             for (let i = 0; i < validRows.length; i += chunk) {
-                const slice = validRows.slice(i, i + chunk).map(row => ({
-                    batch_id: batch.id, user_id: user.id, row_data: row, status: 'imported'
+                const slice = validRows.slice(i, i + chunk).map((row, idx) => ({
+                    batch_id: batch.id,
+                    row_number: i + idx + 1,
+                    raw_data: row,
+                    mapped_data: row,
+                    status: 'valid',
+                    errors: []
                 }));
                 const { error } = await window.supabaseClient.from('payroll_import_rows').insert(slice);
                 if (error) console.warn('Chunk insert error:', error.message);
             }
 
+            // Insert monthly payroll snapshots for payroll imports
+            if (importType === 'payroll' && window.SalaryEngine) {
+                const snapshots = validRows.map(row => {
+                    const basic = parseFloat(row.basic_salary || row.gross_salary || 0) || 0;
+                    const house = parseFloat(row.house_allowance || row.allowances || 0) || 0;
+                    const transport = parseFloat(row.transport_allowance || 0) || 0;
+                    const other = parseFloat(row.bonuses || row.benefits || row.overtime || 0) || 0;
+                    const gross = basic + house + transport + other;
+                    const helb = parseFloat(row.helb || row.helb_repayment || 0) || 0;
+                    const pension = parseFloat(row.pension || row.pension_topup || 0) || 0;
+                    const insurance = parseFloat(row.insurance || row.insurance_premium || 0) || 0;
+                    const calc = window.SalaryEngine.calculateDeductions(gross, {
+                        helb: helb,
+                        pension: pension,
+                        insurancePremium: insurance
+                    });
+                    const pm = row.payroll_month ? new Date(row.payroll_month) : new Date();
+                    const payrollMonth = new Date(pm.getFullYear(), pm.getMonth(), 1).toISOString().slice(0, 10);
+                    const employeeId = /^[0-9a-f-]{36}$/i.test(String(row.employee_id || '').trim()) ? String(row.employee_id).trim() : null;
+                    return {
+                        user_id: user.id,
+                        batch_id: batch.id,
+                        employee_id: employeeId,
+                        payroll_month: payrollMonth,
+                        employee_name: row.full_name || row.employee_name || row.employee_id || 'Employee',
+                        gross_salary: gross,
+                        basic_salary: basic,
+                        house_allowance: house,
+                        transport_allowance: transport,
+                        other_allowances: other,
+                        nssf_total: calc.nssf,
+                        shif: calc.shif,
+                        housing_levy: calc.housingLevy,
+                        paye: calc.paye,
+                        personal_relief: 2400,
+                        insurance_relief: calc.insuranceRelief || 0,
+                        pension_contribution: pension,
+                        helb_deduction: helb,
+                        total_deductions: calc.totalDeductions,
+                        net_pay: calc.netSalary
+                    };
+                });
+                if (snapshots.length) {
+                    await window.supabaseClient.from('payroll_snapshots').insert(snapshots);
+                }
+            }
+
             // Update batch status
             await window.supabaseClient.from('payroll_import_batches')
-                .update({ status: 'completed' }).eq('id', batch.id);
+                .update({
+                    status: 'completed',
+                    successful_rows: validRows.length,
+                    failed_rows: errorRows.length,
+                    processed_at: new Date().toISOString()
+                }).eq('id', batch.id);
 
             document.getElementById('s4Total').textContent = validRows.length;
             document.getElementById('s4Type').textContent = TEMPLATES[importType].label;
@@ -579,7 +714,7 @@
             if (!user) return;
             const { data, error } = await window.supabaseClient
                 .from('payroll_import_batches')
-                .select('id,import_type,row_count,status,created_at')
+                .select('id,template_type,total_rows,status,created_at,file_name')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(20);
@@ -589,11 +724,12 @@
             }
             cont.innerHTML = `<div style="overflow-x:auto;">
                 <table class="history-table">
-                    <thead><tr><th>Date</th><th>Type</th><th>Rows</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Template</th><th>File</th><th>Rows</th><th>Status</th></tr></thead>
                     <tbody>${data.map(b => `<tr>
                         <td>${new Date(b.created_at).toLocaleDateString('en-KE')}</td>
-                        <td>${TEMPLATES[b.import_type]?.label || b.import_type}</td>
-                        <td>${b.row_count}</td>
+                        <td>${b.template_type || '-'}</td>
+                        <td>${b.file_name || '-'}</td>
+                        <td>${b.total_rows || 0}</td>
                         <td><span style="padding:3px 10px;border-radius:12px;font-size:0.82em;background:${b.status==='completed'?'#e8f5e9':'#fff3e0'};color:${b.status==='completed'?'#2e7d32':'#e65100'};">${b.status}</span></td>
                     </tr>`).join('')}</tbody>
                 </table></div>`;
