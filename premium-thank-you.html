@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Access Updated — SalaryCalculator.co.ke</title>
+  <title>Welcome to Premium — SalaryCalculator.co.ke</title>
   <style>
     :root {
       --green: #16a34a;
@@ -122,17 +122,17 @@
 <body>
   <div class="card">
     <div class="icon">🎉</div>
-    <h1>You're All Set!</h1>
+    <h1>You're Premium Now!</h1>
 
-    <div class="badge">✅ Free Access Active</div>
+    <div class="badge">⭐ Premium Active</div>
 
     <p class="subtitle">
-      SalaryCalculator.co.ke is now fully free to use.<br>
-      Your account has access to all features.
+      Thank you for supporting SalaryCalculator.co.ke.<br>
+      Your payment was received via Paystack and your premium access is now live.
     </p>
 
     <div class="features">
-      <h3>Your Features</h3>
+      <h3>Your Premium Features</h3>
       <ul>
         <li>PDF payslip download</li>
         <li>Bulk payroll export</li>
@@ -142,11 +142,12 @@
       </ul>
     </div>
 
-    <a href="/calculator" class="btn">🚀 Open Calculator →</a>
+    <a href="/calculator" class="btn">🚀 Start Using Premium →</a>
 
     <p class="note">
-      If access hasn’t refreshed yet, please reload the page or sign out and sign back in.<br><br>
-      Still having trouble? <a href="/contact-us">Contact us</a> and we’ll help you.
+      If premium hasn't activated yet, please refresh the page or sign out and sign back in.<br><br>
+      Still having trouble? <a href="/contact-us">Contact us</a> with your payment reference
+      and we'll activate manually within a few hours.
     </p>
   </div>
 
@@ -176,9 +177,9 @@
     }
     window.addEventListener('load', burst);
 
-    /* ── Access status verification ────────────────────────────────────── */
-    (async function verifyAccessOnLoad() {
-      // 1. Clear any cached access status so the next check is always fresh.
+    /* ── Premium status verification ───────────────────────────────────── */
+    (async function verifyPremiumOnLoad() {
+      // 1. Clear any cached premium status so the next check is always fresh.
       try { sessionStorage.removeItem('sc_premium_status'); } catch (_) {}
 
       const params    = new URLSearchParams(window.location.search);
@@ -186,7 +187,20 @@
       const noteEl    = document.querySelector('.note');
       const badgeEl   = document.querySelector('.badge');
 
-      // 2. Re-fetch access status from Supabase.
+      // 2. If a reference is in the URL, attempt to activate premium via the
+      //    verify endpoint (second-chance activation in case the popup
+      //    callback call failed or was the first attempt).
+      if (reference) {
+        try {
+          await fetch('/api/paystack-verify?ref=' + encodeURIComponent(reference), {
+            method: 'POST',
+          });
+        } catch (_) {
+          // Network error — webhook will activate async; continue to status check.
+        }
+      }
+
+      // 3. Re-fetch premium status from Supabase to confirm activation.
       //    Requires the supabaseClient global from supabase-config.js.
       if (!window.supabaseClient) return;
 
@@ -194,7 +208,8 @@
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         if (!user) return; // Not signed in — static page is sufficient.
 
-        // Poll up to 3 times for eventual consistency.
+        // Poll up to 3 times (3-second gaps) to allow the webhook to activate
+        // premium if it arrives slightly after the page loads.
         let isPremium = false;
         for (let attempt = 0; attempt < 3; attempt++) {
           if (attempt > 0) {
@@ -217,20 +232,22 @@
           if (badgeEl) badgeEl.textContent = '⭐ Premium Confirmed ✓';
           if (noteEl)  noteEl.style.display = 'none';
         } else {
+          // Premium not yet reflected — webhook may still be in flight.
           if (badgeEl) {
             badgeEl.style.background  = '#fef9c3';
             badgeEl.style.color       = '#854d0e';
             badgeEl.style.borderColor = '#fde68a';
-            badgeEl.textContent = '⏳ Syncing…';
+            badgeEl.textContent = '⏳ Activating…';
           }
           if (noteEl) {
-            noteEl.innerHTML = `Your account is syncing &mdash;
+            noteEl.innerHTML = `Your payment was received. Premium access is being activated &mdash;
               please <a href="/account">check your account</a> in a few seconds.<br><br>
-              Still having trouble? <a href="/contact-us">Contact us</a> and we’ll help.`;
+              Still having trouble? <a href="/contact-us">Contact us</a> with your payment reference
+              and we'll activate manually within a few hours.`;
           }
         }
       } catch (err) {
-        console.warn('[ThankYou] Access check error:', err);
+        console.warn('[ThankYou] Premium check error:', err);
       }
     })();
   </script>
