@@ -251,9 +251,16 @@ export async function initPayslipDownload(supabase, opts = {}) {
 
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
+    let preOpenedPrintWindow = null;
+    try {
+      preOpenedPrintWindow = window.open("", "_blank", "width=650,height=850");
+    } catch (_) {
+      preOpenedPrintWindow = null;
+    }
 
     const captureEl = document.getElementById(captureId);
     if (!captureEl || captureEl.style.display === "none") {
+      if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) preOpenedPrintWindow.close();
       // Payslip not yet generated — let the existing alert run
       if (typeof window.printPayslip === "function") window.printPayslip();
       return;
@@ -263,6 +270,9 @@ export async function initPayslipDownload(supabase, opts = {}) {
     if (status.email) window.__SC_USER_EMAIL = status.email;
 
     if (status.isPremium) {
+      if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) {
+        window.__SC_PREOPENED_PRINT_WINDOW = preOpenedPrintWindow;
+      }
       // Premium: clean print via existing function
       if (typeof window.printPayslip === "function") {
         window.printPayslip();
@@ -273,6 +283,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
     }
 
     // Free user: capture + watermark + download + upgrade modal
+    if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) preOpenedPrintWindow.close();
     btn.disabled    = true;
     btn.textContent = "Generating sample…";
 

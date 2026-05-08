@@ -303,7 +303,7 @@
                         <button class="action-btn btn-pdf"   onclick="exportReportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
                         <button class="action-btn btn-csv"   onclick="exportReportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
                         <button class="action-btn btn-excel" onclick="exportReportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-                        <button class="action-btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+                        <button class="action-btn btn-print" onclick="exportReportPrint()"><i class="fas fa-print"></i> Print</button>
                     </div>
                 </div>
 
@@ -755,6 +755,102 @@ function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function getReportDocumentMeta() {
+    const profileKeys = currentUser
+        ? ['employerProfile_' + currentUser.id, 'employerProfile']
+        : ['employerProfile'];
+    let profile = {};
+    for (const key of profileKeys) {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+            if (parsed && (parsed.name || parsed.orgName || parsed.address || parsed.kraPin || parsed.phone || parsed.email)) {
+                profile = parsed;
+                break;
+            }
+        } catch (_) {}
+    }
+    const organisationName = profile.name || profile.orgName || getOrgName() || 'Your Organisation';
+    const addressParts = [profile.address, profile.county].filter(Boolean);
+    const contactsParts = [];
+    if (profile.phone) contactsParts.push('Tel: ' + profile.phone);
+    if (profile.email) contactsParts.push('Email: ' + profile.email);
+    const preparedBy = currentUser?.user_metadata?.full_name
+        || currentUser?.email
+        || 'System User';
+    const generatedAt = new Date().toLocaleString('en-KE', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    return {
+        organisationName,
+        address: addressParts.join(', '),
+        kraPin: profile.kraPin || '',
+        contacts: contactsParts.join(' | '),
+        preparedBy,
+        generatedAt,
+    };
+}
+
+function openReportDocumentWindow() {
+    const employees = getEmployees();
+    if (!employees.length) { alert('No employees to export.'); return; }
+    const rows = buildReportRows();
+    const headers = Object.keys(rows[0] || {});
+    const t = buildTotals();
+    const subtitle = document.getElementById('reportSubtitle').textContent;
+    const meta = getReportDocumentMeta();
+    const statsHtml = buildStatsSummaryHtml(employees);
+    let tableHtml = `<table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:9px;width:100%;">
+        <tr style="background:#006600;color:white;">${headers.map(h => `<th>${escHtml(h)}</th>`).join('')}</tr>`;
+    rows.forEach((r, i) => {
+        const bg = i % 2 === 0 ? '#fff' : '#f5f5f5';
+        tableHtml += `<tr style="background:${bg};">${headers.map(h => `<td>${escHtml(r[h])}</td>`).join('')}</tr>`;
+    });
+    tableHtml += `<tr style="background:#e8f5e9;font-weight:bold;">
+        <td colspan="4">TOTALS</td>
+        <td>${t.gross}</td><td>${t.paye}</td><td>${t.nssf}</td><td>${t.shif}</td><td>${t.ahl}</td><td>${t.totalDeductions}</td><td>${t.net}</td>
+    </tr></table>`;
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Please allow pop-ups to print the report.'); return; }
+    win.document.write(`<!DOCTYPE html><html><head><title>Payroll Report</title>
+        <style>
+            body{font-family:Arial,sans-serif;padding:20px;font-size:10px;color:#111827;}
+            h2{color:#006600;font-size:16px;margin-bottom:4px;}
+            h3{color:#006600;font-size:12px;margin:16px 0 6px;}
+            .meta{font-size:9px;color:#4b5563;margin-bottom:10px;line-height:1.5;}
+            .stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+            .stat{border:1px solid #ddd;border-radius:6px;padding:8px 12px;min-width:120px;}
+            .stat .lbl{font-size:8px;color:#888;text-transform:uppercase;}
+            .stat .val{font-size:11px;font-weight:bold;color:#333;}
+            .doc-head{border-bottom:2px solid #006600;padding-bottom:8px;margin-bottom:12px;}
+            @media print{button{display:none;}}
+        </style>
+    </head><body>
+        <div class="doc-head">
+            <h2>${escHtml(meta.organisationName)} — Payroll Report</h2>
+            <div class="meta">
+                <div><strong>Document:</strong> Payroll Report Summary</div>
+                <div><strong>Subtitle:</strong> ${escHtml(subtitle)}</div>
+                ${meta.address ? `<div><strong>Address:</strong> ${escHtml(meta.address)}</div>` : ''}
+                ${meta.kraPin ? `<div><strong>KRA PIN:</strong> ${escHtml(meta.kraPin)}</div>` : ''}
+                ${meta.contacts ? `<div><strong>Contacts:</strong> ${escHtml(meta.contacts)}</div>` : ''}
+                <div><strong>Generated:</strong> ${escHtml(meta.generatedAt)}</div>
+                <div><strong>Prepared by:</strong> ${escHtml(meta.preparedBy)}</div>
+            </div>
+        </div>
+        <h3>Summary Statistics</h3>
+        ${statsHtml}
+        <h3>Employee Payroll Details</h3>
+        ${tableHtml}
+        <br>
+        <button onclick="window.print()" style="padding:10px 20px;background:#006600;color:white;border:none;border-radius:5px;cursor:pointer;">Print / Save as PDF</button>
+        </body></html>`);
+    win.document.close();
+    win.focus();
+    win.print();
+}
+
 // ── Export functions ──────────────────────────────────────────────────────
 function buildReportRows() {
     const employees = getEmployees();
@@ -802,50 +898,11 @@ function exportReportExcel() {
 }
 
 function exportReportPDF() {
-    const employees = getEmployees();
-    if (!employees.length) { alert('No employees to export.'); return; }
-    const rows = buildReportRows();
-    const headers = Object.keys(rows[0]);
-    const t = buildTotals();
-    const subtitle = document.getElementById('reportSubtitle').textContent;
+    openReportDocumentWindow();
+}
 
-    let tableHtml = `<table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:9px;width:100%;">
-        <tr style="background:#006600;color:white;">${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    rows.forEach((r, i) => {
-        const bg = i % 2 === 0 ? '#fff' : '#f5f5f5';
-        tableHtml += `<tr style="background:${bg};">${headers.map(h => `<td>${r[h]}</td>`).join('')}</tr>`;
-    });
-    tableHtml += `<tr style="background:#e8f5e9;font-weight:bold;">
-        <td colspan="4">TOTALS</td>
-        <td>${t.gross}</td><td>${t.paye}</td><td>${t.nssf}</td><td>${t.shif}</td><td>${t.ahl}</td><td>${t.totalDeductions}</td><td>${t.net}</td>
-    </tr></table>`;
-
-    const statsHtml = buildStatsSummaryHtml(employees);
-
-    const win = window.open('', '_blank');
-    if (!win) { alert('Please allow pop-ups to print the report.'); return; }
-    win.document.write(`<!DOCTYPE html><html><head><title>Payroll Report</title>
-        <style>
-            body{font-family:Arial,sans-serif;padding:20px;font-size:10px;}
-            h2{color:#006600;font-size:16px;}
-            h3{color:#006600;font-size:12px;margin:16px 0 6px;}
-            .stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-            .stat{border:1px solid #ddd;border-radius:6px;padding:8px 12px;min-width:120px;}
-            .stat .lbl{font-size:8px;color:#888;text-transform:uppercase;}
-            .stat .val{font-size:11px;font-weight:bold;color:#333;}
-            @media print{button{display:none;}}
-        </style>
-    </head><body>
-        <h2><i>Kenya Salary Calculator</i> — Payroll Report</h2>
-        <p style="color:#666;font-size:9px;">${escHtml(subtitle)}</p>
-        <h3>Summary Statistics</h3>
-        ${statsHtml}
-        <h3>Employee Payroll Details</h3>
-        ${tableHtml}
-        <br>
-        <button onclick="window.print()" style="padding:10px 20px;background:#006600;color:white;border:none;border-radius:5px;cursor:pointer;">Print / Save as PDF</button>
-        </body></html>`);
-    win.document.close();
+function exportReportPrint() {
+    openReportDocumentWindow();
 }
 
 function buildTotals() {
