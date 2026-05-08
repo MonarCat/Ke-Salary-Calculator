@@ -1216,7 +1216,7 @@
         try {
           _sb = createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
         } catch (e) {
-          console.warn('[Payslip] Supabase client unavailable, using print fallback.', e);
+          console.warn('[Payslip] Supabase client initialization failed; premium checks unavailable.', e);
         }
       }
       initPayslipDownload(_sb, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
