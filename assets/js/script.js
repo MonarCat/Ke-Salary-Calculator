@@ -528,6 +528,14 @@ function compareSalaries() {
 }
 
 // Payslip Generator Functions
+function getCurrentDocumentPreparer() {
+    const welcomeText = document.querySelector('.user-welcome-text')?.textContent || '';
+    const cleanedWelcome = welcomeText.replace(/^Welcome,\s*/i, '').trim();
+    if (cleanedWelcome) return cleanedWelcome;
+    if (window.__SC_USER_EMAIL) return String(window.__SC_USER_EMAIL);
+    return '';
+}
+
 function generatePayslip() {
     const name = document.getElementById('employeeName').value;
     const id = document.getElementById('employeeID').value;
@@ -600,6 +608,12 @@ function generatePayslip() {
         header.textContent = company ? `${company.toUpperCase()} - PAYSLIP` : "PAYSLIP";
     }
 
+    const signatureFields = document.querySelectorAll('.signature-field');
+    const autoPreparer = getCurrentDocumentPreparer();
+    if (signatureFields[0] && !signatureFields[0].value && autoPreparer) {
+        signatureFields[0].value = autoPreparer;
+    }
+
     document.getElementById('payslipOutput').style.display = 'block';
 }
 
@@ -653,6 +667,12 @@ function printPayslip() {
     const totalEarnings  = document.getElementById('slipGrossSummary').textContent;
     const totalDeductions= document.getElementById('slipDeductionsSummary').textContent;
     const netPay         = document.getElementById('slipNet').textContent;
+    const generatedAt    = new Date().toLocaleString('en-KE', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    const preparedByLabel = preparedBy || getCurrentDocumentPreparer() || 'System Generated';
+    const approvedByLabel = approvedBy || 'Approved by';
 
     const loanVal   = parseFloat(document.getElementById('loanDeduction').value)   || 0;
     const saccoRow  = document.getElementById('saccoRow');
@@ -665,6 +685,15 @@ function printPayslip() {
     function fmtRow(label, val, row) {
         if (!val || (row && row.style.display === 'none')) return '';
         return `<tr><td>${label}</td><td>${val.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
+    }
+
+    function esc(v) {
+        return String(v || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     const html = `<!DOCTYPE html>
@@ -714,29 +743,32 @@ body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
 <div class="wrap">
   <div class="hdr">
     <div class="hdr-left">
-      ${logoSrc ? `<img src="${logoSrc}" class="logo" alt="logo">` : ''}
+        ${logoSrc ? `<img src="${logoSrc}" class="logo" alt="logo">` : ''}
       <div>
-        <div class="co-name">${company}</div>
-        ${companyAddress  ? `<div class="co-sub">${companyAddress}</div>` : ''}
-        ${companyKra      ? `<div class="co-sub">KRA PIN: ${companyKra}</div>` : ''}
-        ${companyContacts ? `<div class="co-sub">${companyContacts}</div>` : ''}
+        <div class="co-name">${esc(company)}</div>
+        ${companyAddress  ? `<div class="co-sub">${esc(companyAddress)}</div>` : ''}
+        ${companyKra      ? `<div class="co-sub">KRA PIN: ${esc(companyKra)}</div>` : ''}
+        ${companyContacts ? `<div class="co-sub">${esc(companyContacts)}</div>` : ''}
       </div>
     </div>
     <div class="hdr-right">
       <h1>PAYSLIP</h1>
-      <p>Period: ${period}</p>
-      ${payslipNumber ? `<p>No: ${payslipNumber}</p>` : ''}
+      <p>Employee Payslip Statement</p>
+      <p>Period: ${esc(period)}</p>
+      ${payslipNumber ? `<p>No: ${esc(payslipNumber)}</p>` : ''}
+      <p>Generated: ${esc(generatedAt)}</p>
+      <p>Prepared by: ${esc(preparedByLabel)}</p>
     </div>
   </div>
 
   <table class="emp-table">
     <tr>
-      <td>Employee Name:</td><td>${name}</td>
-      <td>Department:</td><td>${department || '—'}</td>
+      <td>Employee Name:</td><td>${esc(name)}</td>
+      <td>Department:</td><td>${esc(department || '—')}</td>
     </tr>
     <tr>
-      <td>Employee No:</td><td>${empId}</td>
-      <td>KRA PIN:</td><td>${pin || '—'}</td>
+      <td>Employee No:</td><td>${esc(empId)}</td>
+      <td>KRA PIN:</td><td>${esc(pin || '—')}</td>
     </tr>
   </table>
 
@@ -775,11 +807,11 @@ body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
   <div class="sigs">
     <div class="sig-box">
       <div class="sig-line"></div>
-      <div class="sig-lbl">${preparedBy || 'Prepared by'}</div>
+      <div class="sig-lbl">${esc(preparedByLabel)}</div>
     </div>
     <div class="sig-box">
       <div class="sig-line"></div>
-      <div class="sig-lbl">${approvedBy || 'Approved by'}</div>
+      <div class="sig-lbl">${esc(approvedByLabel)}</div>
     </div>
   </div>
 
@@ -798,7 +830,11 @@ body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
 </body>
 </html>`;
 
-    const pw = window.open('', '_blank', 'width=650,height=850');
+    const preOpenedWindow = window.__SC_PREOPENED_PRINT_WINDOW;
+    window.__SC_PREOPENED_PRINT_WINDOW = null;
+    const pw = (preOpenedWindow && !preOpenedWindow.closed)
+        ? preOpenedWindow
+        : window.open('', '_blank', 'width=650,height=850');
     if (!pw) {
         alert('Pop-ups are blocked. Please allow pop-ups for this site to print the payslip, then try again.');
         return;

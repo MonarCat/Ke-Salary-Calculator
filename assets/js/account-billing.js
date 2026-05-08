@@ -350,8 +350,7 @@ function _esc(str) {
     .replace(/'/g, "&#039;");
 }
 
-const FEATURES = [
-  // Free features
+const FREE_FEATURES = [
   { label: "Salary breakdown",              free: true  },
   { label: "PAYE / NSSF / SHIF / HL",      free: true  },
   { label: "Salary comparison",             free: true  },
@@ -361,7 +360,9 @@ const FEATURES = [
   { label: "Watermarked SAMPLE payslip",    free: true  },
   { label: "Up to 2 employees",             free: true  },
   { label: "2 payslip downloads / month",   free: true  },
-  // Premium features
+];
+
+const PREMIUM_FEATURES = [
   { label: "Clean PDF payslip (no watermark)", free: false },
   { label: "Unlimited employees",              free: false },
   { label: "Unlimited payslip downloads",      free: false },
@@ -432,8 +433,11 @@ function render(status) {
 
   // ── Feature list card ─────────────────────────────────────────────────────
   const hasAccess = status.isPremium;
-  const featureItems = FEATURES.map((f) => {
-    const unlocked = f.free || hasAccess;
+  const freeFeatureItems = FREE_FEATURES.map((f) =>
+    `<li><span class="sc-ab-feat-icon">✅</span>${f.label}</li>`
+  ).join("");
+  const premiumFeatureItems = PREMIUM_FEATURES.map((f) => {
+    const unlocked = hasAccess;
     const icon     = unlocked ? "✅" : "🔒";
     const cls      = unlocked ? "" : "locked";
     return `<li class="${cls}"><span class="sc-ab-feat-icon">${icon}</span>${f.label}</li>`;
@@ -442,7 +446,10 @@ function render(status) {
   const featuresCardHtml = `
     <div class="sc-ab-card">
       <h3 style="font-size:0.82rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.75rem;">Your Features</h3>
-      <ul class="sc-ab-features">${featureItems}</ul>
+      <div style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.4rem;">Included in Free Plan</div>
+      <ul class="sc-ab-features" style="margin-bottom:0.8rem;">${freeFeatureItems}</ul>
+      <div style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 0.4rem;">Premium Features</div>
+      <ul class="sc-ab-features">${premiumFeatureItems}</ul>
     </div>`;
 
   // ── Upgrade card (always visible) ─────────────────────────────────────────

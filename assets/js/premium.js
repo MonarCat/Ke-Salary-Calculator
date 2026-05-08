@@ -79,7 +79,9 @@ export function getPremiumLabel(profile) {
  */
 export function getPremiumExpiry(profile) {
   if (!profile?.premium_expires_at) return null;
-  return new Date(profile.premium_expires_at).toLocaleDateString("en-KE", {
+  const expiry = new Date(profile.premium_expires_at);
+  if (Number.isNaN(expiry.getTime()) || expiry.getTime() <= 0) return null;
+  return expiry.toLocaleDateString("en-KE", {
     day:   "numeric",
     month: "short",
     year:  "numeric",

@@ -651,22 +651,32 @@
                     && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > now);
 
                 function formatDate(d) {
-                    return new Date(d).toLocaleDateString('en-KE', {
+                    const parsed = new Date(d);
+                    if (Number.isNaN(parsed.getTime()) || parsed.getTime() <= 0) return '—';
+                    return parsed.toLocaleDateString('en-KE', {
                         year: 'numeric', month: 'long', day: 'numeric'
                     });
                 }
 
                 function daysLeft(d) {
-                    const n = Math.ceil((new Date(d) - now) / (1000 * 60 * 60 * 24));
+                    const parsed = new Date(d);
+                    if (Number.isNaN(parsed.getTime()) || parsed.getTime() <= 0) return '—';
+                    const n = Math.ceil((parsed - now) / (1000 * 60 * 60 * 24));
                     return n + ' day' + (n === 1 ? '' : 's');
                 }
 
                 if (isPremiumActive) {
                     planEl.innerHTML = '<span class="billing-badge premium">PREMIUM</span>';
-                    document.getElementById('billing-expires-field').style.display = 'flex';
-                    document.getElementById('billing-expires').textContent = formatDate(profile.premium_expires_at);
-                    document.getElementById('billing-days-remaining-field').style.display = 'flex';
-                    document.getElementById('billing-days-remaining').textContent = daysLeft(profile.premium_expires_at);
+                    const expiryText = formatDate(profile.premium_expires_at);
+                    if (expiryText !== '—') {
+                        document.getElementById('billing-expires-field').style.display = 'flex';
+                        document.getElementById('billing-expires').textContent = expiryText;
+                        document.getElementById('billing-days-remaining-field').style.display = 'flex';
+                        document.getElementById('billing-days-remaining').textContent = daysLeft(profile.premium_expires_at);
+                    } else {
+                        document.getElementById('billing-expires-field').style.display = 'none';
+                        document.getElementById('billing-days-remaining-field').style.display = 'none';
+                    }
                     ctaEl.innerHTML = '<div class="billing-msg premium">✅ Your premium subscription is active.'
                         + ' Renew below to extend your access.</div>' + subscribeBtn;
                 } else {
