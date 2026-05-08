@@ -265,11 +265,15 @@
             <div class="nav-dropdown">
                 <span class="nav-dropdown-toggle">Calculators <i class="fas fa-chevron-down"></i></span>
                 <div class="nav-dropdown-menu">
-                    <a href="/calculator.html">Salary Calculator</a>
-                    <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                    <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                    <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                </div>
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/budget-planner.html">Budget Planner</a>
+                    </div>
             </div>
             <a href="/employees.html">Manage Employees</a>
             <a href="/payroll-report.html" class="active">Payroll Report</a>
@@ -416,6 +420,7 @@
 <script src="assets/js/nav-toggle.js?v=2.0"></script>
 <script src="assets/js/supabase-config.js?v=2.0"></script>
 <script src="assets/js/auth.js?v=2.0"></script>
+<script src="assets/js/plan-features.js?v=1.0"></script>
 <script src="assets/js/premium.js?v=2.0"></script>
 <script src="assets/js/disclaimer-banner.js"></script>
 <script>
@@ -472,27 +477,9 @@ async function init() {
     }
     currentUser = user;
 
-    // Easter 2026 Holiday Promotion — free premium access for all signed-in users until end of April 2026.
-    const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
-    const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
-
-    // Check premium via user_profiles (with Easter promotion fallback)
-    let isPremium = duringEaster; // all logged-in users are premium during Easter
-    if (!isPremium && typeof supabaseClient !== 'undefined' && supabaseClient && isSupabaseConfigured()) {
-        try {
-            const { data: profile } = await supabaseClient
-                .from('user_profiles')
-                .select('premium, premium_expires_at')
-                .eq('id', user.id)
-                .maybeSingle();
-            if (profile && profile.premium === true) {
-                const exp = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
-                isPremium = !exp || exp > new Date();
-            }
-        } catch(e) { /* ignore */ }
-    }
-
-    if (!isPremium) {
+    const plan = (typeof getCurrentUserPlan === 'function') ? await getCurrentUserPlan() : 'free';
+    const allowed = (typeof canAccess === 'function') ? canAccess('payrollReport', plan) : false;
+    if (!allowed) {
         document.getElementById('premium-gate').style.display = 'block';
         return;
     }
