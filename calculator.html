@@ -317,6 +317,21 @@
                 
                 <p>Whether you're paid monthly or negotiating salary, this tool gives you accurate take-home pay in seconds.</p>
             </div>
+
+            <div class="info-section" style="padding:14px 16px; margin-bottom:14px;">
+                <h3 style="margin:0 0 10px; color:#006600; font-size:1.05em;">Payroll & Tax Tools</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <a href="/reverse-salary-calculator.html" style="text-decoration:none;background:#f0f7f0;color:#006600;border:1px solid #006600;border-radius:6px;padding:8px 12px;font-weight:600;display:inline-flex;gap:6px;align-items:center;">
+                        <i class="fas fa-rotate-left"></i> Reverse Calculator
+                    </a>
+                    <a href="/payroll-import.html" style="text-decoration:none;background:#f0f7f0;color:#006600;border:1px solid #006600;border-radius:6px;padding:8px 12px;font-weight:600;display:inline-flex;gap:6px;align-items:center;">
+                        <i class="fas fa-file-import"></i> Payroll Import
+                    </a>
+                    <a href="/p9a-generator.html" style="text-decoration:none;background:#f0f7f0;color:#006600;border:1px solid #006600;border-radius:6px;padding:8px 12px;font-weight:600;display:inline-flex;gap:6px;align-items:center;">
+                        <i class="fas fa-file-alt"></i> P9A Generator
+                    </a>
+                </div>
+            </div>
             
             <div class="tab-container">
                 <button class="tab-button active" data-tab="calculator" onclick="openTab('calculator')">Salary Calculator</button>
@@ -926,7 +941,7 @@
                         </div>
                     </details>
 
-                    <button onclick="generatePayslip()">Create Payslip</button>
+                    <button onclick="generatePayslip()">Generate Payslip</button>
                 </div>
 
                 <div id="payslipOutput" class="payslip-container" style="display: none;">

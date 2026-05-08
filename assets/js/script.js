@@ -125,31 +125,60 @@ async function prefillEmployerProfileFromSupabase() {
             phone: data.contact_phone || ''
         };
         localStorage.setItem('employerProfile', JSON.stringify(profile));
-        // Pre-fill the payslip form fields if they are currently empty
-        const companyNameEl = document.getElementById('companyName');
-        const companyAddrEl = document.getElementById('companyAddress');
-        const companyKraEl  = document.getElementById('companyKra');
-        const companyContactsEl = document.getElementById('companyContacts');
-        if (companyNameEl && !companyNameEl.value) companyNameEl.value = profile.name;
-        if (companyAddrEl && !companyAddrEl.value) companyAddrEl.value = profile.address;
-        if (companyKraEl  && !companyKraEl.value)  companyKraEl.value  = profile.kraPin;
-        if (companyContactsEl && !companyContactsEl.value) {
-            const parts = [];
-            if (profile.phone) parts.push('Tel: ' + profile.phone);
-            if (profile.email) parts.push('Email: ' + profile.email);
-            companyContactsEl.value = parts.join(' | ');
-        }
+        applyEmployerProfileToPayslip(profile, true);
     } catch (e) {
         // Fail silently – table may not exist
+    }
+}
+
+function applyEmployerProfileToPayslip(profile, onlyEmpty) {
+    if (!profile) return;
+    const companyNameEl = document.getElementById('companyName');
+    const companyAddrEl = document.getElementById('companyAddress');
+    const companyKraEl  = document.getElementById('companyKra');
+    const companyContactsEl = document.getElementById('companyContacts');
+    const canSet = (el) => el && (!onlyEmpty || !el.value);
+    if (canSet(companyNameEl)) companyNameEl.value = profile.name || '';
+    if (canSet(companyAddrEl)) companyAddrEl.value = profile.address || profile.county || '';
+    if (canSet(companyKraEl))  companyKraEl.value  = profile.kraPin || '';
+    if (canSet(companyContactsEl)) {
+        const parts = [];
+        if (profile.phone) parts.push('Tel: ' + profile.phone);
+        if (profile.email) parts.push('Email: ' + profile.email);
+        companyContactsEl.value = parts.join(' | ');
+    }
+}
+
+async function getCachedEmployerProfile() {
+    let profile = null;
+    try {
+        profile = JSON.parse(localStorage.getItem('employerProfile') || 'null');
+    } catch (e) {}
+    if (profile) return profile;
+    if (typeof supabaseClient === 'undefined' || !supabaseClient ||
+        typeof isSupabaseConfigured !== 'function' || !isSupabaseConfigured()) return null;
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return null;
+        return JSON.parse(localStorage.getItem('employerProfile_' + userId) || 'null');
+    } catch (e) {
+        return null;
     }
 }
 
 // Open the Payslip Generator tab with an auth check.
 // Unauthenticated users see a sign-in prompt instead of the form.
 async function openPayslipTab() {
-    await openProtectedTab('payslip', 'payslip-form-content', 'payslip-auth-prompt');
+    openTab('payslip');
+    const formContent = document.getElementById('payslip-form-content');
+    const authPrompt  = document.getElementById('payslip-auth-prompt');
+    if (formContent) formContent.style.display = 'block';
+    if (authPrompt)  authPrompt.style.display = 'none';
     // Attempt to load employer profile from Supabase if not already cached
     await prefillEmployerProfileFromSupabase();
+    const cachedProfile = await getCachedEmployerProfile();
+    if (cachedProfile) applyEmployerProfileToPayslip(cachedProfile, true);
 }
 
 // Open the Gross-Up Calculator tab with an auth check.
@@ -927,7 +956,7 @@ function updateDeductions() {
 function formatKES(amount) {
     return 'KES ' + amount.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-window.onload = () => {
+window.onload = async () => {
     // Check URL parameter for tab
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
@@ -953,22 +982,8 @@ window.onload = () => {
     }
 
     // Pre-fill employer / organization details from cached profile
-    const savedProfile = JSON.parse(localStorage.getItem('employerProfile'));
-    if (savedProfile) {
-        const companyNameEl = document.getElementById('companyName');
-        const companyAddrEl = document.getElementById('companyAddress');
-        const companyKraEl = document.getElementById('companyKra');
-        const companyContactsEl = document.getElementById('companyContacts');
-        if (companyNameEl && !companyNameEl.value) companyNameEl.value = savedProfile.name || '';
-        if (companyAddrEl && !companyAddrEl.value) companyAddrEl.value = savedProfile.address || savedProfile.county || '';
-        if (companyKraEl && !companyKraEl.value) companyKraEl.value = savedProfile.kraPin || '';
-        if (companyContactsEl && !companyContactsEl.value) {
-            const parts = [];
-            if (savedProfile.phone) parts.push('Tel: ' + savedProfile.phone);
-            if (savedProfile.email) parts.push('Email: ' + savedProfile.email);
-            companyContactsEl.value = parts.join(' | ');
-        }
-    }
+    const savedProfile = await getCachedEmployerProfile();
+    if (savedProfile) applyEmployerProfileToPayslip(savedProfile, true);
 
     // Load calculation from URL params (shared link)
     loadCalculationFromURL();
