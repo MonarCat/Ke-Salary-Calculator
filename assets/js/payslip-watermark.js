@@ -267,12 +267,12 @@ export async function initPayslipDownload(supabase, opts = {}) {
     }
 
     let status = { isPremium: false, email: null, premiumExpiresAt: null };
-    if (supabase && supabase.auth && typeof supabase.auth.getUser === "function") {
+    if (typeof supabase?.auth?.getUser === "function") {
       try {
         status = await checkPremium(supabase);
         if (status.email) window.__SC_USER_EMAIL = status.email;
       } catch (err) {
-        console.warn("[PayslipWatermark] Premium check failed, using print fallback.", err);
+        console.warn("[PayslipWatermark] Premium check failed, defaulting to non-premium flow.", err);
       }
     }
 

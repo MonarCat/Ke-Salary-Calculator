@@ -1211,15 +1211,15 @@
     <script type="module">
       import { initPayslipDownload } from '/assets/js/payslip-watermark.js';
       import { createClient }        from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-      let _sb = window.supabaseClient || null;
-      if (!_sb && window.__SUPABASE_URL && window.__SUPABASE_ANON_KEY) {
+      let payslipSupabaseClient = window.supabaseClient || null;
+      if (!payslipSupabaseClient && window.__SUPABASE_URL && window.__SUPABASE_ANON_KEY) {
         try {
-          _sb = createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+          payslipSupabaseClient = createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
         } catch (e) {
           console.warn('[Payslip] Supabase client initialization failed; premium checks unavailable.', e);
         }
       }
-      initPayslipDownload(_sb, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
+      initPayslipDownload(payslipSupabaseClient, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
     </script>
     <!-- Easter gift banner -->
     <script type="module">
