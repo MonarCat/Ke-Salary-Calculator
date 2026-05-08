@@ -483,7 +483,21 @@
                             <a href="/payroll-report.html" id="payroll-report-link" class="add-employee-btn" style="text-decoration:none;">
                                 <i class="fas fa-chart-bar"></i> Payroll Report
                             </a>
+                            <button class="add-employee-btn" onclick="bulkGeneratePayslips()" title="Generate multiple payslips at once">
+                                <i class="fas fa-layer-group"></i> Bulk Generate Payslips
+                            </button>
                         </div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px;">
+                        <a href="/reverse-salary-calculator.html" class="add-employee-btn" style="text-decoration:none;background:#f0f7f0;color:#006600;">
+                            <i class="fas fa-rotate-left"></i> Reverse Calculator
+                        </a>
+                        <a href="/payroll-import.html" class="add-employee-btn" style="text-decoration:none;background:#f0f7f0;color:#006600;">
+                            <i class="fas fa-file-import"></i> Payroll Import
+                        </a>
+                        <a href="/p9a-generator.html" class="add-employee-btn" style="text-decoration:none;background:#f0f7f0;color:#006600;">
+                            <i class="fas fa-file-alt"></i> P9A Generator
+                        </a>
                     </div>
 
                     <div class="employees-table">
@@ -1461,7 +1475,7 @@
 
         // Generate payslip for employee — opens inline payslip modal on the same page
         function generatePayslipForEmployee(id) {
-            const emp = employees.find(e => e.id === id);
+            const emp = employees.find(e => String(e.id) === String(id));
             if (!emp) return;
             const gross = Number(emp.salary) || 0;
             const d = calcDeductions(gross);
@@ -1475,7 +1489,10 @@
             document.getElementById('ps-company-name').value = profile.name || '';
             document.getElementById('ps-company-address').value = profile.address || '';
             document.getElementById('ps-company-kra').value = profile.kraPin || '';
-            document.getElementById('ps-company-contacts').value = profile.email || profile.phone || '';
+            const contactParts = [];
+            if (profile.phone) contactParts.push('Tel: ' + profile.phone);
+            if (profile.email) contactParts.push('Email: ' + profile.email);
+            document.getElementById('ps-company-contacts').value = contactParts.join(' | ');
             document.getElementById('ps-emp-name').textContent = emp.name || '';
             document.getElementById('ps-emp-id').textContent = emp.employeeId || '';
             document.getElementById('ps-emp-pin').textContent = emp.kraPin || '';
@@ -1532,7 +1549,7 @@
         // Recalculate payslip deductions (called when optional deduction inputs change)
         function updatePsDeductions() {
             const id = document.getElementById('ps-payslip-modal').dataset.empId;
-            const emp = employees.find(e => e.id === id);
+            const emp = employees.find(e => String(e.id) === String(id));
             if (!emp) return;
             const gross = Number(emp.salary) || 0;
             const d = calcDeductions(gross);
@@ -1552,6 +1569,133 @@
 
         function closePayslipModal() {
             document.getElementById('ps-payslip-modal').classList.remove('active');
+        }
+
+        function bulkGeneratePayslips() {
+            if (!employees.length) {
+                alert('No employees available to generate bulk payslips.');
+                return;
+            }
+
+            const now = new Date();
+            const defaultPeriod = now.toLocaleDateString('en-KE', { month: 'long', year: 'numeric' });
+            const payPeriod = (prompt('Enter pay period for bulk payslips (e.g. May 2026):', defaultPeriod) || '').trim();
+            if (!payPeriod) return;
+            const deptQuery = (prompt('Filter by department (optional, leave blank for all):', '') || '').trim().toLowerCase();
+
+            const matches = employees.filter(emp => {
+                if (!deptQuery) return true;
+                return String(emp.department || '').toLowerCase().includes(deptQuery);
+            });
+
+            if (!matches.length) {
+                alert('No employees matched the selected query.');
+                return;
+            }
+
+            const profile = JSON.parse(localStorage.getItem('employerProfile_' + currentUser.id) || '{}');
+            const companyName = (profile.name || 'Organization Name').toUpperCase();
+            const companyAddress = profile.address || profile.county || '';
+            const companyKra = profile.kraPin || '';
+            const contactParts = [];
+            if (profile.phone) contactParts.push('Tel: ' + profile.phone);
+            if (profile.email) contactParts.push('Email: ' + profile.email);
+            const companyContacts = contactParts.join(' | ');
+
+            function esc(v) {
+                return String(v || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            const pages = matches.map((emp, idx) => {
+                const gross = Number(emp.salary) || 0;
+                const d = calcDeductions(gross);
+                const generatedAt = new Date().toLocaleString('en-KE', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                const payslipNo = `BULK-${String(idx + 1).padStart(3, '0')}`;
+                return `
+                <section class="slip">
+                    <div class="hdr">
+                        <div>
+                            <h2>${esc(companyName)} - PAYSLIP</h2>
+                            ${companyAddress ? `<p>${esc(companyAddress)}</p>` : ''}
+                            ${companyKra ? `<p>KRA PIN: ${esc(companyKra)}</p>` : ''}
+                            ${companyContacts ? `<p>${esc(companyContacts)}</p>` : ''}
+                        </div>
+                        <div style="text-align:right;">
+                            <p><strong>Period:</strong> ${esc(payPeriod)}</p>
+                            <p><strong>No:</strong> ${esc(payslipNo)}</p>
+                            <p><strong>Generated:</strong> ${esc(generatedAt)}</p>
+                        </div>
+                    </div>
+                    <table class="meta">
+                        <tr><td><strong>Employee Name</strong></td><td>${esc(emp.name)}</td><td><strong>Department</strong></td><td>${esc(emp.department || '—')}</td></tr>
+                        <tr><td><strong>Employee ID</strong></td><td>${esc(emp.employeeId || '—')}</td><td><strong>KRA PIN</strong></td><td>${esc(emp.kraPin || '—')}</td></tr>
+                    </table>
+                    <table class="grid">
+                        <tr><th>Earnings</th><th>Amount (KES)</th><th>Deductions</th><th>Amount (KES)</th></tr>
+                        <tr>
+                            <td>Basic Salary</td><td>${esc(fmtKES(gross))}</td>
+                            <td>PAYE</td><td>${esc(fmtKES(d.paye))}</td>
+                        </tr>
+                        <tr>
+                            <td></td><td></td>
+                            <td>NSSF</td><td>${esc(fmtKES(d.nssf))}</td>
+                        </tr>
+                        <tr>
+                            <td></td><td></td>
+                            <td>SHIF</td><td>${esc(fmtKES(d.shif))}</td>
+                        </tr>
+                        <tr>
+                            <td></td><td></td>
+                            <td>Housing Levy</td><td>${esc(fmtKES(d.ahl))}</td>
+                        </tr>
+                    </table>
+                    <table class="summary">
+                        <tr><td><strong>Total Earnings</strong></td><td>${esc(fmtKES(gross))}</td></tr>
+                        <tr><td><strong>Total Deductions</strong></td><td>${esc(fmtKES(gross - d.net))}</td></tr>
+                        <tr class="net"><td><strong>Net Pay</strong></td><td><strong>${esc(fmtKES(d.net))}</strong></td></tr>
+                    </table>
+                    <p class="foot">This is a computer-generated payslip and does not require a signature.</p>
+                </section>`;
+            }).join('');
+
+            const win = window.open('', '_blank', 'width=900,height=900');
+            if (!win) {
+                alert('Pop-ups are blocked. Please allow pop-ups and try again.');
+                return;
+            }
+
+            win.document.write(`<!DOCTYPE html>
+            <html><head><title>Bulk Payslips - ${esc(payPeriod)}</title>
+            <style>
+            body{font-family:Arial,sans-serif;color:#222;padding:16px;}
+            .slip{page-break-after:always;border:1px solid #ddd;border-radius:8px;padding:16px 18px;margin-bottom:18px;}
+            .slip:last-child{page-break-after:auto;}
+            .hdr{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #006600;padding-bottom:10px;margin-bottom:10px;}
+            .hdr h2{margin:0;color:#006600;font-size:1.1rem;}
+            .hdr p{margin:2px 0;font-size:0.85rem;}
+            table{width:100%;border-collapse:collapse;margin-top:10px;}
+            th,td{border:1px solid #e0e0e0;padding:7px 8px;font-size:0.85rem;}
+            th{background:#f8f8f8;text-align:left;}
+            .meta td{border:none;padding:4px 6px;}
+            .summary{margin-top:12px;width:45%;margin-left:auto;}
+            .summary td:last-child{text-align:right;}
+            .summary .net td{background:#006600;color:#fff;}
+            .foot{margin-top:10px;font-size:0.75rem;color:#666;text-align:center;}
+            @media print { body{padding:0;} .slip{margin:0 0 12px;border:none;border-radius:0;} }
+            </style></head><body>
+            ${pages}
+            </body></html>`);
+            win.document.close();
+            win.focus();
+            win.print();
         }
 
         async function printEmployeePayslip() {
@@ -1575,7 +1719,7 @@
             // Save to payslip_history — fire-and-forget so print is never blocked
             if (currentUser && typeof supabaseClient !== 'undefined' && supabaseClient) {
                 const empId  = document.getElementById('ps-payslip-modal').dataset.empId;
-                const emp    = employees.find(e => e.id === empId);
+                const emp    = employees.find(e => String(e.id) === String(empId));
                 const gross  = emp ? (Number(emp.salary) || 0) : 0;
                 const d      = emp ? calcDeductions(gross) : {};
                 const net    = d.net || 0;
