@@ -5,10 +5,9 @@
 const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
 
-// hCaptcha site key (public – safe to include in client-side code).
-// The hCaptcha SECRET key must be configured in the Supabase dashboard under
-// Authentication → Security → Enable hCaptcha, NOT here.
-const HCAPTCHA_SITE_KEY = '7bae6a14-f7e6-44b2-9c08-b616a6bc78c4';
+// Cloudflare Turnstile site key (public – safe to include in client-side code).
+// Replace with your production key from Cloudflare Turnstile dashboard.
+const TURNSTILE_SITE_KEY = '';
 
 // Initialize Supabase client with error handling
 let supabaseClient = null;
@@ -47,6 +46,6 @@ const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 window.supabaseClient = supabaseClient;
 window.isSupabaseConfigured = isSupabaseConfigured;
 window.ADMIN_EMAIL = ADMIN_EMAIL;
-window.HCAPTCHA_SITE_KEY = HCAPTCHA_SITE_KEY;
+window.TURNSTILE_SITE_KEY = TURNSTILE_SITE_KEY;
 window.PAYSTACK_PUBLIC_KEY = PAYSTACK_PUBLIC_KEY;
 window.PAYSTACK_MONTHLY_AMOUNT = PAYSTACK_MONTHLY_AMOUNT;

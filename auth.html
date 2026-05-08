@@ -13,10 +13,10 @@
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
     <link rel="stylesheet" href="assets/css/styles.css?v=2.2">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
-    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=onHcaptchaLoad" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
     <style>
         /* Hide auth wrapper until auth check completes to avoid flash */
         .auth-wrapper { visibility: hidden; }
@@ -118,8 +118,8 @@
                             <a href="#" onclick="handleForgotPassword()" class="forgot-password">Forgot Password?</a>
                         </div>
                         
-                        <div class="hcaptcha-container">
-                            <div id="hcaptcha-login"></div>
+                        <div class="turnstile-container">
+                            <div id="turnstile-login"></div>
                         </div>
                         
                         <button type="submit" class="auth-button">
@@ -213,8 +213,8 @@
                             </label>
                         </div>
                         
-                        <div class="hcaptcha-container">
-                            <div id="hcaptcha-signup"></div>
+                        <div class="turnstile-container">
+                            <div id="turnstile-signup"></div>
                         </div>
                         
                         <button type="submit" class="auth-button">
@@ -247,7 +247,7 @@
     </div>
 
     <script src="assets/js/supabase-config.js?v=2.0"></script>
-    <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.1"></script>
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script>
         // Password show/hide toggle

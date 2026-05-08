@@ -682,8 +682,8 @@
     text-decoration: underline;
 }
 
-/* hCaptcha widget container */
-.hcaptcha-container {
+/* Turnstile widget container */
+.turnstile-container {
     display: flex;
     justify-content: center;
     margin-bottom: 0;
