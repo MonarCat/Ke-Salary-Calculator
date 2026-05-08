@@ -8,6 +8,7 @@ let turnstileLoginWidgetId = null;
 let turnstileSignupWidgetId = null;
 
 const VERIFY_TURNSTILE_ENDPOINT = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/verify-turnstile';
+const TURNSTILE_RESPONSE_FIELD_SELECTOR = '[name="cf-turnstile-response"]';
 
 function resetTurnstile(widgetType) {
     if (!window.turnstile) return;
@@ -35,8 +36,12 @@ async function verifyTurnstileToken(token) {
 
 // Called by the Turnstile script once it has loaded (onload=onTurnstileLoad)
 function onTurnstileLoad() {
-    if (typeof TURNSTILE_SITE_KEY === 'undefined' || !TURNSTILE_SITE_KEY) {
-        console.warn('TURNSTILE_SITE_KEY is not defined. Turnstile widgets will not be rendered.');
+    const missingSiteKey = typeof TURNSTILE_SITE_KEY === 'undefined' ||
+        !TURNSTILE_SITE_KEY ||
+        TURNSTILE_SITE_KEY === 'REPLACE_WITH_TURNSTILE_SITE_KEY';
+
+    if (missingSiteKey) {
+        console.warn('TURNSTILE_SITE_KEY is not configured. Turnstile widgets will not be rendered.');
         return;
     }
 
@@ -109,7 +114,7 @@ async function handleLogin(event) {
     const password = document.getElementById('login-password').value;
 
     const loginForm = document.getElementById('loginForm');
-    const turnstileToken = loginForm?.querySelector('[name="cf-turnstile-response"]')?.value || '';
+    const turnstileToken = loginForm?.querySelector(TURNSTILE_RESPONSE_FIELD_SELECTOR)?.value || '';
 
     if (!turnstileToken) {
         showMessage('login-message', 'Please complete the security check.', 'error');
@@ -257,7 +262,7 @@ async function handleSignup(event) {
     }
 
     const signupForm = document.getElementById('signupForm');
-    const turnstileToken = signupForm?.querySelector('[name="cf-turnstile-response"]')?.value || '';
+    const turnstileToken = signupForm?.querySelector(TURNSTILE_RESPONSE_FIELD_SELECTOR)?.value || '';
 
     if (!turnstileToken) {
         showMessage('signup-message', 'Please complete the security check.', 'error');
