@@ -369,6 +369,26 @@
         let isPremium = false;
         let budgetChart = null;
 
+        async function refreshCurrentUser() {
+            if (!window.supabaseClient?.auth) {
+                currentUser = null;
+                return null;
+            }
+            try {
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
+                if (session?.user) {
+                    currentUser = session.user;
+                    return currentUser;
+                }
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                currentUser = user || null;
+                return currentUser;
+            } catch (_) {
+                currentUser = null;
+                return null;
+            }
+        }
+
         // Budget state: groups -> items
         const GROUP_META = {
             essentials:       { label: 'Essentials & Household', icon: 'fa-home',            color: '#1a6b3c' },
@@ -417,7 +437,7 @@
                 now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
             if (window.supabaseClient) {
-                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                const user = await refreshCurrentUser();
                 currentUser = user;
                 if (user) {
                     const { data: profile } = await window.supabaseClient
@@ -446,6 +466,9 @@
                     // Show health score if premium
                     if (isPremium) document.getElementById('healthLock').style.display = 'none';
                 }
+                window.supabaseClient.auth.onAuthStateChange(function (_event, session) {
+                    currentUser = session?.user || null;
+                });
             }
             renderGroups();
             updateSummary();
@@ -620,6 +643,7 @@
 
         // ── Save budget ────────────────────────────────────────────────────
         async function saveBudget() {
+            await refreshCurrentUser();
             if (!currentUser) {
                 if (confirm('Sign in to save your budget. Go to sign-in page?')) window.location.href = '/auth.html';
                 return;
