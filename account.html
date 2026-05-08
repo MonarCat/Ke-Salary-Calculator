@@ -6,12 +6,16 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Account - Kenya Salary Calculator</title>
-    <meta name="description" content="Manage your Kenya Salary Calculator account and access status.">
+    <title>My Account &amp; Billing - Kenya Salary Calculator</title>
+    <meta name="description" content="Manage your Kenya Salary Calculator subscription, view your plan status, and upgrade to premium.">
     <meta name="robots" content="noindex, nofollow">
 
-    <!-- ── Config (Supabase) ──────────────────────────────────────────────── -->
+    <!-- ── Config (Supabase + Paystack) ────────────────────────────────────── -->
     <script>
+        window.__PAYSTACK_PUBLIC_KEY   = "pk_live_598132f0ebe09cef45d6f7f7286f87db57f8429e";
+        // Plan codes updated in Paystack dashboard to KES 99/month and KES 999/year.
+        window.__PAYSTACK_PLAN_MONTHLY = "PLN_jzebysw3sdoy5a9";
+        window.__PAYSTACK_PLAN_YEARLY  = "PLN_januia0riclc869";
         window.__SUPABASE_URL          = "https://wznopthjoaqusalqoyru.supabase.co";
         window.__SUPABASE_ANON_KEY     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk";
     </script>
@@ -129,12 +133,12 @@
             <!-- ── Account page content ──────────────────────────────────── -->
             <div class="account-page-wrapper">
                 <div class="account-page-header">
-                    <h1>⚙️ My Account</h1>
-                    <p>Manage your account and view your feature access.</p>
+                    <h1>⚙️ My Account &amp; Billing</h1>
+                    <p>Manage your plan, view your features, and upgrade to premium.</p>
                 </div>
 
                 <div class="account-nav-links">
-                    <a href="/account" class="active">Account Access</a>
+                    <a href="/account" class="active">Billing &amp; Plan</a>
                     <a href="/profile.html">Profile</a>
                     <a href="/calculator.html">Calculator</a>
                     <a href="/contact-us.html">Support</a>
