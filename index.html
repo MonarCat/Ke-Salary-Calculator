@@ -810,6 +810,7 @@
                         <a href="/100000.html">KES 100,000 Salary</a>
                     </div>
                 </div>
+                <a href="/budget-planner.html">Budget Planner</a>
                 
                 <a href="/about-us.html">About Us</a>
                 <a href="/blog.html">Blog</a>
@@ -860,6 +861,10 @@
                 <a href="/payslip-generator-kenya.html" class="quick-nav-card quick-nav-card--red">
                     <i class="fas fa-file-invoice"></i>
                     <span>Payslip<br>Generator</span>
+                </a>
+                <a href="/budget-planner.html" class="quick-nav-card quick-nav-card--green">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>Budget<br>Planner</span>
                 </a>
                 <a href="/external-links.html" class="quick-nav-card quick-nav-card--green">
                     <i class="fas fa-external-link-alt"></i>
@@ -936,6 +941,10 @@
                         <i class="fas fa-laptop-code"></i>
                         <span>Job Salaries</span>
                     </a>
+                    <a href="/budget-planner.html" class="tool-card">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Budget Planner</span>
+                    </a>
                 </div>
             </div>
 
@@ -1008,7 +1017,7 @@
                         </a>
                     </div>
                 </div>
-                <p style="font-size:0.8em; color:#999; margin-top:10px; margin-bottom:0;">Results shown after voting. New poll each week.</p>
+                <p style="font-size:0.8em; color:#999; margin-top:10px; margin-bottom:0;">Sign in required to vote. New poll each week.</p>
             </div>
 
             <!-- More Polls -->
@@ -1514,31 +1523,6 @@
         // or reorder entries above; only append new ones.
         const pollIdx = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % POLLS.length;
 
-        // Retrieve or generate a persistent anonymous token for this browser.
-        // This token is used to deduplicate votes for unauthenticated visitors.
-        function getPollAnonToken() {
-            var key = 'poll_anon_token';
-            var token = localStorage.getItem(key);
-            if (!token) {
-                // Use the Web Crypto API for a cryptographically strong UUID v4
-                if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-                    token = crypto.randomUUID();
-                } else {
-                    var bytes = new Uint8Array(16);
-                    crypto.getRandomValues(bytes);
-                    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-                    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant bits
-                    var hex = Array.from(bytes, function(b) {
-                        return b.toString(16).padStart(2, '0');
-                    }).join('');
-                    token = [hex.slice(0,8), hex.slice(8,12), hex.slice(12,16),
-                             hex.slice(16,20), hex.slice(20,32)].join('-');
-                }
-                localStorage.setItem(key, token);
-            }
-            return token;
-        }
-
         async function fetchPollVotesFromDB(poll, idx) {
             if (!window.supabaseClient) return;
             try {
@@ -1555,6 +1539,50 @@
             } catch(e) {}
         }
 
+        async function getPollCurrentUser() {
+            if (!window.supabaseClient?.auth) return null;
+            try {
+                var sessionRes = await window.supabaseClient.auth.getSession();
+                return sessionRes?.data?.session?.user || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function updateMainPollParticipantCount(poll) {
+            var voteCountEl = document.getElementById('pollVoteCount');
+            if (!voteCountEl) return;
+            if (window.supabaseClient) {
+                try {
+                    var pcRes = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx });
+                    var participantCount = (pcRes && pcRes.data != null) ? pcRes.data : poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = participantCount.toLocaleString('en-KE') + ' Participated in this Poll';
+                } catch(e) {
+                    var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+                }
+            } else {
+                var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
+                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
+            }
+        }
+
+        function renderPollAuthPrompt() {
+            var optsEl = document.getElementById('pollOptions');
+            var thanks = document.getElementById('pollThanks');
+            var shareEl = document.getElementById('pollShare');
+            if (!optsEl) return;
+            optsEl.innerHTML =
+                '<div style="background:#f7fff7;border:1px solid #a5d6a7;border-radius:8px;padding:12px;">'
+                + '<p style="margin:0 0 10px;color:#1a1a1a;font-size:0.9em;"><i class="fas fa-lock" style="color:#006600;"></i> Please sign in to vote in this poll.</p>'
+                + '<a href="/auth.html" class="poll-btn" style="display:inline-block;width:auto;text-decoration:none;margin:0;">'
+                + '<i class="fas fa-user-circle"></i> Sign In / Sign Up'
+                + '</a>'
+                + '</div>';
+            if (thanks) thanks.style.display = 'none';
+            if (shareEl) shareEl.style.display = 'none';
+        }
+
         // Check server-side whether this browser/user has already voted.
         // Returns the option_idx they voted for, or null if they have not voted.
         async function checkPollVoteDB(pIdx) {
@@ -1562,7 +1590,7 @@
             try {
                 var { data, error } = await window.supabaseClient.rpc('check_poll_vote', {
                     p_poll_idx: pIdx,
-                    p_anon_token: getPollAnonToken()
+                    p_anon_token: null
                 });
                 if (error || !data) return null;
                 if (!data.already_voted) return null;
@@ -1580,7 +1608,7 @@
                 var { data, error } = await window.supabaseClient.rpc('submit_poll_vote', {
                     p_poll_idx: pIdx,
                     p_option_idx: optionIdx,
-                    p_anon_token: getPollAnonToken()
+                    p_anon_token: null
                 });
                 if (error) { console.error('Poll vote error:', error.message); return null; }
                 return data;
@@ -1594,23 +1622,16 @@
             if (!qEl || !optsEl) return;
             qEl.textContent = poll.q;
             await fetchPollVotesFromDB(poll, pollIdx);
-
-            // Prefer server-side check; fall back to localStorage cache when
-            // supabaseClient is unavailable (e.g. offline or DB not yet migrated).
-            var serverVoted = await checkPollVoteDB(pollIdx);
-            if (serverVoted !== null) {
-                // Sync the authoritative server result into localStorage (only when
-                // we have a valid option, not the sentinel -1 value).
-                if (serverVoted >= 0) {
-                    localStorage.setItem('poll_voted_' + pollIdx, serverVoted);
-                }
-                showPollResults(poll, serverVoted);
+            var pollUser = await getPollCurrentUser();
+            if (!pollUser) {
+                renderPollAuthPrompt();
+                await updateMainPollParticipantCount(poll);
                 return;
             }
-            // localStorage fallback (for offline / pre-migration visits)
-            var localVoted = localStorage.getItem('poll_voted_' + pollIdx);
-            if (localVoted !== null) {
-                showPollResults(poll, parseInt(localVoted));
+
+            var serverVoted = await checkPollVoteDB(pollIdx);
+            if (serverVoted !== null) {
+                showPollResults(poll, serverVoted);
                 return;
             }
 
@@ -1622,25 +1643,17 @@
                 btn.onclick = function() { castPollVote(i); };
                 optsEl.appendChild(btn);
             });
-            // Show real participant count from DB using the dedicated RPC
-            var voteCountEl = document.getElementById('pollVoteCount');
-            if (voteCountEl && window.supabaseClient) {
-                try {
-                    var pcRes = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx });
-                    var participantCount = (pcRes && pcRes.data != null) ? pcRes.data : poll.votes.reduce(function(a,b){return a+b;}, 0);
-                    voteCountEl.textContent = participantCount.toLocaleString('en-KE') + ' Participated in this Poll';
-                } catch(e) {
-                    var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
-                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
-                }
-            } else if (voteCountEl) {
-                var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
-                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
-            }
+            await updateMainPollParticipantCount(poll);
         }
 
         async function castPollVote(idx) {
             var poll = POLLS[pollIdx];
+            var pollUser = await getPollCurrentUser();
+            if (!pollUser) {
+                renderPollAuthPrompt();
+                await updateMainPollParticipantCount(poll);
+                return;
+            }
 
             // Submit to server first; the function enforces one vote per participant
             var result = await submitPollVoteDB(pollIdx, idx);
@@ -1650,7 +1663,6 @@
                 // as that could display the wrong selection.
                 if (result.option_idx !== null && result.option_idx !== undefined) {
                     var votedOption = result.option_idx;
-                    localStorage.setItem('poll_voted_' + pollIdx, votedOption);
                     showPollResults(poll, votedOption);
                 } else {
                     // Server confirmed duplicate but did not return the option –
@@ -1667,27 +1679,13 @@
                 await legacyIncrementPollVoteDB(pollIdx, idx);
             }
 
-            // New vote accepted – update local state and cache
+            // New vote accepted – update local state
             poll.votes[idx]++;
-            localStorage.setItem('poll_voted_' + pollIdx, idx);
             showPollResults(poll, idx);
 
             // Re-fetch from DB to show accurate total after the vote is persisted
             await fetchPollVotesFromDB(poll, pollIdx);
-            var voteCountEl = document.getElementById('pollVoteCount');
-            if (voteCountEl && window.supabaseClient) {
-                try {
-                    var pcRes = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: pollIdx });
-                    var participantCount = (pcRes && pcRes.data != null) ? pcRes.data : poll.votes.reduce(function(a,b){return a+b;}, 0);
-                    voteCountEl.textContent = participantCount.toLocaleString('en-KE') + ' Participated in this Poll';
-                } catch(e) {
-                    var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
-                    voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
-                }
-            } else if (voteCountEl) {
-                var total = poll.votes.reduce(function(a,b){return a+b;}, 0);
-                voteCountEl.textContent = total.toLocaleString('en-KE') + ' Participated in this Poll';
-            }
+            await updateMainPollParticipantCount(poll);
         }
 
         // Legacy fallback: used when submit_poll_vote RPC is not yet deployed
@@ -1778,6 +1776,7 @@
             var container = document.getElementById('morePollsList');
             if (!container) return;
             var shareUrl = encodeURIComponent(window.location.href.split('?')[0]);
+            var pollUser = await getPollCurrentUser();
 
             for (var offset = 1; offset <= MORE_POLLS_COUNT; offset++) {
                 var idx = (pollIdx + offset) % POLLS.length;
@@ -1787,10 +1786,7 @@
 
                 await fetchMiniPollVotes(poll, idx);
 
-                var serverVoted = await checkPollVoteDB(idx);
-                var localVoted  = localStorage.getItem('poll_voted_' + idx);
-                var alreadyVoted = serverVoted !== null ? serverVoted
-                    : (localVoted !== null ? parseInt(localVoted) : null);
+                var alreadyVoted = pollUser ? await checkPollVoteDB(idx) : null;
 
                 var cardId  = 'mp-' + idx;
                 var card = document.createElement('div');
@@ -1816,7 +1812,9 @@
                 card.insertBefore(qDiv, card.firstChild);
                 container.appendChild(card);
 
-                if (alreadyVoted !== null) {
+                if (!pollUser) {
+                    renderMiniPollAuthPrompt(card, poll, idx);
+                } else if (alreadyVoted !== null) {
                     renderMiniPollResults(card, poll, alreadyVoted, idx, shareUrl);
                 } else {
                     renderMiniPollButtons(card, poll, idx, shareUrl);
@@ -1854,21 +1852,38 @@
             updateMiniPollCount(countEl, poll, idx);
         }
 
+        function renderMiniPollAuthPrompt(card, poll, idx) {
+            var optsEl = card.querySelector('.mini-poll__opts');
+            var countEl = card.querySelector('.mini-poll__count');
+            if (!optsEl) return;
+            optsEl.innerHTML =
+                '<div style="background:#f7fff7;border:1px solid #a5d6a7;border-radius:8px;padding:10px;">'
+                + '<div style="font-size:0.84em;color:#1a1a1a;margin-bottom:8px;"><i class="fas fa-lock" style="color:#006600;"></i> Sign in to vote on this poll.</div>'
+                + '<a href="/auth.html" style="display:inline-block;background:#006600;color:#fff;text-decoration:none;padding:6px 10px;border-radius:6px;font-size:0.82em;font-weight:600;">Sign In / Sign Up</a>'
+                + '</div>';
+            updateMiniPollCount(countEl, poll, idx);
+        }
+
         async function castMiniPollVote(card, poll, idx, optionIdx, shareUrl) {
+            var pollUser = await getPollCurrentUser();
+            if (!pollUser) {
+                renderMiniPollAuthPrompt(card, poll, idx);
+                return;
+            }
             var result = await submitPollVoteDB(idx, optionIdx);
             if (result && result.already_voted) {
-                var voted = (result.option_idx !== null && result.option_idx !== undefined)
-                    ? result.option_idx : optionIdx;
-                localStorage.setItem('poll_voted_' + idx, voted);
                 await fetchMiniPollVotes(poll, idx);
-                renderMiniPollResults(card, poll, voted, idx, shareUrl);
+                if (result.option_idx !== null && result.option_idx !== undefined) {
+                    renderMiniPollResults(card, poll, result.option_idx, idx, shareUrl);
+                } else {
+                    renderMiniPollResults(card, poll, -1, idx, shareUrl);
+                }
                 return;
             }
             if (result === null) {
                 await legacyIncrementPollVoteDB(idx, optionIdx);
             }
             poll.votes[optionIdx]++;
-            localStorage.setItem('poll_voted_' + idx, optionIdx);
             await fetchMiniPollVotes(poll, idx);
             renderMiniPollResults(card, poll, optionIdx, idx, shareUrl);
         }
@@ -1942,10 +1957,9 @@
                         if (changedIdx === pollIdx) {
                             var mainPoll = POLLS[pollIdx];
                             fetchPollVotesFromDB(mainPoll, pollIdx).then(function() {
-                                var localVoted = localStorage.getItem('poll_voted_' + pollIdx);
-                                if (localVoted !== null) {
-                                    showPollResults(mainPoll, parseInt(localVoted));
-                                }
+                                checkPollVoteDB(pollIdx).then(function(votedIdx) {
+                                    if (votedIdx !== null) showPollResults(mainPoll, votedIdx);
+                                });
                             });
                         }
 
@@ -1958,14 +1972,14 @@
                                 var mpPoll = POLLS[changedIdx];
                                 mpPoll = Object.assign({}, mpPoll, { opts: mpPoll.opts.slice(), votes: mpPoll.votes.slice() });
                                 fetchMiniPollVotes(mpPoll, changedIdx).then(function() {
-                                    var localVoted = localStorage.getItem('poll_voted_' + changedIdx);
-                                    var alreadyVoted = localVoted !== null ? parseInt(localVoted) : null;
-                                    if (alreadyVoted !== null) {
-                                        renderMiniPollResults(card, mpPoll, alreadyVoted, changedIdx, shareUrl);
-                                    } else {
-                                        var countEl = card.querySelector('.mini-poll__count');
-                                        updateMiniPollCount(countEl, mpPoll, changedIdx);
-                                    }
+                                    checkPollVoteDB(changedIdx).then(function(votedIdx) {
+                                        if (votedIdx !== null) {
+                                            renderMiniPollResults(card, mpPoll, votedIdx, changedIdx, shareUrl);
+                                        } else {
+                                            var countEl = card.querySelector('.mini-poll__count');
+                                            updateMiniPollCount(countEl, mpPoll, changedIdx);
+                                        }
+                                    });
                                 });
                             }
                         }
