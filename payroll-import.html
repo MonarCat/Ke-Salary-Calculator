@@ -417,8 +417,8 @@
             const { data: { user } } = await window.supabaseClient.auth.getUser();
             if (!user) { showAuthPrompt(); return; }
             const { data: profile } = await window.supabaseClient
-                .from('user_profiles').select('is_premium,premium_expires_at').eq('id', user.id).single();
-            const isPremium = profile?.is_premium &&
+                .from('user_profiles').select('premium,premium_expires_at').eq('id', user.id).single();
+            const isPremium = profile?.premium &&
                 (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
             if (!isPremium) { showUpgradePrompt(); return; }
             document.getElementById('wizard-area').style.display = 'block';

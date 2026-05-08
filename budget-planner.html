@@ -441,8 +441,8 @@
                 currentUser = user;
                 if (user) {
                     const { data: profile } = await window.supabaseClient
-                        .from('user_profiles').select('is_premium,premium_expires_at,account_type').eq('id', user.id).single();
-                    isPremium = profile?.is_premium && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
+                        .from('user_profiles').select('premium,premium_expires_at,account_type').eq('id', user.id).single();
+                    isPremium = profile?.premium && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
 
                     if (profile?.account_type === 'organization') {
                         document.getElementById('main-content').innerHTML =
@@ -641,6 +641,12 @@
             });
         }
 
+        function getBudgetMonthDate(monthValue) {
+            return /^\d{4}-\d{2}$/.test(String(monthValue || ''))
+                ? `${monthValue}-01`
+                : monthValue;
+        }
+
         // ── Save budget ────────────────────────────────────────────────────
         async function saveBudget() {
             await refreshCurrentUser();
@@ -651,6 +657,7 @@
             const gross = parseFloat(document.getElementById('grossInput').value) || 0;
             const budgetMonth = document.getElementById('budgetMonth').value;
             if (!budgetMonth) { alert('Please select a budget month.'); return; }
+            const budgetMonthDate = getBudgetMonthDate(budgetMonth);
 
             // Check free tier limit (1 saved budget)
             if (!isPremium) {
@@ -669,7 +676,7 @@
                 helb: parseFloat(document.getElementById('extraDeductions').value) || 0
             });
             const { data: budget, error } = await window.supabaseClient.from('user_budgets').upsert({
-                user_id: currentUser.id, budget_month: budgetMonth,
+                user_id: currentUser.id, budget_month: budgetMonthDate,
                 gross_salary: gross,
                 net_salary: net,
                 paye: grossCalc.paye,

@@ -27,6 +27,21 @@ import { createClient } from "@supabase/supabase-js";
 
 const PAYSTACK_VERIFY_URL = "https://api.paystack.co/transaction/verify";
 
+const PLAN_DURATION_DAYS = {
+  monthly: 30,
+  yearly: 365,
+};
+
+function getPremiumExpiry(plan, currentExpiry) {
+  const durationDays = PLAN_DURATION_DAYS[plan] ?? PLAN_DURATION_DAYS.monthly;
+  const now = new Date();
+  const existingExpiry = currentExpiry ? new Date(currentExpiry) : null;
+  const baseDate = existingExpiry && existingExpiry > now ? existingExpiry : now;
+  const result = new Date(baseDate);
+  result.setDate(result.getDate() + durationDays);
+  return result;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, message: "Method Not Allowed" });
@@ -95,12 +110,14 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, message: "Activation pending sign-up" });
   }
 
-  const expiresAt = new Date();
-  if (plan === "yearly") {
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-  } else {
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
-  }
+  const { data: currentProfile } = await supabase
+    .from("user_profiles")
+    .select("premium_expires_at")
+    .eq("id", authRow.id)
+    .maybeSingle();
+
+  const activatedAt = new Date();
+  const expiresAt = getPremiumExpiry(plan, currentProfile?.premium_expires_at || null);
 
   // Upsert transaction record
   await supabase
@@ -121,14 +138,15 @@ export default async function handler(req, res) {
   // Activate premium
   const { error } = await supabase
     .from("user_profiles")
-    .update({
+    .upsert({
+      id:                   authRow.id,
       premium:              true,
       premium_expires_at:   expiresAt.toISOString(),
       premium_source:       "paystack",
-      premium_activated_at: new Date().toISOString(),
+      premium_activated_at: activatedAt.toISOString(),
       paystack_reference:   reference,
-    })
-    .eq("id", authRow.id);
+      updated_at:           activatedAt.toISOString(),
+    }, { onConflict: "id" });
 
   if (error) {
     console.error("[Paystack Verify] DB update error:", error);

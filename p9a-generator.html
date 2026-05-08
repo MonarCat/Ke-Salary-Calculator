@@ -314,8 +314,8 @@
             if (!user) { showAuthPrompt(); return; }
             currentUser = user;
             const { data: profile } = await window.supabaseClient
-                .from('user_profiles').select('is_premium,premium_expires_at').eq('id', user.id).single();
-            const isPremium = profile?.is_premium &&
+                .from('user_profiles').select('premium,premium_expires_at').eq('id', user.id).single();
+            const isPremium = profile?.premium &&
                 (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
             if (!isPremium) { showUpgradePrompt(); return; }
 

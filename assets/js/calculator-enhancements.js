@@ -22,7 +22,7 @@ import { createClient }       from "https://cdn.jsdelivr.net/npm/@supabase/supab
 
 // ── Supabase client ───────────────────────────────────────────────────────────
 // Remove this block if you already initialise supabase globally.
-const SUPABASE_URL      = "https://wklhcmaodxatavuoduhd.supabase.co";
+const SUPABASE_URL      = "https://wznopthjoaqusalqoyru.supabase.co";
 const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY || "";
 const supabase          = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
