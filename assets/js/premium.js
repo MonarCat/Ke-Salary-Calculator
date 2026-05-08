@@ -1,12 +1,7 @@
 /**
  * /assets/js/premium.js
  *
- * Premium status check and UI gate.
- * Payment provider: Paystack
- *
- * PRICING — charged in KES via Paystack:
- *   Monthly : KES 99  / month
- *   Yearly  : KES 999 / year  (saves KES 189 vs monthly)
+ * Premium status check and auth gate helpers.
  *
  * ENV required (set via window.__PAYSTACK_PUBLIC_KEY in your HTML head):
  *   window.__PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxx";
@@ -24,10 +19,10 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 // Easter 2026 Holiday Promotion — free premium access for all users until end of April 2026 (EAT, UTC+3).
 export const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
 
-// Pricing in KES (Paystack Kenya native currency)
-export const PRICE_MONTHLY_KES = 99;
-export const PRICE_YEARLY_KES  = 999;
-export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES; // 189
+// Legacy pricing constants retained for compatibility with older imports.
+export const PRICE_MONTHLY_KES = 0;
+export const PRICE_YEARLY_KES  = 0;
+export const PRICE_SAVINGS_KES = (PRICE_MONTHLY_KES * 12) - PRICE_YEARLY_KES;
 
 export const SITE_URL         = "https://salarycalculator.co.ke";
 export const PAYSTACK_WEBHOOK = `${SITE_URL}/api/paystack-webhook`;
@@ -170,55 +165,10 @@ function loadPaystack() {
  * @param {{ plan: 'monthly'|'yearly', email: string, onSuccess: Function, onClose?: Function }} opts
  */
 export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, onClose }) {
-  await loadPaystack();
-
-  const publicKey = window.__PAYSTACK_PUBLIC_KEY;
-  if (!publicKey) {
-    console.error("[Paystack] window.__PAYSTACK_PUBLIC_KEY is not set.");
-    alert("Payment configuration missing. Please contact support.");
-    return;
-  }
-
-  const isYearly = plan === "yearly";
-  const amount   = isYearly ? PRICE_YEARLY_KES  : PRICE_MONTHLY_KES;
-  // Read plan codes from window variables (set in HTML head); fall back to module constants
-  const planCode = isYearly
-    ? (window.__PAYSTACK_PLAN_YEARLY  || PLAN_CODE_YEARLY)
-    : (window.__PAYSTACK_PLAN_MONTHLY || PLAN_CODE_MONTHLY);
-  const label    = isYearly ? "1-Year Premium"   : "Monthly Premium";
-
-  // Generate a unique reference
-  const ref = `SC-${plan.toUpperCase()}-${Date.now()}`;
-
-  const config = {
-    key:      publicKey,
-    email:    email || "",
-    amount:   amount * 100,        // Paystack amounts are in kobo/cents × 100
-    currency: "KES",
-    ref,
-    label:    `SalaryCalculator.co.ke — ${label}`,
-    metadata: {
-      custom_fields: [
-        { display_name: "Plan",    variable_name: "plan",    value: plan },
-        { display_name: "Product", variable_name: "product", value: "salarycalculator_premium" },
-      ],
-    },
-    callback: function (response) {
-      // response.reference is the transaction reference to verify server-side
-      onSuccess && onSuccess(response);
-      // Optionally verify immediately
-      _verifyPaystackTransaction(response.reference);
-    },
-    onClose: function () {
-      onClose && onClose();
-    },
-  };
-
-  // If you've set up recurring plans in Paystack dashboard, add plan code:
-  if (planCode) config.plan = planCode;
-
-  const handler = window.PaystackPop.setup(config);
-  handler.openIframe();
+  console.info("[Premium] Checkout is disabled. Features are now free.");
+  invalidatePremiumCache();
+  onSuccess && onSuccess({ reference: null, plan, email: email || null });
+  onClose && onClose();
 }
 
 /**
@@ -246,80 +196,7 @@ async function _verifyPaystackTransaction(reference) {
 // ── Premium gate UI ───────────────────────────────────────────────────────────
 
 export function showPremiumGate(elementId, message = "This is a Premium feature") {
-  const el = document.getElementById(elementId);
-  if (!el) return;
-  el.style.position = "relative";
-  el.style.overflow = "hidden";
-  if (el.querySelector(".sc-premium-gate")) return;
-
-  const gate = document.createElement("div");
-  gate.className = "sc-premium-gate";
-  gate.setAttribute("aria-label", "Premium feature locked");
-  gate.innerHTML = `
-    <div class="sc-premium-gate__inner">
-      <div class="sc-premium-gate__icon">🔒</div>
-      <h3 class="sc-premium-gate__title">${message}</h3>
-      <p class="sc-premium-gate__body">
-        Unlock all premium features from just <strong>KES ${PRICE_MONTHLY_KES}/month</strong>.
-      </p>
-
-      <div class="sc-premium-gate__pricing">
-        <div class="sc-price-card sc-price-card--monthly">
-          <span class="sc-price-card__label">Monthly</span>
-          <span class="sc-price-card__amount">KES ${PRICE_MONTHLY_KES}</span>
-          <span class="sc-price-card__period">/ month</span>
-        </div>
-        <div class="sc-price-card sc-price-card--yearly sc-price-card--best">
-          <span class="sc-price-card__badge">Best Value</span>
-          <span class="sc-price-card__label">Yearly</span>
-          <span class="sc-price-card__amount">KES ${PRICE_YEARLY_KES}</span>
-          <span class="sc-price-card__period">/ year</span>
-          <span class="sc-price-card__saving">Save KES ${PRICE_SAVINGS_KES}</span>
-        </div>
-      </div>
-
-      <div class="sc-premium-gate__actions">
-        <button class="sc-btn sc-btn--primary" data-paystack-plan="yearly" data-gate-id="${elementId}">
-          💳 Upgrade — KES ${PRICE_YEARLY_KES}/year
-        </button>
-        <button class="sc-btn sc-btn--outline" data-paystack-plan="monthly" data-gate-id="${elementId}">
-          Pay Monthly — KES ${PRICE_MONTHLY_KES}/mo
-        </button>
-        <a href="/contact-us" class="sc-btn sc-btn--ghost">
-          Need help? Contact us →
-        </a>
-      </div>
-
-      <p class="sc-premium-gate__includes">
-        ✅ M-Pesa &amp; Card &nbsp;·&nbsp;
-        ✅ PDF payslip &nbsp;·&nbsp;
-        ✅ Bulk export &nbsp;·&nbsp;
-        ✅ Ad-free &nbsp;·&nbsp;
-        ✅ Saved history
-      </p>
-    </div>
-  `;
-
-  const blur = document.createElement("div");
-  blur.className = "sc-premium-gate__blur";
-  el.appendChild(blur);
-  el.appendChild(gate);
-
-  // Wire up Paystack buttons inside this gate
-  gate.querySelectorAll("[data-paystack-plan]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const email = window.__SC_USER_EMAIL;
-      if (!email) {
-        _showEmailCapture(btn.dataset.paystackPlan, elementId);
-        return;
-      }
-      openPaystackCheckout({
-        plan:      btn.dataset.paystackPlan,
-        email,
-        onSuccess: () => { hidePremiumGate(elementId); invalidatePremiumCache(); },
-      });
-    });
-  });
+  _showSignInNudge(elementId);
 }
 
 /**
@@ -400,12 +277,8 @@ export function showEmailCapture(plan, onEmail) {
 
 // Internal alias used by showPremiumGate / gateFeature
 function _showEmailCapture(plan, gateElementId) {
-  showEmailCapture(plan, (email) => {
-    openPaystackCheckout({
-      plan,
-      email,
-      onSuccess: () => { hidePremiumGate(gateElementId); invalidatePremiumCache(); },
-    });
+  showEmailCapture(plan, () => {
+    hidePremiumGate(gateElementId);
   });
 }
 
@@ -420,9 +293,9 @@ export function hidePremiumGate(elementId) {
 
 export async function gateFeature(supabase, elementId, message) {
   const status = await checkPremium(supabase);
-  if (status.isPremium) { hidePremiumGate(elementId); return true; }
+  hidePremiumGate(elementId);
 
-  // Expose email for Paystack popup
+  // Expose email for compatibility with existing auth-aware flows.
   if (status.email) window.__SC_USER_EMAIL = status.email;
 
   if (!status.isLoggedIn) {
@@ -430,8 +303,7 @@ export async function gateFeature(supabase, elementId, message) {
     return false;
   }
 
-  showPremiumGate(elementId, message);
-  return false;
+  return true;
 }
 
 function _showSignInNudge(elementId) {
