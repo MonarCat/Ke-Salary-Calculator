@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="assets/js/vendor/html2pdf.bundle.min.js"></script>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -589,10 +589,18 @@
         function createP9APrintView() {
             const wrapper = document.createElement('div');
             wrapper.style.padding = '8mm';
-            wrapper.innerHTML = `
-                <h2 style="margin:0 0 8px;text-align:center;">KRA P9A — Annual Employee Tax Deduction Card</h2>
-                <p style="margin:0 0 10px;text-align:center;">Tax Year: ${document.getElementById('taxYearSelect').value || ''}</p>
-            `;
+            const title = document.createElement('h2');
+            title.style.margin = '0 0 8px';
+            title.style.textAlign = 'center';
+            title.textContent = 'KRA P9A — Annual Employee Tax Deduction Card';
+
+            const subtitle = document.createElement('p');
+            subtitle.style.margin = '0 0 10px';
+            subtitle.style.textAlign = 'center';
+            subtitle.textContent = 'Tax Year: ' + (document.getElementById('taxYearSelect').value || '');
+
+            wrapper.appendChild(title);
+            wrapper.appendChild(subtitle);
 
             const table = document.getElementById('p9aTable').cloneNode(true);
             table.querySelectorAll('input').forEach((input) => {
