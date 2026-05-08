@@ -230,7 +230,7 @@ export function showEmailCapture(plan, onEmail) {
         Enter your email to continue
       </h3>
       <p style="margin:0 0 16px;font-size:0.88rem;color:#475569;">
-        We'll use this to activate your subscription.
+        We'll use this to link your account access.
       </p>
       <input id="sc-email-capture-input" type="email" autocomplete="email"
         placeholder="you@example.com"
