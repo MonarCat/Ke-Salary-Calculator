@@ -7,7 +7,7 @@ const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth ca
 let turnstileLoginWidgetId = null;
 let turnstileSignupWidgetId = null;
 
-const VERIFY_TURNSTILE_ENDPOINT = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/verify-turnstile';
+const VERIFY_TURNSTILE_ENDPOINT = `${(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/verify-turnstile`;
 const TURNSTILE_RESPONSE_FIELD_SELECTOR = '[name="cf-turnstile-response"]';
 
 function resetTurnstile(widgetType) {
@@ -36,9 +36,7 @@ async function verifyTurnstileToken(token) {
 
 // Called by the Turnstile script once it has loaded (onload=onTurnstileLoad)
 function onTurnstileLoad() {
-    const missingSiteKey = typeof TURNSTILE_SITE_KEY === 'undefined' ||
-        !TURNSTILE_SITE_KEY ||
-        TURNSTILE_SITE_KEY === 'REPLACE_WITH_TURNSTILE_SITE_KEY';
+    const missingSiteKey = typeof TURNSTILE_SITE_KEY === 'undefined' || !TURNSTILE_SITE_KEY;
 
     if (missingSiteKey) {
         console.warn('TURNSTILE_SITE_KEY is not configured. Turnstile widgets will not be rendered.');

@@ -50,7 +50,7 @@ serve(async (req: Request) => {
     const cfData = await cfResponse.json();
 
     return new Response(
-      JSON.stringify({ success: cfData.success, error_codes: cfData["error-codes"] ?? [] }),
+      JSON.stringify({ success: cfData.success, errorCodes: cfData["error-codes"] ?? [] }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
