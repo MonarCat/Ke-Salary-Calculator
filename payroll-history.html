@@ -333,11 +333,15 @@
             <div class="nav-dropdown">
                 <span class="nav-dropdown-toggle">Calculators <i class="fas fa-chevron-down"></i></span>
                 <div class="nav-dropdown-menu">
-                    <a href="/calculator.html">Salary Calculator</a>
-                    <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                    <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                    <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                </div>
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/budget-planner.html">Budget Planner</a>
+                    </div>
             </div>
             <a href="/employees.html">Manage Employees</a>
             <a href="/payroll-report.html">Payroll Report</a>
@@ -454,6 +458,7 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/plan-features.js?v=1.0"></script>
     <script src="/assets/js/disclaimer-banner.js"></script>
     <script>
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -518,6 +523,7 @@
     // ── State ─────────────────────────────────────────────────────────────────
     var currentUser = null;
     var reportData  = null; // { months: [{ym, label, rows, totals}], grandTotal, kraRows }
+    var isPersonalMode = false;
 
     // ── Access check ──────────────────────────────────────────────────────────
     async function init() {
@@ -530,27 +536,12 @@
         }
         currentUser = user;
 
-        // Easter 2026 Holiday Promotion — free premium access for all signed-in users until end of April 2026.
-        const EASTER_FREE_UNTIL = new Date("2026-04-30T23:59:59+03:00");
-        const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
-
-        // Premium check
-        let isPremium = duringEaster; // all logged-in users are premium during Easter
-        if (!isPremium && typeof supabaseClient !== 'undefined' && supabaseClient && isSupabaseConfigured()) {
-            try {
-                const { data: profile } = await supabaseClient
-                    .from('user_profiles')
-                    .select('premium, premium_expires_at')
-                    .eq('id', user.id)
-                    .maybeSingle();
-                if (profile && profile.premium === true) {
-                    const exp = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
-                    isPremium = !exp || exp > new Date();
-                }
-            } catch(e) { /* ignore — fail open if DB is unreachable */ }
-        }
-
-        if (!isPremium) {
+        const plan = (typeof getCurrentUserPlan === 'function') ? await getCurrentUserPlan() : 'free';
+        isPersonalMode = new URLSearchParams(window.location.search).get('mode') === 'personal' || plan === 'premium_personal';
+        const allowed = (typeof canAccess === 'function')
+            ? (isPersonalMode ? (canAccess('personalPayslipHistory', plan) || canAccess('payrollHistory', plan)) : canAccess('payrollHistory', plan))
+            : false;
+        if (!allowed) {
             document.getElementById('premium-gate').style.display = 'block';
             return;
         }
@@ -565,11 +556,17 @@
         document.getElementById('ph-from').value = fromYM;
         document.getElementById('ph-to').value   = toYM;
 
-        // Populate department filter
-        populateDeptFilter();
+        // Populate department filter for organisation mode
+        if (isPersonalMode) {
+            document.getElementById('ph-dept').closest('.ph-filter-group').style.display = 'none';
+            document.querySelector('.ph-page-header h2').innerHTML = '<i class="fas fa-history"></i> My Payslip History';
+            document.querySelector('.ph-page-header p').textContent = 'Your personal month-by-month payslip history.';
+        } else {
+            populateDeptFilter();
+        }
 
         // Auto-generate on load
-        generateHistory();
+        await generateHistory();
     }
 
     function getEmployees() {
@@ -591,7 +588,7 @@
     }
 
     // ── Report generation ─────────────────────────────────────────────────────
-    function generateHistory() {
+    async function generateHistory() {
         const fromYM = document.getElementById('ph-from').value;
         const toYM   = document.getElementById('ph-to').value;
         const deptFilter = document.getElementById('ph-dept').value;
@@ -613,6 +610,12 @@
 
         document.getElementById('ph-gen-note').textContent = '✅ Report generated for ' + months.length + ' month(s).';
         document.getElementById('ph-gen-btn').disabled = true;
+
+        if (isPersonalMode) {
+            await generatePersonalHistory(fromYM, toYM);
+            document.getElementById('ph-gen-btn').disabled = false;
+            return;
+        }
 
         let allEmps = getEmployees().filter(e => e.status !== 'Terminated');
         if (deptFilter) allEmps = allEmps.filter(e => e.department === deptFilter);
@@ -677,6 +680,83 @@
 
         renderReport(reportData);
         document.getElementById('ph-gen-btn').disabled = false;
+    }
+
+    async function generatePersonalHistory(fromYM, toYM) {
+        if (!(typeof supabaseClient !== 'undefined' && supabaseClient)) {
+            document.getElementById('ph-report-body').innerHTML = '<div class="ph-empty"><p>Personal history requires an online session.</p></div>';
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('payroll_history')
+                .select('pay_period,gross_pay,paye,nssf,shif,housing_levy,net_pay')
+                .eq('user_id', currentUser.id)
+                .gte('pay_period', fromYM)
+                .lte('pay_period', toYM)
+                .order('pay_period', { ascending: true });
+
+            if (error) throw error;
+
+            const rows = data || [];
+            if (!rows.length) {
+                document.getElementById('ph-report-body').innerHTML = '<div class="ph-empty"><p>No personal payslip history found for this range.</p></div>';
+                document.getElementById('ph-summary-grid').style.display = 'none';
+                document.getElementById('ph-export-bar').style.display = 'none';
+                document.getElementById('ph-kra-section').style.display = 'none';
+                return;
+            }
+
+            const grouped = rows.reduce((acc, r) => {
+                const k = r.pay_period || 'Unknown';
+                if (!acc[k]) acc[k] = { gross: 0, paye: 0, nssf: 0, shif: 0, ahl: 0, net: 0, count: 0 };
+                acc[k].gross += Number(r.gross_pay || 0);
+                acc[k].paye += Number(r.paye || 0);
+                acc[k].nssf += Number(r.nssf || 0);
+                acc[k].shif += Number(r.shif || 0);
+                acc[k].ahl += Number(r.housing_levy || 0);
+                acc[k].net += Number(r.net_pay || 0);
+                acc[k].count += 1;
+                return acc;
+            }, {});
+
+            const months = Object.keys(grouped).sort();
+            const total = months.reduce((a, k) => {
+                const m = grouped[k];
+                a.gross += m.gross; a.paye += m.paye; a.nssf += m.nssf; a.shif += m.shif; a.ahl += m.ahl; a.net += m.net;
+                return a;
+            }, { gross: 0, paye: 0, nssf: 0, shif: 0, ahl: 0, net: 0 });
+
+            document.getElementById('ph-summary-grid').style.display = 'grid';
+            document.getElementById('ph-summary-grid').innerHTML = `
+                <div class="ph-stat-card"><div class="ph-stat-label">Months</div><div class="ph-stat-value">${months.length}</div></div>
+                <div class="ph-stat-card"><div class="ph-stat-label">Gross</div><div class="ph-stat-value">${fmtKES(total.gross)}</div></div>
+                <div class="ph-stat-card"><div class="ph-stat-label">PAYE</div><div class="ph-stat-value">${fmtKES(total.paye)}</div></div>
+                <div class="ph-stat-card"><div class="ph-stat-label">Net</div><div class="ph-stat-value">${fmtKES(total.net)}</div></div>`;
+
+            document.getElementById('ph-report-body').innerHTML = `
+                <div class="ph-month-section">
+                    <div class="ph-month-title"><span><i class="fas fa-user"></i> Personal Payroll History</span></div>
+                    <div class="ph-table-wrap">
+                        <table class="ph-table">
+                            <thead><tr><th>Month</th><th>Records</th><th>Gross</th><th>PAYE</th><th>NSSF</th><th>SHIF</th><th>Housing Levy</th><th>Net</th></tr></thead>
+                            <tbody>
+                                ${months.map((k) => {
+                                    const m = grouped[k];
+                                    return `<tr><td>${k}</td><td>${m.count}</td><td>${fmtKES(m.gross)}</td><td>${fmtKES(m.paye)}</td><td>${fmtKES(m.nssf)}</td><td>${fmtKES(m.shif)}</td><td>${fmtKES(m.ahl)}</td><td>${fmtKES(m.net)}</td></tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+
+            document.getElementById('ph-export-bar').style.display = 'flex';
+            document.getElementById('ph-kra-section').style.display = 'none';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('ph-report-body').innerHTML = '<div class="ph-empty"><p>Could not load personal payslip history.</p></div>';
+        }
     }
 
     function renderReport(data) {

@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/vendor/html2pdf.bundle.min.js"></script>
     <style>
         .employees-container {
             max-width: 1200px;
@@ -360,7 +361,7 @@
         }
         @media print {
             body > * { display: none !important; }
-            #ps-payslip-output { display: block !important; }
+            #payslip-document { display: block !important; }
             .no-print { display: none !important; }
             #ps-payslip-modal {
                 position: static !important;
@@ -403,6 +404,10 @@
                         <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
                         <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                         <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/budget-planner.html">Budget Planner</a>
                     </div>
                 </div>
                 
@@ -489,9 +494,6 @@
                         </div>
                     </div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px;">
-                        <a href="/reverse-salary-calculator.html" class="add-employee-btn" style="text-decoration:none;background:#f0f7f0;color:#006600;">
-                            <i class="fas fa-rotate-left"></i> Reverse Calculator
-                        </a>
                         <a href="/payroll-import.html" class="add-employee-btn" style="text-decoration:none;background:#f0f7f0;color:#006600;">
                             <i class="fas fa-file-import"></i> Payroll Import
                         </a>
@@ -704,141 +706,176 @@
 
             <!-- Inline Payslip Modal -->
             <div id="ps-payslip-modal" class="modal">
-                <div class="modal-content" style="max-width:860px; padding:24px 28px;">
+                <div class="modal-content" style="max-width:1200px; padding:24px 28px;">
                     <div class="modal-header">
                         <h3><i class="fas fa-file-invoice"></i> Generate Payslip</h3>
                         <span class="close-modal" onclick="closePayslipModal()" aria-label="Close">&times;</span>
                     </div>
 
-                    <!-- Quick inputs above the payslip -->
-                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;">
-                        <div class="form-group" style="flex:1;min-width:160px;margin:0;">
-                            <label for="ps-pay-period" style="font-size:0.85em;"><i class="fas fa-calendar"></i> Pay Period</label>
-                            <input type="text" id="ps-pay-period" placeholder="e.g. March 2026" oninput="updatePsPayPeriod()" style="width:100%;">
+                    <div class="payslip-controls no-print" style="border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Pay Period *</label>
+                                <input type="month" id="ps-pay-period" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Pay Date</label>
+                                <input type="date" id="ps-pay-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Payslip No.</label>
+                                <input type="text" id="ps-payslip-no" placeholder="e.g. PS-001">
+                            </div>
+                            <div class="form-group">
+                                <label>Basic Salary (KES)</label>
+                                <input type="number" id="ps-basic-salary" min="0" placeholder="Auto from employee">
+                            </div>
                         </div>
-                        <div class="form-group" style="flex:1;min-width:160px;margin:0;">
-                            <label for="ps-payslip-number" style="font-size:0.85em;"><i class="fas fa-hashtag"></i> Payslip No.</label>
-                            <input type="text" id="ps-payslip-number" placeholder="PSL-001" oninput="updatePsPayslipNumber()" style="width:100%;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>House Allowance (KES)</label>
+                                <input type="number" id="ps-house-allowance" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Transport Allowance (KES)</label>
+                                <input type="number" id="ps-transport-allowance" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Other Allowances (KES)</label>
+                                <input type="number" id="ps-other-allowances" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>SACCO Loan (KES)</label>
+                                <input type="number" id="ps-sacco" min="0" value="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Pension Scheme (KES)</label>
+                                <input type="number" id="ps-pension" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Insurance Premium (KES)</label>
+                                <input type="number" id="ps-insurance" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Other Deduction (KES)</label>
+                                <input type="number" id="ps-other-deduction" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Other Deduction Label</label>
+                                <input type="text" id="ps-other-deduction-label" placeholder="e.g. Loan Repayment">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+                            <button class="add-employee-btn" onclick="generatePayslipPreview()">⟳ Generate Preview</button>
+                            <button class="add-employee-btn" style="background:#374151" onclick="printPayslip()">🖨️ Print</button>
+                            <button class="add-employee-btn" style="background:#065f46" onclick="downloadPayslipPDF()">⬇ Download PDF</button>
                         </div>
                     </div>
-                    <details style="margin-bottom:14px;">
-                        <summary style="cursor:pointer;color:#006600;font-weight:600;font-size:0.9em;padding:4px 0;">
-                            <i class="fas fa-plus-circle"></i> Optional Deductions (SACCO, Pension, Insurance)
-                        </summary>
-                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-                            <div class="form-group" style="flex:1;min-width:140px;margin:0;">
-                                <label style="font-size:0.82em;">SACCO Loan (KES)</label>
-                                <input type="number" id="ps-sacco-deduction-input" placeholder="0.00" min="0" oninput="document.getElementById('ps-sacco-deduction').value=this.value;updatePsDeductions();" style="width:100%;">
-                            </div>
-                            <div class="form-group" style="flex:1;min-width:140px;margin:0;">
-                                <label style="font-size:0.82em;">Pension Scheme (KES)</label>
-                                <input type="number" id="ps-pension-deduction-input" placeholder="0.00" min="0" oninput="document.getElementById('ps-pension-deduction').value=this.value;updatePsDeductions();" style="width:100%;">
-                            </div>
-                            <div class="form-group" style="flex:1;min-width:140px;margin:0;">
-                                <label style="font-size:0.82em;">Insurance Premium (KES)</label>
-                                <input type="number" id="ps-insurance-deduction-input" placeholder="0.00" min="0" oninput="document.getElementById('ps-insurance-deduction').value=this.value;updatePsDeductions();" style="width:100%;">
-                            </div>
-                        </div>
-                    </details>
 
-                    <!-- Payslip Output -->
-                    <div class="payslip-container" id="ps-payslip-output" style="margin-top:0;">
-                        <div class="payslip-header">
-                            <div class="company-branding">
-                                <div class="logo-placeholder">
-                                    <input type="file" id="ps-logo-upload" accept="image/*" style="display:none;" onchange="handlePsLogoUpload()">
-                                    <button onclick="document.getElementById('ps-logo-upload').click()" class="no-print">Upload<br>Logo</button>
-                                    <img id="ps-company-logo" src="" style="display:none;max-width:80px;max-height:80px;" alt="Company logo">
-                                </div>
-                                <div class="company-info">
-                                    <input type="text" id="ps-company-name" placeholder="Organization Name" class="company-name-input">
-                                    <input type="text" id="ps-company-address" placeholder="P.O. Box, City" class="company-detail-input">
-                                    <input type="text" id="ps-company-kra" placeholder="P012345678N" class="company-detail-input">
-                                    <input type="text" id="ps-company-contacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.co.ke" class="company-detail-input">
-                                </div>
+                    <div id="payslip-document" class="payslip-a4" style="width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:15mm 15mm 10mm;border:1px solid #ddd;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:11px;color:#1a1a1a;">
+                        <div class="ps-header" style="display:flex;align-items:flex-start;gap:16px;border-bottom:3px solid #2D6A4F;padding-bottom:12px;margin-bottom:10px;">
+                            <div class="ps-logo-block" style="flex:0 0 80px;">
+                                <img id="ps-company-logo" src="" alt="" style="max-height:70px;display:none;">
                             </div>
-                            <h2 id="ps-payslip-title">PAYSLIP</h2>
-                            <div class="payslip-meta">
-                                <div class="meta-item">
-                                    <span>Pay Period:</span>
-                                    <span id="ps-slip-period"></span>
-                                </div>
-                                <div class="meta-item">
-                                    <span>Payslip No:</span>
-                                    <span id="ps-slip-payslip-number"></span>
-                                </div>
+                            <div class="ps-company-info" style="flex:1;">
+                                <h1 id="ps-company-name" style="font-size:18px;font-weight:700;color:#2D6A4F;margin:0 0 4px;"></h1>
+                                <p id="ps-company-address" style="margin:1px 0;color:#555;font-size:10px;"></p>
+                                <p id="ps-company-contacts" style="margin:1px 0;color:#555;font-size:10px;"></p>
+                            </div>
+                            <div class="ps-company-reg" style="text-align:right;font-size:10px;">
+                                <p><strong>KRA PIN:</strong> <span id="ps-company-kra"></span></p>
+                                <p><strong>NSSF No:</strong> <span id="ps-company-nssf"></span></p>
+                                <p><strong>SHIF No:</strong> <span id="ps-company-shif"></span></p>
                             </div>
                         </div>
 
-                        <div class="payslip-body">
-                            <div style="margin-bottom:20px;padding:15px;background:#f9f9f9;border-radius:5px;">
-                                <div class="detail-row">
-                                    <span>Employee Name:</span>
-                                    <span id="ps-emp-name" class="detail-value"></span>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Employee No:</span>
-                                    <span id="ps-emp-id" class="detail-value"></span>
-                                </div>
-                                <div class="detail-row">
-                                    <span>KRA PIN:</span>
-                                    <span id="ps-emp-pin" class="detail-value"></span>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Department:</span>
-                                    <span id="ps-emp-department" class="detail-value"></span>
-                                </div>
-                            </div>
+                        <div class="ps-title-bar" style="background:#2D6A4F;color:#fff;font-size:14px;font-weight:700;letter-spacing:2px;padding:6px 12px;display:flex;justify-content:space-between;margin-bottom:10px;border-radius:3px;">
+                            <span>PAYSLIP</span>
+                            <span id="ps-display-period"></span>
+                        </div>
 
-                            <div class="earnings-deductions">
-                                <div class="earnings-section">
-                                    <h3>EARNINGS</h3>
-                                    <table class="payslip-table">
-                                        <tr><th>Description</th><th>Amount (KES)</th></tr>
-                                        <tr><td>Basic Salary</td><td id="ps-slip-gross"></td></tr>
-                                    </table>
-                                </div>
-                                <div class="deductions-section">
-                                    <h3>DEDUCTIONS</h3>
-                                    <table class="payslip-table">
-                                        <tr><th>Description</th><th>Amount (KES)</th></tr>
-                                        <tr><td>PAYE</td><td id="ps-slip-paye"></td></tr>
-                                        <tr><td>NSSF</td><td id="ps-slip-nssf"></td></tr>
-                                        <tr><td>SHIF</td><td id="ps-slip-shif"></td></tr>
-                                        <tr><td>Housing Levy</td><td id="ps-slip-ahl"></td></tr>
-                                        <tr><td>Loan Deduction</td><td><input type="number" id="ps-loan-deduction-slip" placeholder="0.00" class="editable-field" oninput="updatePsDeductions();"></td></tr>
-                                        <tr id="ps-sacco-row" style="display:none;"><td>SACCO Loan</td><td><input type="number" id="ps-sacco-deduction" placeholder="0.00" class="editable-field" oninput="updatePsDeductions();"></td></tr>
-                                        <tr id="ps-pension-row" style="display:none;"><td>Pension Scheme</td><td><input type="number" id="ps-pension-deduction" placeholder="0.00" class="editable-field" oninput="updatePsDeductions();"></td></tr>
-                                        <tr id="ps-insurance-row" style="display:none;"><td>Insurance Premium</td><td><input type="number" id="ps-insurance-deduction" placeholder="0.00" class="editable-field" oninput="updatePsDeductions();"></td></tr>
-                                    </table>
-                                </div>
-                            </div>
+                        <div class="ps-employee-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;background:#f8f9fa;padding:8px;border-radius:4px;border:1px solid #e0e0e0;">
+                            <div class="ps-info-block"><table class="ps-info-table" style="width:100%;font-size:10px;">
+                                <tr><td>Employee Name</td><td id="ps-emp-name"></td></tr>
+                                <tr><td>Employee No.</td><td id="ps-emp-no"></td></tr>
+                                <tr><td>KRA PIN</td><td id="ps-emp-kra"></td></tr>
+                                <tr><td>NSSF No.</td><td id="ps-emp-nssf">—</td></tr>
+                            </table></div>
+                            <div class="ps-info-block"><table class="ps-info-table" style="width:100%;font-size:10px;">
+                                <tr><td>Department</td><td id="ps-emp-dept"></td></tr>
+                                <tr><td>Designation</td><td id="ps-emp-position"></td></tr>
+                                <tr><td>Pay Date</td><td id="ps-pay-date-display"></td></tr>
+                                <tr><td>Payslip No.</td><td id="ps-payslip-no-display"></td></tr>
+                            </table></div>
+                            <div class="ps-info-block"><table class="ps-info-table" style="width:100%;font-size:10px;">
+                                <tr><td>Bank</td><td id="ps-emp-bank"></td></tr>
+                                <tr><td>Account</td><td id="ps-emp-account"></td></tr>
+                                <tr><td>Branch</td><td id="ps-emp-branch"></td></tr>
+                            </table></div>
+                        </div>
 
-                            <div class="summary-section">
-                                <table class="summary-table">
-                                    <tr><th>TOTAL EARNINGS</th><td id="ps-slip-gross-summary"></td></tr>
-                                    <tr><th>TOTAL DEDUCTIONS</th><td id="ps-slip-deductions-summary"></td></tr>
-                                    <tr class="net-pay-row"><th>NET PAY</th><td id="ps-slip-net"></td></tr>
+                        <div class="ps-body-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                            <div class="ps-section">
+                                <div style="font-size:11px;font-weight:700;padding:4px 8px;border-radius:3px 3px 0 0;color:#fff;background:#2D6A4F;">EARNINGS</div>
+                                <table class="ps-table" style="width:100%;font-size:10px;border-collapse:collapse;">
+                                    <thead><tr><th>Description</th><th>Amount (KES)</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Basic Salary</td><td id="ps-r-basic" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-house"><td>House Allowance</td><td id="ps-r-house" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-transport"><td>Transport Allowance</td><td id="ps-r-transport" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-other-allow"><td>Other Allowances</td><td id="ps-r-other-allow" style="text-align:right;"></td></tr>
+                                    </tbody>
+                                    <tfoot><tr><td><strong>GROSS PAY</strong></td><td id="ps-r-gross" style="text-align:right;"></td></tr></tfoot>
+                                </table>
+
+                                <div style="font-size:9px;font-weight:700;padding:4px 8px;color:#fff;background:#6c757d;margin-top:12px;">EMPLOYER CONTRIBUTIONS (For Reference)</div>
+                                <table class="ps-table" style="width:100%;font-size:10px;border-collapse:collapse;">
+                                    <thead><tr><th>Description</th><th>Amount (KES)</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>NSSF (Employer)</td><td id="ps-r-nssf-er" style="text-align:right;"></td></tr>
+                                        <tr><td>SHIF (Employer)</td><td id="ps-r-shif-er" style="text-align:right;"></td></tr>
+                                        <tr><td>Housing Levy (Employer)</td><td id="ps-r-hl-er" style="text-align:right;"></td></tr>
+                                    </tbody>
+                                    <tfoot><tr><td><strong>Total Employer Cost</strong></td><td id="ps-r-total-er" style="text-align:right;"></td></tr></tfoot>
                                 </table>
                             </div>
 
-                            <div class="signature-section">
-                                <div class="signature-line"></div>
-                                <div class="signature-labels">
-                                    <div class="signature-input"><input type="text" placeholder="Prepared by" class="signature-field"></div>
-                                    <div class="signature-input"><input type="text" placeholder="Approved by" class="signature-field"></div>
+                            <div class="ps-section">
+                                <div style="font-size:11px;font-weight:700;padding:4px 8px;border-radius:3px 3px 0 0;color:#fff;background:#c0392b;">DEDUCTIONS</div>
+                                <table class="ps-table" style="width:100%;font-size:10px;border-collapse:collapse;">
+                                    <thead><tr><th>Description</th><th>Amount (KES)</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>PAYE</td><td id="ps-r-paye" style="text-align:right;"></td></tr>
+                                        <tr><td>NSSF (Employee)</td><td id="ps-r-nssf-ee" style="text-align:right;"></td></tr>
+                                        <tr><td>SHIF (Employee - 2.75%)</td><td id="ps-r-shif-ee" style="text-align:right;"></td></tr>
+                                        <tr><td>Housing Levy (Employee - 1.5%)</td><td id="ps-r-hl-ee" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-sacco" style="display:none"><td>SACCO Loan</td><td id="ps-r-sacco" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-pension" style="display:none"><td>Pension Scheme</td><td id="ps-r-pension" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-insurance" style="display:none"><td>Insurance Premium</td><td id="ps-r-insurance" style="text-align:right;"></td></tr>
+                                        <tr id="ps-row-other-ded" style="display:none"><td id="ps-r-other-ded-label">Other Deduction</td><td id="ps-r-other-ded" style="text-align:right;"></td></tr>
+                                    </tbody>
+                                    <tfoot><tr><td><strong>TOTAL DEDUCTIONS</strong></td><td id="ps-r-total-ded" style="text-align:right;"></td></tr></tfoot>
+                                </table>
+                                <div style="background:#2D6A4F;color:#fff;text-align:center;padding:12px;border-radius:4px;margin-top:10px;">
+                                    <div style="font-size:11px;letter-spacing:2px;opacity:.85;">NET PAY</div>
+                                    <div style="font-size:26px;font-weight:800;margin:4px 0;" id="ps-r-net-pay"></div>
+                                    <div style="font-size:9px;opacity:.9;font-style:italic;" id="ps-r-net-words"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="payslip-footer">
-                            <p>This is a computer generated payslip and does not require a signature</p>
+                        <div class="ps-signatures" style="display:flex;gap:20px;margin:16px 0 10px;padding-top:10px;border-top:1px dashed #ccc;">
+                            <div style="flex:1;text-align:center;font-size:10px;"><div style="border-top:1px solid #333;margin-bottom:4px;"></div><p>Prepared By</p></div>
+                            <div style="flex:1;text-align:center;font-size:10px;"><div style="border-top:1px solid #333;margin-bottom:4px;"></div><p>Authorised By</p></div>
+                            <div style="flex:1;text-align:center;font-size:10px;"><div style="border-top:1px solid #333;margin-bottom:4px;"></div><p>Employee Signature / Date</p></div>
                         </div>
-                    </div>
 
-                    <div class="payslip-actions no-print" style="margin-top:16px;">
-                        <button onclick="closePayslipModal()">Close</button>
-                        <button onclick="printEmployeePayslip()">Print / Download</button>
+                        <div style="text-align:center;font-size:9px;color:#888;border-top:1px solid #eee;padding-top:6px;">
+                            <p>This is a computer-generated payslip and does not require a manual signature.</p>
+                            <p>Generated by <strong>salarycalculator.co.ke</strong> | Compliant with Kenyan Employment Act, Cap. 226</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1474,284 +1511,235 @@
         }
 
         // Generate payslip for employee — opens inline payslip modal on the same page
+        let currentPayslipEmployee = null;
+
+        const fmt = (n) => Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 2 });
+
+        function amountToWords(amount) {
+            return `Kenya Shillings ${fmt(amount)} Only`;
+        }
+
+        function calcPayslipDeductions(gross) {
+            function calcPAYE(taxable) {
+                const bands = [
+                    { limit: 24000, rate: 0.10 },
+                    { limit: 8333,  rate: 0.25 },
+                    { limit: 467667, rate: 0.30 },
+                    { limit: 300000, rate: 0.325 },
+                    { limit: Infinity, rate: 0.35 }
+                ];
+                const personalRelief = 2400;
+                let tax = 0, remaining = taxable;
+                for (const b of bands) {
+                    if (remaining <= 0) break;
+                    const taxableInBand = Math.min(remaining, b.limit);
+                    tax += taxableInBand * b.rate;
+                    remaining -= taxableInBand;
+                }
+                return Math.max(0, tax - personalRelief);
+            }
+
+            const nssfEmployee = Math.min(gross * 0.06, 2160);
+            const nssfEmployer = nssfEmployee;
+            const shif = gross * 0.0275;
+            const hlEmployee = gross * 0.015;
+            const hlEmployer = gross * 0.015;
+            const taxable = Math.max(0, gross - nssfEmployee);
+            const paye = calcPAYE(taxable);
+
+            return {
+                paye: Math.round(paye),
+                nssfEmployee: Math.round(nssfEmployee),
+                nssfEmployer: Math.round(nssfEmployer),
+                shifEmployee: Math.round(shif),
+                shifEmployer: Math.round(shif),
+                hlEmployee: Math.round(hlEmployee),
+                hlEmployer: Math.round(hlEmployer),
+            };
+        }
+
         function generatePayslipForEmployee(id) {
             const emp = employees.find(e => String(e.id) === String(id));
             if (!emp) return;
-            const gross = Number(emp.salary) || 0;
-            const d = calcDeductions(gross);
+            currentPayslipEmployee = emp;
 
-            // Get employer profile from localStorage
             const profile = JSON.parse(localStorage.getItem('employerProfile_' + currentUser.id) || '{}');
 
-            // Pre-fill modal fields
-            document.getElementById('ps-pay-period').value = '';
-            document.getElementById('ps-payslip-number').value = '';
-            document.getElementById('ps-company-name').value = profile.name || '';
-            document.getElementById('ps-company-address').value = profile.address || '';
-            document.getElementById('ps-company-kra').value = profile.kraPin || '';
-            const contactParts = [];
-            if (profile.phone) contactParts.push('Tel: ' + profile.phone);
-            if (profile.email) contactParts.push('Email: ' + profile.email);
-            document.getElementById('ps-company-contacts').value = contactParts.join(' | ');
-            document.getElementById('ps-emp-name').textContent = emp.name || '';
-            document.getElementById('ps-emp-id').textContent = emp.employeeId || '';
-            document.getElementById('ps-emp-pin').textContent = emp.kraPin || '';
-            document.getElementById('ps-emp-department').textContent = emp.department || '';
-            document.getElementById('ps-slip-period').textContent = '';
-            document.getElementById('ps-slip-gross').textContent = fmtKES(gross);
-            document.getElementById('ps-slip-nssf').textContent = fmtKES(d.nssf);
-            document.getElementById('ps-slip-shif').textContent = fmtKES(d.shif);
-            document.getElementById('ps-slip-ahl').textContent = fmtKES(d.ahl);
-            document.getElementById('ps-slip-paye').textContent = fmtKES(d.paye);
-            document.getElementById('ps-slip-net').textContent = fmtKES(d.net);
-            document.getElementById('ps-slip-gross-summary').textContent = fmtKES(gross);
-            document.getElementById('ps-slip-deductions-summary').textContent = fmtKES(gross - d.net);
-            document.getElementById('ps-payslip-title').textContent =
-                profile.name ? profile.name.toUpperCase() + ' — PAYSLIP' : 'PAYSLIP';
-            if (profile.logo_url) {
-                const logo = document.getElementById('ps-company-logo');
-                logo.src = profile.logo_url;
-                logo.style.display = 'block';
-                document.querySelector('#ps-payslip-modal .logo-placeholder button').style.display = 'none';
-            } else {
-                document.getElementById('ps-company-logo').style.display = 'none';
-                document.querySelector('#ps-payslip-modal .logo-placeholder button').style.display = '';
-            }
-            // Reset optional deduction rows
-            document.getElementById('ps-sacco-row').style.display = 'none';
-            document.getElementById('ps-pension-row').style.display = 'none';
-            document.getElementById('ps-insurance-row').style.display = 'none';
-            document.getElementById('ps-loan-deduction-slip').value = '';
-            document.getElementById('ps-sacco-deduction').value = '';
-            document.getElementById('ps-pension-deduction').value = '';
-            document.getElementById('ps-insurance-deduction').value = '';
-            document.getElementById('ps-sacco-deduction-input').value = '';
-            document.getElementById('ps-pension-deduction-input').value = '';
-            document.getElementById('ps-insurance-deduction-input').value = '';
+            document.getElementById('ps-company-name').textContent = profile.name || 'Your Company Name';
+            document.getElementById('ps-company-address').textContent = profile.address || '';
+            document.getElementById('ps-company-kra').textContent = profile.kraPin || '—';
+            document.getElementById('ps-company-nssf').textContent = '—';
+            document.getElementById('ps-company-shif').textContent = '—';
+            document.getElementById('ps-company-contacts').textContent = [profile.email, profile.phone].filter(Boolean).join(' | ');
 
-            // Store for recalculation on period/deduction change
+            const logoEl = document.getElementById('ps-company-logo');
+            if (profile.logo_url) {
+                logoEl.src = profile.logo_url;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+
+            document.getElementById('ps-emp-name').textContent = emp.name || '';
+            document.getElementById('ps-emp-no').textContent = emp.employeeId || '';
+            document.getElementById('ps-emp-kra').textContent = emp.kraPin || '—';
+            document.getElementById('ps-emp-nssf').textContent = emp.nssfNumber || '—';
+            document.getElementById('ps-emp-dept').textContent = emp.department || '—';
+            document.getElementById('ps-emp-position').textContent = emp.position || '—';
+            document.getElementById('ps-emp-bank').textContent = emp.bankName || '—';
+            const acct = emp.accountNumber || '';
+            document.getElementById('ps-emp-account').textContent = acct ? '****' + acct.slice(-4) : '—';
+            document.getElementById('ps-emp-branch').textContent = emp.bankBranch || '—';
+
+            const now = new Date();
+            document.getElementById('ps-pay-period').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('ps-pay-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('ps-payslip-no').value = `PS-${Date.now().toString().slice(-6)}`;
+
+            document.getElementById('ps-basic-salary').value = Number(emp.salary) || 0;
+            document.getElementById('ps-house-allowance').value = Number(emp.allowances) || 0;
+            document.getElementById('ps-transport-allowance').value = 0;
+            document.getElementById('ps-other-allowances').value = 0;
+            document.getElementById('ps-sacco').value = 0;
+            document.getElementById('ps-pension').value = 0;
+            document.getElementById('ps-insurance').value = 0;
+            document.getElementById('ps-other-deduction').value = 0;
+            document.getElementById('ps-other-deduction-label').value = '';
+
             document.getElementById('ps-payslip-modal').dataset.empId = id;
             document.getElementById('ps-payslip-modal').classList.add('active');
+            generatePayslipPreview();
         }
 
-        // Update payslip period display
-        function updatePsPayPeriod() {
-            const period = document.getElementById('ps-pay-period').value;
-            document.getElementById('ps-slip-period').textContent = period;
+        function generatePayslipPreview() {
+            if (!currentPayslipEmployee) return;
+
+            const basic      = parseFloat(document.getElementById('ps-basic-salary').value) || 0;
+            const house      = parseFloat(document.getElementById('ps-house-allowance').value) || 0;
+            const transport  = parseFloat(document.getElementById('ps-transport-allowance').value) || 0;
+            const otherAllow = parseFloat(document.getElementById('ps-other-allowances').value) || 0;
+            const sacco      = parseFloat(document.getElementById('ps-sacco').value) || 0;
+            const pension    = parseFloat(document.getElementById('ps-pension').value) || 0;
+            const insurance  = parseFloat(document.getElementById('ps-insurance').value) || 0;
+            const otherDed   = parseFloat(document.getElementById('ps-other-deduction').value) || 0;
+            const otherDedLabel = document.getElementById('ps-other-deduction-label').value || 'Other Deduction';
+
+            const gross = basic + house + transport + otherAllow;
+            const ded = calcPayslipDeductions(gross);
+            const voluntaryDed = sacco + pension + insurance + otherDed;
+            const totalDed = ded.paye + ded.nssfEmployee + ded.shifEmployee + ded.hlEmployee + voluntaryDed;
+            const netPay = gross - totalDed;
+
+            const show = (rowId, cellId, value) => {
+                document.getElementById(rowId).style.display = value > 0 ? '' : 'none';
+                document.getElementById(cellId).textContent = fmt(value);
+            };
+
+            document.getElementById('ps-r-basic').textContent = fmt(basic);
+            show('ps-row-house', 'ps-r-house', house);
+            show('ps-row-transport', 'ps-r-transport', transport);
+            show('ps-row-other-allow', 'ps-r-other-allow', otherAllow);
+            document.getElementById('ps-r-gross').textContent = fmt(gross);
+
+            document.getElementById('ps-r-nssf-er').textContent = fmt(ded.nssfEmployer);
+            document.getElementById('ps-r-shif-er').textContent = fmt(ded.shifEmployer);
+            document.getElementById('ps-r-hl-er').textContent = fmt(ded.hlEmployer);
+            document.getElementById('ps-r-total-er').textContent = fmt(gross + ded.nssfEmployer + ded.shifEmployer + ded.hlEmployer);
+
+            document.getElementById('ps-r-paye').textContent = fmt(ded.paye);
+            document.getElementById('ps-r-nssf-ee').textContent = fmt(ded.nssfEmployee);
+            document.getElementById('ps-r-shif-ee').textContent = fmt(ded.shifEmployee);
+            document.getElementById('ps-r-hl-ee').textContent = fmt(ded.hlEmployee);
+
+            show('ps-row-sacco', 'ps-r-sacco', sacco);
+            show('ps-row-pension', 'ps-r-pension', pension);
+            show('ps-row-insurance', 'ps-r-insurance', insurance);
+            if (otherDed > 0) {
+                document.getElementById('ps-row-other-ded').style.display = '';
+                document.getElementById('ps-r-other-ded-label').textContent = otherDedLabel;
+                document.getElementById('ps-r-other-ded').textContent = fmt(otherDed);
+            } else {
+                document.getElementById('ps-row-other-ded').style.display = 'none';
+            }
+
+            document.getElementById('ps-r-total-ded').textContent = fmt(totalDed);
+            document.getElementById('ps-r-net-pay').textContent = 'KES ' + fmt(netPay);
+            document.getElementById('ps-r-net-words').textContent = amountToWords(netPay);
+
+            const periodVal = document.getElementById('ps-pay-period').value;
+            if (periodVal) {
+                const [yr, mo] = periodVal.split('-');
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                document.getElementById('ps-display-period').textContent = monthNames[parseInt(mo) - 1] + ' ' + yr;
+            }
+            document.getElementById('ps-pay-date-display').textContent = document.getElementById('ps-pay-date').value || '—';
+            document.getElementById('ps-payslip-no-display').textContent = document.getElementById('ps-payslip-no').value || '—';
         }
 
-        // Update payslip number display
-        function updatePsPayslipNumber() {
-            const num = document.getElementById('ps-payslip-number').value;
-            document.getElementById('ps-slip-payslip-number').textContent = num;
+        async function savePayslipRecord() {
+            try {
+                if (!currentPayslipEmployee || !currentUser || !supabaseClient) return;
+                const basic = parseFloat(document.getElementById('ps-basic-salary').value) || 0;
+                const house = parseFloat(document.getElementById('ps-house-allowance').value) || 0;
+                const transport = parseFloat(document.getElementById('ps-transport-allowance').value) || 0;
+                const otherAllow = parseFloat(document.getElementById('ps-other-allowances').value) || 0;
+                const gross = basic + house + transport + otherAllow;
+                const ded = calcPayslipDeductions(gross);
+                const voluntary = (parseFloat(document.getElementById('ps-sacco').value)||0) + (parseFloat(document.getElementById('ps-pension').value)||0) + (parseFloat(document.getElementById('ps-insurance').value)||0) + (parseFloat(document.getElementById('ps-other-deduction').value)||0);
+                const netPay = gross - (ded.paye + ded.nssfEmployee + ded.shifEmployee + ded.hlEmployee + voluntary);
+
+                const { error } = await supabaseClient.from('payroll_history').insert({
+                    user_id: currentUser.id,
+                    employee_id: currentPayslipEmployee.id,
+                    pay_period: document.getElementById('ps-pay-period').value || null,
+                    gross_pay: gross,
+                    net_pay: netPay,
+                    paye: ded.paye,
+                    nssf: ded.nssfEmployee,
+                    shif: ded.shifEmployee,
+                    housing_levy: ded.hlEmployee,
+                    created_at: new Date().toISOString()
+                });
+                if (error) throw error;
+            } catch (e) {
+                console.warn('Payslip history save failed (non-critical):', e);
+            }
         }
 
-        // Recalculate payslip deductions (called when optional deduction inputs change)
-        function updatePsDeductions() {
-            const id = document.getElementById('ps-payslip-modal').dataset.empId;
-            const emp = employees.find(e => String(e.id) === String(id));
-            if (!emp) return;
-            const gross = Number(emp.salary) || 0;
-            const d = calcDeductions(gross);
-            const loan = parseFloat(document.getElementById('ps-loan-deduction-slip').value) || 0;
-            const sacco = parseFloat(document.getElementById('ps-sacco-deduction').value) || 0;
-            const pension = parseFloat(document.getElementById('ps-pension-deduction').value) || 0;
-            const insurance = parseFloat(document.getElementById('ps-insurance-deduction').value) || 0;
-            const totalDeductions = d.paye + d.nssf + d.shif + d.ahl + loan + sacco + pension + insurance;
-            const net = gross - totalDeductions;
-            document.getElementById('ps-slip-net').textContent = fmtKES(net);
-            document.getElementById('ps-slip-gross-summary').textContent = fmtKES(gross);
-            document.getElementById('ps-slip-deductions-summary').textContent = fmtKES(totalDeductions);
-            document.getElementById('ps-sacco-row').style.display = sacco > 0 ? 'table-row' : 'none';
-            document.getElementById('ps-pension-row').style.display = pension > 0 ? 'table-row' : 'none';
-            document.getElementById('ps-insurance-row').style.display = insurance > 0 ? 'table-row' : 'none';
+        function printPayslip() {
+            generatePayslipPreview();
+            savePayslipRecord();
+            window.print();
+        }
+
+        function downloadPayslipPDF() {
+            generatePayslipPreview();
+            savePayslipRecord();
+            const empName = (document.getElementById('ps-emp-name').textContent || 'employee').replace(/\s+/g, '-');
+            const period  = document.getElementById('ps-pay-period').value || 'period';
+            const element = document.getElementById('payslip-document');
+
+            const opt = {
+                margin:      [5, 5, 5, 5],
+                filename:    `payslip-${empName}-${period}.pdf`,
+                image:       { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Backward compatibility for existing button handlers
+        function printEmployeePayslip() {
+            printPayslip();
         }
 
         function closePayslipModal() {
             document.getElementById('ps-payslip-modal').classList.remove('active');
         }
 
-        function bulkGeneratePayslips() {
-            if (!employees.length) {
-                alert('No employees available to generate bulk payslips.');
-                return;
-            }
-
-            const now = new Date();
-            const defaultPeriod = now.toLocaleDateString('en-KE', { month: 'long', year: 'numeric' });
-            const payPeriod = (prompt('Enter pay period for bulk payslips (e.g. May 2026):', defaultPeriod) || '').trim();
-            if (!payPeriod) return;
-            const deptQuery = (prompt('Filter by department (optional, leave blank for all):', '') || '').trim().toLowerCase();
-
-            const matches = employees.filter(emp => {
-                if (!deptQuery) return true;
-                return String(emp.department || '').toLowerCase().includes(deptQuery);
-            });
-
-            if (!matches.length) {
-                alert('No employees matched the selected query.');
-                return;
-            }
-
-            const profile = JSON.parse(localStorage.getItem('employerProfile_' + currentUser.id) || '{}');
-            const companyName = (profile.name || 'Organization Name').toUpperCase();
-            const companyAddress = profile.address || profile.county || '';
-            const companyKra = profile.kraPin || '';
-            const contactParts = [];
-            if (profile.phone) contactParts.push('Tel: ' + profile.phone);
-            if (profile.email) contactParts.push('Email: ' + profile.email);
-            const companyContacts = contactParts.join(' | ');
-
-            function esc(v) {
-                return String(v || '')
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            }
-
-            const pages = matches.map((emp, idx) => {
-                const gross = Number(emp.salary) || 0;
-                const d = calcDeductions(gross);
-                const generatedAt = new Date().toLocaleString('en-KE', {
-                    day: '2-digit', month: 'short', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-                const payslipNo = `BULK-${String(idx + 1).padStart(3, '0')}`;
-                return `
-                <section class="slip">
-                    <div class="hdr">
-                        <div>
-                            <h2>${esc(companyName)} - PAYSLIP</h2>
-                            ${companyAddress ? `<p>${esc(companyAddress)}</p>` : ''}
-                            ${companyKra ? `<p>KRA PIN: ${esc(companyKra)}</p>` : ''}
-                            ${companyContacts ? `<p>${esc(companyContacts)}</p>` : ''}
-                        </div>
-                        <div style="text-align:right;">
-                            <p><strong>Period:</strong> ${esc(payPeriod)}</p>
-                            <p><strong>No:</strong> ${esc(payslipNo)}</p>
-                            <p><strong>Generated:</strong> ${esc(generatedAt)}</p>
-                        </div>
-                    </div>
-                    <table class="meta">
-                        <tr><td><strong>Employee Name</strong></td><td>${esc(emp.name)}</td><td><strong>Department</strong></td><td>${esc(emp.department || '—')}</td></tr>
-                        <tr><td><strong>Employee ID</strong></td><td>${esc(emp.employeeId || '—')}</td><td><strong>KRA PIN</strong></td><td>${esc(emp.kraPin || '—')}</td></tr>
-                    </table>
-                    <table class="grid">
-                        <tr><th>Earnings</th><th>Amount (KES)</th><th>Deductions</th><th>Amount (KES)</th></tr>
-                        <tr>
-                            <td>Basic Salary</td><td>${esc(fmtKES(gross))}</td>
-                            <td>PAYE</td><td>${esc(fmtKES(d.paye))}</td>
-                        </tr>
-                        <tr>
-                            <td></td><td></td>
-                            <td>NSSF</td><td>${esc(fmtKES(d.nssf))}</td>
-                        </tr>
-                        <tr>
-                            <td></td><td></td>
-                            <td>SHIF</td><td>${esc(fmtKES(d.shif))}</td>
-                        </tr>
-                        <tr>
-                            <td></td><td></td>
-                            <td>Housing Levy</td><td>${esc(fmtKES(d.ahl))}</td>
-                        </tr>
-                    </table>
-                    <table class="summary">
-                        <tr><td><strong>Total Earnings</strong></td><td>${esc(fmtKES(gross))}</td></tr>
-                        <tr><td><strong>Total Deductions</strong></td><td>${esc(fmtKES(gross - d.net))}</td></tr>
-                        <tr class="net"><td><strong>Net Pay</strong></td><td><strong>${esc(fmtKES(d.net))}</strong></td></tr>
-                    </table>
-                    <p class="foot">This is a computer-generated payslip and does not require a signature.</p>
-                </section>`;
-            }).join('');
-
-            const win = window.open('', '_blank', 'width=900,height=900');
-            if (!win) {
-                alert('Pop-ups are blocked. Please allow pop-ups and try again.');
-                return;
-            }
-
-            win.document.write(`<!DOCTYPE html>
-            <html><head><title>Bulk Payslips - ${esc(payPeriod)}</title>
-            <style>
-            body{font-family:Arial,sans-serif;color:#222;padding:16px;}
-            .slip{page-break-after:always;border:1px solid #ddd;border-radius:8px;padding:16px 18px;margin-bottom:18px;}
-            .slip:last-child{page-break-after:auto;}
-            .hdr{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #006600;padding-bottom:10px;margin-bottom:10px;}
-            .hdr h2{margin:0;color:#006600;font-size:1.1rem;}
-            .hdr p{margin:2px 0;font-size:0.85rem;}
-            table{width:100%;border-collapse:collapse;margin-top:10px;}
-            th,td{border:1px solid #e0e0e0;padding:7px 8px;font-size:0.85rem;}
-            th{background:#f8f8f8;text-align:left;}
-            .meta td{border:none;padding:4px 6px;}
-            .summary{margin-top:12px;width:45%;margin-left:auto;}
-            .summary td:last-child{text-align:right;}
-            .summary .net td{background:#006600;color:#fff;}
-            .foot{margin-top:10px;font-size:0.75rem;color:#666;text-align:center;}
-            @media print { body{padding:0;} .slip{margin:0 0 12px;border:none;border-radius:0;} }
-            </style></head><body>
-            ${pages}
-            </body></html>`);
-            win.document.close();
-            win.focus();
-            win.print();
-        }
-
-        async function printEmployeePayslip() {
-            if (isFreePlan) {
-                const used = getMonthlyDownloads(currentUser.id);
-                if (used >= FREE_DOWNLOAD_LIMIT) {
-                    const msg = [
-                        `You've used all ${FREE_DOWNLOAD_LIMIT} payslip downloads for this month.\n\n`,
-                        `Upgrade to Premium (KES 99/mo) for unlimited payslip downloads.\n\n`,
-                        `Go to Account & Billing to upgrade?`
-                    ].join('');
-                    if (confirm(msg)) {
-                        window.location.href = '/account.html';
-                    }
-                    return;
-                }
-                incrementDownloads(currentUser.id);
-                updateFreePlanBanner();
-            }
-
-            // Save to payslip_history — fire-and-forget so print is never blocked
-            if (currentUser && typeof supabaseClient !== 'undefined' && supabaseClient) {
-                const empId  = document.getElementById('ps-payslip-modal').dataset.empId;
-                const emp    = employees.find(e => String(e.id) === String(empId));
-                const gross  = emp ? (Number(emp.salary) || 0) : 0;
-                const d      = emp ? calcDeductions(gross) : {};
-                const net    = d.net || 0;
-                const period = document.getElementById('ps-pay-period').value || '';
-                supabaseClient.from('payslip_history').insert({
-                    user_id:       currentUser.id,
-                    employee_id:   empId || null,
-                    employee_name: emp ? (emp.name || '') : '',
-                    pay_period:    period,
-                    gross_salary:  gross,
-                    net_salary:    net,
-                    paye:          d.paye || 0,
-                    nssf:          d.nssf || 0,
-                    shif:          d.shif || 0,
-                    housing_levy:  d.ahl  || 0,
-                }).catch(e => console.warn('Failed to save payslip history:', e));
-            }
-
-            window.print();
-        }
-
         function handlePsLogoUpload() {
-            const file = document.getElementById('ps-logo-upload').files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const logo = document.getElementById('ps-company-logo');
-                logo.src = e.target.result;
-                logo.style.display = 'block';
-                document.querySelector('#ps-payslip-modal .logo-placeholder button').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
+            // legacy no-op kept for backward compatibility
         }
 
         // ── Export Functions ──────────────────────────────────────────────────────

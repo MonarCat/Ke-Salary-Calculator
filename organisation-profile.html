@@ -171,6 +171,10 @@
                         <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
                         <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
                         <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/budget-planner.html">Budget Planner</a>
                     </div>
                 </div>
                 <a href="/about-us.html">About Us</a>
@@ -249,11 +253,82 @@
                     </div>
                     <div class="org-form-group">
                         <label for="org-industry">Industry</label>
-                        <input type="text" id="org-industry" placeholder="e.g. Technology, Healthcare" maxlength="100">
+                        <select id="org-industry">
+                            <option value="">— Select Industry —</option>
+                            <option value="Agriculture & Farming">Agriculture & Farming</option>
+                            <option value="Banking & Finance">Banking & Finance</option>
+                            <option value="Construction & Real Estate">Construction & Real Estate</option>
+                            <option value="Education">Education</option>
+                            <option value="Energy & Utilities">Energy & Utilities</option>
+                            <option value="Healthcare & Pharmaceuticals">Healthcare & Pharmaceuticals</option>
+                            <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Legal & Professional Services">Legal & Professional Services</option>
+                            <option value="Logistics & Transport">Logistics & Transport</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Media & Entertainment">Media & Entertainment</option>
+                            <option value="Mining & Natural Resources">Mining & Natural Resources</option>
+                            <option value="NGO & Non-Profit">NGO & Non-Profit</option>
+                            <option value="Retail & Wholesale Trade">Retail & Wholesale Trade</option>
+                            <option value="Telecommunications">Telecommunications</option>
+                            <option value="Government & Public Sector">Government & Public Sector</option>
+                            <option value="Security & Investigation">Security & Investigation</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                     <div class="org-form-group">
                         <label for="org-county">County</label>
-                        <input type="text" id="org-county" placeholder="e.g. Nairobi" maxlength="50">
+                        <select id="org-county">
+                            <option value="">— Select County —</option>
+                            <option value="Baringo">Baringo</option>
+                            <option value="Bomet">Bomet</option>
+                            <option value="Bungoma">Bungoma</option>
+                            <option value="Busia">Busia</option>
+                            <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
+                            <option value="Embu">Embu</option>
+                            <option value="Garissa">Garissa</option>
+                            <option value="Homa Bay">Homa Bay</option>
+                            <option value="Isiolo">Isiolo</option>
+                            <option value="Kajiado">Kajiado</option>
+                            <option value="Kakamega">Kakamega</option>
+                            <option value="Kericho">Kericho</option>
+                            <option value="Kiambu">Kiambu</option>
+                            <option value="Kilifi">Kilifi</option>
+                            <option value="Kirinyaga">Kirinyaga</option>
+                            <option value="Kisii">Kisii</option>
+                            <option value="Kisumu">Kisumu</option>
+                            <option value="Kitui">Kitui</option>
+                            <option value="Kwale">Kwale</option>
+                            <option value="Laikipia">Laikipia</option>
+                            <option value="Lamu">Lamu</option>
+                            <option value="Machakos">Machakos</option>
+                            <option value="Makueni">Makueni</option>
+                            <option value="Mandera">Mandera</option>
+                            <option value="Marsabit">Marsabit</option>
+                            <option value="Meru">Meru</option>
+                            <option value="Migori">Migori</option>
+                            <option value="Mombasa">Mombasa</option>
+                            <option value="Murang'a">Murang'a</option>
+                            <option value="Nairobi">Nairobi</option>
+                            <option value="Nakuru">Nakuru</option>
+                            <option value="Nandi">Nandi</option>
+                            <option value="Narok">Narok</option>
+                            <option value="Nyamira">Nyamira</option>
+                            <option value="Nyandarua">Nyandarua</option>
+                            <option value="Nyeri">Nyeri</option>
+                            <option value="Samburu">Samburu</option>
+                            <option value="Siaya">Siaya</option>
+                            <option value="Taita-Taveta">Taita-Taveta</option>
+                            <option value="Tana River">Tana River</option>
+                            <option value="Tharaka-Nithi">Tharaka-Nithi</option>
+                            <option value="Trans Nzoia">Trans Nzoia</option>
+                            <option value="Turkana">Turkana</option>
+                            <option value="Uasin Gishu">Uasin Gishu</option>
+                            <option value="Vihiga">Vihiga</option>
+                            <option value="Wajir">Wajir</option>
+                            <option value="West Pokot">West Pokot</option>
+                        </select>
                     </div>
                     <div class="org-form-group full-width">
                         <label for="org-address">Physical Address</label>
@@ -291,7 +366,44 @@
                 <div class="org-form-grid">
                     <div class="org-form-group">
                         <label for="org-bank-name">Bank Name</label>
-                        <input type="text" id="org-bank-name" placeholder="e.g. KCB, Equity, Co-operative" maxlength="100">
+                        <select id="org-bank-name">
+                            <option value="">— Select Bank —</option>
+                            <option value="Absa Bank Kenya">Absa Bank Kenya</option>
+                            <option value="African Banking Corporation (ABC Bank)">African Banking Corporation (ABC Bank)</option>
+                            <option value="Bank of Africa Kenya">Bank of Africa Kenya</option>
+                            <option value="Bank of Baroda Kenya">Bank of Baroda Kenya</option>
+                            <option value="Bank of India Kenya">Bank of India Kenya</option>
+                            <option value="CBA Bank (NCBA)">CBA Bank (NCBA)</option>
+                            <option value="Citibank Kenya">Citibank Kenya</option>
+                            <option value="Co-operative Bank of Kenya">Co-operative Bank of Kenya</option>
+                            <option value="Consolidated Bank Kenya">Consolidated Bank Kenya</option>
+                            <option value="Credit Bank">Credit Bank</option>
+                            <option value="Diamond Trust Bank (DTB)">Diamond Trust Bank (DTB)</option>
+                            <option value="Ecobank Kenya">Ecobank Kenya</option>
+                            <option value="Equity Bank Kenya">Equity Bank Kenya</option>
+                            <option value="Family Bank Kenya">Family Bank Kenya</option>
+                            <option value="First Community Bank">First Community Bank</option>
+                            <option value="Gulf African Bank">Gulf African Bank</option>
+                            <option value="HFC Bank (HF Group)">HFC Bank (HF Group)</option>
+                            <option value="I&amp;M Bank Kenya">I&amp;M Bank Kenya</option>
+                            <option value="Kingdom Bank">Kingdom Bank</option>
+                            <option value="KCB Bank Kenya">KCB Bank Kenya</option>
+                            <option value="M-Oriental Bank">M-Oriental Bank</option>
+                            <option value="Mayfair CIB Bank">Mayfair CIB Bank</option>
+                            <option value="Middle East Bank Kenya">Middle East Bank Kenya</option>
+                            <option value="National Bank of Kenya (NBK)">National Bank of Kenya (NBK)</option>
+                            <option value="NCBA Bank Kenya">NCBA Bank Kenya</option>
+                            <option value="Paramount Bank">Paramount Bank</option>
+                            <option value="Prime Bank Kenya">Prime Bank Kenya</option>
+                            <option value="Postbank (Kenya Post Office Savings Bank)">Postbank</option>
+                            <option value="SBM Bank Kenya">SBM Bank Kenya</option>
+                            <option value="Sidian Bank">Sidian Bank</option>
+                            <option value="Spire Bank">Spire Bank</option>
+                            <option value="Stanbic Bank Kenya">Stanbic Bank Kenya</option>
+                            <option value="Standard Chartered Bank Kenya">Standard Chartered Bank Kenya</option>
+                            <option value="UBA Kenya">UBA Kenya</option>
+                            <option value="Victoria Commercial Bank">Victoria Commercial Bank</option>
+                        </select>
                     </div>
                     <div class="org-form-group">
                         <label for="org-bank-account">Bank Account Number</label>
@@ -299,11 +411,7 @@
                     </div>
                     <div class="org-form-group">
                         <label for="org-bank-branch">Bank Branch</label>
-                        <input type="text" id="org-bank-branch" placeholder="e.g. Westlands Branch" maxlength="100">
-                    </div>
-                    <div class="org-form-group">
-                        <label for="org-paybill">M-Pesa Paybill Number</label>
-                        <input type="text" id="org-paybill" placeholder="e.g. 522533" maxlength="20">
+                        <input type="text" id="org-bank-branch" placeholder="e.g. Westlands, Moi Avenue, Karen" maxlength="100">
                     </div>
                 </div>
             </div>
@@ -352,27 +460,27 @@
 
         // Completeness fields — used to calculate the progress bar
         const COMPLETENESS_FIELDS = [
-            'org-name', 'org-kra', 'org-nssf', 'org-nhif', 'org-reg',
+            'org-name', 'org-kra', 'org-nssf', 'org-nhif',
             'org-business-type', 'org-industry', 'org-county', 'org-address',
-            'org-email', 'org-phone', 'org-payroll-day',
-            'org-bank-name', 'org-bank-account',
+            'org-email', 'org-phone', 'org-bank-name', 'org-bank-account', 'org-bank-branch'
         ];
 
         function updateCompleteness() {
-            const filled = COMPLETENESS_FIELDS.filter(id => {
+            const filled = COMPLETENESS_FIELDS.filter((id) => {
                 const el = document.getElementById(id);
-                return el && el.value && el.value.trim() !== '';
+                if (!el || !el.value) return false;
+                const value = String(el.value).trim();
+                return value !== '' && value !== '— Select —';
             }).length;
-            const logoFilled = existingLogoUrl || (document.getElementById('logo-file').files.length > 0);
-            const total = COMPLETENESS_FIELDS.length + 1; // +1 for logo
-            const pct = Math.round(((filled + (logoFilled ? 1 : 0)) / total) * 100);
+            const total = COMPLETENESS_FIELDS.length;
+            const pct = Math.round((filled / total) * 100);
             document.getElementById('completeness-pct').textContent = pct + '%';
             document.getElementById('completeness-fill').style.width = pct + '%';
         }
 
-        COMPLETENESS_FIELDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', updateCompleteness);
+        document.querySelectorAll('input, select, textarea').forEach((el) => {
+            el.addEventListener('input', updateCompleteness);
+            el.addEventListener('change', updateCompleteness);
         });
 
         document.getElementById('logo-file').addEventListener('change', function() {
@@ -432,7 +540,6 @@
                 set('org-bank-name',     data.bank_name);
                 set('org-bank-account',  data.bank_account);
                 set('org-bank-branch',   data.bank_branch);
-                set('org-paybill',       data.paybill_number);
 
                 if (data.logo_url) {
                     existingLogoUrl = data.logo_url;
@@ -503,7 +610,6 @@
                     bank_name:            getVal('org-bank-name'),
                     bank_account:         getVal('org-bank-account'),
                     bank_branch:          getVal('org-bank-branch'),
-                    paybill_number:       getVal('org-paybill'),
                     logo_url:             logoUrl,
                     profile_complete:     !!(getVal('org-name') && getVal('org-kra')),
                 };
@@ -512,13 +618,24 @@
                 if (error) throw error;
 
                 // Also sync organization_name into user_profiles and auth metadata
-                await supabaseClient.from('user_profiles')
-                    .update({ organization_name: payload.organization_name })
-                    .eq('id', user.id)
-                    .catch(() => {});
-                await supabaseClient.auth.updateUser({
-                    data: { organization_name: payload.organization_name || null },
-                }).catch(e => console.warn('Failed to sync org name to auth metadata:', e));
+                try {
+                    const { error: profileUpdateError } = await supabaseClient
+                        .from('user_profiles')
+                        .update({ organization_name: payload.organization_name })
+                        .eq('id', user.id);
+                    if (profileUpdateError) throw profileUpdateError;
+                } catch (syncError) {
+                    console.warn('Failed to sync org name to user_profiles:', syncError);
+                }
+
+                try {
+                    const { error: authUpdateError } = await supabaseClient.auth.updateUser({
+                        data: { organization_name: payload.organization_name || null },
+                    });
+                    if (authUpdateError) throw authUpdateError;
+                } catch (syncError) {
+                    console.warn('Failed to sync org name to auth metadata:', syncError);
+                }
 
                 msgEl.className = 'org-msg success';
                 msgEl.textContent = '✅ Organisation profile saved successfully!';
@@ -540,8 +657,9 @@
                 localStorage.setItem('employerProfile', JSON.stringify(profileCache));
 
             } catch (err) {
+                console.error('Save failed:', err);
                 msgEl.className = 'org-msg error';
-                msgEl.textContent = '❌ ' + (err.message || 'Save failed. Please try again.');
+                msgEl.textContent = '❌ Failed to save profile. Please try again.';
                 msgEl.style.display = 'block';
             } finally {
                 btn.disabled = false;
