@@ -3,28 +3,60 @@
 // Constants
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
 
-// hCaptcha widget IDs (populated after the hCaptcha library loads)
-let hcaptchaLoginWidgetId = null;
-let hcaptchaSignupWidgetId = null;
+// Turnstile widget IDs (populated after the Turnstile library loads)
+let turnstileLoginWidgetId = null;
+let turnstileSignupWidgetId = null;
 
-// Called by the hCaptcha script once it has loaded (onload=onHcaptchaLoad)
-function onHcaptchaLoad() {
-    if (typeof HCAPTCHA_SITE_KEY === 'undefined' || !HCAPTCHA_SITE_KEY) {
-        console.warn('HCAPTCHA_SITE_KEY is not defined. hCaptcha widgets will not be rendered.');
+const VERIFY_TURNSTILE_ENDPOINT = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/verify-turnstile';
+
+function resetTurnstile(widgetType) {
+    if (!window.turnstile) return;
+
+    const widgetId = widgetType === 'login' ? turnstileLoginWidgetId : turnstileSignupWidgetId;
+    if (widgetId !== null) {
+        window.turnstile.reset(widgetId);
+    }
+}
+
+async function verifyTurnstileToken(token) {
+    const response = await fetch(VERIFY_TURNSTILE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+    });
+
+    if (!response.ok) {
+        throw new Error('Security check failed. Please try again.');
+    }
+
+    const data = await response.json();
+    return !!data.success;
+}
+
+// Called by the Turnstile script once it has loaded (onload=onTurnstileLoad)
+function onTurnstileLoad() {
+    if (typeof TURNSTILE_SITE_KEY === 'undefined' || !TURNSTILE_SITE_KEY) {
+        console.warn('TURNSTILE_SITE_KEY is not defined. Turnstile widgets will not be rendered.');
         return;
     }
 
-    const loginEl = document.getElementById('hcaptcha-login');
-    if (loginEl && window.hcaptcha) {
-        hcaptchaLoginWidgetId = hcaptcha.render(loginEl, { sitekey: HCAPTCHA_SITE_KEY });
+    const loginEl = document.getElementById('turnstile-login');
+    if (loginEl && window.turnstile) {
+        turnstileLoginWidgetId = window.turnstile.render(loginEl, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'light'
+        });
     }
 
-    const signupEl = document.getElementById('hcaptcha-signup');
-    if (signupEl && window.hcaptcha) {
-        hcaptchaSignupWidgetId = hcaptcha.render(signupEl, { sitekey: HCAPTCHA_SITE_KEY });
+    const signupEl = document.getElementById('turnstile-signup');
+    if (signupEl && window.turnstile) {
+        turnstileSignupWidgetId = window.turnstile.render(signupEl, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'light'
+        });
     }
 }
-window.onHcaptchaLoad = onHcaptchaLoad;
+window.onTurnstileLoad = onTurnstileLoad;
 
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
@@ -76,12 +108,25 @@ async function handleLogin(event) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    // Require hCaptcha token before attempting sign-in
-    const captchaToken = (window.hcaptcha && hcaptchaLoginWidgetId !== null)
-        ? hcaptcha.getResponse(hcaptchaLoginWidgetId)
-        : '';
-    if (!captchaToken) {
-        showMessage('login-message', 'Please complete the CAPTCHA verification.', 'error');
+    const loginForm = document.getElementById('loginForm');
+    const turnstileToken = loginForm?.querySelector('[name="cf-turnstile-response"]')?.value || '';
+
+    if (!turnstileToken) {
+        showMessage('login-message', 'Please complete the security check.', 'error');
+        return;
+    }
+
+    try {
+        const isValidTurnstile = await verifyTurnstileToken(turnstileToken);
+        if (!isValidTurnstile) {
+            showMessage('login-message', 'Security check failed. Please try again.', 'error');
+            resetTurnstile('login');
+            return;
+        }
+    } catch (turnstileError) {
+        console.error('Turnstile verification error:', turnstileError);
+        showMessage('login-message', 'Security check failed. Please try again.', 'error');
+        resetTurnstile('login');
         return;
     }
 
@@ -94,8 +139,7 @@ async function handleLogin(event) {
     try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
-            password: password,
-            options: { captchaToken }
+            password: password
         });
         
         if (error) throw error;
@@ -134,10 +178,8 @@ async function handleLogin(event) {
         }, 1000);
         
     } catch (error) {
-        // Reset captcha so the user can try again
-        if (window.hcaptcha && hcaptchaLoginWidgetId !== null) {
-            hcaptcha.reset(hcaptchaLoginWidgetId);
-        }
+        // Reset Turnstile so the user can try again
+        resetTurnstile('login');
         // Detect unverified email and offer resend link
         if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
             showMessage('login-message',
@@ -214,12 +256,25 @@ async function handleSignup(event) {
         return;
     }
 
-    // Require hCaptcha token before attempting sign-up
-    const captchaToken = (window.hcaptcha && hcaptchaSignupWidgetId !== null)
-        ? hcaptcha.getResponse(hcaptchaSignupWidgetId)
-        : '';
-    if (!captchaToken) {
-        showMessage('signup-message', 'Please complete the CAPTCHA verification.', 'error');
+    const signupForm = document.getElementById('signupForm');
+    const turnstileToken = signupForm?.querySelector('[name="cf-turnstile-response"]')?.value || '';
+
+    if (!turnstileToken) {
+        showMessage('signup-message', 'Please complete the security check.', 'error');
+        return;
+    }
+
+    try {
+        const isValidTurnstile = await verifyTurnstileToken(turnstileToken);
+        if (!isValidTurnstile) {
+            showMessage('signup-message', 'Security check failed. Please try again.', 'error');
+            resetTurnstile('signup');
+            return;
+        }
+    } catch (turnstileError) {
+        console.error('Turnstile verification error:', turnstileError);
+        showMessage('signup-message', 'Security check failed. Please try again.', 'error');
+        resetTurnstile('signup');
         return;
     }
 
@@ -235,7 +290,6 @@ async function handleSignup(event) {
             password: password,
             options: {
                 emailRedirectTo: window.location.origin + '/auth.html',
-                captchaToken,
                 data: {
                     full_name: name,
                     account_type: accountType,
@@ -254,6 +308,7 @@ async function handleSignup(event) {
             showMessage('signup-message',
                 `This email is already registered. Please <button type="button" onclick="switchAuthTab('login')" class="inline-link-btn">sign in</button> instead, or use a different email.`,
                 'error');
+            resetTurnstile('signup');
             return;
         }
         
@@ -264,12 +319,11 @@ async function handleSignup(event) {
         // Reset form
         event.target.reset();
         document.getElementById('organization-fields').style.display = 'none';
+        resetTurnstile('signup');
         
     } catch (error) {
-        // Reset captcha so the user can try again
-        if (window.hcaptcha && hcaptchaSignupWidgetId !== null) {
-            hcaptcha.reset(hcaptchaSignupWidgetId);
-        }
+        // Reset Turnstile so the user can try again
+        resetTurnstile('signup');
         // Provide a friendlier message for the known Supabase trigger failure
         const msg = (error.message || '').toLowerCase();
         if (msg.includes('database error saving new user')) {
