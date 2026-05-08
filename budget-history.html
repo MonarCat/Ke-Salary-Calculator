@@ -222,6 +222,7 @@
         async function copyToThisMonth(budgetId) {
             const now = new Date();
             const month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const monthDate = /^\d{4}-\d{2}$/.test(month) ? `${month}-01` : month;
             const { data: { user } } = await window.supabaseClient.auth.getUser();
             if (!user) return;
 
@@ -231,7 +232,7 @@
             if (!orig) return;
 
             const { data: newBudget } = await window.supabaseClient.from('user_budgets').upsert({
-                user_id: user.id, budget_month: month,
+                user_id: user.id, budget_month: monthDate,
                 gross_salary: orig.gross_salary, net_salary: orig.net_salary,
                 total_budgeted: orig.total_budgeted, updated_at: new Date().toISOString()
             }, { onConflict: 'user_id,budget_month' }).select().single();
@@ -261,8 +262,8 @@
             if (!user) { showAuthPrompt(); return; }
 
             const { data: profile } = await window.supabaseClient
-                .from('user_profiles').select('is_premium,premium_expires_at').eq('id', user.id).single();
-            const isPremium = profile?.is_premium && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
+                .from('user_profiles').select('premium,premium_expires_at').eq('id', user.id).single();
+            const isPremium = profile?.premium && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > new Date());
             if (!isPremium) { showUpgradePrompt(); return; }
 
             // Fetch budgets + health scores (left join via select)

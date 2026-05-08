@@ -38,7 +38,7 @@ let supabase;
 if (window.supabaseClient) {
   supabase = window.supabaseClient;
 } else {
-  const supabaseUrl = window.__SUPABASE_URL  || "https://wklhcmaodxatavuoduhd.supabase.co";
+  const supabaseUrl = window.__SUPABASE_URL  || "https://wznopthjoaqusalqoyru.supabase.co";
   const supabaseKey = window.__SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk";
  
   supabase = createClient(supabaseUrl, supabaseKey);

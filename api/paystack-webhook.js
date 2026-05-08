@@ -236,15 +236,15 @@ export default async function handler(req, res) {
 
   const { error: updateErr } = await supabase
     .from("user_profiles")
-    .update({
+    .upsert({
+      id:                   userId,
       premium:              true,
       premium_expires_at:   expiresAt.toISOString(),
       premium_source:       "paystack",
       premium_activated_at: now.toISOString(),
       paystack_reference:   reference,
       updated_at:           now.toISOString(),
-    })
-    .eq("id", userId);
+    }, { onConflict: "id" });
 
   if (updateErr) {
     console.error("[Paystack Webhook] Premium activation error:", updateErr);
