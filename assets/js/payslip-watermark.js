@@ -266,7 +266,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
       return;
     }
 
-    let status = { isPremium: true, email: null, premiumExpiresAt: null };
+    let status = { isPremium: false, email: null, premiumExpiresAt: null };
     if (supabase && supabase.auth && typeof supabase.auth.getUser === "function") {
       try {
         status = await checkPremium(supabase);
