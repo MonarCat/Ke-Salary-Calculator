@@ -3,64 +3,6 @@
 // Constants
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
 
-// Turnstile widget IDs (populated after the Turnstile library loads)
-let turnstileLoginWidgetId = null;
-let turnstileSignupWidgetId = null;
-
-const VERIFY_TURNSTILE_ENDPOINT = `${(typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/verify-turnstile`;
-const TURNSTILE_RESPONSE_FIELD_SELECTOR = '[name="cf-turnstile-response"]';
-
-function resetTurnstile(widgetType) {
-    if (!window.turnstile) return;
-
-    const widgetId = widgetType === 'login' ? turnstileLoginWidgetId : turnstileSignupWidgetId;
-    if (widgetId !== null) {
-        window.turnstile.reset(widgetId);
-    }
-}
-
-async function verifyTurnstileToken(token) {
-    const response = await fetch(VERIFY_TURNSTILE_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
-    });
-
-    if (!response.ok) {
-        throw new Error('Security check failed. Please try again.');
-    }
-
-    const data = await response.json();
-    return !!data.success;
-}
-
-// Called by the Turnstile script once it has loaded (onload=onTurnstileLoad)
-function onTurnstileLoad() {
-    const missingSiteKey = typeof TURNSTILE_SITE_KEY === 'undefined' || !TURNSTILE_SITE_KEY;
-
-    if (missingSiteKey) {
-        console.warn('TURNSTILE_SITE_KEY is not configured. Turnstile widgets will not be rendered.');
-        return;
-    }
-
-    const loginEl = document.getElementById('turnstile-login');
-    if (loginEl && window.turnstile) {
-        turnstileLoginWidgetId = window.turnstile.render(loginEl, {
-            sitekey: TURNSTILE_SITE_KEY,
-            theme: 'light'
-        });
-    }
-
-    const signupEl = document.getElementById('turnstile-signup');
-    if (signupEl && window.turnstile) {
-        turnstileSignupWidgetId = window.turnstile.render(signupEl, {
-            sitekey: TURNSTILE_SITE_KEY,
-            theme: 'light'
-        });
-    }
-}
-window.onTurnstileLoad = onTurnstileLoad;
-
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
     const tabs = document.querySelectorAll('.auth-tab');
@@ -111,28 +53,6 @@ async function handleLogin(event) {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
-    const loginForm = document.getElementById('loginForm');
-    const turnstileToken = loginForm?.querySelector(TURNSTILE_RESPONSE_FIELD_SELECTOR)?.value || '';
-
-    if (!turnstileToken) {
-        showMessage('login-message', 'Please complete the security check.', 'error');
-        return;
-    }
-
-    try {
-        const isValidTurnstile = await verifyTurnstileToken(turnstileToken);
-        if (!isValidTurnstile) {
-            showMessage('login-message', 'Security check failed. Please try again.', 'error');
-            resetTurnstile('login');
-            return;
-        }
-    } catch (turnstileError) {
-        console.error('Turnstile verification error:', turnstileError);
-        showMessage('login-message', 'Security check failed. Please try again.', 'error');
-        resetTurnstile('login');
-        return;
-    }
-
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -181,8 +101,6 @@ async function handleLogin(event) {
         }, 1000);
         
     } catch (error) {
-        // Reset Turnstile so the user can try again
-        resetTurnstile('login');
         // Detect unverified email and offer resend link
         if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
             showMessage('login-message',
@@ -259,28 +177,6 @@ async function handleSignup(event) {
         return;
     }
 
-    const signupForm = document.getElementById('signupForm');
-    const turnstileToken = signupForm?.querySelector(TURNSTILE_RESPONSE_FIELD_SELECTOR)?.value || '';
-
-    if (!turnstileToken) {
-        showMessage('signup-message', 'Please complete the security check.', 'error');
-        return;
-    }
-
-    try {
-        const isValidTurnstile = await verifyTurnstileToken(turnstileToken);
-        if (!isValidTurnstile) {
-            showMessage('signup-message', 'Security check failed. Please try again.', 'error');
-            resetTurnstile('signup');
-            return;
-        }
-    } catch (turnstileError) {
-        console.error('Turnstile verification error:', turnstileError);
-        showMessage('signup-message', 'Security check failed. Please try again.', 'error');
-        resetTurnstile('signup');
-        return;
-    }
-
     // Show loading state
     const submitBtn = event.target.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
@@ -311,7 +207,6 @@ async function handleSignup(event) {
             showMessage('signup-message',
                 `This email is already registered. Please <button type="button" onclick="switchAuthTab('login')" class="inline-link-btn">sign in</button> instead, or use a different email.`,
                 'error');
-            resetTurnstile('signup');
             return;
         }
         
@@ -322,11 +217,8 @@ async function handleSignup(event) {
         // Reset form
         event.target.reset();
         document.getElementById('organization-fields').style.display = 'none';
-        resetTurnstile('signup');
         
     } catch (error) {
-        // Reset Turnstile so the user can try again
-        resetTurnstile('signup');
         // Provide a friendlier message for the known Supabase trigger failure
         const msg = (error.message || '').toLowerCase();
         if (msg.includes('database error saving new user')) {
