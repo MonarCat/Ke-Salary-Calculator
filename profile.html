@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         .profile-container {
             max-width: 900px;
@@ -460,14 +459,14 @@
                     </div>
                 </div>
 
-                <!-- Premium gate for org accounts that haven't paid (displayed in place of org-features-card) -->
+                <!-- Org setup helper card -->
                 <div class="profile-card" id="org-upgrade-gate-card" style="display:none;">
                     <div class="upgrade-panel" style="text-align:center;padding:24px;">
-                        <div style="font-size:3em;margin-bottom:12px;">🔒</div>
-                        <h3 style="color:#006600;margin-bottom:10px;"><i class="fas fa-crown"></i> Unlock Organization Features</h3>
+                        <div style="font-size:3em;margin-bottom:12px;">✅</div>
+                        <h3 style="color:#006600;margin-bottom:10px;"><i class="fas fa-building"></i> Organization Tools Ready</h3>
                         <p style="color:#555;margin-bottom:16px;max-width:480px;margin-left:auto;margin-right:auto;">
-                            Your account is set up as an Organization, but these features require an active <strong>Premium</strong> subscription.
-                            Subscribe to manage employees, generate bulk payslips, view payroll history, and get KRA compliance reports.
+                            Your organization tools are now available at no cost.
+                            Open the sections below to manage employees, generate bulk payslips, view payroll history, and access compliance reports.
                         </p>
                         <div class="upgrade-features" style="margin-bottom:20px;">
                             <span class="upgrade-feature-item">👥 1,000 employees</span>
@@ -477,8 +476,8 @@
                             <span class="upgrade-feature-item">📁 CSV / PDF export</span>
                             <span class="upgrade-feature-item">📅 Full payroll history</span>
                         </div>
-                        <a href="/account" class="upgrade-button" style="text-decoration:none;display:inline-block;">
-                            <i class="fas fa-credit-card"></i> Subscribe — KES 99/mo or KES 999/yr
+                        <a href="/employees.html" class="upgrade-button" style="text-decoration:none;display:inline-block;">
+                            <i class="fas fa-users"></i> Open Employee Management
                         </a>
                     </div>
                 </div>
@@ -487,7 +486,7 @@
                 <div class="profile-card" id="upgrade-card" style="display:none;">
                     <div class="upgrade-panel">
                         <h3><i class="fas fa-arrow-circle-up"></i> Set Up an Organization Account</h3>
-                        <p>Switch your account to Organization type to enable employee management features. A <strong>Premium subscription (KES 99/mo)</strong> is required to access org features.</p>
+                        <p>Switch your account to Organization type to enable employee management features.</p>
                         <div class="upgrade-features">
                             <span class="upgrade-feature-item">👥 Up to 1,000 employees</span>
                             <span class="upgrade-feature-item">📊 Payroll analytics</span>
@@ -604,27 +603,21 @@
                 }
             }
 
-            // Load billing data and get premium status
-            const isPremiumActive = await loadBillingData(user);
+            // Load account access data
+            await loadBillingData(user);
 
-            // Gate org features behind premium payment
             if (accountType === 'employer') {
-                if (isPremiumActive) {
-                    document.getElementById('org-details-card').style.display = 'block';
-                    document.getElementById('org-features-card').style.display = 'block';
-                    document.getElementById('org-detail-name').textContent = organizationName || '—';
-                    // Update the Account Tier label to show Premium
-                    const tierEl = document.getElementById('org-account-tier');
-                    if (tierEl) tierEl.textContent = 'Organization (Premium)';
-                } else {
-                    // Show a soft gate: keep org badge but prompt upgrade
-                    document.getElementById('org-upgrade-gate-card').style.display = 'block';
-                }
+                document.getElementById('org-details-card').style.display = 'block';
+                document.getElementById('org-features-card').style.display = 'block';
+                document.getElementById('org-upgrade-gate-card').style.display = 'block';
+                document.getElementById('org-detail-name').textContent = organizationName || '—';
+                const tierEl = document.getElementById('org-account-tier');
+                if (tierEl) tierEl.textContent = 'Organization';
             }
 
         }  // end loadUserProfile
 
-        // ── Billing & Subscription ─────────────────────────────────────────────
+        // ── Account Access ────────────────────────────────────────────────────
         async function loadBillingData(user) {
             if (!supabaseClient || !isSupabaseConfigured()) {
                 document.getElementById('billing-plan').textContent = 'Unavailable';
@@ -643,10 +636,7 @@
                 const now = new Date();
                 const planEl  = document.getElementById('billing-plan');
                 const ctaEl   = document.getElementById('billing-cta');
-                const subscribeBtn = '<a href="/account" class="paystack-btn" style="display:inline-block;text-decoration:none;">'
-                    + '<i class="fas fa-credit-card"></i> Manage Billing — KES 99/mo or KES 999/yr</a>';
-
-                const isPremiumActive = profile
+                const isLegacyPremium = profile
                     && profile.premium === true
                     && (!profile.premium_expires_at || new Date(profile.premium_expires_at) > now);
 
@@ -661,21 +651,19 @@
                     return n + ' day' + (n === 1 ? '' : 's');
                 }
 
-                if (isPremiumActive) {
-                    planEl.innerHTML = '<span class="billing-badge premium">⭐ Premium Active</span>';
+                if (isLegacyPremium) {
+                    planEl.innerHTML = '<span class="billing-badge premium">✅ Free Access</span>';
                     document.getElementById('billing-expires-field').style.display = 'flex';
                     document.getElementById('billing-expires').textContent = formatDate(profile.premium_expires_at);
                     document.getElementById('billing-days-remaining-field').style.display = 'flex';
                     document.getElementById('billing-days-remaining').textContent = daysLeft(profile.premium_expires_at);
-                    ctaEl.innerHTML = '<div class="billing-msg premium">✅ Your premium subscription is active.'
-                        + ' Renew below to extend your access.</div>' + subscribeBtn;
+                    ctaEl.innerHTML = '<div class="billing-msg premium">✅ All features are enabled for your account.</div>';
                 } else {
-                    planEl.innerHTML = '<span class="billing-badge free">🆓 Free Plan</span>';
-                    ctaEl.innerHTML = '<div class="billing-msg free">💡 Upgrade to Premium to unlock employee management,'
-                        + ' bulk payslips, payroll history, KRA compliance reports and more.</div>' + subscribeBtn;
+                    planEl.innerHTML = '<span class="billing-badge free">✅ Free Access</span>';
+                    ctaEl.innerHTML = '<div class="billing-msg free">✅ All features are enabled for your account.</div>';
                 }
 
-                return isPremiumActive === true;
+                return true;
 
             } catch (e) {
                 console.warn('Failed to load billing data:', e);
@@ -685,52 +673,7 @@
         }
 
         function payWithPaystack() {
-            if (!currentUser) {
-                alert('Please refresh the page and try again.');
-                return;
-            }
-
-            const paystackKey = (typeof PAYSTACK_PUBLIC_KEY !== 'undefined') ? PAYSTACK_PUBLIC_KEY : '';
-            if (!paystackKey || paystackKey.indexOf('REPLACE') !== -1) {
-                alert('Payment is not yet configured. Please contact support.');
-                return;
-            }
-
-            if (typeof PaystackPop === 'undefined') {
-                alert('Payment system is still loading. Please wait a moment and try again.');
-                return;
-            }
-
-            const amount = 9900; // KES 99 × 100 (Paystack uses kobo/cents)
-            const ref = 'KSC-' + currentUser.id.replace(/-/g, '').substring(0, 8) + '-' + Date.now();
-
-            const handler = PaystackPop.setup({
-                key:      paystackKey,
-                email:    currentUser.email,
-                amount:   amount,
-                currency: 'KES',
-                ref:      ref,
-                metadata: {
-                    user_id: currentUser.id,
-                    custom_fields: [
-                        { display_name: 'User ID', variable_name: 'user_id', value: currentUser.id },
-                        { display_name: 'Plan',    variable_name: 'plan',    value: 'monthly'       }
-                    ]
-                },
-                callback: function(response) {
-                    // Attempt instant premium activation, then redirect
-                    fetch('/api/paystack-verify?ref=' + encodeURIComponent(response.reference), { method: 'POST' })
-                        .catch(function() { /* webhook will activate as fallback */ })
-                        .finally(function() {
-                            window.location.href = '/premium-thank-you.html?ref=' + encodeURIComponent(response.reference);
-                        });
-                },
-                onClose: function() {
-                    // User closed the popup — no action needed
-                }
-            });
-
-            handler.openIframe();
+            // Deprecated: pricing and checkout are disabled.
         }
 
         // ── Upgrade form helpers ───────────────────────────────────────────────
@@ -782,7 +725,7 @@
                 }
 
                 msgEl.style.color = '#a8f0b8';
-                msgEl.textContent = '✅ Account updated to Organization. Subscribe to Premium to unlock all employer features. Reloading…';
+                msgEl.textContent = '✅ Account updated to Organization. Reloading…';
                 setTimeout(function() { window.location.reload(); }, 2500);
             } catch (err) {
                 msgEl.style.color = '#ffcccc';
