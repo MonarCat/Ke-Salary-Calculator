@@ -1211,10 +1211,14 @@
     <script type="module">
       import { initPayslipDownload } from '/assets/js/payslip-watermark.js';
       import { createClient }        from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-      const _sb = window.supabaseClient || createClient(
-        window.__SUPABASE_URL      || 'https://wznopthjoaqusalqoyru.supabase.co',
-        window.__SUPABASE_ANON_KEY || ''
-      );
+      let _sb = window.supabaseClient || null;
+      if (!_sb && window.__SUPABASE_URL && window.__SUPABASE_ANON_KEY) {
+        try {
+          _sb = createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+        } catch (e) {
+          console.warn('[Payslip] Supabase client unavailable, using print fallback.', e);
+        }
+      }
       initPayslipDownload(_sb, { captureElementId: 'payslipOutput', downloadBtnId: 'payslip-print-btn' });
     </script>
     <!-- Easter gift banner -->

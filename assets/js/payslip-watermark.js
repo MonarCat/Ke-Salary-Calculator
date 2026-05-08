@@ -266,8 +266,15 @@ export async function initPayslipDownload(supabase, opts = {}) {
       return;
     }
 
-    const status = await checkPremium(supabase);
-    if (status.email) window.__SC_USER_EMAIL = status.email;
+    let status = { isPremium: true, email: null, premiumExpiresAt: null };
+    if (supabase && supabase.auth && typeof supabase.auth.getUser === "function") {
+      try {
+        status = await checkPremium(supabase);
+        if (status.email) window.__SC_USER_EMAIL = status.email;
+      } catch (err) {
+        console.warn("[PayslipWatermark] Premium check failed, using print fallback.", err);
+      }
+    }
 
     if (status.isPremium) {
       if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) {
