@@ -1520,41 +1520,15 @@
         }
 
         function calcPayslipDeductions(gross) {
-            function calcPAYE(taxable) {
-                const bands = [
-                    { limit: 24000, rate: 0.10 },
-                    { limit: 8333,  rate: 0.25 },
-                    { limit: 467667, rate: 0.30 },
-                    { limit: 300000, rate: 0.325 },
-                    { limit: Infinity, rate: 0.35 }
-                ];
-                const personalRelief = 2400;
-                let tax = 0, remaining = taxable;
-                for (const b of bands) {
-                    if (remaining <= 0) break;
-                    const taxableInBand = Math.min(remaining, b.limit);
-                    tax += taxableInBand * b.rate;
-                    remaining -= taxableInBand;
-                }
-                return Math.max(0, tax - personalRelief);
-            }
-
-            const nssfEmployee = Math.min(gross * 0.06, 2160);
-            const nssfEmployer = nssfEmployee;
-            const shif = gross * 0.0275;
-            const hlEmployee = gross * 0.015;
-            const hlEmployer = gross * 0.015;
-            const taxable = Math.max(0, gross - nssfEmployee);
-            const paye = calcPAYE(taxable);
-
+            const d = calcDeductions(Math.max(Number(gross) || 0, 0));
             return {
-                paye: Math.round(paye),
-                nssfEmployee: Math.round(nssfEmployee),
-                nssfEmployer: Math.round(nssfEmployer),
-                shifEmployee: Math.round(shif),
-                shifEmployer: Math.round(shif),
-                hlEmployee: Math.round(hlEmployee),
-                hlEmployer: Math.round(hlEmployer),
+                paye: Math.round(d.paye),
+                nssfEmployee: Math.round(d.nssf),
+                nssfEmployer: Math.round(d.nssf),
+                shifEmployee: Math.round(d.shif),
+                shifEmployer: Math.round(d.shif),
+                hlEmployee: Math.round(d.ahl),
+                hlEmployer: Math.round(d.ahl),
             };
         }
 
@@ -1644,7 +1618,7 @@
             document.getElementById('ps-r-nssf-er').textContent = fmt(ded.nssfEmployer);
             document.getElementById('ps-r-shif-er').textContent = fmt(ded.shifEmployer);
             document.getElementById('ps-r-hl-er').textContent = fmt(ded.hlEmployer);
-            document.getElementById('ps-r-total-er').textContent = fmt(gross + ded.nssfEmployer + ded.shifEmployer + ded.hlEmployer);
+            document.getElementById('ps-r-total-er').textContent = fmt(ded.nssfEmployer + ded.shifEmployer + ded.hlEmployer);
 
             document.getElementById('ps-r-paye').textContent = fmt(ded.paye);
             document.getElementById('ps-r-nssf-ee').textContent = fmt(ded.nssfEmployee);
