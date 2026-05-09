@@ -164,7 +164,7 @@ serve(async (req: Request) => {
 
     // ── GENERATE MAGIC LINK (admin impersonation) ───────────────────────────
     case "generate_magic_link": {
-      const { email, user_id } = body as { email: string; user_id: string };
+      const { email } = body as { email: string };
       if (!email) return json({ error: "email required" }, 400);
 
       // generateLink type "magiclink" sends an OTP — we return the link for admin use
