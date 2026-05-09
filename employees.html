@@ -1716,6 +1716,138 @@
             // legacy no-op kept for backward compatibility
         }
 
+        // ── Bulk Generate Payslips ───────────────────────────────────────────────
+
+        function bulkGeneratePayslips() {
+            const activeEmps = employees.filter(e => (e.status || 'Active') !== 'Terminated');
+            if (!activeEmps.length) {
+                alert('No active employees found. Please add employees before generating bulk payslips.');
+                return;
+            }
+
+            const now = new Date();
+            const defaultPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const period = prompt('Enter pay period (YYYY-MM) for bulk payslips:', defaultPeriod);
+            if (!period) return;
+            const periodMatch = period.match(/^(\d{4})-(\d{2})$/);
+            if (!periodMatch) {
+                alert('Invalid period format. Please use YYYY-MM (e.g. 2026-05).');
+                return;
+            }
+            const [, yr, mo] = periodMatch;
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const periodLabel = `${monthNames[parseInt(mo, 10) - 1]} ${yr}`;
+
+            const profile = JSON.parse(localStorage.getItem('employerProfile_' + (currentUser?.id || '')) || localStorage.getItem('employerProfile') || '{}');
+            const companyName = profile.name || profile.orgName || 'Your Company';
+            const companyAddress = profile.address || '';
+            const companyKRA = profile.kraPin || '—';
+            const companyContacts = [profile.email, profile.phone].filter(Boolean).join(' | ');
+            const logoUrl = profile.logo_url || '';
+
+            const payslipBlocks = activeEmps.map((emp, idx) => {
+                const basic = Number(emp.salary) || 0;
+                const house = Number(emp.allowances) || 0;
+                const gross = basic + house;
+                const d = calcDeductions(gross);
+                const paye = Math.round(d.paye);
+                const nssf = Math.round(d.nssf);
+                const shif = Math.round(d.shif);
+                const ahl  = Math.round(d.ahl);
+                const totalDed = paye + nssf + shif + ahl;
+                const netPay = gross - totalDed;
+                const fmt = n => Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 2 });
+                const psNum = `PS-${String(idx + 1).padStart(3, '0')}`;
+
+                return `
+                <div class="ps-page" style="width:210mm;min-height:270mm;margin:0 auto 24px;background:#fff;padding:14mm 14mm 10mm;border:1px solid #ddd;page-break-after:always;font-size:11px;color:#1a1a1a;font-family:Arial,sans-serif;">
+                    <div style="display:flex;align-items:flex-start;gap:14px;border-bottom:3px solid #2D6A4F;padding-bottom:10px;margin-bottom:10px;">
+                        <div style="flex:0 0 70px;">${logoUrl ? `<img src="${logoUrl}" alt="" style="max-height:60px;">` : ''}</div>
+                        <div style="flex:1;">
+                            <div style="font-size:18px;font-weight:700;color:#2D6A4F;margin:0 0 3px;">${companyName}</div>
+                            ${companyAddress ? `<div style="font-size:10px;color:#555;">${companyAddress}</div>` : ''}
+                            ${companyContacts ? `<div style="font-size:10px;color:#555;">${companyContacts}</div>` : ''}
+                        </div>
+                        <div style="text-align:right;font-size:10px;">
+                            <div><strong>KRA PIN:</strong> ${companyKRA}</div>
+                        </div>
+                    </div>
+                    <div style="background:#2D6A4F;color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;padding:6px 12px;display:flex;justify-content:space-between;margin-bottom:10px;border-radius:3px;">
+                        <span>PAYSLIP</span>
+                        <span>${periodLabel}</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;background:#f8f9fa;padding:8px;border-radius:4px;border:1px solid #e0e0e0;font-size:10px;">
+                        <div>
+                            <table style="width:100%;">
+                                <tr><td style="color:#555;padding:2px 0;">Employee Name</td><td style="font-weight:600;">${emp.name || '—'}</td></tr>
+                                <tr><td style="color:#555;padding:2px 0;">Employee No.</td><td>${emp.employeeId || '—'}</td></tr>
+                                <tr><td style="color:#555;padding:2px 0;">KRA PIN</td><td>${emp.kraPin || '—'}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <table style="width:100%;">
+                                <tr><td style="color:#555;padding:2px 0;">Department</td><td>${emp.department || '—'}</td></tr>
+                                <tr><td style="color:#555;padding:2px 0;">Position</td><td>${emp.position || '—'}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <table style="width:100%;">
+                                <tr><td style="color:#555;padding:2px 0;">Pay Period</td><td>${periodLabel}</td></tr>
+                                <tr><td style="color:#555;padding:2px 0;">Payslip No.</td><td>${psNum}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:10px;">
+                        <div>
+                            <div style="font-weight:700;color:#2D6A4F;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:4px;">EARNINGS</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tr><td style="padding:3px 0;">Basic Salary</td><td style="text-align:right;">${fmt(basic)}</td></tr>
+                                ${house > 0 ? `<tr><td style="padding:3px 0;">Allowances</td><td style="text-align:right;">${fmt(house)}</td></tr>` : ''}
+                                <tr style="font-weight:700;border-top:1px solid #ddd;"><td style="padding:4px 0;">Gross Pay</td><td style="text-align:right;">${fmt(gross)}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;color:#2D6A4F;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:4px;">DEDUCTIONS</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <tr><td style="padding:3px 0;">PAYE (iTax)</td><td style="text-align:right;">${fmt(paye)}</td></tr>
+                                <tr><td style="padding:3px 0;">NSSF (Employee)</td><td style="text-align:right;">${fmt(nssf)}</td></tr>
+                                <tr><td style="padding:3px 0;">SHIF</td><td style="text-align:right;">${fmt(shif)}</td></tr>
+                                <tr><td style="padding:3px 0;">Housing Levy</td><td style="text-align:right;">${fmt(ahl)}</td></tr>
+                                <tr style="font-weight:700;border-top:1px solid #ddd;"><td style="padding:4px 0;">Total Deductions</td><td style="text-align:right;">${fmt(totalDed)}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px;background:#e8f5e9;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <div style="font-size:13px;font-weight:700;color:#1a6b3c;">NET PAY</div>
+                        <div style="font-size:16px;font-weight:800;color:#1a6b3c;">KES ${fmt(netPay)}</div>
+                    </div>
+                    <div style="margin-top:6px;font-size:9px;color:#888;text-align:center;">This is a computer-generated payslip and does not require a manual signature.</div>
+                </div>`;
+            }).join('');
+
+            const win = window.open('', '_blank');
+            if (!win) { alert('Please allow pop-ups to generate bulk payslips.'); return; }
+            win.document.write(`<!DOCTYPE html><html><head><title>Bulk Payslips — ${periodLabel}</title>
+                <style>
+                    body { margin:0; padding:16px; background:#f0f0f0; font-family:Arial,sans-serif; }
+                    @media print {
+                        body { background:#fff; padding:0; }
+                        .no-print { display:none !important; }
+                        .ps-page { border:none !important; margin:0 !important; page-break-after:always; }
+                    }
+                </style>
+            </head><body>
+                <div class="no-print" style="text-align:center;margin-bottom:20px;">
+                    <strong>Bulk Payslips — ${periodLabel} (${activeEmps.length} employee${activeEmps.length !== 1 ? 's' : ''})</strong>
+                    &nbsp;&nbsp;
+                    <button onclick="window.print()" style="padding:10px 24px;background:#006600;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Print / Save as PDF</button>
+                </div>
+                ${payslipBlocks}
+            </body></html>`);
+            win.document.close();
+            win.focus();
+        }
+
         // ── Export Functions ──────────────────────────────────────────────────────
 
         function buildExportRows() {
