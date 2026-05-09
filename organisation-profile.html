@@ -647,6 +647,9 @@
                 const profileCache = {
                     name:    payload.organization_name || '',
                     kraPin:  payload.organization_kra_pin || '',
+                    nssfNo:  payload.nssf_number || '',
+                    shifNo:  payload.nhif_number || '',
+                    registrationNo: payload.registration_number || '',
                     address: payload.physical_address || payload.county || '',
                     county:  payload.county || '',
                     email:   payload.contact_email || '',

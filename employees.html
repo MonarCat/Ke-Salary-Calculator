@@ -847,6 +847,7 @@
                             </div>
                             <div class="ps-company-reg" style="text-align:right;font-size:10px;">
                                 <p><strong>KRA PIN:</strong> <span id="ps-company-kra"></span></p>
+                                <p><strong>Registration No:</strong> <span id="ps-company-reg"></span></p>
                                 <p><strong>NSSF No:</strong> <span id="ps-company-nssf"></span></p>
                                 <p><strong>SHIF No:</strong> <span id="ps-company-shif"></span></p>
                             </div>
@@ -1074,7 +1075,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('employers')
-                    .select('organization_name, organization_kra_pin, industry, county, physical_address, postal_address, contact_email, contact_phone, logo_url, profile_complete')
+                    .select('organization_name, organization_kra_pin, nssf_number, nhif_number, registration_number, industry, county, physical_address, postal_address, contact_email, contact_phone, logo_url, profile_complete')
                     .eq('user_id', user.id)
                     .maybeSingle();
                 if (error || !data) return;
@@ -1096,6 +1097,9 @@
                 localStorage.setItem('employerProfile_' + user.id, JSON.stringify({
                     name: data.organization_name || '',
                     kraPin: data.organization_kra_pin || '',
+                    nssfNo: data.nssf_number || '',
+                    shifNo: data.nhif_number || '',
+                    registrationNo: data.registration_number || '',
                     address: address,
                     county: data.county || '',
                     email: data.contact_email || '',
@@ -1580,6 +1584,101 @@
             return `Kenya Shillings ${fmt(amount)} Only`;
         }
 
+        function getEmployerProfileForPayslips() {
+            let raw = {};
+            try {
+                raw = JSON.parse(
+                    localStorage.getItem('employerProfile_' + (currentUser?.id || '')) ||
+                    localStorage.getItem('employerProfile') ||
+                    '{}'
+                ) || {};
+            } catch (_) {
+                raw = {};
+            }
+            return {
+                name: raw.name || raw.orgName || '',
+                kraPin: raw.kraPin || '',
+                nssfNo: raw.nssfNo || raw.nssf_number || '',
+                shifNo: raw.shifNo || raw.shif_number || raw.nhifNo || raw.nhif_number || '',
+                registrationNo: raw.registrationNo || raw.registration_number || '',
+                address: raw.address || raw.physical_address || raw.county || '',
+                county: raw.county || '',
+                email: raw.email || raw.contact_email || '',
+                phone: raw.phone || raw.contact_phone || '',
+                logo_url: raw.logo_url || ''
+            };
+        }
+
+        function validateEmployerProfileForPayslips(profile) {
+            const required = [
+                ['Company Name', profile.name],
+                ['Address', profile.address],
+                ['KRA PIN', profile.kraPin],
+                ['Registration Number', profile.registrationNo],
+                ['NSSF No', profile.nssfNo],
+                ['SHIF No', profile.shifNo]
+            ];
+            const missing = required.filter(([, value]) => !String(value || '').trim()).map(([label]) => label);
+            return { valid: missing.length === 0, missing };
+        }
+
+        function applyPayslipProfile(profile) {
+            document.getElementById('ps-company-name').textContent = profile.name || 'Your Company Name';
+            document.getElementById('ps-company-address').textContent = profile.address || '';
+            document.getElementById('ps-company-kra').textContent = profile.kraPin || '—';
+            document.getElementById('ps-company-reg').textContent = profile.registrationNo || '—';
+            document.getElementById('ps-company-nssf').textContent = profile.nssfNo || '—';
+            document.getElementById('ps-company-shif').textContent = profile.shifNo || '—';
+            document.getElementById('ps-company-contacts').textContent = [profile.email, profile.phone].filter(Boolean).join(' | ');
+
+            const logoEl = document.getElementById('ps-company-logo');
+            if (profile.logo_url) {
+                logoEl.src = profile.logo_url;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+        }
+
+        function getPayslipPeriodLabel(periodVal) {
+            if (!periodVal) return '—';
+            const [yr, mo] = periodVal.split('-');
+            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return monthNames[Math.max(0, parseInt(mo, 10) - 1)] + ' ' + yr;
+        }
+
+        function fillPayslipForEmployee(emp, profile, opts = {}) {
+            currentPayslipEmployee = emp;
+            applyPayslipProfile(profile);
+
+            document.getElementById('ps-emp-name').textContent = emp.name || '';
+            document.getElementById('ps-emp-no').textContent = emp.employeeId || '';
+            document.getElementById('ps-emp-kra').textContent = emp.kraPin || '—';
+            document.getElementById('ps-emp-nssf').textContent = emp.nssfNumber || '—';
+            document.getElementById('ps-emp-dept').textContent = emp.department || '—';
+            document.getElementById('ps-emp-position').textContent = emp.position || '—';
+            document.getElementById('ps-emp-bank').textContent = emp.bankName || '—';
+            const acct = emp.accountNumber || '';
+            document.getElementById('ps-emp-account').textContent = acct ? '****' + acct.slice(-4) : '—';
+            document.getElementById('ps-emp-branch').textContent = emp.bankBranch || '—';
+
+            const now = new Date();
+            document.getElementById('ps-pay-period').value = opts.period || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('ps-pay-date').value = opts.payDate || new Date().toISOString().split('T')[0];
+            document.getElementById('ps-payslip-no').value = opts.payslipNo || `PS-${Date.now().toString().slice(-6)}`;
+
+            document.getElementById('ps-basic-salary').value = Number(emp.salary) || 0;
+            document.getElementById('ps-house-allowance').value = Number(emp.allowances) || 0;
+            document.getElementById('ps-transport-allowance').value = 0;
+            document.getElementById('ps-other-allowances').value = 0;
+            document.getElementById('ps-sacco').value = 0;
+            document.getElementById('ps-pension').value = 0;
+            document.getElementById('ps-insurance').value = 0;
+            document.getElementById('ps-other-deduction').value = 0;
+            document.getElementById('ps-other-deduction-label').value = '';
+            generatePayslipPreview();
+        }
+
         function calcPayslipDeductions(gross) {
             const d = calcDeductions(Math.max(Number(gross) || 0, 0));
             return {
@@ -1596,54 +1695,16 @@
         function generatePayslipForEmployee(id) {
             const emp = employees.find(e => String(e.id) === String(id));
             if (!emp) return;
-            currentPayslipEmployee = emp;
-
-            const profile = JSON.parse(localStorage.getItem('employerProfile_' + currentUser.id) || '{}');
-
-            document.getElementById('ps-company-name').textContent = profile.name || 'Your Company Name';
-            document.getElementById('ps-company-address').textContent = profile.address || '';
-            document.getElementById('ps-company-kra').textContent = profile.kraPin || '—';
-            document.getElementById('ps-company-nssf').textContent = '—';
-            document.getElementById('ps-company-shif').textContent = '—';
-            document.getElementById('ps-company-contacts').textContent = [profile.email, profile.phone].filter(Boolean).join(' | ');
-
-            const logoEl = document.getElementById('ps-company-logo');
-            if (profile.logo_url) {
-                logoEl.src = profile.logo_url;
-                logoEl.style.display = 'block';
-            } else {
-                logoEl.style.display = 'none';
+            const profile = getEmployerProfileForPayslips();
+            const profileValidation = validateEmployerProfileForPayslips(profile);
+            if (!profileValidation.valid) {
+                alert('Complete organisation profile details first: ' + profileValidation.missing.join(', ') + '.');
+                window.location.href = '/organisation-profile.html';
+                return;
             }
-
-            document.getElementById('ps-emp-name').textContent = emp.name || '';
-            document.getElementById('ps-emp-no').textContent = emp.employeeId || '';
-            document.getElementById('ps-emp-kra').textContent = emp.kraPin || '—';
-            document.getElementById('ps-emp-nssf').textContent = emp.nssfNumber || '—';
-            document.getElementById('ps-emp-dept').textContent = emp.department || '—';
-            document.getElementById('ps-emp-position').textContent = emp.position || '—';
-            document.getElementById('ps-emp-bank').textContent = emp.bankName || '—';
-            const acct = emp.accountNumber || '';
-            document.getElementById('ps-emp-account').textContent = acct ? '****' + acct.slice(-4) : '—';
-            document.getElementById('ps-emp-branch').textContent = emp.bankBranch || '—';
-
-            const now = new Date();
-            document.getElementById('ps-pay-period').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            document.getElementById('ps-pay-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('ps-payslip-no').value = `PS-${Date.now().toString().slice(-6)}`;
-
-            document.getElementById('ps-basic-salary').value = Number(emp.salary) || 0;
-            document.getElementById('ps-house-allowance').value = Number(emp.allowances) || 0;
-            document.getElementById('ps-transport-allowance').value = 0;
-            document.getElementById('ps-other-allowances').value = 0;
-            document.getElementById('ps-sacco').value = 0;
-            document.getElementById('ps-pension').value = 0;
-            document.getElementById('ps-insurance').value = 0;
-            document.getElementById('ps-other-deduction').value = 0;
-            document.getElementById('ps-other-deduction-label').value = '';
-
+            fillPayslipForEmployee(emp, profile);
             document.getElementById('ps-payslip-modal').dataset.empId = id;
             document.getElementById('ps-payslip-modal').classList.add('active');
-            generatePayslipPreview();
         }
 
         function generatePayslipPreview() {
@@ -1702,11 +1763,7 @@
             document.getElementById('ps-r-net-words').textContent = amountToWords(netPay);
 
             const periodVal = document.getElementById('ps-pay-period').value;
-            if (periodVal) {
-                const [yr, mo] = periodVal.split('-');
-                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                document.getElementById('ps-display-period').textContent = monthNames[parseInt(mo) - 1] + ' ' + yr;
-            }
+            document.getElementById('ps-display-period').textContent = getPayslipPeriodLabel(periodVal);
             document.getElementById('ps-pay-date-display').textContent = document.getElementById('ps-pay-date').value || '—';
             document.getElementById('ps-payslip-no-display').textContent = document.getElementById('ps-payslip-no').value || '—';
         }
@@ -1822,96 +1879,24 @@
                 alert('Invalid period format. Please use YYYY-MM (e.g. 2026-05).');
                 return;
             }
-            const [, yr, mo] = periodMatch;
-            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            const periodLabel = `${monthNames[parseInt(mo, 10) - 1]} ${yr}`;
+            const periodLabel = getPayslipPeriodLabel(period);
+            const profile = getEmployerProfileForPayslips();
+            const profileValidation = validateEmployerProfileForPayslips(profile);
+            if (!profileValidation.valid) {
+                alert('Complete organisation profile details first: ' + profileValidation.missing.join(', ') + '.');
+                window.location.href = '/organisation-profile.html';
+                return;
+            }
 
-            const profile = JSON.parse(localStorage.getItem('employerProfile_' + (currentUser?.id || '')) || localStorage.getItem('employerProfile') || '{}');
-            const companyName = profile.name || profile.orgName || 'Your Company';
-            const companyAddress = profile.address || '';
-            const companyKRA = profile.kraPin || '—';
-            const companyContacts = [profile.email, profile.phone].filter(Boolean).join(' | ');
-            const logoUrl = profile.logo_url || '';
-
+            const previousEmployee = currentPayslipEmployee;
             const payslipBlocks = activeEmps.map((emp, idx) => {
-                const basic = Number(emp.salary) || 0;
-                const house = Number(emp.allowances) || 0;
-                const gross = basic + house;
-                const d = calcDeductions(gross);
-                const paye = Math.round(d.paye);
-                const nssf = Math.round(d.nssf);
-                const shif = Math.round(d.shif);
-                const ahl  = Math.round(d.ahl);
-                const totalDed = paye + nssf + shif + ahl;
-                const netPay = gross - totalDed;
-                const fmt = n => Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 2 });
-                const psNum = `PS-${String(idx + 1).padStart(3, '0')}`;
-
-                return `
-                <div class="ps-page" style="width:210mm;min-height:270mm;margin:0 auto 24px;background:#fff;padding:14mm 14mm 10mm;border:1px solid #ddd;page-break-after:always;font-size:11px;color:#1a1a1a;font-family:Arial,sans-serif;">
-                    <div style="display:flex;align-items:flex-start;gap:14px;border-bottom:3px solid #2D6A4F;padding-bottom:10px;margin-bottom:10px;">
-                        <div style="flex:0 0 70px;">${logoUrl ? `<img src="${logoUrl}" alt="" style="max-height:60px;">` : ''}</div>
-                        <div style="flex:1;">
-                            <div style="font-size:18px;font-weight:700;color:#2D6A4F;margin:0 0 3px;">${companyName}</div>
-                            ${companyAddress ? `<div style="font-size:10px;color:#555;">${companyAddress}</div>` : ''}
-                            ${companyContacts ? `<div style="font-size:10px;color:#555;">${companyContacts}</div>` : ''}
-                        </div>
-                        <div style="text-align:right;font-size:10px;">
-                            <div><strong>KRA PIN:</strong> ${companyKRA}</div>
-                        </div>
-                    </div>
-                    <div style="background:#2D6A4F;color:#fff;font-size:13px;font-weight:700;letter-spacing:2px;padding:6px 12px;display:flex;justify-content:space-between;margin-bottom:10px;border-radius:3px;">
-                        <span>PAYSLIP</span>
-                        <span>${periodLabel}</span>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;background:#f8f9fa;padding:8px;border-radius:4px;border:1px solid #e0e0e0;font-size:10px;">
-                        <div>
-                            <table style="width:100%;">
-                                <tr><td style="color:#555;padding:2px 0;">Employee Name</td><td style="font-weight:600;">${emp.name || '—'}</td></tr>
-                                <tr><td style="color:#555;padding:2px 0;">Employee No.</td><td>${emp.employeeId || '—'}</td></tr>
-                                <tr><td style="color:#555;padding:2px 0;">KRA PIN</td><td>${emp.kraPin || '—'}</td></tr>
-                            </table>
-                        </div>
-                        <div>
-                            <table style="width:100%;">
-                                <tr><td style="color:#555;padding:2px 0;">Department</td><td>${emp.department || '—'}</td></tr>
-                                <tr><td style="color:#555;padding:2px 0;">Position</td><td>${emp.position || '—'}</td></tr>
-                            </table>
-                        </div>
-                        <div>
-                            <table style="width:100%;">
-                                <tr><td style="color:#555;padding:2px 0;">Pay Period</td><td>${periodLabel}</td></tr>
-                                <tr><td style="color:#555;padding:2px 0;">Payslip No.</td><td>${psNum}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:10px;">
-                        <div>
-                            <div style="font-weight:700;color:#2D6A4F;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:4px;">EARNINGS</div>
-                            <table style="width:100%;border-collapse:collapse;">
-                                <tr><td style="padding:3px 0;">Basic Salary</td><td style="text-align:right;">${fmt(basic)}</td></tr>
-                                ${house > 0 ? `<tr><td style="padding:3px 0;">Allowances</td><td style="text-align:right;">${fmt(house)}</td></tr>` : ''}
-                                <tr style="font-weight:700;border-top:1px solid #ddd;"><td style="padding:4px 0;">Gross Pay</td><td style="text-align:right;">${fmt(gross)}</td></tr>
-                            </table>
-                        </div>
-                        <div>
-                            <div style="font-weight:700;color:#2D6A4F;margin-bottom:6px;border-bottom:1px solid #ddd;padding-bottom:4px;">DEDUCTIONS</div>
-                            <table style="width:100%;border-collapse:collapse;">
-                                <tr><td style="padding:3px 0;">PAYE (iTax)</td><td style="text-align:right;">${fmt(paye)}</td></tr>
-                                <tr><td style="padding:3px 0;">NSSF (Employee)</td><td style="text-align:right;">${fmt(nssf)}</td></tr>
-                                <tr><td style="padding:3px 0;">SHIF</td><td style="text-align:right;">${fmt(shif)}</td></tr>
-                                <tr><td style="padding:3px 0;">Housing Levy</td><td style="text-align:right;">${fmt(ahl)}</td></tr>
-                                <tr style="font-weight:700;border-top:1px solid #ddd;"><td style="padding:4px 0;">Total Deductions</td><td style="text-align:right;">${fmt(totalDed)}</td></tr>
-                            </table>
-                        </div>
-                    </div>
-                    <div style="margin-top:14px;background:#e8f5e9;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-                        <div style="font-size:13px;font-weight:700;color:#1a6b3c;">NET PAY</div>
-                        <div style="font-size:16px;font-weight:800;color:#1a6b3c;">KES ${fmt(netPay)}</div>
-                    </div>
-                    <div style="margin-top:6px;font-size:9px;color:#888;text-align:center;">This is a computer-generated payslip and does not require a manual signature.</div>
-                </div>`;
+                fillPayslipForEmployee(emp, profile, {
+                    period,
+                    payslipNo: `PS-${String(idx + 1).padStart(3, '0')}`
+                });
+                return `<div class="ps-page">${document.getElementById('payslip-document').outerHTML}</div>`;
             }).join('');
+            currentPayslipEmployee = previousEmployee;
 
             const win = window.open('', '_blank');
             if (!win) { alert('Please allow pop-ups to generate bulk payslips.'); return; }
@@ -1919,8 +1904,9 @@
                 <style>
                     @page { size:A4 portrait; margin:0; }
                     body { margin:0; padding:12px; background:#f0f0f0; font-family:Arial,sans-serif; }
-                    .ps-page { box-sizing:border-box; width:210mm !important; min-height:auto !important; padding:8mm 9mm 6mm !important; overflow:hidden; break-inside:avoid; page-break-inside:avoid; }
+                    .ps-page { box-sizing:border-box; width:210mm !important; min-height:auto !important; padding:0 !important; overflow:hidden; break-inside:avoid; page-break-inside:avoid; margin:0 auto 10px; }
                     .ps-page * { box-sizing:border-box; }
+                    .ps-page #payslip-document { border:none !important; box-shadow:none !important; margin:0 auto !important; }
                     @media print {
                         html, body { width:210mm; margin:0; padding:0; background:#fff; }
                         .no-print { display:none !important; }
