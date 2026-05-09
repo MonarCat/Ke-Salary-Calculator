@@ -359,21 +359,82 @@
             .form-row { grid-template-columns: 1fr; }
             .export-bar { gap: 6px; }
         }
+        /* Payslip print/PDF layout: keep the generated payslip locked to one A4 page. */
+        .payslip-a4 {
+            box-sizing: border-box !important;
+            width: 210mm !important;
+            min-height: auto !important;
+            margin: 0 auto !important;
+            padding: 8mm 9mm 6mm !important;
+            overflow: hidden !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+        }
+        .payslip-a4 *, .payslip-a4 *::before, .payslip-a4 *::after { box-sizing: border-box !important; }
+        .payslip-a4 p { margin-top: 1px !important; margin-bottom: 1px !important; }
+        .payslip-a4 table { table-layout: fixed !important; }
+        .payslip-a4 th, .payslip-a4 td { padding: 3px 5px !important; line-height: 1.15 !important; }
+        .payslip-a4 .ps-header { padding-bottom: 7px !important; margin-bottom: 6px !important; }
+        .payslip-a4 .ps-title-bar { margin-bottom: 6px !important; padding-top: 5px !important; padding-bottom: 5px !important; }
+        .payslip-a4 .ps-employee-grid { margin-bottom: 7px !important; padding: 6px !important; gap: 6px !important; }
+        .payslip-a4 .ps-body-grid { margin-bottom: 7px !important; gap: 9px !important; }
+        .payslip-a4 .ps-signatures { margin: 9px 0 5px !important; padding-top: 8px !important; }
+
+        @page { size: A4 portrait; margin: 0; }
         @media print {
-            body > * { display: none !important; }
-            #payslip-document { display: block !important; }
-            .no-print { display: none !important; }
+            html, body {
+                width: 210mm !important;
+                min-height: 297mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                overflow: visible !important;
+            }
+            body * { visibility: hidden !important; }
+            #ps-payslip-modal, #ps-payslip-modal *,
+            #payslip-document, #payslip-document * { visibility: visible !important; }
+            .no-print, .no-print *,
+            #ps-payslip-modal .modal-header, #ps-payslip-modal .modal-header * {
+                display: none !important;
+                visibility: hidden !important;
+            }
             #ps-payslip-modal {
                 position: static !important;
-                background: none !important;
+                inset: auto !important;
                 display: block !important;
+                background: transparent !important;
+                width: 210mm !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
             }
             #ps-payslip-modal .modal-content {
-                box-shadow: none !important;
-                max-width: 100% !important;
+                display: block !important;
+                width: 210mm !important;
+                max-width: 210mm !important;
+                margin: 0 !important;
                 padding: 0 !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
             }
-            #ps-payslip-modal .modal-header { display: none !important; }
+            #payslip-document {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 210mm !important;
+                max-width: 210mm !important;
+                min-height: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 8mm 9mm 6mm !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                transform: none !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
         }
     </style>
 </head>
@@ -774,7 +835,7 @@
                         </div>
                     </div>
 
-                    <div id="payslip-document" class="payslip-a4" style="width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:15mm 15mm 10mm;border:1px solid #ddd;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:11px;color:#1a1a1a;">
+                    <div id="payslip-document" class="payslip-a4" style="box-sizing:border-box;width:210mm;min-height:auto;margin:0 auto;background:#fff;padding:8mm 9mm 6mm;border:1px solid #ddd;box-shadow:0 2px 12px rgba(0,0,0,.12);font-size:10.5px;line-height:1.18;color:#1a1a1a;overflow:hidden;">
                         <div class="ps-header" style="display:flex;align-items:flex-start;gap:16px;border-bottom:3px solid #2D6A4F;padding-bottom:12px;margin-bottom:10px;">
                             <div class="ps-logo-block" style="flex:0 0 80px;">
                                 <img id="ps-company-logo" src="" alt="" style="max-height:70px;display:none;">
@@ -858,9 +919,9 @@
                                     </tbody>
                                     <tfoot><tr><td><strong>TOTAL DEDUCTIONS</strong></td><td id="ps-r-total-ded" style="text-align:right;"></td></tr></tfoot>
                                 </table>
-                                <div style="background:#2D6A4F;color:#fff;text-align:center;padding:12px;border-radius:4px;margin-top:10px;">
+                                <div style="background:#2D6A4F;color:#fff;text-align:center;padding:8px;border-radius:4px;margin-top:7px;">
                                     <div style="font-size:11px;letter-spacing:2px;opacity:.85;">NET PAY</div>
-                                    <div style="font-size:26px;font-weight:800;margin:4px 0;" id="ps-r-net-pay"></div>
+                                    <div style="font-size:22px;font-weight:800;margin:2px 0;" id="ps-r-net-pay"></div>
                                     <div style="font-size:9px;opacity:.9;font-style:italic;" id="ps-r-net-words"></div>
                                 </div>
                             </div>
@@ -1680,8 +1741,25 @@
             }
         }
 
+        function normalisePayslipForOutput() {
+            const element = document.getElementById('payslip-document');
+            if (!element) return null;
+            element.style.boxSizing = 'border-box';
+            element.style.width = '210mm';
+            element.style.minHeight = 'auto';
+            element.style.margin = '0 auto';
+            element.style.padding = '8mm 9mm 6mm';
+            element.style.fontSize = '10.5px';
+            element.style.lineHeight = '1.18';
+            element.style.overflow = 'hidden';
+            element.style.pageBreakInside = 'avoid';
+            element.style.breakInside = 'avoid';
+            return element;
+        }
+
         function printPayslip() {
             generatePayslipPreview();
+            normalisePayslipForOutput();
             savePayslipRecord();
             window.print();
         }
@@ -1691,14 +1769,24 @@
             savePayslipRecord();
             const empName = (document.getElementById('ps-emp-name').textContent || 'employee').replace(/\s+/g, '-');
             const period  = document.getElementById('ps-pay-period').value || 'period';
-            const element = document.getElementById('payslip-document');
+            const element = normalisePayslipForOutput();
+            if (!element) return;
 
             const opt = {
-                margin:      [5, 5, 5, 5],
+                margin:      [0, 0, 0, 0],
                 filename:    `payslip-${empName}-${period}.pdf`,
                 image:       { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
-                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: element.scrollWidth,
+                    windowHeight: element.scrollHeight
+                },
+                jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+                pagebreak:   { mode: ['avoid-all', 'css', 'legacy'], avoid: ['#payslip-document', '.payslip-a4', '.ps-section', '.ps-table'] }
             };
             html2pdf().set(opt).from(element).save();
         }
@@ -1829,11 +1917,15 @@
             if (!win) { alert('Please allow pop-ups to generate bulk payslips.'); return; }
             win.document.write(`<!DOCTYPE html><html><head><title>Bulk Payslips — ${periodLabel}</title>
                 <style>
-                    body { margin:0; padding:16px; background:#f0f0f0; font-family:Arial,sans-serif; }
+                    @page { size:A4 portrait; margin:0; }
+                    body { margin:0; padding:12px; background:#f0f0f0; font-family:Arial,sans-serif; }
+                    .ps-page { box-sizing:border-box; width:210mm !important; min-height:auto !important; padding:8mm 9mm 6mm !important; overflow:hidden; break-inside:avoid; page-break-inside:avoid; }
+                    .ps-page * { box-sizing:border-box; }
                     @media print {
-                        body { background:#fff; padding:0; }
+                        html, body { width:210mm; margin:0; padding:0; background:#fff; }
                         .no-print { display:none !important; }
-                        .ps-page { border:none !important; margin:0 !important; page-break-after:always; }
+                        .ps-page { border:none !important; box-shadow:none !important; margin:0 !important; page-break-after:always; break-after:page; }
+                        .ps-page:last-child { page-break-after:avoid; break-after:avoid; }
                     }
                 </style>
             </head><body>
