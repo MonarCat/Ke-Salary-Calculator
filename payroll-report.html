@@ -304,6 +304,11 @@
                         <p style="color:#888;font-size:0.88em;margin:4px 0 0;" id="reportSubtitle">Loading…</p>
                     </div>
                     <div class="report-actions">
+                        <div style="display:flex;align-items:center;gap:6px;margin-right:8px;">
+                            <label for="rpt-prepared-by" style="font-size:0.82em;color:#555;white-space:nowrap;">Prepared by:</label>
+                            <input type="text" id="rpt-prepared-by" placeholder="System Admin" value="System Admin"
+                                style="padding:5px 9px;border:1px solid #ddd;border-radius:6px;font-size:0.82em;width:140px;">
+                        </div>
                         <button class="action-btn btn-pdf"   onclick="exportReportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
                         <button class="action-btn btn-csv"   onclick="exportReportCSV()"><i class="fas fa-file-csv"></i> CSV</button>
                         <button class="action-btn btn-excel" onclick="exportReportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
@@ -485,6 +490,14 @@ async function init() {
     }
 
     document.getElementById('report-content').style.display = 'block';
+
+    // Prefill "Prepared by" with the logged-in user's name (editable)
+    const preparedByEl = document.getElementById('rpt-prepared-by');
+    if (preparedByEl) {
+        const userName = currentUser?.user_metadata?.full_name || currentUser?.email || '';
+        if (userName) preparedByEl.value = userName;
+    }
+
     // Sync employees from Supabase into localStorage cache before generating
     // the report so the data is fresh even after clearing browser storage.
     await syncEmployeesFromSupabase(currentUser);
@@ -761,9 +774,10 @@ function getReportDocumentMeta() {
     const contactsParts = [];
     if (profile.phone) contactsParts.push('Tel: ' + profile.phone);
     if (profile.email) contactsParts.push('Email: ' + profile.email);
-    const preparedBy = currentUser?.user_metadata?.full_name
-        || currentUser?.email
-        || 'System User';
+    const preparedByInput = document.getElementById('rpt-prepared-by');
+    const preparedBy = (preparedByInput && preparedByInput.value.trim())
+        ? preparedByInput.value.trim()
+        : 'System Admin';
     const generatedAt = new Date().toLocaleString('en-KE', {
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
@@ -817,12 +831,12 @@ function openReportDocumentWindow() {
         <div class="doc-head">
             <h2>${escHtml(meta.organisationName)} — Payroll Report</h2>
             <div class="meta">
-                <div><strong>Document:</strong> Payroll Report Summary</div>
-                <div><strong>Subtitle:</strong> ${escHtml(subtitle)}</div>
+                <div><strong>Title:</strong> Payroll Report Summary</div>
+                <div><strong>Period:</strong> ${escHtml(subtitle)}</div>
                 ${meta.address ? `<div><strong>Address:</strong> ${escHtml(meta.address)}</div>` : ''}
                 ${meta.kraPin ? `<div><strong>KRA PIN:</strong> ${escHtml(meta.kraPin)}</div>` : ''}
                 ${meta.contacts ? `<div><strong>Contacts:</strong> ${escHtml(meta.contacts)}</div>` : ''}
-                <div><strong>Generated:</strong> ${escHtml(meta.generatedAt)}</div>
+                <div><strong>Generated On:</strong> ${escHtml(meta.generatedAt)}</div>
                 <div><strong>Prepared by:</strong> ${escHtml(meta.preparedBy)}</div>
             </div>
         </div>

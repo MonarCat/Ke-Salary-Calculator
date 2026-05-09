@@ -482,7 +482,7 @@
             const sel = document.getElementById('taxYearSelect');
             sel.innerHTML = '';
             const now = new Date().getFullYear();
-            for (let y = now; y >= 2020; y--) {
+            for (let y = now; y >= 2014; y--) {
                 const opt = document.createElement('option');
                 opt.value = y;
                 opt.textContent = y;
@@ -496,7 +496,7 @@
                 const { data, error } = await window.supabaseClient
                     .from('employees')
                     .select('id,full_name,kra_pin,nssf_number')
-                    .eq('user_id', currentUser.id)
+                    .eq('employer_id', currentUser.id)
                     .order('full_name');
                 if (error || !data) return;
                 const sel = document.getElementById('empSelect');
@@ -726,6 +726,37 @@
                     document.getElementById('empKRA').value = userProfile?.kra_pin || '';
                 } else {
                     await loadEmployees();
+
+                    // Prefill employer details from org profile (localStorage cache)
+                    const profileKeys = ['employerProfile_' + currentUser.id, 'employerProfile'];
+                    let orgProfile = {};
+                    for (const key of profileKeys) {
+                        try {
+                            const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+                            if (parsed && (parsed.name || parsed.orgName || parsed.kraPin)) {
+                                orgProfile = parsed;
+                                break;
+                            }
+                        } catch (_) {}
+                    }
+                    // If not in localStorage, try Supabase organization_profiles
+                    if (!orgProfile.name && !orgProfile.orgName && !orgProfile.kraPin && window.supabaseClient) {
+                        try {
+                            const { data: orgData } = await window.supabaseClient
+                                .from('organization_profiles')
+                                .select('organization_name, organization_kra_pin')
+                                .eq('user_id', currentUser.id)
+                                .maybeSingle();
+                            if (orgData) {
+                                orgProfile.name = orgData.organization_name || '';
+                                orgProfile.kraPin = orgData.organization_kra_pin || '';
+                            }
+                        } catch (_) {}
+                    }
+                    const nameEl = document.getElementById('empName');
+                    const kraEl  = document.getElementById('empKRA');
+                    if (nameEl && !nameEl.value) nameEl.value = orgProfile.name || orgProfile.orgName || '';
+                    if (kraEl  && !kraEl.value)  kraEl.value  = orgProfile.kraPin || '';
                 }
 
                 await loadPastRecords();

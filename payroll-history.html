@@ -410,6 +410,11 @@
                 <button class="ph-export-btn ph-btn-pdf"   onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
                 <button class="ph-export-btn ph-btn-csv"   onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
                 <button class="ph-export-btn ph-btn-print" onclick="exportPrint()"><i class="fas fa-print"></i> Print</button>
+                <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                    <label for="ph-prepared-by" style="font-size:0.85em;color:#555;white-space:nowrap;">Prepared by:</label>
+                    <input type="text" id="ph-prepared-by" placeholder="System Admin" value="System Admin"
+                        style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.85em;width:160px;">
+                </div>
             </div>
 
             <!-- Grand summary -->
@@ -547,6 +552,13 @@
         }
 
         document.getElementById('main-content').style.display = 'block';
+
+        // Prefill "Prepared by" with the logged-in user's name (editable)
+        const preparedByInput = document.getElementById('ph-prepared-by');
+        if (preparedByInput) {
+            const userName = currentUser?.user_metadata?.full_name || currentUser?.email || '';
+            if (userName) preparedByInput.value = userName;
+        }
 
         // Set default date range: last 3 months to this month
         const now     = new Date();
@@ -923,9 +935,10 @@
         const contactsParts = [];
         if (profile.phone) contactsParts.push('Tel: ' + profile.phone);
         if (profile.email) contactsParts.push('Email: ' + profile.email);
-        const preparedBy = currentUser?.user_metadata?.full_name
-            || currentUser?.email
-            || 'System User';
+        const preparedByInput = document.getElementById('ph-prepared-by');
+        const preparedBy = (preparedByInput && preparedByInput.value.trim())
+            ? preparedByInput.value.trim()
+            : 'System Admin';
         const generatedAt = new Date().toLocaleString('en-KE', {
             day: '2-digit', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
@@ -1048,12 +1061,12 @@
             <div class="doc-head">
                 <h1>${esc(meta.organisationName)} — Payroll History</h1>
                 <div class="meta">
-                    <div><strong>Document:</strong> Full Payroll History Report</div>
-                    <div><strong>Subtitle:</strong> ${esc(monthLabel(reportData.fromYM))} to ${esc(monthLabel(reportData.toYM))}</div>
+                    <div><strong>Title:</strong> Full Payroll History Report</div>
+                    <div><strong>Period:</strong> ${esc(monthLabel(reportData.fromYM))} to ${esc(monthLabel(reportData.toYM))}</div>
                     ${meta.address ? `<div><strong>Address:</strong> ${esc(meta.address)}</div>` : ''}
                     ${meta.kraPin ? `<div><strong>KRA PIN:</strong> ${esc(meta.kraPin)}</div>` : ''}
                     ${meta.contacts ? `<div><strong>Contacts:</strong> ${esc(meta.contacts)}</div>` : ''}
-                    <div><strong>Generated:</strong> ${esc(meta.generatedAt)}</div>
+                    <div><strong>Generated On:</strong> ${esc(meta.generatedAt)}</div>
                     <div><strong>Prepared by:</strong> ${esc(meta.preparedBy)}</div>
                 </div>
             </div>
