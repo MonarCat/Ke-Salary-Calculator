@@ -7,8 +7,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Cloudflare Turnstile site key (public – safe to include in client-side code).
 // Replace with your production key from Cloudflare Turnstile dashboard.
-const TURNSTILE_SITE_KEY = '0x4AAAAAADLINprHdcEil0v2
-';
+const TURNSTILE_SITE_KEY = '0x4AAAAAADLINprHdcEil0v2';
 
 // Initialize Supabase client with error handling
 let supabaseClient = null;
