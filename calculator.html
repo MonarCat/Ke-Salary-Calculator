@@ -264,7 +264,10 @@
       bar.innerHTML = '<span>\uD83D\uDEE1</span><span style="background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 12px;font-size:11px;font-family:monospace;letter-spacing:1px;font-weight:700">ADMIN SESSION</span><span>Viewing as <strong id="sc-admin-email">' + userEmail + '</strong> \u00B7 Admin support mode active</span><a href="/admin.html" style="margin-left:auto;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:6px;padding:5px 14px;font-weight:700;text-decoration:none;font-size:12px">\u2190 Return to Admin</a>';
       document.body.prepend(bar);
       document.body.style.paddingTop = ((parseInt(getComputedStyle(document.body).paddingTop) || 0) + 44) + 'px';
-      var cleanUrl = window.location.pathname + (window.location.search.replace(/[?&]admin_session=1/, '').replace(/^&/, '?') || '');
+      var cleanParams = new URLSearchParams(window.location.search);
+      cleanParams.delete('admin_session');
+      var cleanQuery = cleanParams.toString();
+      var cleanUrl = window.location.pathname + (cleanQuery ? ('?' + cleanQuery) : '');
       window.history.replaceState({}, '', cleanUrl);
     });
   }
