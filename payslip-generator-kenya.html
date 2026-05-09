@@ -23,11 +23,28 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<!-- ADMIN IMPERSONATION BANNER — injected when admin uses "Login as User" -->
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var isAdminSession = params.get('admin_session') === '1';
+  if (isAdminSession || sessionStorage.getItem('sc_admin_session')) {
+    sessionStorage.setItem('sc_admin_session', '1');
+    window.addEventListener('DOMContentLoaded', function() {
+      var userEmail = window.__SC_USER_EMAIL || 'user';
+      var bar = document.createElement('div');
+      bar.id = 'sc-admin-banner';
+      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;font-family:sans-serif;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(124,58,237,0.5);';
+      bar.innerHTML = '<span>\uD83D\uDEE1</span><span style="background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 12px;font-size:11px;font-family:monospace;letter-spacing:1px;font-weight:700">ADMIN SESSION</span><span>Viewing as <strong id="sc-admin-email">' + userEmail + '</strong> \u00B7 Admin support mode active</span><a href="/admin.html" style="margin-left:auto;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);color:#fff;border-radius:6px;padding:5px 14px;font-weight:700;text-decoration:none;font-size:12px">\u2190 Return to Admin</a>';
+      document.body.prepend(bar);
+      document.body.style.paddingTop = ((parseInt(getComputedStyle(document.body).paddingTop) || 0) + 44) + 'px';
+      var cleanUrl = window.location.pathname + (window.location.search.replace(/[?&]admin_session=1/, '').replace(/^&/, '?') || '');
+      window.history.replaceState({}, '', cleanUrl);
+    });
+  }
+})();
+</script>
     <div class="overlay">
-        <div class="container">
-            <!-- Logo Container -->
-            <div class="logo-container">
-                <a href="/">
                     <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
                 </a>
             </div>

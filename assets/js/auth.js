@@ -376,7 +376,14 @@ if (supabaseClient && supabaseClient.auth) {
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN') {
             console.log('User signed in:', session.user?.email);
-            
+
+            // Expose email globally so the admin impersonation banner can display it
+            if (session?.user?.email) {
+                window.__SC_USER_EMAIL = session.user.email;
+                const emailEl = document.getElementById('sc-admin-email');
+                if (emailEl) emailEl.textContent = session.user.email;
+            }
+
             // If we're on the auth page and user signed in, redirect away
             if (window.location.pathname === '/auth.html' || window.location.pathname.endsWith('/auth.html')) {
                 const params = new URLSearchParams(window.location.search);
