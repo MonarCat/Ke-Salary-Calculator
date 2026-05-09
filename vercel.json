@@ -5,44 +5,45 @@
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
-    { "source": "/calculator",           "destination": "/calculator.html"         },
-    { "source": "/payslip",              "destination": "/payslip.html"            },
-    { "source": "/blog",                 "destination": "/blog.html"               },
-    { "source": "/salary-news",          "destination": "/salary-news.html"        },
-    { "source": "/salary-index",         "destination": "/salary-index.html"       },
-    { "source": "/auth",                 "destination": "/auth.html"               },
-    { "source": "/account",             "destination": "/account.html"            },
-    { "source": "/contact-us",           "destination": "/contact-us.html"         },
-    { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"  },
+    { "source": "/calculator",           "destination": "/calculator.html"          },
+    { "source": "/payslip",              "destination": "/payslip.html"             },
+    { "source": "/blog",                 "destination": "/blog.html"                },
+    { "source": "/salary-news",          "destination": "/salary-news.html"         },
+    { "source": "/salary-index",         "destination": "/salary-index.html"        },
+    { "source": "/auth",                 "destination": "/auth.html"                },
     { "source": "/account",              "destination": "/account.html"             },
-    { "source": "/salary/:path+",        "destination": "/salary/:path.html"       },
-    { "source": "/blog/:path+",          "destination": "/blog/:path.html"         }
+    { "source": "/contact-us",           "destination": "/contact-us.html"          },
+    { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"   },
+    { "source": "/salary/:path+",        "destination": "/salary/:path.html"        },
+    { "source": "/blog/:path+",          "destination": "/blog/:path.html"          }
   ],
   "headers": [
     {
       "source": "/assets/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     },
     {
       "source": "/(.*)\\.html",
       "headers": [
-        { "key": "Cache-Control",          "value": "public, max-age=0, must-revalidate"   },
-        { "key": "X-Content-Type-Options", "value": "nosniff"                              },
-        { "key": "X-Frame-Options",        "value": "SAMEORIGIN"                           },
-        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin"      }
+        { "key": "Cache-Control",          "value": "public, max-age=0, must-revalidate"  },
+        { "key": "X-Content-Type-Options", "value": "nosniff"                             },
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN"                          },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin"     }
       ]
     },
     {
       "source": "/api/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
-    }
-  ]
- "headers": [
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
     {
       "source": "/admin.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "Cache-Control", "value": "no-store" }
+        { "key": "X-Robots-Tag",  "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store"          }
       ]
     }
   ]
