@@ -14,7 +14,6 @@
     { "source": "/account",             "destination": "/account.html"            },
     { "source": "/contact-us",           "destination": "/contact-us.html"         },
     { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"  },
-    { "source": "/account",              "destination": "/account.html"             },
     { "source": "/salary/:path+",        "destination": "/salary/:path.html"       },
     { "source": "/blog/:path+",          "destination": "/blog/:path.html"         }
   ],

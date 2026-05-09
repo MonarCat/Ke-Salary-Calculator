@@ -12,7 +12,7 @@
  *   - generate_reset_link    → return a recovery link for manual sending
  *   - set_password           → directly set a user's password (admin override)
  *   - generate_magic_link    → OTP magic link for admin to log in as user
- *   - send_broadcast_email   → bulk email via Google Workspace / Gmail SMTP (see send-broadcast-email fn)
+ *   - send_broadcast_email   → handled in separate send-broadcast-email edge function
  *   - toggle_feature         → toggle p9a_access / payroll_access on user_profiles
  *
  * Environment variables required (set in Supabase dashboard → Edge Functions → Secrets):
