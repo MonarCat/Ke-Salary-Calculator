@@ -1655,7 +1655,7 @@ async function init() {
       return;
     }
     // Verify this session belongs to an authorised admin email
-    if (session.user.email !== ADMIN_EMAIL) {
+    if (session.user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
       await sb.auth.signOut();
       window.location.replace('/admin-auth.html');
       return;
