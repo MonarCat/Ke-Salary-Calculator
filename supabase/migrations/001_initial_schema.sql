@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
                             'paystack', 'manual', 'easter_gift_2026', 'admin'
                         )
                     ),
-    premium_expiry  TIMESTAMPTZ,
+    premium_expires_at TIMESTAMPTZ,
+    p9a_access      BOOLEAN NOT NULL DEFAULT FALSE,
+    payroll_access  BOOLEAN NOT NULL DEFAULT FALSE,
+    admin_note      TEXT,
 
     -- Newsletter opt-in
     newsletter_subscribed BOOLEAN NOT NULL DEFAULT FALSE,
