@@ -486,23 +486,6 @@ async function updateAuthUI() {
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
             const isEmployer = user.user_metadata?.account_type === 'employer';
             
-            // Check if user is admin via the SECURITY DEFINER RPC to avoid
-            // recursive RLS evaluation on the admin_users table (which causes 500).
-            let isAdmin = false;
-            if (supabaseClient && isSupabaseConfigured()) {
-                try {
-                    const { data, error } = await supabaseClient.rpc('is_admin');
-                    isAdmin = !error && data === true;
-                } catch (e) {
-                    // RPC not available yet – fall through to email fallback
-                    isAdmin = false;
-                }
-            }
-            // Email-based fallback so kesalarycalculator@gmail.com always sees the link
-            if (!isAdmin) {
-                isAdmin = user.email === window.ADMIN_EMAIL;
-            }
-            
             authLinks.innerHTML = `
                 <div class="user-profile">
                     <div class="user-welcome-btn" onclick="toggleUserDropdown()">
@@ -528,11 +511,6 @@ async function updateAuthUI() {
                         ${isEmployer ? `
                         <div class="user-dropdown-item" onclick="window.location.href='/organisation-profile.html'">
                             <i class="fas fa-building"></i> Organisation Profile
-                        </div>
-                        ` : ''}
-                        ${isAdmin ? `
-                        <div class="user-dropdown-item" onclick="window.location.href='/admin.html'" style="background: #006600; color: white; font-weight: bold;">
-                            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
                         </div>
                         ` : ''}
                         <div class="user-dropdown-item" onclick="handleLogout()">
