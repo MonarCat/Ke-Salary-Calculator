@@ -1614,6 +1614,7 @@ const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 const ADMIN_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-ops`;
 // Email send function
 const EMAIL_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-broadcast-email`;
+// Keep this key aligned with admin-auth/admin guards across pages.
 const ADMIN_REDIRECT_LOOP_KEY = '_admin_redirect_n';
 const ADMIN_REDIRECT_MAX = 2;
 
@@ -1662,6 +1663,7 @@ function getAdminRedirectCount() {
   try {
     return parseInt(sessionStorage.getItem(ADMIN_REDIRECT_LOOP_KEY) || '0', 10);
   } catch (_) {
+    // sessionStorage can be unavailable in strict privacy modes.
     return 0;
   }
 }
