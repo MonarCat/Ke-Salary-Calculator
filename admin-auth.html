@@ -287,6 +287,8 @@
         const RATE_LIMIT_WINDOW_MS     = 15 * 60 * 1000; // 15 minutes
         const RATE_LIMIT_KEY           = 'admin_auth_attempts';
         const REDIRECT_DELAY_MS        = 1200; // delay (ms) before redirecting to dashboard
+        const ADMIN_HANDOFF_KEY        = '_admin_auth_handoff_ts';
+        const ADMIN_HANDOFF_TTL_MS     = 30 * 1000; // 30 seconds
 
         // ── HTTPS enforcement ─────────────────────────────────────────────────────
         if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
@@ -344,6 +346,32 @@
             if (!el) return;
             el.innerHTML = '';
             el.className = 'admin-auth-message';
+        }
+
+        function markAdminAuthHandoff() {
+            try {
+                sessionStorage.setItem(ADMIN_HANDOFF_KEY, String(Date.now()));
+            } catch (_) {
+                // ignore sessionStorage failures
+            }
+        }
+
+        function clearAdminAuthHandoff() {
+            try {
+                sessionStorage.removeItem(ADMIN_HANDOFF_KEY);
+            } catch (_) {
+                // ignore sessionStorage failures
+            }
+        }
+
+        function hasRecentAdminAuthHandoff() {
+            try {
+                const ts = parseInt(sessionStorage.getItem(ADMIN_HANDOFF_KEY) || '0', 10);
+                const now = Date.now();
+                return Number.isFinite(ts) && ts > 0 && ts <= now && (now - ts) <= ADMIN_HANDOFF_TTL_MS;
+            } catch (_) {
+                return false;
+            }
         }
 
         // ── Admin login handler ──────────────────────────────────────────────────
@@ -405,6 +433,7 @@
 
                 // Successful admin login – clear any rate-limit state
                 sessionStorage.removeItem(RATE_LIMIT_KEY);
+                markAdminAuthHandoff();
 
                 showAdminMessage('<i class="fas fa-check-circle"></i> Sign-in successful! Redirecting to dashboard&hellip;', 'success');
                 setTimeout(() => { window.location.href = '/admin.html'; }, REDIRECT_DELAY_MS);
@@ -440,6 +469,7 @@
                     const { data, error } = await supabaseClient.rpc('is_admin');
                     const emailFallback = session.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
                     if (data === true || (error && emailFallback)) {
+                        markAdminAuthHandoff();
                         window.location.replace('/admin.html');
                         return;
                     }
