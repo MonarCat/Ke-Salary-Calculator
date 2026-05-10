@@ -1618,6 +1618,8 @@ const EMAIL_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-broadcast-email`;
 // Keep this key aligned with admin-auth/admin guards across pages.
 const ADMIN_REDIRECT_COUNT_KEY = '_admin_redirect_n';
 const ADMIN_REDIRECT_MAX = 2;
+const ADMIN_HANDOFF_KEY = '_admin_auth_handoff_ts';
+const ADMIN_HANDOFF_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
 const MONTHLY_PRICE = 499;
 const ANNUAL_PRICE = 4999;
@@ -1687,6 +1689,23 @@ function clearAdminRedirectCount() {
   }
 }
 
+function clearAdminAuthHandoff() {
+  try {
+    sessionStorage.removeItem(ADMIN_HANDOFF_KEY);
+  } catch (_) {
+    // ignore sessionStorage errors
+  }
+}
+
+function hasRecentAdminAuthHandoff() {
+  try {
+    const ts = parseInt(sessionStorage.getItem(ADMIN_HANDOFF_KEY) || '0', 10);
+    return Number.isFinite(ts) && ts > 0 && (Date.now() - ts) <= ADMIN_HANDOFF_TTL_MS;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function isAuthorizedAdmin(user) {
   if (!user) return false;
   try {
@@ -1701,6 +1720,17 @@ async function isAuthorizedAdmin(user) {
 }
 
 function redirectToAdminAuth() {
+  if (hasRecentAdminAuthHandoff()) {
+    clearAdminAuthHandoff();
+    setAdminRedirectCount(ADMIN_REDIRECT_MAX);
+    showAdminInitState(
+      'Access Verification Failed',
+      'Admin sign-in started, but this session could not be verified on the dashboard. Please try signing in again.',
+      '⚠️'
+    );
+    return;
+  }
+
   const redirectN = getAdminRedirectCount();
   if (redirectN >= ADMIN_REDIRECT_MAX) {
     setAdminRedirectCount(ADMIN_REDIRECT_MAX);
@@ -1752,6 +1782,7 @@ async function init() {
       return;
     }
     currentUser = session.user;
+    clearAdminAuthHandoff();
     clearAdminRedirectCount();
     await bootDashboard();
   } catch(e) {
