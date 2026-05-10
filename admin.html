@@ -1687,6 +1687,19 @@ function clearAdminRedirectCount() {
   }
 }
 
+async function isAuthorizedAdmin(user) {
+  if (!user) return false;
+  try {
+    const { data, error } = await sb.rpc('is_admin');
+    if (error) {
+      return user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    }
+    return data === true;
+  } catch (_) {
+    return user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  }
+}
+
 function redirectToAdminAuth() {
   const redirectN = getAdminRedirectCount();
   if (redirectN >= ADMIN_REDIRECT_MAX) {
@@ -1731,8 +1744,9 @@ async function init() {
       redirectToAdminAuth();
       return;
     }
-    // Verify this session belongs to an authorised admin email
-    if (session.user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    // Verify this session belongs to an authorized admin account
+    const adminGranted = await isAuthorizedAdmin(session.user);
+    if (!adminGranted) {
       await sb.auth.signOut();
       redirectToAdminAuth();
       return;
