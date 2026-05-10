@@ -380,7 +380,10 @@
                 const user = data.user;
 
                 // 2. Verify admin role
-                const { data: adminGranted } = await supabaseClient.rpc('is_admin');
+                const { data: adminGranted, error: adminCheckError } = await supabaseClient.rpc('is_admin');
+                if (adminCheckError) {
+                    throw new Error('Unable to verify admin access right now. Please try again.');
+                }
 
                 if (!adminGranted) {
                     // Not an admin – sign them out immediately
