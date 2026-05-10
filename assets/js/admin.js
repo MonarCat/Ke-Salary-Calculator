@@ -57,7 +57,10 @@ async function initAdminDashboard() {
         }
         
         isAdmin = true;
-        
+
+        // Clear the redirect-loop counter — authenticated successfully
+        sessionStorage.removeItem('_admin_redirect_n');
+
         // Show dashboard
         loadingState.style.display = 'none';
         dashboard.style.display = 'block';
@@ -73,7 +76,55 @@ async function initAdminDashboard() {
 
 function showAccessDenied() {
     document.getElementById('loadingState').style.display = 'none';
-    // Redirect to dedicated admin auth page instead of showing inline access denied
+
+    // ── Guard 1: Supabase not configured ─────────────────────────────────────
+    // If the anon key is still the placeholder we must NOT redirect to
+    // admin-auth.html — that page would see a valid session and redirect right
+    // back here, creating an infinite loop.  Show a clear config error instead.
+    if (typeof isSupabaseConfigured === 'function' && !isSupabaseConfigured()) {
+        const ls = document.getElementById('loadingState');
+        if (ls) {
+            ls.style.display = 'block';
+            ls.innerHTML = `
+                <div style="padding:48px 32px;text-align:center;font-family:sans-serif;">
+                    <div style="font-size:2.5rem;margin-bottom:16px;">⚙️</div>
+                    <h2 style="color:#c00;margin-bottom:8px;">Configuration Error</h2>
+                    <p style="color:#555;max-width:420px;margin:0 auto;">
+                        <code>SUPABASE_ANON_KEY</code> in <strong>admin.html</strong> is still set to
+                        the placeholder value. Open the file, replace <code>'YOUR_ANON_KEY_HERE'</code>
+                        with your actual project anon key, then redeploy.
+                    </p>
+                </div>`;
+        }
+        return;
+    }
+
+    // ── Guard 2: redirect-loop breaker ───────────────────────────────────────
+    // Count how many times we have redirected to admin-auth.html in this tab
+    // session.  If we have already been here twice without a successful login,
+    // stop redirecting and show an access-denied message instead.
+    const LOOP_KEY   = '_admin_redirect_n';
+    const redirectN  = parseInt(sessionStorage.getItem(LOOP_KEY) || '0', 10);
+    if (redirectN >= 2) {
+        sessionStorage.removeItem(LOOP_KEY);
+        const ls = document.getElementById('loadingState');
+        if (ls) {
+            ls.style.display = 'block';
+            ls.innerHTML = `
+                <div style="padding:48px 32px;text-align:center;font-family:sans-serif;">
+                    <div style="font-size:2.5rem;margin-bottom:16px;">🔒</div>
+                    <h2 style="color:#c00;margin-bottom:8px;">Access Denied</h2>
+                    <p style="color:#555;">You do not have admin privileges for this account.</p>
+                    <a href="/auth.html" style="display:inline-block;margin-top:16px;
+                        padding:10px 24px;background:#006600;color:#fff;border-radius:6px;
+                        text-decoration:none;font-size:0.95rem;">Sign in with a different account</a>
+                </div>`;
+        }
+        return;
+    }
+    sessionStorage.setItem(LOOP_KEY, String(redirectN + 1));
+
+    // Redirect to dedicated admin auth page
     window.location.replace('/admin-auth.html');
 }
 
