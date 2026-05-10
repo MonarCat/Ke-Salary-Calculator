@@ -386,8 +386,7 @@
                 if (adminCheckError) {
                     adminGranted = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
                 } else {
-                    adminGranted = rpcAdminGranted === true
-                        || user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                    adminGranted = rpcAdminGranted === true;
                 }
 
                 if (!adminGranted) {
@@ -438,9 +437,9 @@
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session?.user) {
-                    const { data } = await supabaseClient.rpc('is_admin');
+                    const { data, error } = await supabaseClient.rpc('is_admin');
                     const emailFallback = session.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-                    if (data === true || emailFallback) {
+                    if (data === true || (error && emailFallback)) {
                         window.location.replace('/admin.html');
                         return;
                     }
