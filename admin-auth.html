@@ -270,8 +270,17 @@
         </div>
     </div>
 
-    <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script>
+        const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
+        const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY)
+            ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+            : null;
+
+        function isSupabaseConfigured() {
+            return !!supabaseClient;
+        }
+
         // ── Rate-limiting constants ──────────────────────────────────────────────
         const RATE_LIMIT_MAX_ATTEMPTS  = 5;
         const RATE_LIMIT_WINDOW_MS     = 15 * 60 * 1000; // 15 minutes
@@ -370,15 +379,8 @@
 
                 const user = data.user;
 
-                // 2. Verify admin role: try is_admin() RPC first, fall back to email check.
-                let adminGranted = false;
-                try {
-                    const { data: rpcData, error: rpcError } = await supabaseClient.rpc('is_admin');
-                    if (!rpcError && rpcData === true) adminGranted = true;
-                } catch (_) {}
-                if (!adminGranted) {
-                    adminGranted = user.email === window.ADMIN_EMAIL;
-                }
+                // 2. Verify admin role
+                const { data: adminGranted } = await supabaseClient.rpc('is_admin');
 
                 if (!adminGranted) {
                     // Not an admin – sign them out immediately
@@ -427,18 +429,9 @@
 
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session && session.user) {
-                    // Try is_admin() RPC; fall back to email check
-                    let adminGranted = false;
-                    try {
-                        const { data: rpcData } = await supabaseClient.rpc('is_admin');
-                        if (rpcData === true) adminGranted = true;
-                    } catch (_) {}
-                    if (!adminGranted) {
-                        adminGranted = session.user.email === window.ADMIN_EMAIL;
-                    }
-                    if (adminGranted) {
-                        // Already authenticated admin – go straight to dashboard
+                if (session?.user) {
+                    const { data } = await supabaseClient.rpc('is_admin');
+                    if (data === true) {
                         window.location.replace('/admin.html');
                         return;
                     }
