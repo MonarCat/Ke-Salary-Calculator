@@ -273,6 +273,7 @@
     <script>
         const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
+        const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
         const supabaseClient = (SUPABASE_URL && SUPABASE_ANON_KEY)
             ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
             : null;
@@ -379,10 +380,13 @@
 
                 const user = data.user;
 
-                // 2. Verify admin role
-                const { data: adminGranted, error: adminCheckError } = await supabaseClient.rpc('is_admin');
+                // 2. Verify admin role (RPC first, then email fallback)
+                let adminGranted = false;
+                const { data: rpcAdminGranted, error: adminCheckError } = await supabaseClient.rpc('is_admin');
                 if (adminCheckError) {
-                    throw new Error('Unable to verify admin access right now. Please try again.');
+                    adminGranted = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                } else {
+                    adminGranted = rpcAdminGranted === true;
                 }
 
                 if (!adminGranted) {
@@ -433,8 +437,9 @@
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session?.user) {
-                    const { data } = await supabaseClient.rpc('is_admin');
-                    if (data === true) {
+                    const { data, error } = await supabaseClient.rpc('is_admin');
+                    const emailFallback = session.user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                    if (data === true || (error && emailFallback)) {
                         window.location.replace('/admin.html');
                         return;
                     }
