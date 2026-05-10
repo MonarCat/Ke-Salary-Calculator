@@ -1614,6 +1614,8 @@ const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 const ADMIN_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-ops`;
 // Email send function
 const EMAIL_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-broadcast-email`;
+const ADMIN_REDIRECT_LOOP_KEY = '_admin_redirect_n';
+const ADMIN_REDIRECT_MAX = 2;
 
 const MONTHLY_PRICE = 499;
 const ANNUAL_PRICE = 4999;
@@ -1633,6 +1635,67 @@ let selectedUsers = new Set();
 let revokeTargetId = null;
 let growthChart, planChart, revenueChart, planBreakChart, dauChart, convChart;
 
+function isSupabaseConfigured() {
+  return Boolean(
+    typeof SUPABASE_URL === 'string' &&
+    SUPABASE_URL.trim() &&
+    typeof SUPABASE_ANON_KEY === 'string' &&
+    SUPABASE_ANON_KEY.trim() &&
+    SUPABASE_ANON_KEY !== 'YOUR_ANON_KEY_HERE'
+  );
+}
+
+function showAdminInitState(title, message, icon = '🔒') {
+  const loading = document.getElementById('loading-screen');
+  if (!loading) return;
+  loading.style.display = 'flex';
+  loading.innerHTML = `
+    <div style="text-align:center;max-width:460px;padding:0 24px;">
+      <div style="font-size:2.4rem;margin-bottom:12px;">${icon}</div>
+      <h2 style="margin:0 0 8px;color:#c00;">${title}</h2>
+      <p style="margin:0;color:#666;line-height:1.5;">${message}</p>
+      <a href="/admin-auth.html" style="display:inline-block;margin-top:16px;padding:10px 18px;border-radius:8px;background:#006600;color:#fff;text-decoration:none;font-weight:700;">Go to Admin Sign In</a>
+    </div>`;
+}
+
+function getAdminRedirectCount() {
+  try {
+    return parseInt(sessionStorage.getItem(ADMIN_REDIRECT_LOOP_KEY) || '0', 10);
+  } catch (_) {
+    return 0;
+  }
+}
+
+function setAdminRedirectCount(count) {
+  try {
+    sessionStorage.setItem(ADMIN_REDIRECT_LOOP_KEY, String(count));
+  } catch (_) {
+    // ignore sessionStorage errors
+  }
+}
+
+function clearAdminRedirectCount() {
+  try {
+    sessionStorage.removeItem(ADMIN_REDIRECT_LOOP_KEY);
+  } catch (_) {
+    // ignore sessionStorage errors
+  }
+}
+
+function redirectToAdminAuth() {
+  const redirectN = getAdminRedirectCount();
+  if (redirectN >= ADMIN_REDIRECT_MAX) {
+    clearAdminRedirectCount();
+    showAdminInitState(
+      'Access Denied',
+      'Unable to verify admin privileges for this account. Sign in with an admin account to continue.'
+    );
+    return;
+  }
+  setAdminRedirectCount(redirectN + 1);
+  window.location.replace('/admin-auth.html');
+}
+
 /* =====================================================
    INIT
    ===================================================== */
@@ -1646,25 +1709,35 @@ async function init() {
 
   // Init Supabase
   try {
+    if (!isSupabaseConfigured()) {
+      showAdminInitState(
+        'Configuration Error',
+        'Supabase is not configured on this page. Set SUPABASE_URL and SUPABASE_ANON_KEY in admin.html and redeploy.',
+        '⚙️'
+      );
+      return;
+    }
+
     sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const { data: { session } } = await sb.auth.getSession();
     hidLoadingScreen();
     if (!session) {
       // Not authenticated — send to admin login page
-      window.location.replace('/admin-auth.html');
+      redirectToAdminAuth();
       return;
     }
     // Verify this session belongs to an authorised admin email
     if (session.user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
       await sb.auth.signOut();
-      window.location.replace('/admin-auth.html');
+      redirectToAdminAuth();
       return;
     }
     currentUser = session.user;
+    clearAdminRedirectCount();
     await bootDashboard();
   } catch(e) {
     hidLoadingScreen();
-    window.location.replace('/admin-auth.html');
+    redirectToAdminAuth();
   }
 }
 
