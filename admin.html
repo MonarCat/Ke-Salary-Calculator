@@ -1615,7 +1615,7 @@ const ADMIN_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/admin-ops`;
 // Email send function
 const EMAIL_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-broadcast-email`;
 // Keep this key aligned with admin-auth/admin guards across pages.
-const ADMIN_REDIRECT_LOOP_KEY = '_admin_redirect_n';
+const ADMIN_REDIRECT_COUNT_KEY = '_admin_redirect_n';
 const ADMIN_REDIRECT_MAX = 2;
 
 const MONTHLY_PRICE = 499;
@@ -1660,8 +1660,9 @@ function showAdminInitState(title, message, icon = '🔒') {
 }
 
 function getAdminRedirectCount() {
+  // If storage is blocked, fall back to 0 so we can still route the user safely.
   try {
-    return parseInt(sessionStorage.getItem(ADMIN_REDIRECT_LOOP_KEY) || '0', 10);
+    return parseInt(sessionStorage.getItem(ADMIN_REDIRECT_COUNT_KEY) || '0', 10);
   } catch (_) {
     // sessionStorage can be unavailable in strict privacy modes.
     return 0;
@@ -1670,7 +1671,7 @@ function getAdminRedirectCount() {
 
 function setAdminRedirectCount(count) {
   try {
-    sessionStorage.setItem(ADMIN_REDIRECT_LOOP_KEY, String(count));
+    sessionStorage.setItem(ADMIN_REDIRECT_COUNT_KEY, String(count));
   } catch (_) {
     // ignore sessionStorage errors
   }
@@ -1678,7 +1679,7 @@ function setAdminRedirectCount(count) {
 
 function clearAdminRedirectCount() {
   try {
-    sessionStorage.removeItem(ADMIN_REDIRECT_LOOP_KEY);
+    sessionStorage.removeItem(ADMIN_REDIRECT_COUNT_KEY);
   } catch (_) {
     // ignore sessionStorage errors
   }
@@ -1687,7 +1688,7 @@ function clearAdminRedirectCount() {
 function redirectToAdminAuth() {
   const redirectN = getAdminRedirectCount();
   if (redirectN >= ADMIN_REDIRECT_MAX) {
-    clearAdminRedirectCount();
+    setAdminRedirectCount(ADMIN_REDIRECT_MAX);
     showAdminInitState(
       'Access Denied',
       'Unable to verify admin privileges for this account. Sign in with an admin account to continue.'
