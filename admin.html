@@ -1662,7 +1662,8 @@ function showAdminInitState(title, message, icon = '🔒') {
 function getAdminRedirectCount() {
   // If storage is blocked, fall back to 0 so we can still route the user safely.
   try {
-    return parseInt(sessionStorage.getItem(ADMIN_REDIRECT_COUNT_KEY) || '0', 10);
+    const count = parseInt(sessionStorage.getItem(ADMIN_REDIRECT_COUNT_KEY) || '0', 10);
+    return Number.isFinite(count) ? count : 0;
   } catch (_) {
     // sessionStorage can be unavailable in strict privacy modes.
     return 0;
