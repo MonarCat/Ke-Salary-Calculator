@@ -1619,7 +1619,7 @@ const EMAIL_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-broadcast-email`;
 const ADMIN_REDIRECT_COUNT_KEY = '_admin_redirect_n';
 const ADMIN_REDIRECT_MAX = 2;
 const ADMIN_HANDOFF_KEY = '_admin_auth_handoff_ts';
-const ADMIN_HANDOFF_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const ADMIN_HANDOFF_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 const MONTHLY_PRICE = 499;
 const ANNUAL_PRICE = 4999;
@@ -1700,7 +1700,8 @@ function clearAdminAuthHandoff() {
 function hasRecentAdminAuthHandoff() {
   try {
     const ts = parseInt(sessionStorage.getItem(ADMIN_HANDOFF_KEY) || '0', 10);
-    return Number.isFinite(ts) && ts > 0 && (Date.now() - ts) <= ADMIN_HANDOFF_TTL_MS;
+    const now = Date.now();
+    return Number.isFinite(ts) && ts > 0 && ts <= now && (now - ts) <= ADMIN_HANDOFF_TTL_MS;
   } catch (_) {
     return false;
   }

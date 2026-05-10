@@ -288,7 +288,7 @@
         const RATE_LIMIT_KEY           = 'admin_auth_attempts';
         const REDIRECT_DELAY_MS        = 1200; // delay (ms) before redirecting to dashboard
         const ADMIN_HANDOFF_KEY        = '_admin_auth_handoff_ts';
-        const ADMIN_HANDOFF_TTL_MS     = 2 * 60 * 1000; // 2 minutes
+        const ADMIN_HANDOFF_TTL_MS     = 5 * 60 * 1000; // 5 minutes
 
         // ── HTTPS enforcement ─────────────────────────────────────────────────────
         if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
@@ -367,7 +367,8 @@
         function hasRecentAdminAuthHandoff() {
             try {
                 const ts = parseInt(sessionStorage.getItem(ADMIN_HANDOFF_KEY) || '0', 10);
-                return Number.isFinite(ts) && ts > 0 && (Date.now() - ts) <= ADMIN_HANDOFF_TTL_MS;
+                const now = Date.now();
+                return Number.isFinite(ts) && ts > 0 && ts <= now && (now - ts) <= ADMIN_HANDOFF_TTL_MS;
             } catch (_) {
                 return false;
             }
@@ -477,9 +478,6 @@
                 // Ignore – just show the form
             }
 
-            if (!hasRecentAdminAuthHandoff()) {
-                clearAdminAuthHandoff();
-            }
             if (wrapper) wrapper.classList.add('auth-ready');
         });
     </script>
