@@ -86,9 +86,17 @@ serve(async (req) => {
       const { email, days, note } = body as { email: string; days: number; note?: string };
       if (!email || !days) return err("email and days required");
 
-      const { data: usersData, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 });
-      if (listErr) return err(listErr.message, 500);
-      const target = usersData.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+      let target: { id: string; email?: string | null } | undefined;
+      let page = 1;
+      const perPage = 200;
+      while (!target) {
+        const { data: usersData, error: listErr } = await admin.auth.admin.listUsers({ page, perPage });
+        if (listErr) return err(listErr.message, 500);
+        const users = usersData.users ?? [];
+        target = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (users.length < perPage) break;
+        page += 1;
+      }
       if (!target) return err("User not found — they must have signed up first", 404);
 
       const expires = new Date();
