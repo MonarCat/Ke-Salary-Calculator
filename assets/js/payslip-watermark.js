@@ -207,6 +207,7 @@ function showUpgradeModal(opts = {}) {
     if (!email) {
       showEmailCapture(plan, (captured) => {
         window.__SC_USER_EMAIL = captured;
+        window.__SC_EMAIL = captured;
         openPaystackCheckout({
           plan,
           email: captured,
@@ -270,7 +271,10 @@ export async function initPayslipDownload(supabase, opts = {}) {
     if (typeof supabase?.auth?.getUser === "function") {
       try {
         status = await checkPremium(supabase);
-        if (status.email) window.__SC_USER_EMAIL = status.email;
+        if (status.email) {
+          window.__SC_USER_EMAIL = status.email;
+          window.__SC_EMAIL = status.email;
+        }
       } catch (err) {
         console.warn("[PayslipWatermark] Premium check failed, defaulting to non-premium flow.", err);
       }

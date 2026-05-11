@@ -35,7 +35,10 @@ async function initEnhancements() {
   const { isPremium, email } = status;
 
   // Expose user email globally — Paystack popup needs it
-  if (email) window.__SC_USER_EMAIL = email;
+  if (email) {
+    window.__SC_USER_EMAIL = email;
+    window.__SC_EMAIL = email;
+  }
 
   // ── 1. Ad slots (hidden for premium) ─────────────────────────────────────
   adManager.init(isPremium);

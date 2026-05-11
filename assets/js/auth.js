@@ -380,6 +380,7 @@ if (supabaseClient && supabaseClient.auth) {
             // Expose email globally so the admin impersonation banner can display it
             if (session?.user?.email) {
                 window.__SC_USER_EMAIL = session.user.email;
+                window.__SC_EMAIL = session.user.email;
                 const emailEl = document.getElementById('sc-admin-email');
                 if (emailEl) emailEl.textContent = session.user.email;
             }

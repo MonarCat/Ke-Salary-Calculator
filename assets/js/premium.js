@@ -425,7 +425,10 @@ export async function gateFeature(supabase, elementId, message) {
   if (status.isPremium) { hidePremiumGate(elementId); return true; }
 
   // Expose email for Paystack popup
-  if (status.email) window.__SC_USER_EMAIL = status.email;
+  if (status.email) {
+    window.__SC_USER_EMAIL = status.email;
+    window.__SC_EMAIL = status.email;
+  }
 
   if (!status.isLoggedIn) {
     _showSignInNudge(elementId);

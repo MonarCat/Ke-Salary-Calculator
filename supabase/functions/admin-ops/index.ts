@@ -1,204 +1,210 @@
-/**
- * SUPABASE EDGE FUNCTION: admin-ops
- * Project: wznopthjoaqusalqoyru (salarycalculator.co.ke)
- *
- * Deploy:
- *   supabase functions deploy admin-ops --project-ref wznopthjoaqusalqoyru
- *
- * Handles all privileged admin operations that require the SERVICE_ROLE key:
- *   - grant_premium          → update user_profiles premium status
- *   - revoke_premium         → expire premium immediately
- *   - reset_password_email   → send Supabase password recovery email
- *   - generate_reset_link    → return a recovery link for manual sending
- *   - set_password           → directly set a user's password (admin override)
- *   - generate_magic_link    → OTP magic link for admin to log in as user
- *   - send_broadcast_email   → handled in separate send-broadcast-email edge function
- *   - toggle_feature         → toggle p9a_access / payroll_access on user_profiles
- *
- * Environment variables required (set in Supabase dashboard → Edge Functions → Secrets):
- *   SUPABASE_URL            (auto-provided)
- *   SUPABASE_SERVICE_ROLE_KEY
- *   ADMIN_SECRET            → a random long string you choose — used to gate this fn
- */
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const CORS = {
+const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Content-Type": "application/json",
 };
 
-serve(async (req: Request) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+const ok = (d: unknown) => new Response(JSON.stringify(d), { headers: CORS_HEADERS });
+const err = (msg: string, s = 400) =>
+  new Response(JSON.stringify({ error: msg }), { status: s, headers: CORS_HEADERS });
 
-  // ── Auth: verify the caller is the logged-in admin ────────────────────────
-  // The admin dashboard sends the anon key as Bearer. We verify the caller has
-  // a valid Supabase session AND is on the admin allowlist (your email).
-  const authHeader = req.headers.get("Authorization") || "";
-  const callerToken = authHeader.replace("Bearer ", "").trim();
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
+  if (req.method !== "POST") return err("Method not allowed", 405);
 
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const ADMIN_SECRET = Deno.env.get("ADMIN_SECRET") || "";
+  const token = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
+  if (!token) return err("Missing authorization token", 401);
 
-  // Admin client (service role — unlimited power)
-  const adminSb = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  const SUPA_URL = Deno.env.get("SUPABASE_URL");
+  const SVC_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const ADMIN_EMAILS = (Deno.env.get("ADMIN_EMAILS") || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
 
-  // Verify caller session
-  const callerSb = createClient(SUPABASE_URL, callerToken);
-  const { data: { user: callerUser } } = await callerSb.auth.getUser();
+  if (!SUPA_URL || !SVC_KEY) return err("Server not configured", 500);
 
-  // ADMIN_EMAILS: comma-separated list of allowed admin emails
-  const ADMIN_EMAILS = (Deno.env.get("ADMIN_EMAILS") || "kesalarycalculator@gmail.com")
-    .split(",").map(e => e.trim().toLowerCase());
+  const callerClient = createClient(SUPA_URL, token);
+  const { data: userData, error: userErr } = await callerClient.auth.getUser();
+  if (userErr || !userData?.user) return err("Unauthorized", 401);
 
-  const isAdmin =
-    callerUser && ADMIN_EMAILS.includes(callerUser.email?.toLowerCase() || "");
+  const caller = userData.user;
+  if (!ADMIN_EMAILS.includes(caller.email?.toLowerCase() ?? "")) return err("Forbidden", 403);
 
-  if (!isAdmin) {
-    return json({ error: "Unauthorized — admin only" }, 403);
-  }
+  const admin = createClient(SUPA_URL, SVC_KEY);
 
-  // ── Parse body ────────────────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return json({ error: "Invalid JSON body" }, 400);
+    return err("Invalid JSON");
   }
 
-  const { action } = body;
+  const log = async (action: string, targetEmail?: string, targetId?: string, meta?: object) => {
+    await admin.from("admin_audit_log").insert({
+      admin_email: caller.email,
+      action,
+      target_email: targetEmail ?? null,
+      target_id: targetId ?? null,
+      metadata: meta ?? null,
+    });
+  };
 
-  // ── ROUTER ────────────────────────────────────────────────────────────────
-  switch (action) {
+  switch (body.action) {
+    case "list_users": {
+      const page = Number(body.page ?? 1);
+      const limit = Number(body.limit ?? 50);
+      const from = Math.max(0, (page - 1) * limit);
+      const to = from + limit - 1;
 
-    // ── GRANT PREMIUM ───────────────────────────────────────────────────────
+      const { data, error, count } = await admin
+        .from("user_profiles")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) return err(error.message, 500);
+      return ok({ users: data ?? [], total: count ?? 0, page, limit });
+    }
+
+    case "get_analytics": {
+      const [analytics, growth] = await Promise.all([
+        admin.from("admin_analytics").select("*").single(),
+        admin.from("admin_growth_daily").select("*").order("day", { ascending: true }),
+      ]);
+
+      if (analytics.error) return err(analytics.error.message, 500);
+      if (growth.error) return err(growth.error.message, 500);
+      return ok({ analytics: analytics.data, growth: growth.data ?? [] });
+    }
+
     case "grant_premium": {
       const { email, days, note } = body as { email: string; days: number; note?: string };
-      if (!email || !days) return json({ error: "email and days required" }, 400);
+      if (!email || !days) return err("email and days required");
 
-      // Find user by email in auth.users
-      const { data: users, error: listErr } = await adminSb.auth.admin.listUsers();
-      if (listErr) return json({ error: listErr.message }, 500);
-      const target = users.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
-      if (!target) return json({ error: "User not found" }, 404);
+      const { data: usersData, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      if (listErr) return err(listErr.message, 500);
+      const target = usersData.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+      if (!target) return err("User not found — they must have signed up first", 404);
 
       const expires = new Date();
       expires.setDate(expires.getDate() + Number(days));
 
-      const { error: upErr } = await adminSb
-        .from("user_profiles")
-        .upsert({
+      const { error: upErr } = await admin.from("user_profiles").upsert(
+        {
           id: target.id,
           email: target.email,
           premium_expires_at: expires.toISOString(),
           premium_source: "admin",
-          admin_note: note || null,
-        }, { onConflict: "id" });
+          admin_note: note ?? null,
+          p9a_access: true,
+          payroll_access: true,
+        },
+        { onConflict: "id" },
+      );
 
-      if (upErr) return json({ error: upErr.message }, 500);
-      return json({ success: true, expires: expires.toISOString() });
+      if (upErr) return err(upErr.message, 500);
+      await log("grant_premium", email, target.id, { days, note });
+      return ok({ success: true, expires: expires.toISOString() });
     }
 
-    // ── REVOKE PREMIUM ──────────────────────────────────────────────────────
     case "revoke_premium": {
-      const { user_id } = body as { user_id: string };
-      if (!user_id) return json({ error: "user_id required" }, 400);
+      const { user_id, email } = body as { user_id: string; email: string };
+      if (!user_id) return err("user_id required");
 
-      const { error } = await adminSb
-        .from("user_profiles")
-        .update({ premium_expires_at: new Date().toISOString() })
-        .eq("id", user_id);
+      const { error } = await admin.from("user_profiles").update({
+        premium_expires_at: new Date().toISOString(),
+      }).eq("id", user_id);
 
-      if (error) return json({ error: error.message }, 500);
-      return json({ success: true });
+      if (error) return err(error.message, 500);
+      await log("revoke_premium", email, user_id);
+      return ok({ success: true });
     }
 
-    // ── RESET PASSWORD — send email ─────────────────────────────────────────
     case "reset_password_email": {
       const { email } = body as { email: string };
-      if (!email) return json({ error: "email required" }, 400);
+      if (!email) return err("email required");
 
-      // Generate a recovery link (Supabase sends the email automatically)
-      const { data, error } = await adminSb.auth.admin.generateLink({
+      const { data, error } = await admin.auth.admin.generateLink({
         type: "recovery",
         email,
-        options: { redirectTo: "https://salarycalculator.co.ke/reset-password" },
+        options: { redirectTo: "https://salarycalculator.co.ke/auth.html?mode=reset" },
       });
 
-      if (error) return json({ error: error.message }, 500);
-      // Supabase also sends the email automatically when type=recovery
-      return json({ success: true, link: data?.properties?.action_link });
+      if (error) return err(error.message, 500);
+      await log("reset_password", email, undefined, { method: "email" });
+      return ok({ success: true, link: data?.properties?.action_link });
     }
 
-    // ── GENERATE RESET LINK (no auto-email — return link for manual send) ──
     case "generate_reset_link": {
       const { email } = body as { email: string };
-      if (!email) return json({ error: "email required" }, 400);
+      if (!email) return err("email required");
 
-      const { data, error } = await adminSb.auth.admin.generateLink({
+      const { data, error } = await admin.auth.admin.generateLink({
         type: "recovery",
         email,
-        options: { redirectTo: "https://salarycalculator.co.ke/reset-password" },
+        options: { redirectTo: "https://salarycalculator.co.ke/auth.html?mode=reset" },
       });
-
-      if (error) return json({ error: error.message }, 500);
-      return json({ success: true, link: data?.properties?.action_link });
+      if (error) return err(error.message, 500);
+      await log("reset_password", email, undefined, { method: "link" });
+      return ok({ success: true, link: data?.properties?.action_link });
     }
 
-    // ── SET PASSWORD DIRECTLY ───────────────────────────────────────────────
     case "set_password": {
-      const { user_id, password } = body as { user_id: string; password: string };
-      if (!user_id || !password) return json({ error: "user_id and password required" }, 400);
-      if (password.length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
+      const { user_id, email, password } = body as { user_id: string; email: string; password: string };
+      if (!user_id || !password) return err("user_id and password required");
+      if (password.length < 8) return err("Password must be ≥ 8 characters");
 
-      const { error } = await adminSb.auth.admin.updateUserById(user_id, { password });
-      if (error) return json({ error: error.message }, 500);
-      return json({ success: true });
+      const { error } = await admin.auth.admin.updateUserById(user_id, { password });
+      if (error) return err(error.message, 500);
+      await log("set_password", email, user_id);
+      return ok({ success: true });
     }
 
-    // ── GENERATE MAGIC LINK (admin impersonation) ───────────────────────────
     case "generate_magic_link": {
       const { email } = body as { email: string };
-      if (!email) return json({ error: "email required" }, 400);
+      if (!email) return err("email required");
 
-      // generateLink type "magiclink" sends an OTP — we return the link for admin use
-      const { data, error } = await adminSb.auth.admin.generateLink({
+      const { data, error } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email,
-        options: { redirectTo: "https://salarycalculator.co.ke/calculator.html?admin_session=1" },
+        options: { redirectTo: "https://salarycalculator.co.ke/calculator.html?sc_admin=1" },
       });
-
-      if (error) return json({ error: error.message }, 500);
-      return json({ success: true, link: data?.properties?.action_link });
+      if (error) return err(error.message, 500);
+      await log("impersonate", email, undefined, { link_generated: true });
+      return ok({ success: true, link: data?.properties?.action_link });
     }
 
-    // ── TOGGLE FEATURE ACCESS ───────────────────────────────────────────────
     case "toggle_feature": {
-      const { user_id, field, value } = body as { user_id: string; field: string; value: boolean };
-      const ALLOWED_FIELDS = ["p9a_access", "payroll_access"];
-      if (!user_id || !field) return json({ error: "user_id and field required" }, 400);
-      if (!ALLOWED_FIELDS.includes(field)) return json({ error: "Invalid field" }, 400);
+      const { user_id, email, field, value } = body as {
+        user_id: string; email: string; field: string; value: boolean;
+      };
+      const ALLOWED = ["p9a_access", "payroll_access"];
+      if (!user_id || !ALLOWED.includes(field)) return err("Invalid request");
 
-      const { error } = await adminSb
-        .from("user_profiles")
-        .update({ [field]: value })
-        .eq("id", user_id);
+      const { error } = await admin.from("user_profiles").update({ [field]: value }).eq("id", user_id);
+      if (error) return err(error.message, 500);
+      await log("toggle_feature", email, user_id, { field, value });
+      return ok({ success: true });
+    }
 
-      if (error) return json({ error: error.message }, 500);
-      return json({ success: true });
+    case "send_email": {
+      const { subject, target } = body as { subject: string; target: "all" | "premium" | "free" | string };
+      let query = admin.from("user_profiles").select("email, full_name, premium_expires_at");
+      if (target === "premium") query = query.gt("premium_expires_at", new Date().toISOString());
+      else if (target === "free") query = query.or(`premium_expires_at.is.null,premium_expires_at.lte.${new Date().toISOString()}`);
+
+      const { data: recipients, error } = await query;
+      if (error) return err(error.message, 500);
+      await log("send_email", undefined, undefined, { subject, target, recipient_count: recipients?.length ?? 0 });
+      return ok({ success: true, recipients_count: recipients?.length ?? 0 });
     }
 
     default:
-      return json({ error: `Unknown action: ${action}` }, 400);
+      return err(`Unknown action: ${body.action}`);
   }
 });
-
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), { status, headers: CORS });
-}
