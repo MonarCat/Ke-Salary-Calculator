@@ -14,22 +14,29 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
   "Access-Control-Max-Age": "86400",
-  "Content-Type": "application/json",
 };
 
-const withCors = (req: Request) => {
+const withCors = (req: Request, headers: Record<string, string> = {}) => {
   const origin = req.headers.get("Origin") ?? "";
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : DEFAULT_ORIGIN;
-  return { ...CORS_HEADERS, "Access-Control-Allow-Origin": allowOrigin, "Vary": "Origin" };
+  const out: Record<string, string> = { ...CORS_HEADERS, ...headers, "Vary": "Origin" };
+  if (ALLOWED_ORIGINS.has(origin)) out["Access-Control-Allow-Origin"] = origin;
+  return out;
 };
 
 const ok = (req: Request, d: unknown) =>
-  new Response(JSON.stringify(d), { headers: withCors(req) });
+  new Response(JSON.stringify(d), { headers: withCors(req, { "Content-Type": "application/json" }) });
 const err = (req: Request, msg: string, s = 400) =>
-  new Response(JSON.stringify({ error: msg }), { status: s, headers: withCors(req) });
+  new Response(JSON.stringify({ error: msg }), {
+    status: s,
+    headers: withCors(req, { "Content-Type": "application/json" }),
+  });
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
+    const origin = req.headers.get("Origin") ?? "";
+    if (origin && !ALLOWED_ORIGINS.has(origin)) {
+      return new Response(null, { status: 403, headers: withCors(req) });
+    }
     return new Response(null, { status: 204, headers: withCors(req) });
   }
   if (req.method !== "POST") return err(req, "Method not allowed", 405);

@@ -136,9 +136,12 @@
       }catch(_e){
         return{error:'Network/CORS error calling admin service. Ensure admin-ops is deployed with CORS and verify_jwt disabled.'};
       }
+      const raw=await r.text();
       let data=null;
-      try{data=await r.json();}catch{}
-      if(!r.ok)return{error:data?.error||`Admin service failed (${r.status})`};
+      if(raw){
+        try{data=JSON.parse(raw);}catch(parseErr){console.error('Admin response parse error:',parseErr,raw.slice(0,300));}
+      }
+      if(!r.ok)return{error:data?.error||(raw?`Admin service failed (${r.status}): ${raw.slice(0,160)}`:`Admin service failed (${r.status})`)};
       return data||{};
     }
     async function grantPremium(){const email=document.getElementById('grant-email').value.trim(),days=Number(document.getElementById('grant-days').value||0),note=document.getElementById('grant-note').value;if(!email||!days){showToast('Email and duration required','error');return;}setBtnLoading('grant-submit',true);const r=await callAdminFn({action:'grant_premium',email,days,note});setBtnLoading('grant-submit',false);if(r.error){showToast(r.error,'error');return;}closeModal('grant-modal');showToast(`Premium granted to ${email}`);await loadUsers(state.page);}
