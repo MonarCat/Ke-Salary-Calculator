@@ -89,7 +89,8 @@ serve(async (req) => {
       let target: { id: string; email?: string | null } | undefined;
       let page = 1;
       const perPage = 200;
-      while (!target) {
+      const maxPages = 50;
+      while (!target && page <= maxPages) {
         const { data: usersData, error: listErr } = await admin.auth.admin.listUsers({ page, perPage });
         if (listErr) return err(listErr.message, 500);
         const users = usersData.users ?? [];
@@ -202,9 +203,10 @@ serve(async (req) => {
 
     case "send_email": {
       const { subject, target } = body as { subject: string; target: "all" | "premium" | "free" | string };
+      const now = new Date().toISOString();
       let query = admin.from("user_profiles").select("email, full_name, premium_expires_at");
-      if (target === "premium") query = query.gt("premium_expires_at", new Date().toISOString());
-      else if (target === "free") query = query.or(`premium_expires_at.is.null,premium_expires_at.lte.${new Date().toISOString()}`);
+      if (target === "premium") query = query.gt("premium_expires_at", now);
+      else if (target === "free") query = query.or(`premium_expires_at.is.null,premium_expires_at.lte.${now}`);
 
       const { data: recipients, error } = await query;
       if (error) return err(error.message, 500);
