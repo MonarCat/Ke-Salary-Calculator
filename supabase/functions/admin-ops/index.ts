@@ -2,9 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://salarycalculator.co.ke",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
+  "Access-Control-Max-Age": "86400",
   "Content-Type": "application/json",
 };
 
@@ -13,7 +14,9 @@ const err = (msg: string, s = 400) =>
   new Response(JSON.stringify({ error: msg }), { status: s, headers: CORS_HEADERS });
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
   if (req.method !== "POST") return err("Method not allowed", 405);
 
   const token = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();
