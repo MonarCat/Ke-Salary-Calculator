@@ -20,7 +20,7 @@ const CORS_HEADERS = {
 const withCors = (req: Request) => {
   const origin = req.headers.get("Origin") ?? "";
   const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : DEFAULT_ORIGIN;
-  return { ...CORS_HEADERS, "Access-Control-Allow-Origin": allowOrigin, Vary: "Origin" };
+  return { ...CORS_HEADERS, "Access-Control-Allow-Origin": allowOrigin, "Vary": "Origin" };
 };
 
 const ok = (req: Request, d: unknown) =>
@@ -95,9 +95,9 @@ serve(async (req) => {
         admin.from("admin_growth_daily").select("*").order("day", { ascending: true }),
       ]);
 
-       if (analytics.error) return err(req, analytics.error.message, 500);
-       if (growth.error) return err(req, growth.error.message, 500);
-       return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
+      if (analytics.error) return err(req, analytics.error.message, 500);
+      if (growth.error) return err(req, growth.error.message, 500);
+      return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
     }
 
     case "grant_premium": {
