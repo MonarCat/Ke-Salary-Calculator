@@ -560,7 +560,10 @@ async function init() {
   const status = await checkPremium(supabase);
 
   // Expose email globally so Paystack gate can use it
-  if (status.email) window.__SC_USER_EMAIL = status.email;
+  if (status.email) {
+    window.__SC_USER_EMAIL = status.email;
+    window.__SC_EMAIL = status.email;
+  }
 
   render(status);
 }
