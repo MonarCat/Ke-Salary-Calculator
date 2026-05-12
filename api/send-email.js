@@ -48,7 +48,7 @@ function personalise(text, user) {
   const plan = isPremium ? 'Premium' : 'Free';
 
   return String(text || '')
-    .replace(/\{\{name\}\}/g, user.name || 'there')
+    .replace(/\{\{name\}\}/g, user.name || getName(user) || 'there')
     .replace(/\{\{email\}\}/g, user.email || '')
     .replace(/\{\{plan\}\}/g, plan)
     .replace(/\{\{expires\}\}/g, expiry)
@@ -109,13 +109,6 @@ const EMAIL_FOOTER = `
     </td></tr>
   </table>
 </td></tr>`;
-
-function stripHtml(html) {
-  return String(html || '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -184,21 +177,22 @@ export default async function handler(req, res) {
 
   for (const r of recipients) {
     const personalHtml = personalise(html_body, r);
-    const personalText = personalise(text_body || stripHtml(html_body), r);
+    const personalText = text_body ? personalise(text_body, r) : undefined;
     const personalSubj = personalise(subject, r);
 
     try {
-      await transporter.sendMail({
+      const mailOptions = {
         from: FROM,
         to: r.email,
         subject: personalSubj,
         html: wrapInEmailShell(personalHtml),
-        text: personalText,
         headers: {
           'List-Unsubscribe': '<https://salarycalculator.co.ke/account.html?unsubscribe=1>',
           'X-Mailer': 'SC Admin Dashboard',
         },
-      });
+      };
+      if (personalText) mailOptions.text = personalText;
+      await transporter.sendMail(mailOptions);
       sent++;
     } catch (e) {
       failed++;
@@ -219,6 +213,7 @@ export default async function handler(req, res) {
       subject,
       target_segment: target || 'all',
       recipient_count: sent,
+      // Keep audit rows compact while retaining enough traceability for bulk sends.
       recipients: recipients.slice(0, 100).map((r) => r.email),
       status: failed === 0 ? 'sent' : sent === 0 ? 'failed' : 'partial',
       error_message: errors.length ? errors.slice(0, 5).join('; ') : null,
