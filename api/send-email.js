@@ -200,7 +200,7 @@ export default async function handler(req, res) {
       console.error('[send-email] Failed to send to', r.email, e.message);
     }
 
-    if (recipients.length > 1) await delay(150);
+    if (recipients.length > 1) await delay(250);
   }
 
   transporter.close();
@@ -214,6 +214,7 @@ export default async function handler(req, res) {
       target_segment: target || 'all',
       recipient_count: sent,
       // Keep audit rows compact while retaining enough traceability for bulk sends.
+      // Full send details still remain available in provider logs and runtime logs.
       recipients: recipients.slice(0, 100).map((r) => r.email),
       status: failed === 0 ? 'sent' : sent === 0 ? 'failed' : 'partial',
       error_message: errors.length ? errors.slice(0, 5).join('; ') : null,
