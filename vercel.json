@@ -6,8 +6,9 @@
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
     { "source": "/calculator",           "destination": "/calculator.html"          },
-    { "source": "/payslip",              "destination": "/payslip.html"             },
+    { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },
     { "source": "/blog",                 "destination": "/blog.html"                },
+    { "source": "/faq",                  "destination": "/faq.html"                 },
     { "source": "/salary-news",          "destination": "/salary-news.html"         },
     { "source": "/salary-index",         "destination": "/salary-index.html"        },
     { "source": "/auth",                 "destination": "/auth.html"                },
@@ -15,7 +16,7 @@
     { "source": "/contact-us",           "destination": "/contact-us.html"          },
     { "source": "/premium-thank-you",    "destination": "/premium-thank-you.html"   },
     { "source": "/salary/:path+",        "destination": "/salary/:path.html"        },
-    { "source": "/blog/:path+",          "destination": "/blog/:path.html"          }
+    { "source": "/blog/:path+",          "destination": "/:path.html"               }
   ],
   "headers": [
     {
