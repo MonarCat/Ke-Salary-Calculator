@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const DEFAULT_ORIGIN = "https://salarycalculator.co.ke";
 const ALLOWED_ORIGINS = new Set([
   DEFAULT_ORIGIN,
+  "https://www.salarycalculator.co.ke",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:5500",
@@ -31,13 +32,91 @@ const err = (req: Request, msg: string, s = 400) =>
     headers: withCors(req, { "Content-Type": "application/json" }),
   });
 
+const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) => {
+  const { data, error } = await admin
+    .from("user_profiles")
+    .select("created_at, premium_expires_at, calculation_count, payslip_count, last_active_at");
+
+  if (error) return { error };
+
+  const now = new Date();
+  const nowTs = now.getTime();
+  const weekAgoTs = nowTs - (7 * 24 * 60 * 60 * 1000);
+  const monthAgoTs = nowTs - (30 * 24 * 60 * 60 * 1000);
+  const growthWindowTs = nowTs - (90 * 24 * 60 * 60 * 1000);
+
+  let totalUsers = 0;
+  let premiumUsers = 0;
+  let expiredUsers = 0;
+  let newThisWeek = 0;
+  let newThisMonth = 0;
+  let totalCalculations = 0;
+  let totalPayslips = 0;
+  let activeThisWeek = 0;
+
+  const growthMap = new Map<string, { day: string; signups: number; premium_signups: number }>();
+
+  for (const row of data ?? []) {
+    totalUsers += 1;
+    totalCalculations += Number(row.calculation_count ?? 0);
+    totalPayslips += Number(row.payslip_count ?? 0);
+
+    const premiumExpiry = row.premium_expires_at ? new Date(row.premium_expires_at).getTime() : NaN;
+    if (!Number.isNaN(premiumExpiry)) {
+      if (premiumExpiry > nowTs) premiumUsers += 1;
+      else expiredUsers += 1;
+    }
+
+    const createdAtTs = row.created_at ? new Date(row.created_at).getTime() : NaN;
+    if (!Number.isNaN(createdAtTs)) {
+      if (createdAtTs > weekAgoTs) newThisWeek += 1;
+      if (createdAtTs > monthAgoTs) newThisMonth += 1;
+
+      if (createdAtTs > growthWindowTs) {
+        const day = new Date(createdAtTs).toISOString().slice(0, 10);
+        const growth = growthMap.get(day) ?? { day, signups: 0, premium_signups: 0 };
+        growth.signups += 1;
+        if (!Number.isNaN(premiumExpiry) && premiumExpiry > nowTs) {
+          growth.premium_signups += 1;
+        }
+        growthMap.set(day, growth);
+      }
+    }
+
+    const lastActiveTs = row.last_active_at ? new Date(row.last_active_at).getTime() : NaN;
+    if (!Number.isNaN(lastActiveTs) && lastActiveTs > weekAgoTs) activeThisWeek += 1;
+  }
+
+  const freeUsers = totalUsers - premiumUsers - expiredUsers;
+  const growth = [...growthMap.values()].sort((a, b) => a.day.localeCompare(b.day));
+
+  return {
+    error: null,
+    data: {
+      analytics: {
+        total_users: totalUsers,
+        premium_users: premiumUsers,
+        free_users: freeUsers,
+        expired_users: expiredUsers,
+        new_this_week: newThisWeek,
+        new_this_month: newThisMonth,
+        total_calculations: totalCalculations,
+        total_payslips: totalPayslips,
+        active_this_week: activeThisWeek,
+      },
+      growth,
+    },
+  };
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     const origin = req.headers.get("Origin") ?? "";
-    if (origin && !ALLOWED_ORIGINS.has(origin)) {
-      return new Response(null, { status: 403, headers: withCors(req) });
-    }
-    return new Response(null, { status: 204, headers: withCors(req) });
+    const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : DEFAULT_ORIGIN;
+    return new Response("ok", {
+      status: 200,
+      headers: { ...CORS_HEADERS, "Access-Control-Allow-Origin": allowOrigin, "Vary": "Origin" },
+    });
   }
   if (req.method !== "POST") return err(req, "Method not allowed", 405);
 
@@ -98,13 +177,26 @@ serve(async (req) => {
 
     case "get_analytics": {
       const [analytics, growth] = await Promise.all([
-        admin.from("admin_analytics").select("*").single(),
+        admin.from("admin_analytics").select("*").maybeSingle(),
         admin.from("admin_growth_daily").select("*").order("day", { ascending: true }),
       ]);
 
-      if (analytics.error) return err(req, analytics.error.message, 500);
-      if (growth.error) return err(req, growth.error.message, 500);
-      return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
+      if (!analytics.error && !growth.error) return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
+
+      const fallback = await buildAnalyticsFallback(admin);
+      if (fallback.error) {
+        const reasons = [
+          analytics.error ? `analytics view: ${analytics.error.message}` : "",
+          growth.error ? `growth view: ${growth.error.message}` : "",
+          `fallback query: ${fallback.error.message}`,
+        ].filter(Boolean).join("; ");
+        return err(req, `Failed to load analytics (${reasons})`, 500);
+      }
+
+      return ok(req, {
+        analytics: analytics.error ? fallback.data.analytics : analytics.data,
+        growth: growth.error ? fallback.data.growth : (growth.data ?? []),
+      });
     }
 
     case "grant_premium": {
