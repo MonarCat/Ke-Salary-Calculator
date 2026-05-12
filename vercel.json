@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
+    { "source": "/api/admin-ops",        "destination": "/api/admin-ops.js"        },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },
     { "source": "/blog",                 "destination": "/blog.html"                },
