@@ -47,7 +47,6 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
 
   let totalUsers = 0;
   let premiumUsers = 0;
-  let freeUsers = 0;
   let expiredUsers = 0;
   let newThisWeek = 0;
   let newThisMonth = 0;
@@ -66,8 +65,6 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
     if (!Number.isNaN(premiumExpiry)) {
       if (premiumExpiry > nowTs) premiumUsers += 1;
       else expiredUsers += 1;
-    } else {
-      freeUsers += 1;
     }
 
     const createdAtTs = row.created_at ? new Date(row.created_at).getTime() : NaN;
@@ -90,7 +87,7 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
     if (!Number.isNaN(lastActiveTs) && lastActiveTs > weekAgoTs) activeThisWeek += 1;
   }
 
-  freeUsers = totalUsers - premiumUsers - expiredUsers;
+  const freeUsers = totalUsers - premiumUsers - expiredUsers;
   const growth = [...growthMap.values()].sort((a, b) => a.day.localeCompare(b.day));
 
   return {
@@ -114,9 +111,11 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
+    const origin = req.headers.get("Origin") ?? "";
+    const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : DEFAULT_ORIGIN;
     return new Response("ok", {
       status: 200,
-      headers: { ...CORS_HEADERS, "Access-Control-Allow-Origin": "*" },
+      headers: { ...CORS_HEADERS, "Access-Control-Allow-Origin": allowOrigin, "Vary": "Origin" },
     });
   }
   if (req.method !== "POST") return err(req, "Method not allowed", 405);
@@ -182,15 +181,22 @@ serve(async (req) => {
         admin.from("admin_growth_daily").select("*").order("day", { ascending: true }),
       ]);
 
-      if (!analytics.error && !growth.error) {
-        return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
-      }
+      if (!analytics.error && !growth.error) return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
 
       const fallback = await buildAnalyticsFallback(admin);
       if (fallback.error) {
-        return err(req, analytics.error?.message || growth.error?.message || fallback.error.message, 500);
+        const reasons = [
+          analytics.error ? `analytics view: ${analytics.error.message}` : "",
+          growth.error ? `growth view: ${growth.error.message}` : "",
+          `fallback query: ${fallback.error.message}`,
+        ].filter(Boolean).join("; ");
+        return err(req, `Failed to load analytics (${reasons})`, 500);
       }
-      return ok(req, fallback.data);
+
+      return ok(req, {
+        analytics: analytics.error ? fallback.data.analytics : analytics.data,
+        growth: growth.error ? fallback.data.growth : (growth.data ?? []),
+      });
     }
 
     case "grant_premium": {
