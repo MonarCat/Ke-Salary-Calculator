@@ -8,7 +8,7 @@ const CORS = {
 
 const SUPA_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SVC_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ENV_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const envAnonKey = process.env.SUPABASE_ANON_KEY;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',')
   .map((e) => e.trim().toLowerCase())
@@ -27,9 +27,11 @@ export default async function handler(req, res) {
   if (!token) return res.status(401).json({ error: 'No token' });
 
   const requestAnonKey = String(req.headers.apikey || '').trim();
-  const callerKey = requestAnonKey || ENV_ANON_KEY;
+  const callerKey = requestAnonKey || envAnonKey;
   if (!callerKey) {
-    return res.status(500).json({ error: 'Server config missing Supabase anon key for token verification' });
+    return res
+      .status(500)
+      .json({ error: 'Missing Supabase anon key: provide SUPABASE_ANON_KEY env or apikey header' });
   }
 
   const callerSb = createClient(SUPA_URL, callerKey);
