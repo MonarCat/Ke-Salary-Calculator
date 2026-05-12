@@ -8,6 +8,9 @@ const CORS = {
 
 const SUPA_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SVC_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ANON_KEY =
+  process.env.SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',')
   .map((e) => e.trim().toLowerCase())
@@ -25,7 +28,7 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
   if (!token) return res.status(401).json({ error: 'No token' });
 
-  const callerSb = createClient(SUPA_URL, SVC_KEY);
+  const callerSb = createClient(SUPA_URL, ANON_KEY);
   const {
     data: { user: caller },
   } = await callerSb.auth.getUser(token);
