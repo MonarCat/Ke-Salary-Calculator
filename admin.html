@@ -98,7 +98,7 @@
   <div id="toast" class="toast"><span id="toast-icon">✅</span><span id="toast-msg"></span></div>
 
   <script>
-    const SUPA_URL='https://wznopthjoaqusalqoyru.supabase.co',ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk',ADMIN_FN=`${SUPA_URL}/functions/v1/admin-ops`,MONTHLY=499,ADS=12480;
+    const SUPA_URL='https://wznopthjoaqusalqoyru.supabase.co',ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk',ADMIN_FN='/api/admin-ops',MONTHLY=499,ADS=12480;
     const sb=supabase.createClient(SUPA_URL,ANON_KEY);
     const state={users:[],filteredUsers:[],analytics:null,growth:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null};
     const charts={};let booted=false,loading=false,searchTimer,toastTimer;
