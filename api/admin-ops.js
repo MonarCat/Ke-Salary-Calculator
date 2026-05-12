@@ -8,7 +8,6 @@ const CORS = {
 
 const SUPA_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SVC_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',')
   .map((e) => e.trim().toLowerCase())
@@ -19,14 +18,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!SVC_KEY || !ANON_KEY) {
-    return res.status(500).json({ error: 'Server config missing Supabase keys' });
+  if (!SVC_KEY) {
+    return res.status(500).json({ error: 'Server config missing SUPABASE_SERVICE_ROLE_KEY' });
   }
 
   const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
   if (!token) return res.status(401).json({ error: 'No token' });
 
-  const callerSb = createClient(SUPA_URL, ANON_KEY);
+  const callerSb = createClient(SUPA_URL, SVC_KEY);
   const {
     data: { user: caller },
   } = await callerSb.auth.getUser(token);
