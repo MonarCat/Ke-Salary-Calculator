@@ -27,7 +27,9 @@ CREATE OR REPLACE VIEW public.admin_growth_daily AS
 SELECT
   DATE_TRUNC('day', created_at)::DATE AS day,
   COUNT(*) AS signups,
-  COUNT(*) FILTER (WHERE premium_expires_at > now()) AS premium_signups
+  COUNT(*) FILTER (
+    WHERE premium_expires_at IS NOT NULL AND premium_expires_at > created_at
+  ) AS premium_signups
 FROM public.user_profiles
 WHERE created_at > now() - INTERVAL '90 days'
 GROUP BY 1

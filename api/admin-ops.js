@@ -50,7 +50,7 @@ async function listUsersPage(admin, from, to) {
     columns = columns.filter((column) => column !== missingColumn);
   }
 
-  return { data: null, count: 0, error: { message: 'No user profile columns available for admin listing' } };
+  return { data: null, count: 0, error: { message: 'Failed to retrieve user profile data' } };
 }
 
 function buildAnalytics(rows) {
@@ -102,7 +102,7 @@ function buildAnalytics(rows) {
     analytics: {
       total_users: totalUsers,
       premium_users: premiumUsers,
-      free_users: Math.max(0, totalUsers - premiumUsers - expiredUsers),
+      free_users: totalUsers - premiumUsers - expiredUsers,
       expired_users: expiredUsers,
       new_this_week: newThisWeek,
       new_this_month: newThisMonth,

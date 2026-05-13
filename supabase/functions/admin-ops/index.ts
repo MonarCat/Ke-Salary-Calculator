@@ -66,7 +66,7 @@ const listUsersPage = async (admin: ReturnType<typeof createClient>, from: numbe
     columns = columns.filter((column) => column !== missingColumn);
   }
 
-  return { data: null, count: 0, error: { message: "No user profile columns available for admin listing" } };
+  return { data: null, count: 0, error: { message: "Failed to retrieve user profile data" } };
 };
 
 const buildAnalytics = (data: Array<Record<string, unknown>> = []) => {
@@ -127,7 +127,7 @@ const buildAnalytics = (data: Array<Record<string, unknown>> = []) => {
     analytics: {
       total_users: totalUsers,
       premium_users: premiumUsers,
-      free_users: Math.max(0, freeUsers),
+      free_users: freeUsers,
       expired_users: expiredUsers,
       new_this_week: newThisWeek,
       new_this_month: newThisMonth,
