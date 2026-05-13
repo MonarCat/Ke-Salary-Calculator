@@ -69,7 +69,14 @@ const listUsersPage = async (admin: ReturnType<typeof createClient>, from: numbe
   return { data: null, count: 0, error: { message: "Failed to retrieve user profile data" } };
 };
 
-const buildAnalytics = (data: Array<Record<string, unknown>> = []) => {
+const safeParseDate = (value: unknown) => {
+  if (typeof value !== "string" || !value) return Number.NaN;
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? Number.NaN : parsed;
+};
+
+const buildAnalytics = (data: Array<Record<string, unknown>> | null | undefined) => {
+  const rows = Array.isArray(data) ? data : [];
   const nowTs = Date.now();
   const weekAgoTs = nowTs - (7 * 24 * 60 * 60 * 1000);
   const monthAgoTs = nowTs - (30 * 24 * 60 * 60 * 1000);
@@ -86,20 +93,18 @@ const buildAnalytics = (data: Array<Record<string, unknown>> = []) => {
 
   const growthMap = new Map<string, { day: string; signups: number; premium_signups: number }>();
 
-  for (const row of data) {
+  for (const row of rows) {
     totalUsers += 1;
     totalCalculations += Number(row.calculation_count ?? 0);
     totalPayslips += Number(row.payslip_count ?? 0);
 
-    const premiumExpiryValue = typeof row.premium_expires_at === "string" ? row.premium_expires_at : "";
-    const premiumExpiry = premiumExpiryValue ? new Date(premiumExpiryValue).getTime() : NaN;
+    const premiumExpiry = safeParseDate(row.premium_expires_at);
     if (!Number.isNaN(premiumExpiry)) {
       if (premiumExpiry > nowTs) premiumUsers += 1;
       else expiredUsers += 1;
     }
 
-    const createdAtValue = typeof row.created_at === "string" ? row.created_at : "";
-    const createdAtTs = createdAtValue ? new Date(createdAtValue).getTime() : NaN;
+    const createdAtTs = safeParseDate(row.created_at);
     if (!Number.isNaN(createdAtTs)) {
       if (createdAtTs > weekAgoTs) newThisWeek += 1;
       if (createdAtTs > monthAgoTs) newThisMonth += 1;
@@ -115,8 +120,7 @@ const buildAnalytics = (data: Array<Record<string, unknown>> = []) => {
       }
     }
 
-    const lastActiveValue = typeof row.last_active_at === "string" ? row.last_active_at : "";
-    const lastActiveTs = lastActiveValue ? new Date(lastActiveValue).getTime() : NaN;
+    const lastActiveTs = safeParseDate(row.last_active_at);
     if (!Number.isNaN(lastActiveTs) && lastActiveTs > weekAgoTs) activeThisWeek += 1;
   }
 

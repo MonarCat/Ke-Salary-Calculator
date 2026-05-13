@@ -53,6 +53,12 @@ async function listUsersPage(admin, from, to) {
   return { data: null, count: 0, error: { message: 'Failed to retrieve user profile data' } };
 }
 
+function safeParseDate(value) {
+  if (!value) return Number.NaN;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
 function buildAnalytics(rows) {
   const nowTs = Date.now();
   const weekAgoTs = nowTs - 7 * 24 * 60 * 60 * 1000;
@@ -75,13 +81,13 @@ function buildAnalytics(rows) {
     totalCalculations += Number(row.calculation_count || 0);
     totalPayslips += Number(row.payslip_count || 0);
 
-    const premiumExpiryTs = row.premium_expires_at ? Date.parse(row.premium_expires_at) : Number.NaN;
+    const premiumExpiryTs = safeParseDate(row.premium_expires_at);
     const isPremium = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > nowTs;
     const isExpired = Number.isFinite(premiumExpiryTs) && premiumExpiryTs <= nowTs;
     if (isPremium) premiumUsers += 1;
     if (isExpired) expiredUsers += 1;
 
-    const createdAtTs = row.created_at ? Date.parse(row.created_at) : Number.NaN;
+    const createdAtTs = safeParseDate(row.created_at);
     if (Number.isFinite(createdAtTs)) {
       if (createdAtTs > weekAgoTs) newThisWeek += 1;
       if (createdAtTs > monthAgoTs) newThisMonth += 1;
@@ -94,7 +100,7 @@ function buildAnalytics(rows) {
       }
     }
 
-    const lastActiveAtTs = row.last_active_at ? Date.parse(row.last_active_at) : Number.NaN;
+    const lastActiveAtTs = safeParseDate(row.last_active_at);
     if (Number.isFinite(lastActiveAtTs) && lastActiveAtTs > weekAgoTs) activeThisWeek += 1;
   }
 
