@@ -29,7 +29,17 @@ const USER_LIST_COLUMNS = [
   'is_banned',
   'admin_note',
 ];
-const OPTIONAL_USER_LIST_COLUMNS = new Set(['calculation_count', 'payslip_count', 'last_active_at']);
+const OPTIONAL_USER_LIST_COLUMNS = new Set([
+  'full_name',
+  'premium_source',
+  'p9a_access',
+  'payroll_access',
+  'calculation_count',
+  'payslip_count',
+  'last_active_at',
+  'is_banned',
+  'admin_note',
+]);
 
 function findMissingOptionalColumn(error, columns) {
   const message = error?.message || '';
