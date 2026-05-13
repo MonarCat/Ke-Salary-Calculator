@@ -32,15 +32,52 @@ const err = (req: Request, msg: string, s = 400) =>
     headers: withCors(req, { "Content-Type": "application/json" }),
   });
 
-const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) => {
-  const { data, error } = await admin
-    .from("user_profiles")
-    .select("created_at, premium_expires_at, calculation_count, payslip_count, last_active_at");
+const USER_LIST_COLUMNS = [
+  "id",
+  "email",
+  "full_name",
+  "premium_expires_at",
+  "premium_source",
+  "p9a_access",
+  "payroll_access",
+  "calculation_count",
+  "payslip_count",
+  "last_active_at",
+  "created_at",
+  "is_banned",
+  "admin_note",
+];
+const OPTIONAL_USER_LIST_COLUMNS = new Set(["calculation_count", "payslip_count", "last_active_at"]);
 
-  if (error) return { error };
+const findMissingOptionalColumn = (message: string, columns: string[]) =>
+  columns.find((column) => OPTIONAL_USER_LIST_COLUMNS.has(column) && message.includes(column)) ?? null;
 
-  const now = new Date();
-  const nowTs = now.getTime();
+const listUsersPage = async (admin: ReturnType<typeof createClient>, from: number, to: number) => {
+  let columns = [...USER_LIST_COLUMNS];
+  while (columns.length) {
+    const result = await admin
+      .from("user_profiles")
+      .select(columns.join(", "), { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    const missingColumn = findMissingOptionalColumn(result.error?.message ?? "", columns);
+    if (!missingColumn) return result;
+    columns = columns.filter((column) => column !== missingColumn);
+  }
+
+  return { data: null, count: 0, error: { message: "Failed to retrieve user profile data" } };
+};
+
+const safeParseDate = (value: unknown) => {
+  if (typeof value !== "string" || !value) return Number.NaN;
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? Number.NaN : parsed;
+};
+
+const buildAnalytics = (data: Array<Record<string, unknown>> | null | undefined) => {
+  const rows = Array.isArray(data) ? data : [];
+  const nowTs = Date.now();
   const weekAgoTs = nowTs - (7 * 24 * 60 * 60 * 1000);
   const monthAgoTs = nowTs - (30 * 24 * 60 * 60 * 1000);
   const growthWindowTs = nowTs - (90 * 24 * 60 * 60 * 1000);
@@ -56,19 +93,20 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
 
   const growthMap = new Map<string, { day: string; signups: number; premium_signups: number }>();
 
-  for (const row of data ?? []) {
+  for (const row of rows) {
     totalUsers += 1;
     totalCalculations += Number(row.calculation_count ?? 0);
     totalPayslips += Number(row.payslip_count ?? 0);
 
-    const premiumExpiry = row.premium_expires_at ? new Date(row.premium_expires_at).getTime() : NaN;
+    const premiumExpiry = safeParseDate(row.premium_expires_at);
     if (!Number.isNaN(premiumExpiry)) {
       if (premiumExpiry > nowTs) premiumUsers += 1;
       else expiredUsers += 1;
     }
 
-    const createdAtTs = row.created_at ? new Date(row.created_at).getTime() : NaN;
+    const createdAtTs = safeParseDate(row.created_at);
     if (!Number.isNaN(createdAtTs)) {
+      const premiumSignedUp = !Number.isNaN(premiumExpiry) && premiumExpiry > createdAtTs;
       if (createdAtTs > weekAgoTs) newThisWeek += 1;
       if (createdAtTs > monthAgoTs) newThisMonth += 1;
 
@@ -76,14 +114,12 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
         const day = new Date(createdAtTs).toISOString().slice(0, 10);
         const growth = growthMap.get(day) ?? { day, signups: 0, premium_signups: 0 };
         growth.signups += 1;
-        if (!Number.isNaN(premiumExpiry) && premiumExpiry > nowTs) {
-          growth.premium_signups += 1;
-        }
+        if (premiumSignedUp) growth.premium_signups += 1;
         growthMap.set(day, growth);
       }
     }
 
-    const lastActiveTs = row.last_active_at ? new Date(row.last_active_at).getTime() : NaN;
+    const lastActiveTs = safeParseDate(row.last_active_at);
     if (!Number.isNaN(lastActiveTs) && lastActiveTs > weekAgoTs) activeThisWeek += 1;
   }
 
@@ -91,21 +127,18 @@ const buildAnalyticsFallback = async (admin: ReturnType<typeof createClient>) =>
   const growth = [...growthMap.values()].sort((a, b) => a.day.localeCompare(b.day));
 
   return {
-    error: null,
-    data: {
-      analytics: {
-        total_users: totalUsers,
-        premium_users: premiumUsers,
-        free_users: freeUsers,
-        expired_users: expiredUsers,
-        new_this_week: newThisWeek,
-        new_this_month: newThisMonth,
-        total_calculations: totalCalculations,
-        total_payslips: totalPayslips,
-        active_this_week: activeThisWeek,
-      },
-      growth,
+    analytics: {
+      total_users: totalUsers,
+      premium_users: premiumUsers,
+      free_users: freeUsers,
+      expired_users: expiredUsers,
+      new_this_week: newThisWeek,
+      new_this_month: newThisMonth,
+      total_calculations: totalCalculations,
+      total_payslips: totalPayslips,
+      active_this_week: activeThisWeek,
     },
+    growth,
   };
 };
 
@@ -165,38 +198,16 @@ serve(async (req) => {
       const from = Math.max(0, (page - 1) * limit);
       const to = from + limit - 1;
 
-      const { data, error, count } = await admin
-        .from("user_profiles")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      const { data, error, count } = await listUsersPage(admin, from, to);
 
       if (error) return err(req, error.message, 500);
       return ok(req, { users: data ?? [], total: count ?? 0, page, limit });
     }
 
     case "get_analytics": {
-      const [analytics, growth] = await Promise.all([
-        admin.from("admin_analytics").select("*").maybeSingle(),
-        admin.from("admin_growth_daily").select("*").order("day", { ascending: true }),
-      ]);
-
-      if (!analytics.error && !growth.error) return ok(req, { analytics: analytics.data, growth: growth.data ?? [] });
-
-      const fallback = await buildAnalyticsFallback(admin);
-      if (fallback.error) {
-        const reasons = [
-          analytics.error ? `analytics view: ${analytics.error.message}` : "",
-          growth.error ? `growth view: ${growth.error.message}` : "",
-          `fallback query: ${fallback.error.message}`,
-        ].filter(Boolean).join("; ");
-        return err(req, `Failed to load analytics (${reasons})`, 500);
-      }
-
-      return ok(req, {
-        analytics: analytics.error ? fallback.data.analytics : analytics.data,
-        growth: growth.error ? fallback.data.growth : (growth.data ?? []),
-      });
+      const { data, error } = await admin.from("user_profiles").select("*");
+      if (error) return err(req, error.message, 500);
+      return ok(req, buildAnalytics((data ?? []) as Array<Record<string, unknown>>));
     }
 
     case "grant_premium": {

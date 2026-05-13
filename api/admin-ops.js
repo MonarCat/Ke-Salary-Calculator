@@ -14,6 +14,113 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com'
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
+const USER_LIST_COLUMNS = [
+  'id',
+  'email',
+  'full_name',
+  'premium_expires_at',
+  'premium_source',
+  'p9a_access',
+  'payroll_access',
+  'calculation_count',
+  'payslip_count',
+  'last_active_at',
+  'created_at',
+  'is_banned',
+  'admin_note',
+];
+const OPTIONAL_USER_LIST_COLUMNS = new Set(['calculation_count', 'payslip_count', 'last_active_at']);
+
+function findMissingOptionalColumn(error, columns) {
+  const message = error?.message || '';
+  return columns.find((column) => OPTIONAL_USER_LIST_COLUMNS.has(column) && message.includes(column)) || null;
+}
+
+async function listUsersPage(admin, from, to) {
+  let columns = [...USER_LIST_COLUMNS];
+  while (columns.length) {
+    const result = await admin
+      .from('user_profiles')
+      .select(columns.join(', '), { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    const missingColumn = findMissingOptionalColumn(result.error, columns);
+    if (!missingColumn) return result;
+    columns = columns.filter((column) => column !== missingColumn);
+  }
+
+  return { data: null, count: 0, error: { message: 'Failed to retrieve user profile data' } };
+}
+
+function safeParseDate(value) {
+  if (!value) return Number.NaN;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function buildAnalytics(rows) {
+  const nowTs = Date.now();
+  const weekAgoTs = nowTs - 7 * 24 * 60 * 60 * 1000;
+  const monthAgoTs = nowTs - 30 * 24 * 60 * 60 * 1000;
+  const growthWindowTs = nowTs - 90 * 24 * 60 * 60 * 1000;
+
+  let totalUsers = 0;
+  let premiumUsers = 0;
+  let expiredUsers = 0;
+  let newThisWeek = 0;
+  let newThisMonth = 0;
+  let totalCalculations = 0;
+  let totalPayslips = 0;
+  let activeThisWeek = 0;
+
+  const growthBuckets = new Map();
+
+  for (const row of rows || []) {
+    totalUsers += 1;
+    totalCalculations += Number(row.calculation_count || 0);
+    totalPayslips += Number(row.payslip_count || 0);
+
+    const premiumExpiryTs = safeParseDate(row.premium_expires_at);
+    const isPremium = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > nowTs;
+    const isExpired = Number.isFinite(premiumExpiryTs) && premiumExpiryTs <= nowTs;
+    if (isPremium) premiumUsers += 1;
+    if (isExpired) expiredUsers += 1;
+
+    const createdAtTs = safeParseDate(row.created_at);
+    if (Number.isFinite(createdAtTs)) {
+      const premiumSignedUp = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > createdAtTs;
+      if (createdAtTs > weekAgoTs) newThisWeek += 1;
+      if (createdAtTs > monthAgoTs) newThisMonth += 1;
+      if (createdAtTs > growthWindowTs) {
+        const day = new Date(createdAtTs).toISOString().slice(0, 10);
+        const bucket = growthBuckets.get(day) || { day, signups: 0, premium_signups: 0 };
+        bucket.signups += 1;
+        if (premiumSignedUp) bucket.premium_signups += 1;
+        growthBuckets.set(day, bucket);
+      }
+    }
+
+    const lastActiveAtTs = safeParseDate(row.last_active_at);
+    if (Number.isFinite(lastActiveAtTs) && lastActiveAtTs > weekAgoTs) activeThisWeek += 1;
+  }
+
+  return {
+    analytics: {
+      total_users: totalUsers,
+      premium_users: premiumUsers,
+      free_users: totalUsers - premiumUsers - expiredUsers,
+      expired_users: expiredUsers,
+      new_this_week: newThisWeek,
+      new_this_month: newThisMonth,
+      total_calculations: totalCalculations,
+      total_payslips: totalPayslips,
+      active_this_week: activeThisWeek,
+    },
+    growth: [...growthBuckets.values()].sort((a, b) => a.day.localeCompare(b.day)),
+  };
+}
+
 export default async function handler(req, res) {
   Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v));
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -62,23 +169,16 @@ export default async function handler(req, res) {
   try {
     switch (action) {
       case 'get_analytics': {
-        const [analytics, growth] = await Promise.all([
-          admin.from('admin_analytics').select('*').single(),
-          admin.from('admin_growth_daily').select('*').order('day', { ascending: true }),
-        ]);
-        if (analytics.error) throw analytics.error;
-        return res.json({ analytics: analytics.data, growth: growth.data ?? [] });
+        const { data, error } = await admin.from('user_profiles').select('*');
+        if (error) throw error;
+        return res.json(buildAnalytics(data));
       }
 
       case 'list_users': {
         const page = Math.max(1, Number(body.page ?? 1));
         const limit = Math.max(1, Math.min(200, Number(body.limit ?? 20)));
         const from = (page - 1) * limit;
-        const { data, count, error } = await admin
-          .from('user_profiles')
-          .select('*', { count: 'exact' })
-          .order('created_at', { ascending: false })
-          .range(from, from + limit - 1);
+        const { data, count, error } = await listUsersPage(admin, from, from + limit - 1);
         if (error) throw error;
         return res.json({ users: data ?? [], total: count ?? 0, page, limit });
       }
