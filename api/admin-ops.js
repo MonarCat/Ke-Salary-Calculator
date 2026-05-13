@@ -89,13 +89,14 @@ function buildAnalytics(rows) {
 
     const createdAtTs = safeParseDate(row.created_at);
     if (Number.isFinite(createdAtTs)) {
+      const premiumSignedUp = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > createdAtTs;
       if (createdAtTs > weekAgoTs) newThisWeek += 1;
       if (createdAtTs > monthAgoTs) newThisMonth += 1;
       if (createdAtTs > growthWindowTs) {
         const day = new Date(createdAtTs).toISOString().slice(0, 10);
         const bucket = growthBuckets.get(day) || { day, signups: 0, premium_signups: 0 };
         bucket.signups += 1;
-        if (isPremium) bucket.premium_signups += 1;
+        if (premiumSignedUp) bucket.premium_signups += 1;
         growthBuckets.set(day, bucket);
       }
     }

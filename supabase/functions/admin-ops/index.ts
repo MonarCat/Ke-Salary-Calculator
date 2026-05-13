@@ -106,6 +106,7 @@ const buildAnalytics = (data: Array<Record<string, unknown>> | null | undefined)
 
     const createdAtTs = safeParseDate(row.created_at);
     if (!Number.isNaN(createdAtTs)) {
+      const premiumSignedUp = !Number.isNaN(premiumExpiry) && premiumExpiry > createdAtTs;
       if (createdAtTs > weekAgoTs) newThisWeek += 1;
       if (createdAtTs > monthAgoTs) newThisMonth += 1;
 
@@ -113,9 +114,7 @@ const buildAnalytics = (data: Array<Record<string, unknown>> | null | undefined)
         const day = new Date(createdAtTs).toISOString().slice(0, 10);
         const growth = growthMap.get(day) ?? { day, signups: 0, premium_signups: 0 };
         growth.signups += 1;
-        if (!Number.isNaN(premiumExpiry) && premiumExpiry > nowTs) {
-          growth.premium_signups += 1;
-        }
+        if (premiumSignedUp) growth.premium_signups += 1;
         growthMap.set(day, growth);
       }
     }
