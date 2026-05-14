@@ -44,7 +44,7 @@ const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 
 // Inject favicon/manifest metadata once for all pages that load this shared script.
 function ensureGlobalFaviconMarkup() {
-    const head = document.head || document.getElementsByTagName('head')[0];
+    const head = document.head || document.getElementsByTagName('head')[0] || null;
     if (!head) return;
 
     const items = [
@@ -64,7 +64,11 @@ function ensureGlobalFaviconMarkup() {
     });
 }
 
-ensureGlobalFaviconMarkup();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureGlobalFaviconMarkup);
+} else {
+    ensureGlobalFaviconMarkup();
+}
 
 // Export for use in other files
 window.supabaseClient = supabaseClient;
