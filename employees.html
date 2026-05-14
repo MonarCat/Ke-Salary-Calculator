@@ -482,7 +482,11 @@
         var syncEmail = function () {
           if (!emailEl) return;
           var email = resolveEmail();
-          if (email) emailEl.textContent = email;
+          if (email) {
+            emailEl.textContent = email;
+            clearInterval(timer);
+            return;
+          }
           attempts += 1;
           if (attempts >= 60) clearInterval(timer);
         };
