@@ -92,8 +92,24 @@
         history.replaceState({}, '', window.location.pathname);
       }
       if (!sessionStorage.getItem('sc_admin_active')) return;
+      var readStoredSessionEmail = function () {
+        try {
+          var key = Object.keys(localStorage).find(function (k) {
+            return k.indexOf('auth-token') !== -1 && k.indexOf('supabase') !== -1;
+          });
+          if (!key) return '';
+          var raw = localStorage.getItem(key);
+          if (!raw) return '';
+          var parsed = JSON.parse(raw);
+          return parsed?.user?.email || parsed?.currentSession?.user?.email || '';
+        } catch (_) {
+          return '';
+        }
+      };
+      var resolveEmail = function () {
+        return window.__SC_EMAIL || window.__SC_USER_EMAIL || readStoredSessionEmail() || '';
+      };
       var render = function () {
-        var email = window.__SC_EMAIL || window.__SC_USER_EMAIL || 'user';
         var bar = document.createElement('div');
         bar.id = 'sc-admin-bar';
         bar.style.cssText = [
@@ -103,9 +119,20 @@
           'font-family:sans-serif;font-size:13px;font-weight:600',
           'box-shadow:0 4px 20px rgba(124,58,237,0.5)'
         ].join(';');
-        bar.innerHTML = '<span>🛡</span><span style="background:rgba(255,255,255,.2);border-radius:20px;padding:2px 12px;font-size:11px;font-family:monospace;letter-spacing:1px">ADMIN SESSION</span><span>Viewing as <strong>' + email + '</strong></span><a href=\"/admin.html\" style=\"margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:5px 14px;font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap\">← Return to Admin</a>';
+        bar.innerHTML = '<span>🛡</span><span style="background:rgba(255,255,255,.2);border-radius:20px;padding:2px 12px;font-size:11px;font-family:monospace;letter-spacing:1px">ADMIN SESSION</span><span>Viewing as <strong id="sc-admin-email">user</strong></span><a href=\"/admin.html\" style=\"margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:6px;padding:5px 14px;font-weight:700;text-decoration:none;font-size:12px;white-space:nowrap\">← Return to Admin</a>';
         document.body.prepend(bar);
         document.body.style.paddingTop = (parseFloat(getComputedStyle(document.body).paddingTop) || 0) + 48 + 'px';
+        var emailEl = document.getElementById('sc-admin-email');
+        var attempts = 0;
+        var syncEmail = function () {
+          if (!emailEl) return;
+          var email = resolveEmail();
+          if (email) emailEl.textContent = email;
+          attempts += 1;
+          if (attempts >= 60) clearInterval(timer);
+        };
+        syncEmail();
+        var timer = setInterval(syncEmail, 250);
       };
       if (window.__SC_EMAIL || window.__SC_USER_EMAIL) render();
       else setTimeout(render, 800);

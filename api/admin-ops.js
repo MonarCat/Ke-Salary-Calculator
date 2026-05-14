@@ -38,6 +38,15 @@ function findMissingOptionalColumn(error, columns) {
   return columns.find(c => OPTIONAL_USER_LIST_COLUMNS.has(c) && message.includes(c)) || null;
 }
 
+function isMissingRelationOrSchemaCacheError(error) {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code === '42P01'
+    || code === 'PGRST205'
+    || message.includes("could not find the table")
+    || message.includes('schema cache');
+}
+
 async function listUsersPage(admin, from, to, search = '') {
   let columns = [...USER_LIST_COLUMNS];
   while (columns.length) {
@@ -167,13 +176,16 @@ export default async function handler(req, res) {
 
   const log = async (act, targetEmail, targetId, meta) => {
     try {
-      await admin.from('admin_audit_log').insert({
+      const { error } = await admin.from('admin_audit_log').insert({
         admin_email:  caller.email,
         action:       act,
         target_email: targetEmail ?? null,
         target_id:    targetId   ?? null,
         metadata:     meta       ?? null,
       });
+      if (error && !isMissingRelationOrSchemaCacheError(error)) {
+        console.error('[admin-ops] audit log insert failed:', error.message);
+      }
     } catch (_) { /* non-fatal — audit log failures must not break the action */ }
   };
 
@@ -381,7 +393,9 @@ export default async function handler(req, res) {
 
         if (error) {
           // Table might not exist yet — return empty gracefully
-          if (error.code === '42P01') return res.json({ entries: [], total: 0, page, limit });
+          if (isMissingRelationOrSchemaCacheError(error)) {
+            return res.json({ entries: [], total: 0, page, limit });
+          }
           throw error;
         }
         return res.json({ entries: data ?? [], total: count ?? 0, page, limit });
