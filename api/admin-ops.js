@@ -420,12 +420,19 @@ export default async function handler(req, res) {
         const deliveryRaw = await deliveryRes.text();
         let deliveryData = null;
         if (deliveryRaw) {
-          try { deliveryData = JSON.parse(deliveryRaw); } catch (_) {}
+          try {
+            deliveryData = JSON.parse(deliveryRaw);
+          } catch (parseErr) {
+            console.warn('[admin-ops] send_email response parse failed:', parseErr?.message || String(parseErr));
+          }
         }
 
         if (!deliveryRes.ok || deliveryData?.error) {
-          return res.status(deliveryRes.status || 500).json({
-            error: deliveryData?.error || `Email delivery failed (${deliveryRes.status})`,
+          const statusCode = Number.isInteger(deliveryRes.status) && deliveryRes.status > 0
+            ? deliveryRes.status
+            : 500;
+          return res.status(statusCode).json({
+            error: deliveryData?.error || `Email delivery failed (status: ${statusCode})`,
           });
         }
 
