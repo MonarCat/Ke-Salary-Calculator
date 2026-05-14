@@ -301,12 +301,18 @@ async function handleForgotPassword(event) {
         return;
     }
     
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password.html',
-    }).catch((requestError) => ({ error: requestError }));
+    let resetRequestError = null;
+    try {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/reset-password.html',
+        });
+        resetRequestError = error || null;
+    } catch (error) {
+        resetRequestError = error;
+    }
 
-    if (error) {
-        console.warn('Password reset request returned an error:', error);
+    if (resetRequestError) {
+        console.warn('Password reset request returned an error:', resetRequestError);
     }
 
     showMessage('login-message', `If an account exists for this email, a password reset email has been sent. 📧 Please check your inbox.<br><br>
