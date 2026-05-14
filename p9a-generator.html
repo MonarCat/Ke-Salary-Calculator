@@ -512,11 +512,17 @@
                     } catch (_) {}
                 }
 
-                rows.forEach((e, idx) => {
+                const normalizedRows = rows.map((e) => ({
+                    id: e.id,
+                    name: (e.employee_name || e.name || '').trim(),
+                    employeeId: (e.employee_id || e.employeeId || '').trim()
+                }));
+
+                normalizedRows.forEach((e, idx) => {
                     const opt = document.createElement('option');
                     opt.value = e.id;
-                    const name = (e.employee_name || e.full_name || e.name || '').trim() || `Employee ${idx + 1}`;
-                    const ref = (e.employee_id || e.kra_pin || '').trim();
+                    const name = e.name || `Employee ${idx + 1}`;
+                    const ref = e.employeeId;
                     opt.textContent = ref ? `${name} — ${ref}` : name;
                     sel.appendChild(opt);
                 });
