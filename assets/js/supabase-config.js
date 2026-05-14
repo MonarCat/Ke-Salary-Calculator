@@ -41,6 +41,7 @@ const PAYSTACK_MONTHLY_AMOUNT = 9900;
 // Designated super-admin email.
 // Used as a fallback when the admin_users table / is_admin() RPC is not yet set up.
 const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
+const APPLE_WEB_APP_TITLE = 'My Salo';
 
 // Inject favicon/manifest metadata once for all pages that load this shared script.
 function ensureGlobalFaviconMarkup() {
@@ -52,7 +53,7 @@ function ensureGlobalFaviconMarkup() {
         { tag: 'link', selector: 'link[rel="icon"][type="image/svg+xml"]', attrs: { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' } },
         { tag: 'link', selector: 'link[rel="shortcut icon"]', attrs: { rel: 'shortcut icon', href: '/favicon.ico' } },
         { tag: 'link', selector: 'link[rel="apple-touch-icon"][sizes="180x180"]', attrs: { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' } },
-        { tag: 'meta', selector: 'meta[name="apple-mobile-web-app-title"]', attrs: { name: 'apple-mobile-web-app-title', content: 'My Salo' } },
+        { tag: 'meta', selector: 'meta[name="apple-mobile-web-app-title"]', attrs: { name: 'apple-mobile-web-app-title', content: APPLE_WEB_APP_TITLE } },
         { tag: 'link', selector: 'link[rel="manifest"]', attrs: { rel: 'manifest', href: '/site.webmanifest' } }
     ];
 
