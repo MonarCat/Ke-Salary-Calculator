@@ -305,16 +305,16 @@ async function handleForgotPassword(event) {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + '/reset-password.html',
         });
-        
-        if (error) throw error;
-        
-        showMessage('login-message', `Password reset email sent! 📧 Please check your inbox.<br><br>
-            <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
-            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
-        
+        if (error) {
+            console.warn('Password reset request returned an error:', error);
+        }
     } catch (error) {
-        showMessage('login-message', 'Failed to send reset email: ' + error.message, 'error');
+        console.warn('Password reset request failed:', error);
     }
+
+    showMessage('login-message', `If an account exists for this email, a password reset email has been sent. 📧 Please check your inbox.<br><br>
+        <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
+        For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
 }
 
 // Show Terms and Conditions
