@@ -36,6 +36,7 @@ const ANON_KEY   = process.env.SUPABASE_ANON_KEY;
 const BREVO_KEY  = process.env.BREVO_API_KEY;
 const FROM_EMAIL = process.env.BREVO_SENDER_EMAIL || 'info@salarycalculator.co.ke';
 const FROM_NAME  = process.env.BREVO_SENDER_NAME  || 'Salary Calculator';
+const LOGO_URL   = 'https://salarycalculator.co.ke/logo.png';
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
@@ -64,38 +65,27 @@ function personalise(text, user) {
     .replace(/\{\{upgrade_link\}\}/g, 'https://salarycalculator.co.ke/#pricing');
 }
 
-// ─── Email shell (unchanged from original) ────────────────────────────────────
+// ─── Email shell ───────────────────────────────────────────────────────────────
 const EMAIL_FOOTER = `
-<tr><td style="background:#f4f6f9;border-top:2px solid #e2e8f0;border-radius:0 0 12px 12px;padding:28px 40px">
+<tr><td style="background:#f8fafc;border-top:1px solid #e5e7eb;border-radius:0 0 18px 18px;padding:24px 30px">
   <table width="100%" cellpadding="0" cellspacing="0">
-    <tr><td style="text-align:center;padding-bottom:16px">
-      <div style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#00d4aa">⚡ Salary Calculator Kenya</div>
-      <div style="font-size:11px;color:#8fa3c8;margin-top:3px;font-family:Arial,sans-serif">Kenya's most accurate payslip calculator · Powered by MonarCat</div>
+    <tr><td style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#111827">Salary Calculator Kenya</td></tr>
+    <tr><td style="font-size:13px;color:#667085;padding-top:6px;line-height:1.8;font-family:Arial,sans-serif">Accurate Kenyan PAYE, SHIF, NSSF &amp; Payroll Tools</td></tr>
+    <tr><td style="padding-top:12px;font-size:13px;line-height:1.9;font-family:Arial,sans-serif">
+      <a href="https://salarycalculator.co.ke" style="color:#1a6b3c;text-decoration:none">salarycalculator.co.ke</a><br>
+      <a href="mailto:${FROM_EMAIL}" style="color:#1a6b3c;text-decoration:none">${FROM_EMAIL}</a>
     </td></tr>
-    <tr><td style="background:#eef9f6;border:1px solid #c3ede6;border-radius:8px;padding:10px 16px;text-align:center">
-      <div style="font-size:11px;color:#006b54;font-family:Arial,sans-serif;line-height:1.6"><strong>FY 2025/2026 Tax Rates Active</strong><br>PAYE (up to 35%) · NSSF Tier I &amp; II · SHIF 2.75% · Housing Levy 1.5%<br>Personal Relief: KES 2,400/month</div>
+    <tr><td style="padding-top:18px">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid #e5e7eb"></td></tr></table>
     </td></tr>
-    <tr><td style="padding:12px 0"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid #e2e8f0"></td></tr></table></td></tr>
-    <tr><td style="text-align:center;padding-bottom:12px">
-      <a href="https://salarycalculator.co.ke/calculator.html" style="font-size:12px;color:#00a88a;text-decoration:none;font-family:Arial,sans-serif;margin:0 8px">Calculator</a>
-      <span style="color:#cbd5e1;font-size:12px">|</span>
-      <a href="https://salarycalculator.co.ke/blog.html" style="font-size:12px;color:#00a88a;text-decoration:none;font-family:Arial,sans-serif;margin:0 8px">Blog</a>
-      <span style="color:#cbd5e1;font-size:12px">|</span>
-      <a href="https://salarycalculator.co.ke/account.html" style="font-size:12px;color:#00a88a;text-decoration:none;font-family:Arial,sans-serif;margin:0 8px">My Account</a>
-      <span style="color:#cbd5e1;font-size:12px">|</span>
-      <a href="https://salarycalculator.co.ke/contact-us.html" style="font-size:12px;color:#00a88a;text-decoration:none;font-family:Arial,sans-serif;margin:0 8px">Contact Us</a>
-    </td></tr>
-    <tr><td style="text-align:center">
-      <div style="font-size:11px;color:#94a3b8;font-family:Arial,sans-serif;line-height:1.7">
-        &copy; 2025 Salary Calculator Kenya &mdash; A MonarCat Product<br>
-        Nairobi, Kenya &nbsp;&middot;&nbsp; Registered in Kenya<br><br>
-        You are receiving this email because you have an account at salarycalculator.co.ke.<br>
-        <a href="https://salarycalculator.co.ke/account.html?unsubscribe=1" style="color:#94a3b8;text-decoration:underline">Unsubscribe</a>
-        &nbsp;&middot;&nbsp;
-        <a href="https://salarycalculator.co.ke/privacy-policy.html" style="color:#94a3b8;text-decoration:underline">Privacy Policy</a>
-        &nbsp;&middot;&nbsp;
-        <a href="https://salarycalculator.co.ke/terms-of-service.html" style="color:#94a3b8;text-decoration:underline">Terms of Use</a>
-      </div>
+    <tr><td style="padding-top:18px;font-size:11px;color:#98a2b3;line-height:1.7;text-align:center;font-family:Arial,sans-serif">
+      &copy; 2026 Salary Calculator Kenya. All rights reserved.<br>
+      You are receiving this email because you have an account at salarycalculator.co.ke.<br>
+      <a href="https://salarycalculator.co.ke/account.html?unsubscribe=1" style="color:#98a2b3;text-decoration:underline">Unsubscribe</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://salarycalculator.co.ke/privacy-policy.html" style="color:#98a2b3;text-decoration:underline">Privacy Policy</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://salarycalculator.co.ke/terms-of-service.html" style="color:#98a2b3;text-decoration:underline">Terms of Use</a>
     </td></tr>
   </table>
 </td></tr>`;
@@ -104,15 +94,16 @@ function wrapInEmailShell(bodyHtml) {
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Salary Calculator Kenya</title></head>
-<body style="margin:0;padding:0;background:#f4f6f9;font-family:Georgia,'Times New Roman',serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:32px 0">
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#1a1a1a">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:32px 12px">
   <tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
-      <tr><td style="background:#060b18;border-radius:12px 12px 0 0;padding:28px 40px;text-align:center">
-        <div style="font-family:Arial,sans-serif;font-size:22px;font-weight:900;color:#00d4aa;letter-spacing:-0.5px">⚡ Salary Calculator Kenya</div>
-        <div style="font-size:12px;color:#4f6280;margin-top:4px;font-family:Arial,sans-serif;letter-spacing:2px">SALARYCALCULATOR.CO.KE</div>
+    <table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border:1px solid #dbe5ef;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(16,24,40,0.08)">
+      <tr><td style="background:#2a8a50;background-image:linear-gradient(135deg,#2f9a5a,#1a6b3c);padding:32px 24px;text-align:center;border-radius:18px 18px 0 0">
+        <img src="${LOGO_URL}" alt="Salary Calculator" style="display:block;height:76px;width:auto;margin:0 auto 14px">
+        <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;font-family:Arial,sans-serif">Salary Calculator Premium</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.86);margin-top:6px;font-family:Arial,sans-serif">Professional Payroll &amp; Payslip Tools for Kenya</div>
       </td></tr>
-      <tr><td style="background:#ffffff;padding:40px;font-size:15px;line-height:1.8;color:#1a2540">${bodyHtml}</td></tr>
+      <tr><td style="background:#ffffff;padding:40px 34px;font-size:15px;line-height:1.8;color:#1a2540">${bodyHtml}</td></tr>
       ${EMAIL_FOOTER}
     </table>
   </td></tr>
