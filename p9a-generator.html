@@ -158,16 +158,15 @@
                         <a href="/global-salary-calculator.html">Global Calculator</a>
                         <a href="/budget-planner.html">Budget Planner</a>
                         <a href="/calculator.html#percentile">Kenya Percentile</a>
-                        <a href="/payroll-import.html">Payroll Import Premium</a>
-                        <a href="/p9a-generator.html">P9A Generator Premium</a>
                     </div>
                 </div>
-                <a href="/budget-planner.html">Budget Planner</a>
+                <a href="/employees.html">Manage Employees</a>
+                <a href="/payroll-report.html">Payroll Report</a>
+                <a href="/payroll-history.html">Payroll History</a>
+                <a href="/p9a-generator.html" class="active">P9A Generator</a>
                 <a href="/about-us.html">About Us</a>
                 <a href="/blog.html">Blog</a>
                 <a href="/contact-us.html">Contact Us</a>
-                <a href="/employees.html">Manage Employees</a>
-                <a href="/external-links.html">External Links</a>
                 <div id="auth-links" class="auth-links-container"></div>
                 <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
@@ -492,20 +491,49 @@
         }
 
         async function loadEmployees() {
+            const sel = document.getElementById('empSelect');
+            if (!sel) return;
+
+            sel.innerHTML = '<option value="">— Select Employee —</option>';
+
             try {
                 const { data, error } = await window.supabaseClient
                     .from('employees')
-                    .select('id,full_name,kra_pin,nssf_number')
+                    .select('id,employee_name,employee_id,kra_pin')
                     .eq('employer_id', currentUser.id)
-                    .order('full_name');
-                if (error || !data) return;
-                const sel = document.getElementById('empSelect');
-                data.forEach((e) => {
+                    .order('employee_name');
+
+                let rows = (!error && Array.isArray(data)) ? data : [];
+
+                if (rows.length === 0) {
+                    try {
+                        const cacheKey = `employees_${currentUser.id}`;
+                        const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+                        rows = Array.isArray(cached) ? cached : [];
+                    } catch (_) {}
+                }
+
+                // Supabase rows are snake_case; localStorage cache rows are camelCase.
+                const normalizedRows = rows.map((e) => ({
+                    id: e.id,
+                    name: (e.employee_name || e.name || '').trim(),
+                    employeeId: (e.employee_id || e.employeeId || '').trim()
+                }));
+
+                normalizedRows.forEach((e) => {
                     const opt = document.createElement('option');
                     opt.value = e.id;
-                    opt.textContent = e.full_name + (e.kra_pin ? ' — ' + e.kra_pin : '');
+                    const name = e.name || 'Employee';
+                    const ref = e.employeeId;
+                    opt.textContent = ref ? `${name} — ${ref}` : name;
                     sel.appendChild(opt);
                 });
+
+                const SINGLE_EMPLOYEE_OPTION_COUNT = 2;
+                if (sel.options.length === SINGLE_EMPLOYEE_OPTION_COUNT) {
+                    sel.value = sel.options[1].value;
+                    await loadP9AData();
+                }
             } catch (e) {
                 console.warn('Failed to load employees:', e);
             }
