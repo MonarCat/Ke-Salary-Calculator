@@ -42,6 +42,30 @@ const PAYSTACK_MONTHLY_AMOUNT = 9900;
 // Used as a fallback when the admin_users table / is_admin() RPC is not yet set up.
 const ADMIN_EMAIL = 'kesalarycalculator@gmail.com';
 
+// Inject favicon/manifest metadata once for all pages that load this shared script.
+function ensureGlobalFaviconMarkup() {
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if (!head) return;
+
+    const items = [
+        { tag: 'link', selector: 'link[rel="icon"][sizes="96x96"]', attrs: { rel: 'icon', type: 'image/png', href: '/favicon-96x96.png', sizes: '96x96' } },
+        { tag: 'link', selector: 'link[rel="icon"][type="image/svg+xml"]', attrs: { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' } },
+        { tag: 'link', selector: 'link[rel="shortcut icon"]', attrs: { rel: 'shortcut icon', href: '/favicon.ico' } },
+        { tag: 'link', selector: 'link[rel="apple-touch-icon"][sizes="180x180"]', attrs: { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' } },
+        { tag: 'meta', selector: 'meta[name="apple-mobile-web-app-title"]', attrs: { name: 'apple-mobile-web-app-title', content: 'My Salo' } },
+        { tag: 'link', selector: 'link[rel="manifest"]', attrs: { rel: 'manifest', href: '/site.webmanifest' } }
+    ];
+
+    items.forEach((item) => {
+        if (head.querySelector(item.selector)) return;
+        const el = document.createElement(item.tag);
+        Object.entries(item.attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        head.appendChild(el);
+    });
+}
+
+ensureGlobalFaviconMarkup();
+
 // Export for use in other files
 window.supabaseClient = supabaseClient;
 window.isSupabaseConfigured = isSupabaseConfigured;
