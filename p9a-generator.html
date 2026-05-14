@@ -520,17 +520,17 @@
                     employeeId: (e.employee_id || e.employeeId || '').trim()
                 }));
 
-                normalizedRows.forEach((e, idx) => {
+                normalizedRows.forEach((e) => {
                     const opt = document.createElement('option');
                     opt.value = e.id;
-                    const name = e.name || `Employee ${idx + 1}`;
+                    const name = e.name || 'Employee';
                     const ref = e.employeeId;
                     opt.textContent = ref ? `${name} — ${ref}` : name;
                     sel.appendChild(opt);
                 });
 
-                const PLACEHOLDER_PLUS_SINGLE_EMPLOYEE = 2;
-                if (sel.options.length === PLACEHOLDER_PLUS_SINGLE_EMPLOYEE) {
+                const SINGLE_EMPLOYEE_OPTION_COUNT = 2;
+                if (sel.options.length === SINGLE_EMPLOYEE_OPTION_COUNT) {
                     sel.value = sel.options[1].value;
                     await loadP9AData();
                 }
