@@ -387,18 +387,66 @@ export default async function handler(req, res) {
         return res.json({ entries: data ?? [], total: count ?? 0, page, limit });
       }
 
-      // ── Send email (mirrors Edge Function; requires send-email.js to do delivery) ──
+      // ── Send email (delegate actual delivery to /api/send-email, then audit) ──
       case 'send_email': {
-        // This action only logs the intent; actual delivery is in /api/send-email.js
-        const { subject, target } = body;
-        const now = new Date().toISOString();
-        let q = admin.from('user_profiles').select('email, full_name, premium_expires_at');
-        if (target === 'premium') q = q.gt('premium_expires_at', now);
-        else if (target === 'free') q = q.or(`premium_expires_at.is.null,premium_expires_at.lte.${now}`);
-        const { data: recipients, error } = await q;
-        if (error) throw error;
-        await log('send_email', null, null, { subject, target, recipient_count: recipients?.length ?? 0 });
-        return res.json({ success: true, recipients_count: recipients?.length ?? 0 });
+        const { template_key, subject, html_body, text_body, target, single_email } = body;
+        if (!subject || !html_body) {
+          return res.status(400).json({ error: 'subject and html_body are required' });
+        }
+
+        const proto = String(req.headers['x-forwarded-proto'] || 'https');
+        const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').trim();
+        if (!host) {
+          return res.status(500).json({ error: 'Could not resolve host for email delivery endpoint' });
+        }
+
+        const sendEmailUrl = `${proto}://${host}/api/send-email`;
+        const deliveryRes = await fetch(sendEmailUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: req.headers.authorization || '',
+          },
+          body: JSON.stringify({
+            template_key,
+            subject,
+            html_body,
+            text_body,
+            target,
+            single_email,
+          }),
+        });
+
+        const deliveryRaw = await deliveryRes.text();
+        let deliveryData = null;
+        if (deliveryRaw) {
+          try {
+            deliveryData = JSON.parse(deliveryRaw);
+          } catch (parseErr) {
+            console.warn('[admin-ops] send_email response parse failed:', parseErr?.message || String(parseErr));
+          }
+        }
+
+        if (!deliveryRes.ok || deliveryData?.error) {
+          const statusCode = Number.isInteger(deliveryRes.status) && deliveryRes.status > 0
+            ? deliveryRes.status
+            : 500;
+          return res.status(statusCode).json({
+            error: deliveryData?.error || `Email delivery failed (status: ${statusCode})`,
+          });
+        }
+
+        await log('send_email', single_email ?? null, null, {
+          template_key: template_key || 'custom',
+          subject,
+          target: target || 'all',
+          sent: Number(deliveryData?.sent || 0),
+          failed: Number(deliveryData?.failed || 0),
+          total: Number(deliveryData?.total || 0),
+          delivery_via: '/api/send-email',
+        });
+
+        return res.json(deliveryData || { success: true });
       }
 
       default:
