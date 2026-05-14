@@ -441,16 +441,33 @@
 
         async function autoPopulateFromHistory(employeeId, taxYear) {
             try {
-                const { data, error } = await window.supabaseClient
+                const PGRST_RELATION_MISSING = 'PGRST205';
+                const payrollHistorySelect = 'pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay';
+                const payslipHistorySelect = 'pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary';
+                const payrollResponse = await window.supabaseClient
                     .from('payroll_history')
-                    .select('pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay')
+                    .select(payrollHistorySelect)
                     .eq('employee_id', employeeId)
                     .like('pay_period', `${taxYear}-%`)
                     .order('pay_period', { ascending: true });
+                let data = payrollResponse.data;
+                let error = payrollResponse.error;
+
+                // PGRST_RELATION_MISSING = relation missing in schema cache (table not available in this project).
+                if (error && error.code === PGRST_RELATION_MISSING) {
+                    const { data: fallbackData, error: fallbackError } = await window.supabaseClient
+                        .from('payslip_history')
+                        .select(payslipHistorySelect)
+                        .eq('employee_id', employeeId)
+                        .like('pay_period', `${taxYear}-%`)
+                        .order('pay_period', { ascending: true });
+                    data = fallbackData;
+                    error = fallbackError;
+                }
 
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    showStatus('No payroll history found for this employee/year. Enter manually.', false);
+                    showStatus('No payroll/payslip history found for this employee/year. Enter manually.', false);
                     return;
                 }
 
@@ -466,7 +483,7 @@
                 showStatus('✅ P9A auto-populated from payroll history.', true);
             } catch (err) {
                 console.error('Auto-populate failed:', err);
-                showStatus('Could not load payroll history. Please enter values manually.', false);
+                showStatus('Could not load payroll/payslip history. Please enter values manually.', false);
             }
         }
 
