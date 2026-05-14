@@ -184,7 +184,11 @@ export default async function handler(req, res) {
         metadata:     meta       ?? null,
       });
       if (error && !isMissingRelationOrSchemaCacheError(error)) {
-        console.error('[admin-ops] audit log insert failed:', error.message);
+        console.error('[admin-ops] audit log insert failed:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        });
       }
     } catch (_) { /* non-fatal — audit log failures must not break the action */ }
   };

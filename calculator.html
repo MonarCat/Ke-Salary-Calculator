@@ -297,6 +297,7 @@
 
     var emailEl = document.getElementById('sc-admin-email');
     var attempts = 0;
+    var timer = null;
     var syncEmail = function () {
       if (!emailEl) return;
       var email = resolveEmail();
@@ -309,7 +310,7 @@
       if (attempts >= 60) clearInterval(timer);
     };
     syncEmail();
-    var timer = setInterval(syncEmail, 250);
+    timer = setInterval(syncEmail, 250);
   };
 
   if (window.__SC_EMAIL || window.__SC_USER_EMAIL) render();
