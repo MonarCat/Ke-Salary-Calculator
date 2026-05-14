@@ -441,16 +441,27 @@
 
         async function autoPopulateFromHistory(employeeId, taxYear) {
             try {
-                const { data, error } = await window.supabaseClient
+                let { data, error } = await window.supabaseClient
                     .from('payroll_history')
                     .select('pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay')
                     .eq('employee_id', employeeId)
                     .like('pay_period', `${taxYear}-%`)
                     .order('pay_period', { ascending: true });
 
+                if (error && error.code === 'PGRST205') {
+                    const fallback = await window.supabaseClient
+                        .from('payslip_history')
+                        .select('pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary')
+                        .eq('employee_id', employeeId)
+                        .like('pay_period', `${taxYear}-%`)
+                        .order('pay_period', { ascending: true });
+                    data = fallback.data;
+                    error = fallback.error;
+                }
+
                 if (error) throw error;
                 if (!data || data.length === 0) {
-                    showStatus('No payroll history found for this employee/year. Enter manually.', false);
+                    showStatus('No payroll/payslip history found for this employee/year. Enter manually.', false);
                     return;
                 }
 
@@ -466,7 +477,7 @@
                 showStatus('✅ P9A auto-populated from payroll history.', true);
             } catch (err) {
                 console.error('Auto-populate failed:', err);
-                showStatus('Could not load payroll history. Please enter values manually.', false);
+                showStatus('Could not load payroll/payslip history. Please enter values manually.', false);
             }
         }
 
