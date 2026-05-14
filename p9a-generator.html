@@ -507,11 +507,13 @@
 
                 if (rows.length === 0) {
                     try {
-                        const cached = JSON.parse(localStorage.getItem('employees_' + currentUser.id) || '[]');
+                        const cacheKey = `employees_${currentUser.id}`;
+                        const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
                         rows = Array.isArray(cached) ? cached : [];
                     } catch (_) {}
                 }
 
+                // Supabase rows are snake_case; localStorage cache rows are camelCase.
                 const normalizedRows = rows.map((e) => ({
                     id: e.id,
                     name: (e.employee_name || e.name || '').trim(),
@@ -527,7 +529,8 @@
                     sel.appendChild(opt);
                 });
 
-                if (sel.options.length === 2) {
+                const PLACEHOLDER_PLUS_SINGLE_EMPLOYEE = 2;
+                if (sel.options.length === PLACEHOLDER_PLUS_SINGLE_EMPLOYEE) {
                     sel.value = sel.options[1].value;
                     await loadP9AData();
                 }
