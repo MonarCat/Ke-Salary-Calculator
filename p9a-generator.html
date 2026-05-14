@@ -441,24 +441,26 @@
 
         async function autoPopulateFromHistory(employeeId, taxYear) {
             try {
-                const payslipHistorySelect = 'pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary';
-                let { data, error } = await window.supabaseClient
+                const payrollResponse = await window.supabaseClient
                     .from('payroll_history')
                     .select('pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay')
                     .eq('employee_id', employeeId)
                     .like('pay_period', `${taxYear}-%`)
                     .order('pay_period', { ascending: true });
+                let data = payrollResponse.data;
+                let error = payrollResponse.error;
 
                 // PGRST205 = relation missing in schema cache (table not available in this project).
                 if (error && error.code === 'PGRST205') {
-                    const fallback = await window.supabaseClient
+                    const payslipHistorySelect = 'pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary';
+                    const { data: fallbackData, error: fallbackError } = await window.supabaseClient
                         .from('payslip_history')
                         .select(payslipHistorySelect)
                         .eq('employee_id', employeeId)
                         .like('pay_period', `${taxYear}-%`)
                         .order('pay_period', { ascending: true });
-                    data = fallback.data;
-                    error = fallback.error;
+                    data = fallbackData;
+                    error = fallbackError;
                 }
 
                 if (error) throw error;
