@@ -1941,7 +1941,7 @@
 
         // ── Bulk Generate Payslips ───────────────────────────────────────────────
 
-        function bulkGeneratePayslips() {
+        async function bulkGeneratePayslips() {
             const activeEmps = employees.filter(e => (e.status || 'Active') !== 'Terminated');
             if (!activeEmps.length) {
                 alert('No active employees found. Please add employees before generating bulk payslips.');
