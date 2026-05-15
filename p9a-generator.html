@@ -124,6 +124,12 @@
         body.dark-mode .p9a-table td input { background: #0f3460; border-color: #444; color: #e0e0e0; }
         .p9a-table .auto-cell { background: #f0f9f0; font-weight: 600; }
         body.dark-mode .p9a-table .auto-cell { background: #0f2a0f; }
+        .btn-print {
+            padding: 12px 28px; background: #1565c0; color: #fff; border: none;
+            border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer;
+            transition: background 0.2s; margin: 4px 4px 4px 0;
+        }
+        .btn-print:hover { background: #0d47a1; }
         .records-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
         .records-table th { background: #1a6b3c; color: #fff; padding: 10px; text-align: left; }
         .records-table td { padding: 9px 10px; border-bottom: 1px solid #eee; }
@@ -391,6 +397,7 @@
                         </div>
                         <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="btn-primary" onclick="generatePDF()"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                            <button class="btn-print" onclick="printP9A()"><i class="fas fa-print"></i> Print</button>
                             <button class="btn-secondary" onclick="saveDraft()"><i class="fas fa-save"></i> Save Draft</button>
                             <button class="btn-orange" onclick="recalcAll()"><i class="fas fa-sync"></i> Recalculate All</button>
                         </div>
@@ -859,26 +866,41 @@
                     };
                 });
 
-                let { error } = await window.supabaseClient.from('p9a_records').upsert({
+                const employeeLabel = isPersonalMode
+                    ? (userProfile?.full_name || 'Self')
+                    : (document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee');
+
+                // Always persist to annual_tax_records so Past P9A Records stay updated
+                const annualUpsert = await window.supabaseClient.from('annual_tax_records').upsert({
                     user_id: currentUser.id,
                     employee_id: empId,
                     tax_year: year,
+                    employee_name: employeeLabel,
                     monthly_records,
+                    employer_name: document.getElementById('empName').value || null,
+                    employer_kra_pin: document.getElementById('empKRA').value || null,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'user_id,employee_id,tax_year' });
 
-                if (error) {
-                    const fallback = await window.supabaseClient.from('annual_tax_records').upsert({
+                if (annualUpsert.error) {
+                    // Fallback: try p9a_records only
+                    const { error: p9aErr } = await window.supabaseClient.from('p9a_records').upsert({
                         user_id: currentUser.id,
                         employee_id: empId,
                         tax_year: year,
-                        employee_name: isPersonalMode ? (userProfile?.full_name || 'Self') : (document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee'),
                         monthly_records,
-                        employer_name: document.getElementById('empName').value || null,
-                        employer_kra_pin: document.getElementById('empKRA').value || null,
                         updated_at: new Date().toISOString()
                     }, { onConflict: 'user_id,employee_id,tax_year' });
-                    if (fallback.error) throw fallback.error;
+                    if (p9aErr) throw p9aErr;
+                } else {
+                    // Also try p9a_records; log errors but don't block the user
+                    window.supabaseClient.from('p9a_records').upsert({
+                        user_id: currentUser.id,
+                        employee_id: empId,
+                        tax_year: year,
+                        monthly_records,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id,employee_id,tax_year' }).then(() => {}).catch((e) => { console.warn('p9a_records secondary upsert failed:', e); });
                 }
 
                 showStatus('Draft saved successfully.', true);
@@ -965,38 +987,243 @@
         }
 
         async function generatePDF() {
-            await saveDraft();
-            const employeeName = isPersonalMode
-                ? (userProfile?.full_name || 'Employee')
-                : ((document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee').split(' — ')[0]);
-            const taxYear = document.getElementById('taxYearSelect').value || (new Date().getFullYear() - 1);
+            const btn = document.querySelector('button[onclick="generatePDF()"]');
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+            try {
+                await saveDraft();
+                const employeeName = isPersonalMode
+                    ? (userProfile?.full_name || 'Employee')
+                    : ((document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee').split(' — ')[0]);
+                const taxYear = document.getElementById('taxYearSelect').value || (new Date().getFullYear() - 1);
 
-            const printTarget = createP9APrintView();
-            document.body.appendChild(printTarget);
+                const printTarget = createP9APrintView();
+                // Position off-screen so html2canvas can render at a known width
+                printTarget.style.position = 'absolute';
+                printTarget.style.left = '-9999px';
+                printTarget.style.top = '0';
+                printTarget.style.width = '1060px'; // ~297 mm at 96 dpi (landscape A4)
+                printTarget.style.background = '#fff';
+                document.body.appendChild(printTarget);
+                // Allow browser to complete layout and paint before html2canvas capture
+                await new Promise(r => setTimeout(r, 200));
 
-            const opt = {
-                margin: [8, 5, 8, 5],
-                filename: `P9A-${employeeName.replace(/\s+/g,'-')}-${taxYear}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            };
+                const opt = {
+                    margin: [8, 5, 8, 5],
+                    filename: `P9A-${employeeName.replace(/\s+/g, '-')}-${taxYear}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1060 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
 
-            await html2pdf().set(opt).from(printTarget).save();
-            printTarget.remove();
+                await html2pdf().set(opt).from(printTarget).save();
+                printTarget.remove();
+                showStatus('✅ PDF downloaded successfully.', true);
+            } catch (err) {
+                console.error('PDF generation failed:', err);
+                showStatus('Failed to generate PDF. Please try again.', false);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> Generate PDF'; }
+            }
+        }
+
+        async function printP9A() {
+            const btn = document.querySelector('button[onclick="printP9A()"]');
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Preparing…'; }
+            try {
+                await saveDraft();
+
+                const employeeName = isPersonalMode
+                    ? (userProfile?.full_name || 'Employee')
+                    : ((document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee').split(' — ')[0]);
+                const employerName = document.getElementById('empName').value || (isPersonalMode ? 'Self-Employed / Individual' : '—');
+                const employerKRA  = document.getElementById('empKRA').value || '—';
+                const taxYear      = document.getElementById('taxYearSelect').value || '';
+                const generatedOn  = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+                const totals = {
+                    gross: document.querySelector('#p9aTotals td:nth-child(4) strong')?.textContent || '0.00',
+                    paye:  document.querySelector('#p9aTotals td:nth-child(12) strong')?.textContent || '0.00',
+                    nssf:  document.querySelector('#p9aTotals td:nth-child(6) strong')?.textContent || '0.00',
+                    net:   document.querySelector('#p9aTotals td:nth-child(15) strong')?.textContent || '0.00'
+                };
+
+                // Build table rows for print
+                let tableRows = '';
+                MONTHS.forEach((month, i) => {
+                    const idx = i + 1;
+                    const row = document.querySelector(`tr[data-month="${idx}"]`);
+                    if (!row) return;
+                    const val = (sel) => row.querySelector(sel)?.textContent || row.querySelector(sel)?.value || '0.00';
+                    const inp = (sel) => fmt(parseFloat(row.querySelector(sel)?.value) || 0);
+                    tableRows += `<tr>
+                        <td>${month}</td>
+                        <td>${inp('.p9a-basic')}</td>
+                        <td>${inp('.p9a-benefits')}</td>
+                        <td>${val('.p9a-gross')}</td>
+                        <td>${inp('.p9a-owner-int')}</td>
+                        <td>${val('.p9a-nssf')}</td>
+                        <td>${inp('.p9a-pension')}</td>
+                        <td>${val('.p9a-chargeable')}</td>
+                        <td>${val('.p9a-tax-chargeable')}</td>
+                        <td>${val('.p9a-personal-relief')}</td>
+                        <td>${val('.p9a-insurance-relief')}</td>
+                        <td>${val('.p9a-paye')}</td>
+                        <td>${val('.p9a-shif')}</td>
+                        <td>${val('.p9a-hl')}</td>
+                        <td>${val('.p9a-net')}</td>
+                    </tr>`;
+                });
+
+                const printHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>P9A — ${employeeName} — ${taxYear}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10px; color: #122118; background: #fff; padding: 10mm; }
+  .p9a-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1a6b3c; padding-bottom: 10px; margin-bottom: 12px; }
+  .p9a-header h1 { font-size: 16px; color: #154f2b; margin-bottom: 3px; }
+  .p9a-header p { font-size: 10px; color: #4d5b52; }
+  .year-badge { border: 1px solid #b8d8c0; background: #f3fbf5; border-radius: 8px; padding: 8px 12px; text-align: right; }
+  .year-badge .label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #5c6d62; margin-bottom: 2px; }
+  .year-badge .value { display: block; font-size: 18px; font-weight: 700; color: #154f2b; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .meta-panel { border: 1px solid #d9e9dd; border-radius: 8px; padding: 8px 10px; background: #fbfdfb; }
+  .meta-panel h3 { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #2f5d3f; margin-bottom: 6px; }
+  .meta-row { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; margin-bottom: 3px; }
+  .meta-row span:first-child { color: #55645b; }
+  .meta-row span:last-child { font-weight: 600; text-align: right; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .summary-card { border: 1px solid #d9e9dd; border-radius: 8px; background: #f5fbf6; padding: 8px 10px; }
+  .summary-card .label { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: #5c6d62; margin-bottom: 2px; }
+  .summary-card .value { display: block; font-size: 13px; font-weight: 700; color: #154f2b; }
+  table { width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 12px; }
+  thead th { background: #1a6b3c; color: #fff; padding: 5px 4px; border: 1px solid #c5ddc8; text-align: center; white-space: nowrap; }
+  tbody td { padding: 4px; border: 1px solid #d5e5d8; text-align: center; }
+  tbody tr:nth-child(even) { background: #f9fdf9; }
+  tfoot td { background: #e8f5e9; font-weight: bold; color: #1a6b3c; padding: 5px 4px; border: 1px solid #c5ddc8; text-align: center; }
+  .footer-note { font-size: 9px; color: #4d5b52; margin-bottom: 16px; }
+  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; }
+  .signature-line { padding-top: 8px; border-top: 1px solid #9fb9a7; font-size: 10px; color: #30463a; }
+  @media print {
+    body { padding: 5mm; }
+    @page { size: A4 landscape; margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+<div class="p9a-header">
+  <div>
+    <h1>KRA P9A — Annual Employee Tax Deduction Card</h1>
+    <p>Prepared from payroll data for annual tax reconciliation &nbsp;|&nbsp; Generated: ${generatedOn}</p>
+  </div>
+  <div class="year-badge"><span class="label">Tax Year</span><span class="value">${taxYear}</span></div>
+</div>
+<div class="meta-grid">
+  <div class="meta-panel">
+    <h3>Employee Details</h3>
+    <div class="meta-row"><span>Name</span><span>${employeeName || 'Employee'}</span></div>
+    <div class="meta-row"><span>Document</span><span>P9A Annual Tax Deduction Card</span></div>
+  </div>
+  <div class="meta-panel">
+    <h3>Employer Details</h3>
+    <div class="meta-row"><span>Employer</span><span>${employerName}</span></div>
+    <div class="meta-row"><span>KRA PIN</span><span>${employerKRA}</span></div>
+  </div>
+</div>
+<div class="summary-grid">
+  <div class="summary-card"><span class="label">Annual Gross Pay</span><span class="value">KES ${totals.gross}</span></div>
+  <div class="summary-card"><span class="label">Annual PAYE</span><span class="value">KES ${totals.paye}</span></div>
+  <div class="summary-card"><span class="label">Annual NSSF</span><span class="value">KES ${totals.nssf}</span></div>
+  <div class="summary-card"><span class="label">Annual Net Pay</span><span class="value">KES ${totals.net}</span></div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>Month</th><th>Basic Salary (A)</th><th>Benefits (B)</th><th>Gross Pay (C=A+B)</th>
+      <th>Owner Occ. Int. Relief</th><th>NSSF (Ee)</th><th>Def. Contrib. Pension</th>
+      <th>Chargeable Pay (D)</th><th>Tax on Chargeable Pay</th><th>Personal Relief</th>
+      <th>Insurance Relief</th><th>PAYE Payable (E)</th><th>SHIF</th><th>Housing Levy</th><th>Net Pay</th>
+    </tr>
+  </thead>
+  <tbody>${tableRows}</tbody>
+  <tfoot>
+    <tr>
+      <td><strong>TOTALS</strong></td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(2) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(3) strong')?.textContent || '0.00'}</td>
+      <td>${totals.gross}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(5) strong')?.textContent || '0.00'}</td>
+      <td>${totals.nssf}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(7) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(8) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(9) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(10) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(11) strong')?.textContent || '0.00'}</td>
+      <td>${totals.paye}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(13) strong')?.textContent || '0.00'}</td>
+      <td>${document.querySelector('#p9aTotals td:nth-child(14) strong')?.textContent || '0.00'}</td>
+      <td>${totals.net}</td>
+    </tr>
+  </tfoot>
+</table>
+<p class="footer-note">This summary is generated electronically from payroll information in Kenya Salary Calculator. Confirm all figures before filing or sharing externally.</p>
+<div class="signatures">
+  <div class="signature-line">Prepared by: ______________________________</div>
+  <div class="signature-line">Authorised signatory: ______________________________</div>
+</div>
+<script>window.onload = function(){ window.print(); };<\/script>
+</body></html>`;
+
+                const win = window.open('', '_blank');
+                if (!win) {
+                    showStatus('Pop-up blocked. Please allow pop-ups and try again.', false);
+                    return;
+                }
+                win.document.write(printHTML);
+                win.document.close();
+                showStatus('✅ Print window opened. Record saved under Past P9A Records.', true);
+                loadPastRecords();
+            } catch (err) {
+                console.error('Print failed:', err);
+                showStatus('Failed to open print window. Please try again.', false);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+            }
         }
 
         async function loadPastRecords() {
             try {
-                const { data, error } = await window.supabaseClient
+                const cont = document.getElementById('pastRecords');
+                cont.innerHTML = '<p style="color:#999;">Loading records…</p>';
+
+                let records = [];
+
+                // Primary source: annual_tax_records
+                const { data: annualData, error: annualErr } = await window.supabaseClient
                     .from('annual_tax_records')
                     .select('id,employee_id,tax_year,updated_at,employee_name')
                     .eq('user_id', currentUser.id)
                     .order('tax_year', { ascending: false })
                     .limit(20);
 
-                const cont = document.getElementById('pastRecords');
-                if (error || !data || data.length === 0) {
+                if (!annualErr && Array.isArray(annualData) && annualData.length > 0) {
+                    records = annualData;
+                } else {
+                    // Fallback: p9a_records
+                    const { data: p9aData, error: p9aErr } = await window.supabaseClient
+                        .from('p9a_records')
+                        .select('id,employee_id,tax_year,updated_at')
+                        .eq('user_id', currentUser.id)
+                        .order('tax_year', { ascending: false })
+                        .limit(20);
+
+                    if (!p9aErr && Array.isArray(p9aData)) {
+                        records = p9aData.map(r => ({ ...r, employee_name: null }));
+                    }
+                }
+
+                if (records.length === 0) {
                     cont.innerHTML = '<p style="color:#999;">No saved P9A records yet.</p>';
                     return;
                 }
@@ -1004,7 +1231,7 @@
                 cont.innerHTML = `<div style="overflow-x:auto;">
                     <table class="records-table">
                         <thead><tr><th>Employee</th><th>Tax Year</th><th>Last Updated</th><th>Action</th></tr></thead>
-                        <tbody>${data.map(r => `<tr>
+                        <tbody>${records.map(r => `<tr>
                             <td>${r.employee_name || r.employee_id}</td>
                             <td>${r.tax_year}</td>
                             <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
