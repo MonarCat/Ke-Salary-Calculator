@@ -734,7 +734,7 @@ function printPayslip() {
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
 @page{size:A5 portrait;margin:10mm;}
-.wrap{width:100%;max-width:100%;margin:0 auto;}
+.wrap{width:100%;margin:0 auto;}
 .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #006600;padding-bottom:4mm;margin-bottom:4mm;}
 .hdr-left{display:flex;align-items:flex-start;gap:6px;}
 .logo{max-width:55px;max-height:55px;}
