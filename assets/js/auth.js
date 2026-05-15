@@ -283,7 +283,7 @@ async function handleGoogleSignIn() {
     }
 }
 
-const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL || `${(typeof SUPABASE_URL === 'string' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/password-reset`;
+const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL;
 const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
 
 function setResetButtonState(button, isLoading) {
@@ -306,6 +306,13 @@ function setResetButtonState(button, isLoading) {
 async function sendResetEmail(email) {
     const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
+
+    if (!PASSWORD_RESET_FUNCTION_URL) {
+        console.warn('Password reset function URL is not configured.');
+        showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+        setResetButtonState(btn, false);
+        return;
+    }
 
     try {
         const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
