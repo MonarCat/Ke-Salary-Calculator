@@ -24,6 +24,13 @@ async function sendEmail(payload: object) {
   if (!res.ok) console.error("Brevo error:", await res.text());
 }
 
+function parseExpiryTimestamp(value: unknown): number {
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && value.trim() !== "") return Date.parse(value);
+  return NaN;
+}
+
 // ── Email Templates ────────────────────────────────────────────────────────
 
 function welcomeEmail(name: string, email: string) {
@@ -244,7 +251,7 @@ serve(async (req) => {
       return new Response("No record", { status: 400 });
     }
 
-    const { id: userId, email, full_name, plan } = record;
+    const { email, full_name, plan, is_premium, premium_expires_at } = record;
 
     if (!email) {
       return new Response("No email on record", { status: 400 });
@@ -257,7 +264,14 @@ serve(async (req) => {
     await sendEmail(welcomeEmail(name, email));
 
     // 2. Send premium nudge for free-plan users (slight delay feels less robotic)
-    const isPremium = plan && plan !== "free";
+    const normalizedPlan = typeof plan === "string" ? plan.trim().toLowerCase() : "";
+    const premiumByPlan = normalizedPlan !== "" && normalizedPlan !== "free";
+    // Webhook payloads can serialize DB values differently across environments.
+    const premiumByFlag = is_premium === true
+      || (is_premium !== null && is_premium !== undefined && String(is_premium).toLowerCase() === "true");
+    const premiumExpiryTs = parseExpiryTimestamp(premium_expires_at);
+    const premiumByExpiry = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > Date.now();
+    const isPremium = premiumByPlan || premiumByFlag || premiumByExpiry;
     if (!isPremium) {
       await new Promise((r) => setTimeout(r, 2500));
       await sendEmail(premiumNudgeEmail(name, email));
