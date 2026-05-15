@@ -259,8 +259,13 @@ serve(async (req) => {
     // 2. Send premium nudge for free-plan users (slight delay feels less robotic)
     const normalizedPlan = typeof plan === "string" ? plan.trim().toLowerCase() : "";
     const premiumByPlan = normalizedPlan !== "" && normalizedPlan !== "free";
-    const premiumByFlag = is_premium === true || is_premium === "true";
-    const premiumExpiryTs = typeof premium_expires_at === "string"
+    // Webhook payloads can serialize DB values differently across environments.
+    const premiumByFlag = is_premium === true || String(is_premium).toLowerCase() === "true";
+    const premiumExpiryTs = premium_expires_at instanceof Date
+      ? premium_expires_at.getTime()
+      : typeof premium_expires_at === "number"
+      ? premium_expires_at
+      : typeof premium_expires_at === "string"
       ? Date.parse(premium_expires_at)
       : NaN;
     const premiumByExpiry = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > Date.now();
