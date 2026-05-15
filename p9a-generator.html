@@ -1039,7 +1039,7 @@
                 const employeeName = isPersonalMode
                     ? (userProfile?.full_name || 'Employee')
                     : ((document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee').split(' — ')[0]);
-                const employeeKRA  = isPersonalMode
+                const employeeKRA = isPersonalMode
                     ? (userProfile?.kra_pin || '—')
                     : (document.getElementById('empSelect').selectedOptions[0]?.dataset?.kraPin || '—');
                 const employerName = document.getElementById('empName').value || (isPersonalMode ? 'Self-Employed / Individual' : '—');
