@@ -141,6 +141,143 @@
         .status-msg { padding: 10px 14px; border-radius: 8px; margin: 10px 0; font-size: 0.9em; }
         .status-success { background: #e8f5e9; color: #2e7d32; }
         .status-error { background: #ffebee; color: #c62828; }
+        .p9a-print-sheet {
+            background: #fff;
+            color: #122118;
+            padding: 8mm;
+            font-family: Arial, sans-serif;
+        }
+        .p9a-print-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            border-bottom: 2px solid #1a6b3c;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .p9a-print-title h2 {
+            margin: 0 0 4px;
+            color: #154f2b;
+            font-size: 20px;
+        }
+        .p9a-print-title p {
+            margin: 0;
+            color: #4d5b52;
+            font-size: 11px;
+        }
+        .p9a-print-badge {
+            border: 1px solid #b8d8c0;
+            background: #f3fbf5;
+            border-radius: 10px;
+            padding: 10px 12px;
+            min-width: 175px;
+            text-align: right;
+        }
+        .p9a-print-badge .label {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #5c6d62;
+            margin-bottom: 4px;
+        }
+        .p9a-print-badge .value {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            color: #154f2b;
+        }
+        .p9a-print-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .p9a-print-panel {
+            border: 1px solid #d9e9dd;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #fbfdfb;
+        }
+        .p9a-print-panel h3 {
+            margin: 0 0 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #2f5d3f;
+        }
+        .p9a-print-list {
+            display: grid;
+            gap: 6px;
+            font-size: 11px;
+        }
+        .p9a-print-list div {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .p9a-print-list span:first-child { color: #55645b; }
+        .p9a-print-list span:last-child { font-weight: 600; text-align: right; }
+        .p9a-print-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .p9a-print-summary-card {
+            border: 1px solid #d9e9dd;
+            border-radius: 10px;
+            background: #f5fbf6;
+            padding: 10px 12px;
+        }
+        .p9a-print-summary-card .label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #5c6d62;
+            margin-bottom: 4px;
+        }
+        .p9a-print-summary-card .value {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: #154f2b;
+        }
+        .p9a-print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        .p9a-print-table th {
+            background: #1a6b3c;
+            color: #fff;
+            padding: 7px 5px;
+            border: 1px solid #d5e5d8;
+        }
+        .p9a-print-table td {
+            padding: 6px 5px;
+            border: 1px solid #d5e5d8;
+            text-align: center;
+        }
+        .p9a-print-note {
+            margin-top: 12px;
+            font-size: 10px;
+            color: #4d5b52;
+        }
+        .p9a-print-signatures {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .p9a-print-signature {
+            padding-top: 10px;
+            border-top: 1px solid #9fb9a7;
+            font-size: 11px;
+            color: #30463a;
+        }
     </style>
 </head>
 <body>
@@ -445,51 +582,193 @@
                 <td><strong>${fmt(totals.net)}</strong></td>`;
         }
 
+        function isMissingRelationError(error) {
+            if (!error) return false;
+            const combined = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`.toLowerCase();
+            return error.code === 'PGRST205'
+                || Number(error.status) === 404
+                || combined.includes('schema cache')
+                || combined.includes('could not find the table')
+                || /relation .* does not exist/.test(combined);
+        }
+
+        async function fetchHistoryRows({ table, select, filters, sourceLabel }) {
+            try {
+                let query = window.supabaseClient.from(table).select(select);
+                filters.forEach((filter) => {
+                    if (filter.op === 'eq') query = query.eq(filter.column, filter.value);
+                    if (filter.op === 'like') query = query.like(filter.column, filter.value);
+                });
+                query = query.order('pay_period', { ascending: true });
+
+                const { data, error } = await query;
+                if (error) {
+                    if (isMissingRelationError(error)) {
+                        return { rows: [], sourceLabel, missing: true };
+                    }
+                    throw error;
+                }
+                return { rows: Array.isArray(data) ? data : [], sourceLabel, missing: false };
+            } catch (error) {
+                if (isMissingRelationError(error)) {
+                    return { rows: [], sourceLabel, missing: true };
+                }
+                throw error;
+            }
+        }
+
+        async function fetchSavedP9ADraft(employeeId, taxYear) {
+            const draftSources = [
+                { table: 'p9a_records', select: 'monthly_records, updated_at', sourceLabel: 'saved P9A draft' },
+                { table: 'annual_tax_records', select: 'monthly_records, updated_at', sourceLabel: 'saved annual tax record' }
+            ];
+
+            for (const source of draftSources) {
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from(source.table)
+                        .select(source.select)
+                        .eq('user_id', currentUser.id)
+                        .eq('employee_id', employeeId)
+                        .eq('tax_year', taxYear)
+                        .order('updated_at', { ascending: false })
+                        .limit(1);
+
+                    if (error) {
+                        if (isMissingRelationError(error)) continue;
+                        throw error;
+                    }
+
+                    const record = Array.isArray(data) ? data[0] : null;
+                    const monthlyRecords = Array.isArray(record?.monthly_records) ? record.monthly_records : [];
+                    if (monthlyRecords.length) {
+                        return { monthlyRecords, sourceLabel: source.sourceLabel };
+                    }
+                } catch (error) {
+                    if (isMissingRelationError(error)) continue;
+                    throw error;
+                }
+            }
+
+            return { monthlyRecords: [], sourceLabel: '' };
+        }
+
+        function resetP9AInputs() {
+            for (let i = 1; i <= 12; i++) {
+                const row = document.querySelector(`tr[data-month="${i}"]`);
+                if (!row) continue;
+                row.querySelector('.p9a-basic').value = 0;
+                row.querySelector('.p9a-benefits').value = 0;
+                row.querySelector('.p9a-owner-int').value = 0;
+                row.querySelector('.p9a-pension').value = 0;
+                recalcRow(i);
+            }
+        }
+
+        function getMonthNumberFromPayPeriod(payPeriod) {
+            const match = String(payPeriod || '').match(/^\d{4}-(\d{2})/);
+            return match ? parseInt(match[1], 10) : NaN;
+        }
+
+        function applyHistoryRows(records) {
+            let appliedCount = 0;
+            records.forEach((record) => {
+                const month = getMonthNumberFromPayPeriod(record.pay_period);
+                const row = document.querySelector(`tr[data-month="${month}"]`);
+                if (!row) return;
+                row.querySelector('.p9a-basic').value = Number(record.gross_pay) || 0;
+                row.querySelector('.p9a-benefits').value = 0;
+                recalcRow(month);
+                appliedCount += 1;
+            });
+            return appliedCount;
+        }
+
+        function applyDraftRows(monthlyRecords) {
+            let appliedCount = 0;
+            monthlyRecords.forEach((record) => {
+                const month = Number(record.month);
+                const row = document.querySelector(`tr[data-month="${month}"]`);
+                if (!row) return;
+                row.querySelector('.p9a-basic').value = Number(record.basic) || 0;
+                row.querySelector('.p9a-benefits').value = Number(record.benefits) || 0;
+                row.querySelector('.p9a-owner-int').value = Number(record.owner_int) || 0;
+                row.querySelector('.p9a-pension').value = Number(record.pension) || 0;
+                recalcRow(month);
+                appliedCount += 1;
+            });
+            return appliedCount;
+        }
+
         async function autoPopulateFromHistory(employeeId, taxYear) {
             try {
-                const PGRST_RELATION_MISSING = 'PGRST205';
                 const payrollHistorySelect = 'pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay';
                 const payslipHistorySelect = 'pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary';
-                const payrollResponse = await window.supabaseClient
-                    .from('payroll_history')
-                    .select(payrollHistorySelect)
-                    .eq('employee_id', employeeId)
-                    .like('pay_period', `${taxYear}-%`)
-                    .order('pay_period', { ascending: true });
-                let data = payrollResponse.data;
-                let error = payrollResponse.error;
+                const yearPattern = `${taxYear}-%`;
+                const sourceQueries = isPersonalMode
+                    ? [
+                        {
+                            table: 'payroll_history',
+                            select: payrollHistorySelect,
+                            sourceLabel: 'personal payroll history',
+                            filters: [
+                                { op: 'eq', column: 'user_id', value: currentUser.id },
+                                { op: 'like', column: 'pay_period', value: yearPattern }
+                            ]
+                        },
+                        {
+                            table: 'payslip_history',
+                            select: payslipHistorySelect,
+                            sourceLabel: 'personal payslip history',
+                            filters: [
+                                { op: 'eq', column: 'user_id', value: currentUser.id },
+                                { op: 'like', column: 'pay_period', value: yearPattern }
+                            ]
+                        }
+                    ]
+                    : [
+                        {
+                            table: 'payroll_history',
+                            select: payrollHistorySelect,
+                            sourceLabel: 'employee payroll history',
+                            filters: [
+                                { op: 'eq', column: 'user_id', value: currentUser.id },
+                                { op: 'eq', column: 'employee_id', value: employeeId },
+                                { op: 'like', column: 'pay_period', value: yearPattern }
+                            ]
+                        },
+                        {
+                            table: 'payslip_history',
+                            select: payslipHistorySelect,
+                            sourceLabel: 'employee payslip history',
+                            filters: [
+                                { op: 'eq', column: 'user_id', value: currentUser.id },
+                                { op: 'eq', column: 'employee_id', value: employeeId },
+                                { op: 'like', column: 'pay_period', value: yearPattern }
+                            ]
+                        }
+                    ];
 
-                // PGRST_RELATION_MISSING = relation missing in schema cache (table not available in this project).
-                if (error && error.code === PGRST_RELATION_MISSING) {
-                    const { data: fallbackData, error: fallbackError } = await window.supabaseClient
-                        .from('payslip_history')
-                        .select(payslipHistorySelect)
-                        .eq('employee_id', employeeId)
-                        .like('pay_period', `${taxYear}-%`)
-                        .order('pay_period', { ascending: true });
-                    data = fallbackData;
-                    error = fallbackError;
+                for (const source of sourceQueries) {
+                    const result = await fetchHistoryRows(source);
+                    if (result.rows.length > 0) {
+                        applyHistoryRows(result.rows);
+                        showStatus(`✅ P9A auto-populated from ${result.sourceLabel}.`, true);
+                        return;
+                    }
                 }
 
-                if (error) throw error;
-                if (!data || data.length === 0) {
-                    showStatus('No payroll/payslip history found for this employee/year. Enter manually.', false);
+                const draftResult = await fetchSavedP9ADraft(employeeId, taxYear);
+                if (draftResult.monthlyRecords.length > 0) {
+                    applyDraftRows(draftResult.monthlyRecords);
+                    showStatus(`✅ P9A loaded from ${draftResult.sourceLabel}.`, true);
                     return;
                 }
 
-                data.forEach((record) => {
-                    const month = parseInt(String(record.pay_period || '').split('-')[1], 10);
-                    const row = document.querySelector(`tr[data-month="${month}"]`);
-                    if (!row) return;
-                    row.querySelector('.p9a-basic').value = record.gross_pay || 0;
-                    row.querySelector('.p9a-benefits').value = 0;
-                    recalcRow(month);
-                });
-
-                showStatus('✅ P9A auto-populated from payroll history.', true);
+                showStatus('No payroll, payslip, or saved P9A data found for this selection. Enter values manually.', false);
             } catch (err) {
                 console.error('Auto-populate failed:', err);
-                showStatus('Could not load payroll/payslip history. Please enter values manually.', false);
+                showStatus('Could not load payroll or payslip data right now. Please enter values manually.', false);
             }
         }
 
@@ -573,16 +852,7 @@
             }
             if (!employeeId || !year) return;
 
-            for (let i = 1; i <= 12; i++) {
-                const row = document.querySelector(`tr[data-month="${i}"]`);
-                if (!row) continue;
-                row.querySelector('.p9a-basic').value = 0;
-                row.querySelector('.p9a-benefits').value = 0;
-                row.querySelector('.p9a-owner-int').value = 0;
-                row.querySelector('.p9a-pension').value = 0;
-                recalcRow(i);
-            }
-
+            resetP9AInputs();
             await autoPopulateFromHistory(employeeId, year);
         }
 
@@ -639,26 +909,76 @@
 
         function createP9APrintView() {
             const wrapper = document.createElement('div');
-            wrapper.style.padding = '8mm';
-            const title = document.createElement('h2');
-            title.style.margin = '0 0 8px';
-            title.style.textAlign = 'center';
-            title.textContent = 'KRA P9A — Annual Employee Tax Deduction Card';
+            wrapper.className = 'p9a-print-sheet';
 
-            const subtitle = document.createElement('p');
-            subtitle.style.margin = '0 0 10px';
-            subtitle.style.textAlign = 'center';
-            subtitle.textContent = 'Tax Year: ' + (document.getElementById('taxYearSelect').value || '');
+            const employeeOption = document.getElementById('empSelect')?.selectedOptions?.[0];
+            const employeeLabel = isPersonalMode ? (userProfile?.full_name || 'Individual Taxpayer') : (employeeOption?.textContent || 'Employee');
+            const [employeeName, employeeRef = '—'] = employeeLabel.split(' — ');
+            const employerName = document.getElementById('empName').value || (isPersonalMode ? 'Self-Employed / Individual' : '—');
+            const employerKRA = document.getElementById('empKRA').value || '—';
+            const taxYear = document.getElementById('taxYearSelect').value || '';
+            const generatedOn = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+            const totals = {
+                gross: document.querySelector('#p9aTotals td:nth-child(4) strong')?.textContent || '0.00',
+                paye: document.querySelector('#p9aTotals td:nth-child(12) strong')?.textContent || '0.00',
+                nssf: document.querySelector('#p9aTotals td:nth-child(6) strong')?.textContent || '0.00',
+                net: document.querySelector('#p9aTotals td:nth-child(15) strong')?.textContent || '0.00'
+            };
 
-            wrapper.appendChild(title);
-            wrapper.appendChild(subtitle);
+            wrapper.innerHTML = `
+                <div class="p9a-print-header">
+                    <div class="p9a-print-title">
+                        <h2>KRA P9A — Annual Employee Tax Deduction Card</h2>
+                        <p>Prepared from payroll or payslip data for annual tax reconciliation.</p>
+                    </div>
+                    <div class="p9a-print-badge">
+                        <span class="label">Tax Year</span>
+                        <span class="value">${taxYear}</span>
+                    </div>
+                </div>
+                <div class="p9a-print-meta">
+                    <div class="p9a-print-panel">
+                        <h3>Employee Details</h3>
+                        <div class="p9a-print-list">
+                            <div><span>Name</span><span>${employeeName || 'Employee'}</span></div>
+                            <div><span>Reference</span><span>${employeeRef || '—'}</span></div>
+                            <div><span>Generated On</span><span>${generatedOn}</span></div>
+                        </div>
+                    </div>
+                    <div class="p9a-print-panel">
+                        <h3>Employer Details</h3>
+                        <div class="p9a-print-list">
+                            <div><span>Employer</span><span>${employerName}</span></div>
+                            <div><span>KRA PIN</span><span>${employerKRA}</span></div>
+                            <div><span>Document Type</span><span>P9A Annual Tax Card</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p9a-print-summary">
+                    <div class="p9a-print-summary-card"><span class="label">Annual Gross Pay</span><span class="value">KES ${totals.gross}</span></div>
+                    <div class="p9a-print-summary-card"><span class="label">Annual PAYE</span><span class="value">KES ${totals.paye}</span></div>
+                    <div class="p9a-print-summary-card"><span class="label">Annual NSSF</span><span class="value">KES ${totals.nssf}</span></div>
+                    <div class="p9a-print-summary-card"><span class="label">Annual Net Pay</span><span class="value">KES ${totals.net}</span></div>
+                </div>
+            `;
 
             const table = document.getElementById('p9aTable').cloneNode(true);
+            table.classList.add('p9a-print-table');
             table.querySelectorAll('input').forEach((input) => {
                 const td = input.parentElement;
                 td.textContent = fmt(input.value || 0);
             });
             wrapper.appendChild(table);
+
+            const footer = document.createElement('div');
+            footer.innerHTML = `
+                <p class="p9a-print-note">This summary is generated electronically from the payroll information currently available in Kenya Salary Calculator. Confirm all figures before filing or sharing externally.</p>
+                <div class="p9a-print-signatures">
+                    <div class="p9a-print-signature">Prepared by: ______________________________</div>
+                    <div class="p9a-print-signature">Authorised signatory: ______________________________</div>
+                </div>
+            `;
+            wrapper.appendChild(footer);
             return wrapper;
         }
 
