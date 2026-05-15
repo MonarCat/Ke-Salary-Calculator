@@ -307,7 +307,7 @@ function setResetButtonState(button, isLoading) {
 async function sendResetEmail(email) {
     const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
-    const endpoints = [...new Set([PASSWORD_RESET_FUNCTION_URL, PASSWORD_RESET_API_FALLBACK_URL].filter(Boolean))];
+    const endpoints = [PASSWORD_RESET_FUNCTION_URL, PASSWORD_RESET_API_FALLBACK_URL].filter(Boolean);
 
     if (!endpoints.length) {
         showMessage('login-message', 'Reset service is unavailable. Please try again shortly.', 'error');
@@ -325,9 +325,17 @@ async function sendResetEmail(email) {
                 body: JSON.stringify({ action: 'send', email }),
             });
 
-            const data = await res.json().catch(() => ({}));
+            const rawBody = await res.text().catch(() => '');
+            let data = {};
+            if (rawBody) {
+                try {
+                    data = JSON.parse(rawBody);
+                } catch (_) {
+                    data = {};
+                }
+            }
             if (!res.ok) {
-                throw new Error(data.error || `Request failed (${res.status})`);
+                throw new Error(data.error || rawBody || `Request failed (${res.status})`);
             }
 
             // Always show success — never confirm if email exists (anti-user-enumeration behavior).

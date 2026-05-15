@@ -145,8 +145,16 @@ async function triggerPasswordResetEmail(req, email) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'send', email }),
       });
-      const payload = await resp.json().catch(() => ({}));
-      if (!resp.ok) throw new Error(payload.error || `Request failed (${resp.status})`);
+      const rawBody = await resp.text().catch(() => '');
+      let payload = {};
+      if (rawBody) {
+        try {
+          payload = JSON.parse(rawBody);
+        } catch {
+          payload = {};
+        }
+      }
+      if (!resp.ok) throw new Error(payload.error || rawBody || `Request failed (${resp.status})`);
       return;
     } catch (error) {
       lastError = error;

@@ -282,9 +282,17 @@ serve(async (req) => {
         body: JSON.stringify({ action: "send", email }),
       });
 
-      const resetPayload = await resetResp.json().catch(() => ({} as { error?: string }));
+      const rawBody = await resetResp.text().catch(() => "");
+      let resetPayload: { error?: string } = {};
+      if (rawBody) {
+        try {
+          resetPayload = JSON.parse(rawBody) as { error?: string };
+        } catch {
+          resetPayload = {};
+        }
+      }
       if (!resetResp.ok) {
-        return err(req, resetPayload.error || "Failed to send password reset email", 500);
+        return err(req, resetPayload.error || rawBody || "Failed to send password reset email", 500);
       }
 
       await log("reset_password", email, undefined, { method: "email" });
