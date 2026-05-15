@@ -283,7 +283,7 @@ async function handleGoogleSignIn() {
     }
 }
 
-const PASSWORD_RESET_FUNCTION_URL = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/password-reset';
+const PASSWORD_RESET_FUNCTION_URL = `${(typeof SUPABASE_URL === 'string' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/password-reset`;
 
 function setResetButtonState(button, isLoading) {
     if (!button) return;
@@ -295,7 +295,7 @@ function setResetButtonState(button, isLoading) {
         button.style.pointerEvents = 'none';
         button.setAttribute('aria-disabled', 'true');
     } else {
-        button.textContent = button.dataset.originalText || 'Send Reset Link';
+        button.textContent = button.dataset.originalText || 'Forgot Password?';
         button.disabled = false;
         button.style.pointerEvents = '';
         button.removeAttribute('aria-disabled');
@@ -303,15 +303,18 @@ function setResetButtonState(button, isLoading) {
 }
 
 async function sendResetEmail(email) {
-    const btn = document.getElementById('reset-btn');
+    const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
 
     try {
-        await fetch(PASSWORD_RESET_FUNCTION_URL, {
+        const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send', email }),
         });
+        if (!res.ok) {
+            console.warn('Password reset request returned non-OK status:', res.status);
+        }
     } catch (err) {
         console.warn('Password reset request failed:', err.message);
     }
