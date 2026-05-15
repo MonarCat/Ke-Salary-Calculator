@@ -591,8 +591,7 @@
                 || Number(error.status) === 404
                 || combined.includes('schema cache')
                 || combined.includes('could not find the table')
-                || combined.includes('does not exist')
-                || /relation .* does not exist/.test(combined);
+                || combined.includes('does not exist');
         }
 
         async function fetchHistoryRows({ table, select, filters, sourceLabel }) {
@@ -705,20 +704,10 @@
 
         async function autoPopulateFromHistory(employeeId, taxYear) {
             try {
-                const payrollHistorySelect = 'pay_period, gross_pay, paye, nssf, shif, housing_levy, net_pay';
                 const payslipHistorySelect = 'pay_period, gross_pay:gross_salary, paye, nssf, shif, housing_levy, net_pay:net_salary';
                 const yearPattern = `${taxYear}-%`;
                 const sourceQueries = isPersonalMode
                     ? [
-                        {
-                            table: 'payroll_history',
-                            select: payrollHistorySelect,
-                            sourceLabel: 'personal payroll history',
-                            filters: [
-                                { op: 'eq', column: 'user_id', value: currentUser.id },
-                                { op: 'like', column: 'pay_period', value: yearPattern }
-                            ]
-                        },
                         {
                             table: 'payslip_history',
                             select: payslipHistorySelect,
@@ -730,16 +719,6 @@
                         }
                     ]
                     : [
-                        {
-                            table: 'payroll_history',
-                            select: payrollHistorySelect,
-                            sourceLabel: 'employee payroll history',
-                            filters: [
-                                { op: 'eq', column: 'user_id', value: currentUser.id },
-                                { op: 'eq', column: 'employee_id', value: employeeId },
-                                { op: 'like', column: 'pay_period', value: yearPattern }
-                            ]
-                        },
                         {
                             table: 'payslip_history',
                             select: payslipHistorySelect,

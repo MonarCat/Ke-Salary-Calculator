@@ -1833,30 +1833,43 @@
             document.getElementById('ps-payslip-no-display').textContent = document.getElementById('ps-payslip-no').value || '—';
         }
 
-        async function savePayslipRecord() {
+        async function savePayslipRecord(overrides = {}) {
             try {
                 if (!currentPayslipEmployee || !currentUser || !supabaseClient) return;
-                const basic = parseFloat(document.getElementById('ps-basic-salary').value) || 0;
-                const house = parseFloat(document.getElementById('ps-house-allowance').value) || 0;
-                const transport = parseFloat(document.getElementById('ps-transport-allowance').value) || 0;
-                const otherAllow = parseFloat(document.getElementById('ps-other-allowances').value) || 0;
-                const gross = basic + house + transport + otherAllow;
-                const ded = calcPayslipDeductions(gross);
-                const voluntary = (parseFloat(document.getElementById('ps-sacco').value)||0) + (parseFloat(document.getElementById('ps-pension').value)||0) + (parseFloat(document.getElementById('ps-insurance').value)||0) + (parseFloat(document.getElementById('ps-other-deduction').value)||0);
-                const netPay = gross - (ded.paye + ded.nssfEmployee + ded.shifEmployee + ded.hlEmployee + voluntary);
 
-                const { error } = await supabaseClient.from('payroll_history').insert({
-                    user_id: currentUser.id,
-                    employee_id: currentPayslipEmployee.id,
-                    pay_period: document.getElementById('ps-pay-period').value || null,
-                    gross_pay: gross,
-                    net_pay: netPay,
-                    paye: ded.paye,
-                    nssf: ded.nssfEmployee,
-                    shif: ded.shifEmployee,
-                    housing_levy: ded.hlEmployee,
-                    created_at: new Date().toISOString()
-                });
+                const basic      = parseFloat(document.getElementById('ps-basic-salary').value) || 0;
+                const house      = parseFloat(document.getElementById('ps-house-allowance').value) || 0;
+                const transport  = parseFloat(document.getElementById('ps-transport-allowance').value) || 0;
+                const otherAllow = parseFloat(document.getElementById('ps-other-allowances').value) || 0;
+                const gross      = overrides.gross ?? (basic + house + transport + otherAllow);
+
+                const ded        = calcPayslipDeductions(gross);
+                const voluntary  = (parseFloat(document.getElementById('ps-sacco').value)            || 0)
+                                 + (parseFloat(document.getElementById('ps-pension').value)           || 0)
+                                 + (parseFloat(document.getElementById('ps-insurance').value)         || 0)
+                                 + (parseFloat(document.getElementById('ps-other-deduction').value)   || 0);
+                const netPay     = gross - (ded.paye + ded.nssfEmployee + ded.shifEmployee + ded.hlEmployee + voluntary);
+
+                const payPeriod  = overrides.pay_period
+                    ?? (document.getElementById('ps-pay-period').value || null);
+
+                const { error } = await supabaseClient
+                    .from('payslip_history')
+                    .upsert({
+                        user_id:       currentUser.id,
+                        employee_id:   currentPayslipEmployee.id,
+                        employee_name: currentPayslipEmployee.name || '',
+                        pay_period:    payPeriod,
+                        gross_salary:  gross,
+                        net_salary:    netPay,
+                        paye:          ded.paye,
+                        nssf:          ded.nssfEmployee,
+                        shif:          ded.shifEmployee,
+                        housing_levy:  ded.hlEmployee,
+                        downloaded:    true,
+                        download_date: new Date().toISOString()
+                    }, { onConflict: 'user_id,employee_id,pay_period' });
+
                 if (error) throw error;
             } catch (e) {
                 console.warn('Payslip history save failed (non-critical):', e);
@@ -1954,13 +1967,18 @@
             }
 
             const previousEmployee = currentPayslipEmployee;
-            const payslipBlocks = activeEmps.map((emp, idx) => {
+            const payslipBlocks = [];
+            for (let idx = 0; idx < activeEmps.length; idx++) {
+                const emp = activeEmps[idx];
                 fillPayslipForEmployee(emp, profile, {
                     period,
                     payslipNo: `PS-${String(idx + 1).padStart(3, '0')}`
                 });
-                return `<div class="ps-page">${document.getElementById('payslip-document').outerHTML}</div>`;
-            }).join('');
+                payslipBlocks.push(
+                    `<div class="ps-page">${document.getElementById('payslip-document').outerHTML}</div>`
+                );
+                await savePayslipRecord({ pay_period: period });
+            }
             currentPayslipEmployee = previousEmployee;
 
             const win = window.open('', '_blank');
@@ -1985,7 +2003,7 @@
                     &nbsp;&nbsp;
                     <button onclick="window.print()" style="padding:10px 24px;background:#006600;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Print / Save as PDF</button>
                 </div>
-                ${payslipBlocks}
+                ${payslipBlocks.join('')}
             </body></html>`);
             win.document.close();
             win.focus();
