@@ -283,11 +283,59 @@ async function handleGoogleSignIn() {
     }
 }
 
+const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL;
+const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
+
+function setResetButtonState(button, isLoading) {
+    if (!button) return;
+
+    if (isLoading) {
+        button.dataset.originalText = button.textContent;
+        button.textContent = FORGOT_PASSWORD_SENDING_LABEL;
+        button.disabled = true;
+        button.style.pointerEvents = 'none';
+        button.setAttribute('aria-disabled', 'true');
+    } else {
+        button.textContent = button.dataset.originalText || 'Forgot Password?';
+        button.disabled = false;
+        button.style.pointerEvents = '';
+        button.removeAttribute('aria-disabled');
+    }
+}
+
+async function sendResetEmail(email) {
+    const btn = document.getElementById('forgot-password-btn');
+    setResetButtonState(btn, true);
+
+    if (!PASSWORD_RESET_FUNCTION_URL) {
+        console.warn('Password reset function URL is not configured.');
+        showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+        setResetButtonState(btn, false);
+        return;
+    }
+
+    try {
+        const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'send', email }),
+        });
+        if (!res.ok) {
+            console.warn('Password reset request returned non-OK status:', res.status);
+        }
+    } catch (err) {
+        console.warn('Password reset request failed:', err.message);
+    }
+
+    // Always show success — never confirm if email exists (anti-user-enumeration behavior).
+    showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+    setResetButtonState(btn, false);
+}
+
 // Handle Forgot Password
 async function handleForgotPassword(event) {
     if (event) event.preventDefault();
 
-    // Get email from login form if available
     const emailInput = document.getElementById('login-email');
     const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
 
@@ -296,27 +344,7 @@ async function handleForgotPassword(event) {
         return;
     }
 
-    const successMsg = `If an account exists for this email, a password reset email has been sent. 📧 Please check your inbox.<br><br>
-        <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
-        For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`;
-
-    try {
-        const resp = await fetch('/api/request-password-reset', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
-        });
-
-        if (!resp.ok) {
-            const data = await resp.json().catch(() => ({}));
-            console.warn('Password reset request error:', data.error || resp.status);
-        }
-    } catch (err) {
-        console.warn('Password reset request failed:', err.message);
-    }
-
-    // Always show generic success to avoid user enumeration
-    showMessage('login-message', successMsg, 'success');
+    await sendResetEmail(email);
 }
 
 // Show Terms and Conditions

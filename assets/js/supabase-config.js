@@ -4,6 +4,7 @@
 
 const SUPABASE_URL = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bm9wdGhqb2FxdXNhbHFveXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTMxMzUsImV4cCI6MjA4NjU4OTEzNX0.dzShMzcDrvnI4amVPsfPYP8BCRVJUBKAm-HyUtIIbmk';
+const PASSWORD_RESET_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/password-reset`;
 
 // Cloudflare Turnstile site key (public – safe to include in client-side code).
 // Replace with your production key from Cloudflare Turnstile dashboard.
@@ -78,3 +79,4 @@ window.ADMIN_EMAIL = ADMIN_EMAIL;
 window.TURNSTILE_SITE_KEY = TURNSTILE_SITE_KEY;
 window.PAYSTACK_PUBLIC_KEY = PAYSTACK_PUBLIC_KEY;
 window.PAYSTACK_MONTHLY_AMOUNT = PAYSTACK_MONTHLY_AMOUNT;
+window.PASSWORD_RESET_FUNCTION_URL = PASSWORD_RESET_FUNCTION_URL;
