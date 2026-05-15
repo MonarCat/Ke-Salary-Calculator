@@ -286,38 +286,37 @@ async function handleGoogleSignIn() {
 // Handle Forgot Password
 async function handleForgotPassword(event) {
     if (event) event.preventDefault();
-    
-    if (!isSupabaseConfigured()) {
-        showMessage('login-message', 'Supabase is not configured. Please update supabase-config.js with your project credentials.', 'error');
-        return;
-    }
-    
+
     // Get email from login form if available
     const emailInput = document.getElementById('login-email');
-    const email = emailInput ? emailInput.value : '';
-    
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+
     if (!email) {
         showMessage('login-message', 'Please enter your email address first.', 'error');
         return;
     }
-    
-    let resetRequestError = null;
-    try {
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/reset-password.html',
-        });
-        resetRequestError = error || null;
-    } catch (error) {
-        resetRequestError = error;
-    }
 
-    if (resetRequestError) {
-        console.warn('Password reset request returned an error:', resetRequestError);
-    }
-
-    showMessage('login-message', `If an account exists for this email, a password reset email has been sent. 📧 Please check your inbox.<br><br>
+    const successMsg = `If an account exists for this email, a password reset email has been sent. 📧 Please check your inbox.<br><br>
         <small><strong>Tip:</strong> If you don't see our email, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" so the reset link works.<br>
-        For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
+        For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`;
+
+    try {
+        const resp = await fetch('/api/request-password-reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
+            console.warn('Password reset request error:', data.error || resp.status);
+        }
+    } catch (err) {
+        console.warn('Password reset request failed:', err.message);
+    }
+
+    // Always show generic success to avoid user enumeration
+    showMessage('login-message', successMsg, 'success');
 }
 
 // Show Terms and Conditions
