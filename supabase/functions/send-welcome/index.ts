@@ -27,7 +27,7 @@ async function sendEmail(payload: object) {
 function parseExpiryTimestamp(value: unknown): number {
   if (value instanceof Date) return value.getTime();
   if (typeof value === "number") return value;
-  if (typeof value === "string") return Date.parse(value);
+  if (typeof value === "string" && value.trim() !== "") return Date.parse(value);
   return NaN;
 }
 
@@ -268,7 +268,7 @@ serve(async (req) => {
     const premiumByPlan = normalizedPlan !== "" && normalizedPlan !== "free";
     // Webhook payloads can serialize DB values differently across environments.
     const premiumByFlag = is_premium === true
-      || (is_premium != null && String(is_premium).toLowerCase() === "true");
+      || (is_premium !== null && is_premium !== undefined && String(is_premium).toLowerCase() === "true");
     const premiumExpiryTs = parseExpiryTimestamp(premium_expires_at);
     const premiumByExpiry = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > Date.now();
     const isPremium = premiumByPlan || premiumByFlag || premiumByExpiry;
