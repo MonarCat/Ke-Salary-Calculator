@@ -586,9 +586,12 @@
             if (!error) return false;
             const combined = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`.toLowerCase();
             return error.code === 'PGRST205'
+                || error.code === 'PGRST116'
+                || error.code === '42703'
                 || Number(error.status) === 404
                 || combined.includes('schema cache')
                 || combined.includes('could not find the table')
+                || combined.includes('does not exist')
                 || /relation .* does not exist/.test(combined);
         }
 
