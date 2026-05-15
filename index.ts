@@ -124,16 +124,17 @@ serve(async (req: Request) => {
       const { email } = body as { email: string };
       if (!email) return json({ error: "email required" }, 400);
 
-      // Generate a recovery link (Supabase sends the email automatically)
-      const { data, error } = await adminSb.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo: "https://salarycalculator.co.ke/reset-password" },
+      const resetResp = await fetch(`${SUPABASE_URL}/functions/v1/password-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send", email }),
       });
 
-      if (error) return json({ error: error.message }, 500);
-      // Supabase also sends the email automatically when type=recovery
-      return json({ success: true, link: data?.properties?.action_link });
+      const resetPayload = await resetResp.json().catch(() => ({} as { error?: string }));
+      if (!resetResp.ok) {
+        return json({ error: resetPayload.error || "Failed to send password reset email" }, 500);
+      }
+      return json({ success: true });
     }
 
     // ── GENERATE RESET LINK (no auto-email — return link for manual send) ──

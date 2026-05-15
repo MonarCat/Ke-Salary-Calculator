@@ -276,15 +276,19 @@ serve(async (req) => {
       const { email } = body as { email: string };
       if (!email) return err(req, "email required");
 
-      const { data, error } = await admin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-        options: { redirectTo: "https://salarycalculator.co.ke/auth.html?mode=reset" },
+      const resetResp = await fetch(`${SUPABASE_URL}/functions/v1/password-reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send", email }),
       });
 
-      if (error) return err(req, error.message, 500);
+      const resetPayload = await resetResp.json().catch(() => ({} as { error?: string }));
+      if (!resetResp.ok) {
+        return err(req, resetPayload.error || "Failed to send password reset email", 500);
+      }
+
       await log("reset_password", email, undefined, { method: "email" });
-      return ok(req, { success: true, link: data?.properties?.action_link });
+      return ok(req, { success: true });
     }
 
     case "generate_reset_link": {

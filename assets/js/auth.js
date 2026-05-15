@@ -284,6 +284,7 @@ async function handleGoogleSignIn() {
 }
 
 const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL;
+const PASSWORD_RESET_API_FALLBACK_URL = '/api/request-password-reset';
 const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
 
 function setResetButtonState(button, isLoading) {
@@ -306,29 +307,41 @@ function setResetButtonState(button, isLoading) {
 async function sendResetEmail(email) {
     const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
+    const endpoints = [...new Set([PASSWORD_RESET_FUNCTION_URL, PASSWORD_RESET_API_FALLBACK_URL].filter(Boolean))];
 
-    if (!PASSWORD_RESET_FUNCTION_URL) {
-        console.warn('Password reset function URL is not configured.');
-        showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+    if (!endpoints.length) {
+        showMessage('login-message', 'Reset service is unavailable. Please try again shortly.', 'error');
         setResetButtonState(btn, false);
         return;
     }
 
-    try {
-        const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'send', email }),
-        });
-        if (!res.ok) {
-            console.warn('Password reset request returned non-OK status:', res.status);
+    let lastError = null;
+
+    for (const endpoint of endpoints) {
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'send', email }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || `Request failed (${res.status})`);
+            }
+
+            // Always show success — never confirm if email exists (anti-user-enumeration behavior).
+            showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+            setResetButtonState(btn, false);
+            return;
+        } catch (err) {
+            lastError = err;
+            console.warn(`Password reset request failed via ${endpoint}:`, err?.message || err);
         }
-    } catch (err) {
-        console.warn('Password reset request failed:', err.message);
     }
 
-    // Always show success — never confirm if email exists (anti-user-enumeration behavior).
-    showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+    console.error('All password reset endpoints failed:', lastError?.message || lastError);
+    showMessage('login-message', 'Failed to send reset email. Please try again shortly.', 'error');
     setResetButtonState(btn, false);
 }
 
