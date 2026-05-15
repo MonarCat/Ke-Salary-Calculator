@@ -808,7 +808,8 @@
                 const normalizedRows = rows.map((e) => ({
                     id: e.id,
                     name: (e.employee_name || e.name || '').trim(),
-                    employeeId: (e.employee_id || e.employeeId || '').trim()
+                    employeeId: (e.employee_id || e.employeeId || '').trim(),
+                    kraPin: (e.kra_pin || e.kraPin || '').trim()
                 }));
 
                 normalizedRows.forEach((e) => {
@@ -817,6 +818,7 @@
                     const name = e.name || 'Employee';
                     const ref = e.employeeId;
                     opt.textContent = ref ? `${name} — ${ref}` : name;
+                    opt.dataset.kraPin = e.kraPin || '';
                     sel.appendChild(opt);
                 });
 
@@ -918,6 +920,7 @@
             const employeeOption = document.getElementById('empSelect')?.selectedOptions?.[0];
             const employeeLabel = isPersonalMode ? (userProfile?.full_name || 'Individual Taxpayer') : (employeeOption?.textContent || 'Employee');
             const [employeeName, employeeRef = '—'] = employeeLabel.split(' — ');
+            const employeeKRA = isPersonalMode ? (userProfile?.kra_pin || '—') : (employeeOption?.dataset?.kraPin || '—');
             const employerName = document.getElementById('empName').value || (isPersonalMode ? 'Self-Employed / Individual' : '—');
             const employerKRA = document.getElementById('empKRA').value || '—';
             const taxYear = document.getElementById('taxYearSelect').value || '';
@@ -947,6 +950,7 @@
                             <div><span>Name</span><span>${employeeName || 'Employee'}</span></div>
                             <div><span>Reference</span><span>${employeeRef || '—'}</span></div>
                             <div><span>Generated On</span><span>${generatedOn}</span></div>
+                            <div><span>KRA PIN</span><span>${employeeKRA}</span></div>
                         </div>
                     </div>
                     <div class="p9a-print-panel">
@@ -1035,6 +1039,9 @@
                 const employeeName = isPersonalMode
                     ? (userProfile?.full_name || 'Employee')
                     : ((document.getElementById('empSelect').selectedOptions[0]?.textContent || 'Employee').split(' — ')[0]);
+                const employeeKRA  = isPersonalMode
+                    ? (userProfile?.kra_pin || '—')
+                    : (document.getElementById('empSelect').selectedOptions[0]?.dataset?.kraPin || '—');
                 const employerName = document.getElementById('empName').value || (isPersonalMode ? 'Self-Employed / Individual' : '—');
                 const employerKRA  = document.getElementById('empKRA').value || '—';
                 const taxYear      = document.getElementById('taxYearSelect').value || '';
@@ -1123,7 +1130,7 @@
   <div class="meta-panel">
     <h3>Employee Details</h3>
     <div class="meta-row"><span>Name</span><span>${employeeName || 'Employee'}</span></div>
-    <div class="meta-row"><span>Document</span><span>P9A Annual Tax Deduction Card</span></div>
+    <div class="meta-row"><span>KRA PIN</span><span>${employeeKRA}</span></div>
   </div>
   <div class="meta-panel">
     <h3>Employer Details</h3>
