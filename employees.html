@@ -1851,8 +1851,7 @@
                 const netPay     = gross - (ded.paye + ded.nssfEmployee + ded.shifEmployee + ded.hlEmployee + voluntary);
 
                 const payPeriod  = overrides.pay_period
-                    ?? document.getElementById('ps-pay-period').value
-                    ?? null;
+                    ?? (document.getElementById('ps-pay-period').value || null);
 
                 const { error } = await supabaseClient
                     .from('payslip_history')
