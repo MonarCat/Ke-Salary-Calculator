@@ -283,14 +283,15 @@ async function handleGoogleSignIn() {
     }
 }
 
-const PASSWORD_RESET_FUNCTION_URL = `${(typeof SUPABASE_URL === 'string' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/password-reset`;
+const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL || `${(typeof SUPABASE_URL === 'string' && SUPABASE_URL) ? SUPABASE_URL : 'https://wznopthjoaqusalqoyru.supabase.co'}/functions/v1/password-reset`;
+const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
 
 function setResetButtonState(button, isLoading) {
     if (!button) return;
 
     if (isLoading) {
         button.dataset.originalText = button.textContent;
-        button.textContent = 'Sending…';
+        button.textContent = FORGOT_PASSWORD_SENDING_LABEL;
         button.disabled = true;
         button.style.pointerEvents = 'none';
         button.setAttribute('aria-disabled', 'true');
@@ -319,7 +320,7 @@ async function sendResetEmail(email) {
         console.warn('Password reset request failed:', err.message);
     }
 
-    // Always show success — never confirm if email exists
+    // Always show success — never confirm if email exists (anti-user-enumeration behavior).
     showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
     setResetButtonState(btn, false);
 }
