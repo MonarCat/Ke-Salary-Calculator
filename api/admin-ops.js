@@ -19,6 +19,7 @@ function setCors(req, res) {
 const SUPA_URL   = 'https://wznopthjoaqusalqoyru.supabase.co';
 const SVC_KEY    = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const envAnonKey = process.env.SUPABASE_ANON_KEY;
+const PASSWORD_RESET_FUNCTION_URL = `${SUPA_URL}/functions/v1/password-reset`;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
@@ -124,6 +125,43 @@ function buildAnalytics(rows) {
     },
     growth: [...growthBuckets.values()].sort((a, b) => a.day.localeCompare(b.day)),
   };
+}
+
+function getPublicBaseUrl(req) {
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
+  return host ? `${protocol}://${host}` : 'https://salarycalculator.co.ke';
+}
+
+async function triggerPasswordResetEmail(req, email) {
+  const baseUrl = getPublicBaseUrl(req);
+  const endpoints = [PASSWORD_RESET_FUNCTION_URL, `${baseUrl}/api/request-password-reset`];
+  let lastError = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', email }),
+      });
+      const rawBody = await resp.text().catch(() => '');
+      let payload = {};
+      if (rawBody) {
+        try {
+          payload = JSON.parse(rawBody);
+        } catch {
+          payload = {};
+        }
+      }
+      if (!resp.ok) throw new Error(payload.error || rawBody || `Request failed (${resp.status})`);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Password reset delivery failed');
 }
 
 // ─── HANDLER ─────────────────────────────────────────────────────────────────
@@ -325,13 +363,9 @@ export default async function handler(req, res) {
       case 'reset_password_email': {
         const { email } = body;
         if (!email) return res.status(400).json({ error: 'email required' });
-        const { data, error } = await admin.auth.admin.generateLink({
-          type: 'recovery', email,
-          options: { redirectTo: 'https://salarycalculator.co.ke/auth.html?mode=reset' },
-        });
-        if (error) throw error;
+        await triggerPasswordResetEmail(req, email);
         await log('reset_password', email, undefined, { method: 'email' });
-        return res.json({ success: true, link: data?.properties?.action_link });
+        return res.json({ success: true });
       }
 
       // ── Generate reset link (copy) ─────────────────────────────────────
