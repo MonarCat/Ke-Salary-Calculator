@@ -244,7 +244,7 @@ serve(async (req) => {
       return new Response("No record", { status: 400 });
     }
 
-    const { id: userId, email, full_name, plan } = record;
+    const { email, full_name, plan, is_premium, premium_expires_at } = record;
 
     if (!email) {
       return new Response("No email on record", { status: 400 });
@@ -257,7 +257,14 @@ serve(async (req) => {
     await sendEmail(welcomeEmail(name, email));
 
     // 2. Send premium nudge for free-plan users (slight delay feels less robotic)
-    const isPremium = plan && plan !== "free";
+    const normalizedPlan = typeof plan === "string" ? plan.trim().toLowerCase() : "";
+    const premiumByPlan = normalizedPlan !== "" && normalizedPlan !== "free";
+    const premiumByFlag = is_premium === true || is_premium === "true";
+    const premiumExpiryTs = typeof premium_expires_at === "string"
+      ? Date.parse(premium_expires_at)
+      : NaN;
+    const premiumByExpiry = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > Date.now();
+    const isPremium = premiumByPlan || premiumByFlag || premiumByExpiry;
     if (!isPremium) {
       await new Promise((r) => setTimeout(r, 2500));
       await sendEmail(premiumNudgeEmail(name, email));
