@@ -24,6 +24,13 @@ async function sendEmail(payload: object) {
   if (!res.ok) console.error("Brevo error:", await res.text());
 }
 
+function parseExpiryTimestamp(value: unknown): number {
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Date.parse(value);
+  return NaN;
+}
+
 // ── Email Templates ────────────────────────────────────────────────────────
 
 function welcomeEmail(name: string, email: string) {
@@ -260,14 +267,9 @@ serve(async (req) => {
     const normalizedPlan = typeof plan === "string" ? plan.trim().toLowerCase() : "";
     const premiumByPlan = normalizedPlan !== "" && normalizedPlan !== "free";
     // Webhook payloads can serialize DB values differently across environments.
-    const premiumByFlag = is_premium === true || String(is_premium).toLowerCase() === "true";
-    const premiumExpiryTs = premium_expires_at instanceof Date
-      ? premium_expires_at.getTime()
-      : typeof premium_expires_at === "number"
-      ? premium_expires_at
-      : typeof premium_expires_at === "string"
-      ? Date.parse(premium_expires_at)
-      : NaN;
+    const premiumByFlag = is_premium === true
+      || (is_premium != null && String(is_premium).toLowerCase() === "true");
+    const premiumExpiryTs = parseExpiryTimestamp(premium_expires_at);
     const premiumByExpiry = Number.isFinite(premiumExpiryTs) && premiumExpiryTs > Date.now();
     const isPremium = premiumByPlan || premiumByFlag || premiumByExpiry;
     if (!isPremium) {
