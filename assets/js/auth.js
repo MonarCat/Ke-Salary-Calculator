@@ -286,6 +286,7 @@ async function handleGoogleSignIn() {
 const PASSWORD_RESET_FUNCTION_URL =
     window.PASSWORD_RESET_FUNCTION_URL ||
     'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/password-reset';
+
 const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
 
 function setResetButtonState(button, isLoading) {
@@ -308,50 +309,24 @@ function setResetButtonState(button, isLoading) {
 async function sendResetEmail(email) {
     const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
-    const endpoints = [PASSWORD_RESET_FUNCTION_URL].filter(Boolean);
 
-    if (!endpoints.length) {
-        showMessage('login-message', 'Reset service is unavailable. Please try again shortly.', 'error');
+    try {
+        const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'send', email }),
+        });
+
+        // Always show success — never confirm whether email exists
+        showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+
+    } catch (err) {
+        console.error('Password reset request failed:', err?.message || err);
+        // Still show success to avoid user enumeration
+        showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
+    } finally {
         setResetButtonState(btn, false);
-        return;
     }
-
-    let lastError = null;
-
-    for (const endpoint of endpoints) {
-        try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'send', email }),
-            });
-
-            const rawBody = await res.text().catch(() => '');
-            let data = {};
-            if (rawBody) {
-                try {
-                    data = JSON.parse(rawBody);
-                } catch (_) {
-                    data = {};
-                }
-            }
-            if (!res.ok) {
-                throw new Error(data.error || rawBody || `Request failed (${res.status})`);
-            }
-
-            // Always show success — never confirm if email exists (anti-user-enumeration behavior).
-            showMessage('login-message', 'If that email is registered, a reset link is on its way.', 'success');
-            setResetButtonState(btn, false);
-            return;
-        } catch (err) {
-            lastError = err;
-            console.warn(`Password reset request failed via ${endpoint}:`, err?.message || err);
-        }
-    }
-
-    console.error('All password reset endpoints failed:', lastError?.message || lastError);
-    showMessage('login-message', 'Failed to send reset email. Please try again shortly.', 'error');
-    setResetButtonState(btn, false);
 }
 
 // Handle Forgot Password
@@ -446,73 +421,12 @@ if (supabaseClient && supabaseClient.auth) {
                     window.location.href = redirectTo;
                 }, OAUTH_REDIRECT_DELAY_MS);
             }
-        } else if (event === 'PASSWORD_RECOVERY') {
-            // Show the password reset form
-            showPasswordResetForm();
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out');
         }
     });
 } else {
     console.warn('Supabase client not available. Auth state changes will not be monitored.');
-}
-
-// Show password reset form when user clicks reset link from email
-// Only used as a fallback on auth.html; reset-password.html has its own dedicated handler.
-function showPasswordResetForm() {
-    if (!window.location.pathname.includes('auth.html')) return;
-    const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
-    if (!authWrapper) return;
-    authWrapper.classList.add('auth-ready');
-    authWrapper.innerHTML = `
-        <div class="auth-form-container" style="display:block;">
-            <h2>🔑 Set New Password</h2>
-            <p class="auth-subtitle">Enter your new password below.</p>
-            <form onsubmit="handlePasswordUpdate(event)">
-                <div class="form-group">
-                    <label for="new-password"><i class="fas fa-lock"></i> New Password</label>
-                    <div class="password-field-wrapper">
-                        <input type="password" id="new-password" required placeholder="Enter new password" minlength="6">
-                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('new-password', this)" aria-label="Show password"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-new-password"><i class="fas fa-lock"></i> Confirm Password</label>
-                    <div class="password-field-wrapper">
-                        <input type="password" id="confirm-new-password" required placeholder="Confirm new password" minlength="6">
-                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm-new-password', this)" aria-label="Show password"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <div id="reset-update-message" class="auth-message" style="display:none;"></div>
-                <button type="submit" class="auth-button"><i class="fas fa-save"></i> Update Password</button>
-            </form>
-        </div>
-    `;
-}
-
-// Handle password update after clicking reset link
-async function handlePasswordUpdate(event) {
-    event.preventDefault();
-    const newPwd = document.getElementById('new-password').value;
-    const confirmPwd = document.getElementById('confirm-new-password').value;
-    if (newPwd !== confirmPwd) {
-        showMessage('reset-update-message', 'Passwords do not match.', 'error');
-        return;
-    }
-    const btn = event.target.querySelector('button[type="submit"]');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<span class="loading-spinner"></span> Updating...';
-    btn.disabled = true;
-    try {
-        const { error } = await supabaseClient.auth.updateUser({ password: newPwd });
-        if (error) throw error;
-        showMessage('reset-update-message', 'Password updated successfully! Redirecting...', 'success');
-        setTimeout(() => { window.location.href = '/'; }, 2000);
-    } catch (err) {
-        showMessage('reset-update-message', err.message || 'Failed to update password.', 'error');
-        btn.innerHTML = orig;
-        btn.disabled = false;
-    }
 }
 
 // Check if user is logged in on page load (for protected pages)
@@ -615,15 +529,6 @@ if (document.readyState === 'loading') {
 // Redirect away from auth page if already logged in
 async function redirectIfLoggedIn() {
     if (!window.location.pathname.includes('auth.html')) return;
-
-    // If the URL hash contains type=recovery, this is a password-reset flow.
-    // Let the onAuthStateChange PASSWORD_RECOVERY handler take over; do not redirect.
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('type') === 'recovery') {
-        const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
-        if (authWrapper) authWrapper.classList.add('auth-ready');
-        return;
-    }
 
     const user = await checkAuthStatus();
     if (user) {
