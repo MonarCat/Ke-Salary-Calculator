@@ -36,7 +36,7 @@ function parseExpiryTimestamp(value: unknown): number {
 function welcomeEmail(name: string, email: string) {
   const firstName = name?.split(" ")[0] || "there";
   return {
-    sender: { name: "Salary Calculator KE", email: "noreply@salarycalculator.co.ke" },
+    sender: { name: "Salary Calculator KE", email: "info@salarycalculator.co.ke" },
     to: [{ email, name }],
     subject: `Welcome, ${firstName} 👋 — Your payroll companion is ready`,
     htmlContent: `
@@ -130,7 +130,7 @@ function welcomeEmail(name: string, email: string) {
 function premiumNudgeEmail(name: string, email: string) {
   const firstName = name?.split(" ")[0] || "there";
   return {
-    sender: { name: "Salary Calculator KE", email: "noreply@salarycalculator.co.ke" },
+    sender: { name: "Salary Calculator KE", email: "info@salarycalculator.co.ke" },
     to: [{ email, name }],
     subject: `${firstName}, unlock clean payslips — no watermarks 🔓`,
     htmlContent: `
@@ -195,10 +195,10 @@ function premiumNudgeEmail(name: string, email: string) {
                   PREMIUM PLAN
                 </p>
                 <p style="margin:4px 0 2px;font-size:28px;font-weight:800;color:#1a1a2e">
-                  KES 499<span style="font-size:15px;font-weight:400;color:#718096">/month</span>
+                  KES 99<span style="font-size:15px;font-weight:400;color:#718096">/month</span>
                 </p>
                 <p style="margin:0;color:#a0aec0;font-size:12px">
-                  or KES 4,999/year — save 2 months
+                  or KES 999/year — save 2 months
                 </p>
               </div>
             </div>
@@ -210,7 +210,7 @@ function premiumNudgeEmail(name: string, email: string) {
                         color:#ffffff;padding:14px 40px;border-radius:8px;
                         text-decoration:none;font-weight:700;font-size:15px;
                         box-shadow:0 4px 14px rgba(124,58,237,0.4)">
-                Upgrade Now — KES 499/mo
+                Upgrade Now — KES 99/mo
               </a>
               <p style="margin:12px 0 0;color:#a0aec0;font-size:12px">
                 Cancel anytime. No hidden fees.
