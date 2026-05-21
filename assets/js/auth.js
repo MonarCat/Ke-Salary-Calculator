@@ -283,8 +283,9 @@ async function handleGoogleSignIn() {
     }
 }
 
-const PASSWORD_RESET_FUNCTION_URL = window.PASSWORD_RESET_FUNCTION_URL;
-const PASSWORD_RESET_API_FALLBACK_URL = '/api/request-password-reset';
+const PASSWORD_RESET_FUNCTION_URL =
+    window.PASSWORD_RESET_FUNCTION_URL ||
+    'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/password-reset';
 const FORGOT_PASSWORD_SENDING_LABEL = 'Sending…';
 
 function setResetButtonState(button, isLoading) {
@@ -307,7 +308,7 @@ function setResetButtonState(button, isLoading) {
 async function sendResetEmail(email) {
     const btn = document.getElementById('forgot-password-btn');
     setResetButtonState(btn, true);
-    const endpoints = [PASSWORD_RESET_FUNCTION_URL, PASSWORD_RESET_API_FALLBACK_URL].filter(Boolean);
+    const endpoints = [PASSWORD_RESET_FUNCTION_URL].filter(Boolean);
 
     if (!endpoints.length) {
         showMessage('login-message', 'Reset service is unavailable. Please try again shortly.', 'error');
