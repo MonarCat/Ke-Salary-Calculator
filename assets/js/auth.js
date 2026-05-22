@@ -4,14 +4,41 @@
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
 const AUTH_REDIRECT_FALLBACK = '/';
 const SESSION_EXPIRY_SKEW_MS = 5000;
+const ALLOWED_REDIRECT_PATHS = new Set([
+    '/',
+    '/employees.html',
+    '/profile.html',
+    '/payroll-report.html',
+    '/payroll-history.html',
+    '/organisation-profile.html',
+    '/calculator.html',
+    '/account',
+    '/admin.html'
+]);
+const ALLOWED_CALCULATOR_TABS = new Set(['grossup', 'comparison', 'percentile', 'payslip']);
 
 let authRedirectInProgress = false;
 
 function getSafeRedirectTarget(rawRedirect, fallback = AUTH_REDIRECT_FALLBACK) {
     if (typeof rawRedirect !== 'string') return fallback;
-    // Only allow same-origin relative paths and block protocol-relative URLs.
-    if (rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')) return rawRedirect;
-    return fallback;
+
+    try {
+        const parsed = new URL(rawRedirect, window.location.origin);
+        if (parsed.origin !== window.location.origin) return fallback;
+        if (!parsed.pathname.startsWith('/') || parsed.pathname.startsWith('//')) return fallback;
+        if (!ALLOWED_REDIRECT_PATHS.has(parsed.pathname)) return fallback;
+
+        if (parsed.pathname === '/calculator.html') {
+            const tab = parsed.searchParams.get('tab');
+            if (!tab) return '/calculator.html';
+            if (!ALLOWED_CALCULATOR_TABS.has(tab)) return '/calculator.html';
+            return `/calculator.html?tab=${encodeURIComponent(tab)}`;
+        }
+
+        return parsed.pathname;
+    } catch (_) {
+        return fallback;
+    }
 }
 
 function getRequestedRedirectTarget() {
@@ -126,7 +153,14 @@ async function handleLogin(event) {
         setTimeout(async () => {
             try {
                 // Only check for employer redirect when no specific redirect is requested
-                if (loginRedirectTo === AUTH_REDIRECT_FALLBACK && supabaseClient && isSupabaseConfigured() && data && data.user) {
+                const shouldCheckEmployerRedirect =
+                    loginRedirectTo === AUTH_REDIRECT_FALLBACK &&
+                    supabaseClient &&
+                    isSupabaseConfigured() &&
+                    data &&
+                    data.user;
+
+                if (shouldCheckEmployerRedirect) {
                     const { data: profile } = await supabaseClient
                         .from('user_profiles')
                         .select('account_type')
