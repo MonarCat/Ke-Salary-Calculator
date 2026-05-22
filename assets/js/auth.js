@@ -24,8 +24,11 @@ function getSafeRedirectTarget(rawRedirect, fallback = AUTH_REDIRECT_FALLBACK) {
 
     try {
         const parsed = new URL(rawRedirect, window.location.origin);
+        const lowerRawRedirect = rawRedirect.toLowerCase();
         if (parsed.origin !== window.location.origin) return fallback;
         if (!parsed.pathname.startsWith('/') || parsed.pathname.startsWith('//')) return fallback;
+        if (parsed.pathname.includes('\\') || parsed.pathname.includes('..')) return fallback;
+        if (lowerRawRedirect.includes('%2f%2f') || lowerRawRedirect.includes('%5c')) return fallback;
         if (!ALLOWED_REDIRECT_PATHS.has(parsed.pathname)) return fallback;
 
         if (parsed.pathname === '/calculator.html') {
@@ -75,9 +78,14 @@ async function hasVerifiedSession() {
 
 function redirectFromAuthPage() {
     if (authRedirectInProgress) return;
-    const redirectTo = getRequestedRedirectTarget();
     authRedirectInProgress = true;
-    window.location.replace(redirectTo);
+    try {
+        const redirectTo = getRequestedRedirectTarget();
+        window.location.replace(redirectTo);
+    } catch (_) {
+        authRedirectInProgress = false;
+        window.location.replace(AUTH_REDIRECT_FALLBACK);
+    }
 }
 
 // Switch between login and signup tabs
