@@ -2,6 +2,91 @@
 
 // Constants
 const OAUTH_REDIRECT_DELAY_MS = 1000; // Delay before redirecting after OAuth callback
+const AUTH_REDIRECT_FALLBACK = '/';
+const SESSION_EXPIRY_SKEW_MS = 5000;
+const ALLOWED_REDIRECT_PATHS = new Set([
+    '/',
+    '/employees.html',
+    '/profile.html',
+    '/payroll-report.html',
+    '/payroll-history.html',
+    '/organisation-profile.html',
+    '/calculator.html',
+    '/account',
+    '/admin.html'
+]);
+const ALLOWED_CALCULATOR_TABS = new Set(['grossup', 'comparison', 'percentile', 'payslip']);
+
+let authRedirectInProgress = false;
+
+function getSafeRedirectTarget(rawRedirect, fallback = AUTH_REDIRECT_FALLBACK) {
+    if (typeof rawRedirect !== 'string') return fallback;
+
+    try {
+        const parsed = new URL(rawRedirect, window.location.origin);
+        const lowerRawRedirect = rawRedirect.toLowerCase();
+        if (parsed.origin !== window.location.origin) return fallback;
+        if (!parsed.pathname.startsWith('/') || parsed.pathname.startsWith('//')) return fallback;
+        if (parsed.pathname.includes('\\') || parsed.pathname.includes('..')) return fallback;
+        if (lowerRawRedirect.includes('%2f%2f') || lowerRawRedirect.includes('%5c')) return fallback;
+        if (!ALLOWED_REDIRECT_PATHS.has(parsed.pathname)) return fallback;
+
+        if (parsed.pathname === '/calculator.html') {
+            const tab = parsed.searchParams.get('tab');
+            if (!tab) return '/calculator.html';
+            if (!ALLOWED_CALCULATOR_TABS.has(tab)) return '/calculator.html';
+            return `/calculator.html?tab=${encodeURIComponent(tab)}`;
+        }
+
+        return parsed.pathname;
+    } catch (_) {
+        return fallback;
+    }
+}
+
+function getRequestedRedirectTarget() {
+    const params = new URLSearchParams(window.location.search);
+    const rawRedirect = params.get('redirect') || AUTH_REDIRECT_FALLBACK;
+    return getSafeRedirectTarget(rawRedirect, AUTH_REDIRECT_FALLBACK);
+}
+
+function isSessionFresh(session) {
+    if (!session || !session.user || !session.access_token) return false;
+    if (typeof session.expires_at === 'number') {
+        const expiresAtMs = session.expires_at * 1000;
+        if (Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now() + SESSION_EXPIRY_SKEW_MS) {
+            return false;
+        }
+    }
+    return true;
+}
+
+async function hasVerifiedSession() {
+    if (!supabaseClient || !supabaseClient.auth) return false;
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!isSessionFresh(session)) return false;
+
+        // Verify the session token is still valid server-side before redirecting.
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error || !data || !data.user) return false;
+        return data.user.id === session.user.id;
+    } catch (_) {
+        return false;
+    }
+}
+
+function redirectFromAuthPage() {
+    if (authRedirectInProgress) return;
+    authRedirectInProgress = true;
+    try {
+        const redirectTo = getRequestedRedirectTarget();
+        window.location.replace(redirectTo);
+    } catch (_) {
+        authRedirectInProgress = false;
+        window.location.replace(AUTH_REDIRECT_FALLBACK);
+    }
+}
 
 // Switch between login and signup tabs
 function switchAuthTab(tab) {
@@ -72,13 +157,18 @@ async function handleLogin(event) {
         // Redirect after 1 second, respecting the ?redirect= query param.
         // Employer accounts with an incomplete profile are sent to the Organisation
         // Profile setup page so they can fill in their company details.
-        const loginParams = new URLSearchParams(window.location.search);
-        const rawLoginRedirect = loginParams.get('redirect') || '/';
-        const loginRedirectTo = (typeof rawLoginRedirect === 'string' && rawLoginRedirect.startsWith('/')) ? rawLoginRedirect : '/';
+        const loginRedirectTo = getRequestedRedirectTarget();
         setTimeout(async () => {
             try {
                 // Only check for employer redirect when no specific redirect is requested
-                if (loginRedirectTo === '/' && supabaseClient && isSupabaseConfigured() && data && data.user) {
+                const shouldCheckEmployerRedirect =
+                    loginRedirectTo === AUTH_REDIRECT_FALLBACK &&
+                    supabaseClient &&
+                    isSupabaseConfigured() &&
+                    data &&
+                    data.user;
+
+                if (shouldCheckEmployerRedirect) {
                     const { data: profile } = await supabaseClient
                         .from('user_profiles')
                         .select('account_type')
@@ -91,13 +181,13 @@ async function handleLogin(event) {
                             .eq('user_id', data.user.id)
                             .maybeSingle();
                         if (!employer || !employer.profile_complete) {
-                            window.location.href = '/organisation-profile.html';
+                            window.location.replace('/organisation-profile.html');
                             return;
                         }
                     }
                 }
             } catch (_) {}
-            window.location.href = loginRedirectTo;
+            window.location.replace(loginRedirectTo);
         }, 1000);
         
     } catch (error) {
@@ -414,11 +504,10 @@ if (supabaseClient && supabaseClient.auth) {
 
             // If we're on the auth page and user signed in, redirect away
             if (window.location.pathname === '/auth.html' || window.location.pathname.endsWith('/auth.html')) {
-                const params = new URLSearchParams(window.location.search);
-                const rawRedirect = params.get('redirect') || '/';
-                const redirectTo = (typeof rawRedirect === 'string' && rawRedirect.startsWith('/')) ? rawRedirect : '/';
-                setTimeout(() => {
-                    window.location.href = redirectTo;
+                setTimeout(async () => {
+                    if (isSessionFresh(session) && await hasVerifiedSession()) {
+                        redirectFromAuthPage();
+                    }
                 }, OAUTH_REDIRECT_DELAY_MS);
             }
         } else if (event === 'SIGNED_OUT') {
@@ -436,7 +525,7 @@ async function requireAuth() {
     if (!user) {
         // Redirect to login page if not authenticated, passing current page as redirect target
         const redirectParam = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = '/auth.html?redirect=' + redirectParam;
+        window.location.replace('/auth.html?redirect=' + redirectParam);
     }
     
     return user;
@@ -530,14 +619,10 @@ if (document.readyState === 'loading') {
 async function redirectIfLoggedIn() {
     if (!window.location.pathname.includes('auth.html')) return;
 
-    const user = await checkAuthStatus();
-    if (user) {
-        // Already logged in — send to homepage
-        const params = new URLSearchParams(window.location.search);
-        const rawRedirect = params.get('redirect') || '/';
-        // Only allow relative paths starting with '/' to prevent open-redirect attacks
-        const redirectTo = (typeof rawRedirect === 'string' && rawRedirect.startsWith('/')) ? rawRedirect : '/';
-        window.location.href = redirectTo;
+    const isLoggedIn = await hasVerifiedSession();
+    if (isLoggedIn) {
+        // Already logged in — send to requested destination.
+        redirectFromAuthPage();
     } else {
         // Not logged in — show the auth container
         const authWrapper = document.querySelector('.auth-wrapper') || document.querySelector('.auth-container');
