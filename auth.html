@@ -23,8 +23,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Hide auth wrapper until auth check completes to avoid flash */
-        .auth-wrapper { visibility: hidden; }
+        /* Keep auth wrapper visible by default so the page never appears blank
+           if auth initialization fails or is blocked in the browser. */
+        .auth-wrapper { visibility: visible; }
         .auth-wrapper.auth-ready { visibility: visible; }
     </style>
 </head>
