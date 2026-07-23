@@ -357,12 +357,16 @@ async function handleGoogleSignIn() {
     try {
         // Use a stable callback target that matches Supabase redirect URL setup.
         const baseUrl = window.location.origin + '/auth.html';
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        const redirectTo = redirectParam
+            ? `${baseUrl}?redirect=${encodeURIComponent(redirectParam)}`
+            : baseUrl;
         
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 // Redirect back to the current auth page to handle the OAuth callback
-                redirectTo: baseUrl
+                redirectTo
             }
         });
         
