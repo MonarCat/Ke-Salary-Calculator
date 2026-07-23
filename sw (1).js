@@ -3,4 +3,20 @@ self.options = {
     "zoneId": 10733671
 }
 self.lary = ""
-importScripts('https://5gvci.com/act/files/service-worker.min.js?r=sw')
+;(function loadMonetagRuntime() {
+    var runtimeSrc = 'https://5gvci.com/act/files/service-worker.min.js?r=sw'
+    try {
+        if (typeof importScripts === 'function') {
+            importScripts(runtimeSrc)
+            return
+        }
+
+        if (typeof document !== 'undefined') {
+            var script = document.createElement('script')
+            script.src = runtimeSrc
+            script.async = true
+            script.onerror = function() {}
+            ;(document.head || document.documentElement).appendChild(script)
+        }
+    } catch (_) {}
+})()
