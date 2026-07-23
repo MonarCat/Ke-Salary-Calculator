@@ -13,6 +13,7 @@ const ALLOWED_REDIRECT_PATHS = new Set([
     '/organisation-profile.html',
     '/calculator.html',
     '/account',
+    '/account.html',
     '/admin.html'
 ]);
 const ALLOWED_CALCULATOR_TABS = new Set(['grossup', 'comparison', 'percentile', 'payslip']);
@@ -354,8 +355,8 @@ async function handleGoogleSignIn() {
     }
     
     try {
-        // Extract the base URL (origin + pathname without query/hash)
-        const baseUrl = window.location.origin + window.location.pathname;
+        // Use a stable callback target that matches Supabase redirect URL setup.
+        const baseUrl = window.location.origin + '/auth.html';
         
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
