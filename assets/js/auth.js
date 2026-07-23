@@ -373,7 +373,7 @@ async function handleGoogleSignIn() {
     }
 }
 
-const PASSWORD_RESET_FUNCTION_URL =
+const AUTH_PASSWORD_RESET_FUNCTION_URL =
     window.PASSWORD_RESET_FUNCTION_URL ||
     'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/password-reset';
 
@@ -401,7 +401,7 @@ async function sendResetEmail(email) {
     setResetButtonState(btn, true);
 
     try {
-        const res = await fetch(PASSWORD_RESET_FUNCTION_URL, {
+        const res = await fetch(AUTH_PASSWORD_RESET_FUNCTION_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send', email }),
