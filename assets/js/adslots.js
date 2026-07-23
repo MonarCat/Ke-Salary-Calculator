@@ -42,9 +42,9 @@ export class AdSlotManager {
         el.setAttribute("aria-hidden", "true");
       }
     });
-    // Also hide any existing AdSense containers
+    // Also hide any existing ad containers/scripts
     document.querySelectorAll(
-      ".adsense-container, .adsbygoogle, [id^='adsense-']"
+      ".adsense-container, .adsbygoogle, [id^='adsense-'], [id*='monetag'], [class*='monetag'], iframe[src*='omg10.com']"
     ).forEach((el) => {
       el.style.display = "none";
       el.setAttribute("aria-hidden", "true");
