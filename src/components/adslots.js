@@ -69,8 +69,8 @@
             }
         });
 
-        // Also hide any existing AdSense containers for premium users
-        document.querySelectorAll('.adsense-container, .adsbygoogle, [id^="adsense-"]')
+        // Also hide any existing ad containers/scripts for premium users
+        document.querySelectorAll('.adsense-container, .adsbygoogle, [id^="adsense-"], [id*="monetag"], [class*="monetag"], iframe[src*="omg10.com"]')
             .forEach(el => {
                 el.style.display = 'none';
                 el.setAttribute('aria-hidden', 'true');
