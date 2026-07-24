@@ -17,7 +17,6 @@ const ALLOWED_REDIRECT_PATHS = new Set([
     '/admin.html'
 ]);
 const ALLOWED_CALCULATOR_TABS = new Set(['grossup', 'comparison', 'percentile', 'payslip']);
-const TURNSTILE_VERIFY_FUNCTION_URL = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/verify-turnstile';
 const TURNSTILE_LOAD_TIMEOUT_MS = 5000;
 
 let authRedirectInProgress = false;
@@ -96,21 +95,6 @@ function resetTurnstileWidget(formType) {
     if (widgetId !== null) window.turnstile.reset(widgetId);
 }
 
-async function verifyTurnstileToken(token) {
-    try {
-        const res = await fetch(TURNSTILE_VERIFY_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
-        });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return data && data.success === true;
-    } catch (_) {
-        return false;
-    }
-}
-
 async function resolveCaptchaToken(formType, messageId) {
     if (!hasTurnstileSiteKey()) return null;
 
@@ -125,13 +109,6 @@ async function resolveCaptchaToken(formType, messageId) {
     const token = getTurnstileToken(formType);
     if (!token) {
         showMessage(messageId, 'Please complete the security check and try again.', 'error');
-        return false;
-    }
-
-    const isValid = await verifyTurnstileToken(token);
-    if (!isValid) {
-        showMessage(messageId, 'Security check failed. Please try again.', 'error');
-        resetTurnstileWidget(formType);
         return false;
     }
 
