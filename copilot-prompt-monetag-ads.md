@@ -10,14 +10,14 @@
 ## What Monetag Requires
 
 ### Step 1 — JS file in root
-A file called `sw(1).js` has already been uploaded to the root folder of the website. No action needed here.
+A file called `sw.js` has already been uploaded to the root folder of the website. No action needed here.
 
 ### Step 2 — Script tag in every HTML page
 Add the following script immediately after the opening `<head>` tag in **every `.html` file** across the site:
 
 ```html
 <head>
-<script src="/sw(1).js" async></script>
+<script src="/sw.js" async></script>
 <!-- rest of head content -->
 ```
 
@@ -158,4 +158,4 @@ Use this container sparingly — once per page section maximum. Do not place bet
 
 ---
 
-*Monetag Direct Link: `https://omg10.com/4/10733671` | Root loader: `/sw(1).js`*
+*Monetag Direct Link: `https://omg10.com/4/10733671` | Root loader: `/sw.js`*
