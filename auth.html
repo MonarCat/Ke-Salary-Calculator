@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <style>
         /* Keep auth wrapper visible by default so the page never appears blank
            if auth initialization fails or is blocked in the browser. */
@@ -128,6 +129,7 @@
                             <a href="#" id="forgot-password-btn" onclick="handleForgotPassword()" class="forgot-password">Forgot Password?</a>
                         </div>
                         
+                        <div id="login-turnstile" class="cf-turnstile-container"></div>
                         <button type="submit" class="auth-button">
                             <i class="fas fa-sign-in-alt"></i> Sign In
                         </button>
@@ -219,6 +221,7 @@
                             </label>
                         </div>
                         
+                        <div id="signup-turnstile" class="cf-turnstile-container"></div>
                         <button type="submit" class="auth-button">
                             <i class="fas fa-user-plus"></i> Create Account
                         </button>

@@ -24,9 +24,19 @@ try {
 
 // Check if Supabase is properly configured
 function isSupabaseConfigured() {
-    return supabaseClient !== null && 
-           SUPABASE_URL !== 'YOUR_SUPABASE_URL' && 
-           SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+    const urlLooksValid = typeof SUPABASE_URL === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SUPABASE_URL.trim());
+    const key = typeof SUPABASE_ANON_KEY === 'string' ? SUPABASE_ANON_KEY.trim() : '';
+    const keyLooksValid =
+        (key.startsWith('eyJ') && key.split('.').length === 3) ||
+        key.startsWith('sb_publishable_');
+
+    return (
+        supabaseClient !== null &&
+        urlLooksValid &&
+        keyLooksValid &&
+        SUPABASE_URL !== 'YOUR_SUPABASE_URL' &&
+        SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY'
+    );
 }
 
 // Paystack public key (safe to include in client-side code).

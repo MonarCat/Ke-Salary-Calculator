@@ -17,8 +17,152 @@ const ALLOWED_REDIRECT_PATHS = new Set([
     '/admin.html'
 ]);
 const ALLOWED_CALCULATOR_TABS = new Set(['grossup', 'comparison', 'percentile', 'payslip']);
+const TURNSTILE_VERIFY_FUNCTION_URL = 'https://wznopthjoaqusalqoyru.supabase.co/functions/v1/verify-turnstile';
+const TURNSTILE_LOAD_TIMEOUT_MS = 5000;
 
 let authRedirectInProgress = false;
+let turnstileApiReadyPromise = null;
+const turnstileWidgetIds = { login: null, signup: null };
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function getAuthPageUrl() {
+    return `${window.location.origin}${window.location.pathname}`;
+}
+
+function hasTurnstileSiteKey() {
+    return typeof window.TURNSTILE_SITE_KEY === 'string' && window.TURNSTILE_SITE_KEY.trim().startsWith('0x');
+}
+
+function getTurnstileContainer(formType) {
+    return document.getElementById(`${formType}-turnstile`);
+}
+
+function waitForTurnstileApi() {
+    if (!hasTurnstileSiteKey()) return Promise.resolve(false);
+    if (window.turnstile && typeof window.turnstile.render === 'function') return Promise.resolve(true);
+    if (turnstileApiReadyPromise) return turnstileApiReadyPromise;
+
+    turnstileApiReadyPromise = new Promise((resolve) => {
+        const startedAt = Date.now();
+        const poll = () => {
+            if (window.turnstile && typeof window.turnstile.render === 'function') {
+                resolve(true);
+                return;
+            }
+            if (Date.now() - startedAt >= TURNSTILE_LOAD_TIMEOUT_MS) {
+                resolve(false);
+                return;
+            }
+            setTimeout(poll, 100);
+        };
+        poll();
+    });
+
+    return turnstileApiReadyPromise;
+}
+
+function renderTurnstileWidget(formType) {
+    if (!hasTurnstileSiteKey() || !window.turnstile || typeof window.turnstile.render !== 'function') return null;
+    if (turnstileWidgetIds[formType] !== null) return turnstileWidgetIds[formType];
+
+    const container = getTurnstileContainer(formType);
+    if (!container) return null;
+
+    turnstileWidgetIds[formType] = window.turnstile.render(container, {
+        sitekey: window.TURNSTILE_SITE_KEY,
+        theme: 'light',
+        size: 'flexible'
+    });
+    return turnstileWidgetIds[formType];
+}
+
+function getTurnstileToken(formType) {
+    const container = getTurnstileContainer(formType);
+    if (!container) return '';
+    const tokenInput = container.querySelector('input[name="cf-turnstile-response"]');
+    return tokenInput && typeof tokenInput.value === 'string' ? tokenInput.value.trim() : '';
+}
+
+function resetTurnstileWidget(formType) {
+    if (!window.turnstile || typeof window.turnstile.reset !== 'function') return;
+    const widgetId = turnstileWidgetIds[formType];
+    if (widgetId !== null) window.turnstile.reset(widgetId);
+}
+
+async function verifyTurnstileToken(token) {
+    try {
+        const res = await fetch(TURNSTILE_VERIFY_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return data && data.success === true;
+    } catch (_) {
+        return false;
+    }
+}
+
+async function resolveCaptchaToken(formType, messageId) {
+    if (!hasTurnstileSiteKey()) return null;
+
+    const apiReady = await waitForTurnstileApi();
+    if (!apiReady) {
+        showMessage(messageId, 'Security check failed to load. Please disable blockers and reload this page.', 'error');
+        return false;
+    }
+
+    renderTurnstileWidget(formType);
+
+    const token = getTurnstileToken(formType);
+    if (!token) {
+        showMessage(messageId, 'Please complete the security check and try again.', 'error');
+        return false;
+    }
+
+    const isValid = await verifyTurnstileToken(token);
+    if (!isValid) {
+        showMessage(messageId, 'Security check failed. Please try again.', 'error');
+        resetTurnstileWidget(formType);
+        return false;
+    }
+
+    return token;
+}
+
+function getFriendlyAuthErrorMessage(error, fallbackMessage) {
+    const rawMessage = (error && error.message) ? String(error.message) : '';
+    const normalized = rawMessage.toLowerCase();
+
+    if (normalized.includes('captcha') || normalized.includes('security verification')) {
+        return 'Security verification failed. Please complete the security check and try again.';
+    }
+    if (normalized.includes('provider is not enabled') || normalized.includes('unsupported provider')) {
+        return 'Google sign-in is not enabled in Supabase. Enable the Google provider in Supabase Authentication settings.';
+    }
+    if (normalized.includes('invalid login credentials')) {
+        return 'Invalid email or password. Please try again.';
+    }
+    if (normalized.includes('email rate limit exceeded')) {
+        return 'Too many attempts detected. Please wait a few minutes and try again.';
+    }
+    if (normalized.includes('invalid api key') || normalized.includes('anonymous sign-ins are disabled')) {
+        return 'Supabase auth configuration is invalid. Update the project URL/key and retry.';
+    }
+    if (normalized.includes('redirect') && normalized.includes('not allowed')) {
+        return 'Supabase redirect URL mismatch. Add this auth page URL in Supabase → Authentication → URL Configuration.';
+    }
+    if (!rawMessage) return fallbackMessage;
+    return escapeHtml(rawMessage);
+}
 
 function getSafeRedirectTarget(rawRedirect, fallback = AUTH_REDIRECT_FALLBACK) {
     if (typeof rawRedirect !== 'string') return fallback;
@@ -146,9 +290,13 @@ async function handleLogin(event) {
     submitBtn.disabled = true;
     
     try {
+        const captchaToken = await resolveCaptchaToken('login', 'login-message');
+        if (captchaToken === false) return;
+
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
-            password: password
+            password: password,
+            options: captchaToken ? { captchaToken } : undefined
         });
         
         if (error) throw error;
@@ -200,10 +348,16 @@ async function handleLogin(event) {
                     <i class="fas fa-envelope"></i> Resend Verification Email
                 </button>`, 'error');
         } else {
-            showMessage('login-message', error.message || 'Login failed. Please check your credentials.', 'error');
+            showMessage('login-message', getFriendlyAuthErrorMessage(error, 'Login failed. Please check your credentials.'), 'error');
         }
+        resetTurnstileWidget('login');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+    } finally {
+        if (submitBtn.disabled) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     }
 }
 
@@ -275,11 +429,15 @@ async function handleSignup(event) {
     submitBtn.disabled = true;
     
     try {
+        const captchaToken = await resolveCaptchaToken('signup', 'signup-message');
+        if (captchaToken === false) return;
+
         const { data, error } = await supabaseClient.auth.signUp({
             email: email,
             password: password,
             options: {
-                emailRedirectTo: window.location.origin + '/auth.html',
+                emailRedirectTo: getAuthPageUrl(),
+                captchaToken: captchaToken || undefined,
                 data: {
                     full_name: name,
                     account_type: accountType,
@@ -318,10 +476,9 @@ async function handleSignup(event) {
                 'Please try again in a moment or contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a> if the problem persists.',
                 'error');
         } else {
-            // Escape error.message before inserting into innerHTML to prevent XSS
-            const escapeHtml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-            showMessage('signup-message', escapeHtml(error.message || 'Signup failed. Please try again.'), 'error');
+            showMessage('signup-message', getFriendlyAuthErrorMessage(error, 'Signup failed. Please try again.'), 'error');
         }
+        resetTurnstileWidget('signup');
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -355,8 +512,11 @@ async function handleGoogleSignIn() {
     }
     
     try {
+        const captchaToken = await resolveCaptchaToken(activeTab === 'signup' ? 'signup' : 'login', messageId);
+        if (captchaToken === false) return;
+
         // Use a stable callback target that matches Supabase redirect URL setup.
-        const baseUrl = window.location.origin + '/auth.html';
+        const baseUrl = getAuthPageUrl();
         const redirectParam = new URLSearchParams(window.location.search).get('redirect');
         const redirectTo = redirectParam
             ? `${baseUrl}?redirect=${encodeURIComponent(redirectParam)}`
@@ -366,7 +526,8 @@ async function handleGoogleSignIn() {
             provider: 'google',
             options: {
                 // Redirect back to the current auth page to handle the OAuth callback
-                redirectTo
+                redirectTo,
+                captchaToken: captchaToken || undefined
             }
         });
         
@@ -374,7 +535,8 @@ async function handleGoogleSignIn() {
         
     } catch (error) {
         console.error('Google sign in error:', error);
-        showMessage(messageId, 'Failed to sign in with Google. Please try again.', 'error');
+        showMessage(messageId, getFriendlyAuthErrorMessage(error, 'Failed to sign in with Google. Please try again.'), 'error');
+        resetTurnstileWidget(activeTab === 'signup' ? 'signup' : 'login');
     }
 }
 
@@ -597,6 +759,17 @@ function toggleUserDropdown() {
     if (dropdown) {
         dropdown.classList.toggle('active');
     }
+
+    async function initializeTurnstileWidgets() {
+        if (!hasTurnstileSiteKey()) return;
+        const ready = await waitForTurnstileApi();
+        if (!ready) {
+            console.warn('Turnstile failed to load; auth attempts may fail when captcha is required.');
+            return;
+        }
+        renderTurnstileWidget('login');
+        renderTurnstileWidget('signup');
+    }
 }
 
 // Close dropdown when clicking outside
@@ -612,10 +785,12 @@ document.addEventListener('click', function(event) {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        initializeTurnstileWidgets();
         updateAuthUI();
         redirectIfLoggedIn();
     });
 } else {
+    initializeTurnstileWidgets();
     updateAuthUI();
     redirectIfLoggedIn();
 }
@@ -637,4 +812,12 @@ async function redirectIfLoggedIn() {
             switchAuthTab('signup');
         }
     }
+
+    window.switchAuthTab = switchAuthTab;
+    window.handleLogin = handleLogin;
+    window.handleSignup = handleSignup;
+    window.toggleOrganizationFields = toggleOrganizationFields;
+    window.handleGoogleSignIn = handleGoogleSignIn;
+    window.handleForgotPassword = handleForgotPassword;
+    window.handleLogout = handleLogout;
 }
