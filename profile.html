@@ -788,16 +788,15 @@
                 });
                 if (authError) throw authError;
 
-                // Update user_profiles: set account type only (no trial start)
+                // Update user_profiles through the allow-listed RPC. Direct profile
+                // writes are intentionally denied because the row also contains
+                // billing and access-control fields.
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (user) {
                     const { error: profileError } = await supabaseClient
-                        .from('user_profiles')
-                        .update({
-                            account_type:      'employer',
-                            organization_name: orgName
-                        })
-                        .eq('id', user.id);
+                        .rpc('upgrade_my_account_to_employer', {
+                            p_organization_name: orgName
+                        });
                     if (profileError) console.warn('Profile update warning:', profileError);
                 }
 

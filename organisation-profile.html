@@ -624,12 +624,14 @@
                 const { error } = await supabaseClient.from('employers').upsert(payload, { onConflict: 'user_id' });
                 if (error) throw error;
 
-                // Also sync organization_name into user_profiles and auth metadata
+                // Also sync organization_name into user_profiles and auth metadata.
+                // Direct profile updates are denied because the table includes
+                // authorization and billing fields.
                 try {
                     const { error: profileUpdateError } = await supabaseClient
-                        .from('user_profiles')
-                        .update({ organization_name: payload.organization_name })
-                        .eq('id', user.id);
+                        .rpc('update_my_profile', {
+                            p_organization_name: payload.organization_name
+                        });
                     if (profileUpdateError) throw profileUpdateError;
                 } catch (syncError) {
                     console.warn('Failed to sync org name to user_profiles:', syncError);
