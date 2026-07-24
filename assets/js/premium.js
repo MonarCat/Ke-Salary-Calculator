@@ -172,8 +172,6 @@ function loadPaystack() {
  * @param {{ plan: 'monthly'|'yearly', email: string, onSuccess: Function, onClose?: Function }} opts
  */
 export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, onClose }) {
-  await loadPaystack();
-
   const publicKey = window.__PAYSTACK_PUBLIC_KEY;
   if (!publicKey) {
     console.error("[Paystack] window.__PAYSTACK_PUBLIC_KEY is not set.");
@@ -181,23 +179,57 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
     return;
   }
 
+  // References and prices are server-issued and bound to the authenticated
+  // account. Never let the browser mint a reference that the backend trusts.
+  const client = window.supabaseClient;
+  if (!client) {
+    alert("Authentication is still loading. Please try again.");
+    return;
+  }
+  const { data: { session } = {} } = await client.auth.getSession();
+  if (!session?.access_token || !session.user?.email) {
+    alert("Please sign in before starting a payment.");
+    return;
+  }
+
+  let intent;
+  try {
+    const response = await fetch("/api/paystack-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ plan }),
+    });
+    intent = await response.json();
+    if (!response.ok) throw new Error(intent.error || "Could not start payment");
+  } catch (error) {
+    console.error("[Paystack] Could not create payment intent", error);
+    alert("We could not start your payment. Please try again.");
+    return;
+  }
+
+  try {
+    await loadPaystack();
+  } catch (_) {
+    alert("Payment system is unavailable. Please try again.");
+    return;
+  }
+
   const isYearly = plan === "yearly";
-  const amount   = isYearly ? PRICE_YEARLY_KES  : PRICE_MONTHLY_KES;
   // Read plan codes from window variables (set in HTML head); fall back to module constants
   const planCode = isYearly
     ? (window.__PAYSTACK_PLAN_YEARLY  || PLAN_CODE_YEARLY)
     : (window.__PAYSTACK_PLAN_MONTHLY || PLAN_CODE_MONTHLY);
   const label    = isYearly ? "1-Year Premium"   : "Monthly Premium";
 
-  // Generate a unique reference
-  const ref = `SC-${plan.toUpperCase()}-${Date.now()}`;
-
   const config = {
     key:      publicKey,
-    email:    email || "",
-    amount:   amount * 100,        // Paystack amounts are in kobo/cents × 100
-    currency: "KES",
-    ref,
+    email:    session.user.email,
+    amount:   intent.amount_kobo,
+    currency: intent.currency,
+    ref:      intent.reference,
     label:    `SalaryCalculator.co.ke — ${label}`,
     metadata: {
       custom_fields: [
@@ -209,7 +241,7 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
       // response.reference is the transaction reference to verify server-side
       onSuccess && onSuccess(response);
       // Optionally verify immediately
-      _verifyPaystackTransaction(response.reference);
+      _verifyPaystackTransaction(response.reference, session.access_token);
     },
     onClose: function () {
       onClose && onClose();
@@ -232,10 +264,11 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
  * NOT block the redirect on its success — if the verify call itself errors,
  * the user would be stuck on the current page with no feedback.
  */
-async function _verifyPaystackTransaction(reference) {
+async function _verifyPaystackTransaction(reference, accessToken) {
   try {
     await fetch(`/api/paystack-verify?ref=${encodeURIComponent(reference)}`, {
       method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
   } catch (_) {
     // Network error — webhook will activate premium in the background.

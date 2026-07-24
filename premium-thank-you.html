@@ -199,8 +199,12 @@
       //    callback call failed or was the first attempt).
       if (reference) {
         try {
+          if (!window.supabaseClient) throw new Error('Authentication is unavailable');
+          const { data: { session } = {} } = await window.supabaseClient.auth.getSession();
+          if (!session?.access_token) throw new Error('No authenticated session');
           await fetch('/api/paystack-verify?ref=' + encodeURIComponent(reference), {
             method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + session.access_token },
           });
         } catch (_) {
           // Network error — webhook will activate async; continue to status check.

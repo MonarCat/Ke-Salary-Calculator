@@ -43,14 +43,19 @@ export default async function handler(req, res) {
   }
 
   const plan = paymentPlan(transaction);
+  const transactionId = Number(transaction.id);
   if (transaction.reference !== reference || transaction.amount !== intent.amount_kobo || transaction.currency !== intent.currency
-      || plan !== intent.plan || PLAN_AMOUNTS[plan] !== intent.amount_kobo) {
+      || plan !== intent.plan || PLAN_AMOUNTS[plan] !== intent.amount_kobo
+      || !Number.isSafeInteger(transactionId) || transactionId <= 0) {
     return res.status(400).json({ success: false, message: "Transaction details do not match the payment intent" });
+  }
+  if (!transaction.customer?.email || transaction.customer.email.toLowerCase() !== user.email?.toLowerCase()) {
+    return res.status(400).json({ success: false, message: "Transaction payer does not match the authenticated user" });
   }
 
   const { data: processed, error: processError } = await admin.rpc("process_verified_paystack_payment", {
     p_reference: reference,
-    p_paystack_transaction_id: Number(transaction.id),
+    p_paystack_transaction_id: transactionId,
     p_amount_kobo: transaction.amount,
     p_currency: transaction.currency,
     p_plan: plan,

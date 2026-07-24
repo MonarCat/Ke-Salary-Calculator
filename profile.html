@@ -704,7 +704,7 @@
             }
         }
 
-        function payWithPaystack() {
+        async function payWithPaystack() {
             if (!currentUser) {
                 alert('Please refresh the page and try again.');
                 return;
@@ -721,25 +721,47 @@
                 return;
             }
 
-            const amount = 9900; // KES 99 × 100 (Paystack uses kobo/cents)
-            const ref = 'KSC-' + currentUser.id.replace(/-/g, '').substring(0, 8) + '-' + Date.now();
+            const { data: { session } = {} } = await window.supabaseClient.auth.getSession();
+            if (!session?.access_token) {
+                alert('Your session has expired. Please sign in again.');
+                return;
+            }
+
+            let intent;
+            try {
+                const response = await fetch('/api/paystack-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + session.access_token
+                    },
+                    body: JSON.stringify({ plan: 'monthly' })
+                });
+                intent = await response.json();
+                if (!response.ok) throw new Error(intent.error || 'Could not start payment');
+            } catch (error) {
+                console.error('Could not create payment intent:', error);
+                alert('Could not start your payment. Please try again.');
+                return;
+            }
 
             const handler = PaystackPop.setup({
                 key:      paystackKey,
                 email:    currentUser.email,
-                amount:   amount,
-                currency: 'KES',
-                ref:      ref,
+                amount:   intent.amount_kobo,
+                currency: intent.currency,
+                ref:      intent.reference,
                 metadata: {
-                    user_id: currentUser.id,
                     custom_fields: [
-                        { display_name: 'User ID', variable_name: 'user_id', value: currentUser.id },
                         { display_name: 'Plan',    variable_name: 'plan',    value: 'monthly'       }
                     ]
                 },
                 callback: function(response) {
                     // Attempt instant premium activation, then redirect
-                    fetch('/api/paystack-verify?ref=' + encodeURIComponent(response.reference), { method: 'POST' })
+                    fetch('/api/paystack-verify?ref=' + encodeURIComponent(response.reference), {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + session.access_token }
+                    })
                         .catch(function() { /* webhook will activate as fallback */ })
                         .finally(function() {
                             window.location.href = '/premium-thank-you.html?ref=' + encodeURIComponent(response.reference);
