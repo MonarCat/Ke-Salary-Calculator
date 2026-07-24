@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
+    { "source": "/api/paystack-intent",  "destination": "/api/paystack-intent.js"  },
     { "source": "/api/admin-ops",        "destination": "/api/admin-ops.js"        },
     { "source": "/api/send-email",       "destination": "/api/send-email.js"       },
     { "source": "/calculator",           "destination": "/calculator.html"          },

@@ -154,7 +154,7 @@ function switchTab(tabName) {
 async function loadDashboardStats() {
     try {
         const { data, error } = await supabaseClient
-            .rpc('get_blog_stats');
+            .rpc('get_admin_dashboard_stats');
         
         if (error) throw error;
         
