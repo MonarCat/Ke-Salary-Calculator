@@ -1,6 +1,6 @@
 self.options = {
     "domain": "5gvci.com",
-    "zoneId": 10733671
+    "zoneId": 10733693
 }
 self.lary = ""
 ;(function loadMonetagRuntime() {
