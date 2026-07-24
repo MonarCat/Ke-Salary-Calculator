@@ -263,6 +263,12 @@
             window.location.href = '/budget-planner.html';
         }
 
+        function escapeHtml(value) {
+            const node = document.createElement('div');
+            node.textContent = value == null ? '' : String(value);
+            return node.innerHTML;
+        }
+
         async function init() {
             if (!window.supabaseClient) { showAuthPrompt(); return; }
             const { data: { user } } = await window.supabaseClient.auth.getUser();
@@ -281,7 +287,13 @@
                 .order('budget_month', { ascending: false })
                 .limit(24);
 
-            if (error) { document.getElementById('main-content').innerHTML = `<p style="color:#c62828;">Error loading history: ${error.message}</p>`; return; }
+            if (error) {
+                const message = document.createElement('p');
+                message.style.color = '#c62828';
+                message.textContent = 'Error loading history: ' + (error.message || 'Unknown error');
+                document.getElementById('main-content').replaceChildren(message);
+                return;
+            }
 
             if (!budgets || budgets.length === 0) {
                 document.getElementById('main-content').innerHTML = `
@@ -356,11 +368,14 @@
                     ${hs ? `<span class="bh-score ${cls}">${hs.overall_score}/100 — ${grade}</span>` : `<span class="bh-score score-none">No health score</span>`}
                     <div class="bh-savings"><i class="fas fa-piggy-bank"></i> Unallocated: ${FormatUtils.formatKES(savings)}</div>
                     <div class="bh-actions">
-                        <a href="/budget-planner.html?budget=${b.id}" class="btn-sm btn-green"><i class="fas fa-eye"></i> View</a>
-                        <button class="btn-sm btn-outline" onclick="copyToThisMonth('${b.id}')"><i class="fas fa-copy"></i> Copy to This Month</button>
+                        <a href="/budget-planner.html?budget=${encodeURIComponent(String(b.id))}" class="btn-sm btn-green"><i class="fas fa-eye"></i> View</a>
+                        <button class="btn-sm btn-outline bh-copy-budget" data-budget-id="${escapeHtml(b.id)}"><i class="fas fa-copy"></i> Copy to This Month</button>
                     </div>
                 </div>`;
             }).join('');
+            grid.querySelectorAll('.bh-copy-budget').forEach((button) => {
+                button.addEventListener('click', () => copyToThisMonth(button.dataset.budgetId));
+            });
         }
 
         document.addEventListener('DOMContentLoaded', init);

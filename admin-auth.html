@@ -343,7 +343,7 @@
         function showAdminMessage(message, type) {
             const el = document.getElementById('adminLoginMessage');
             if (!el) return;
-            el.innerHTML = message;
+            el.textContent = message;
             el.className = 'admin-auth-message ' + type;
         }
 

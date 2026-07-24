@@ -121,7 +121,7 @@ function clearAuthMessages() {
 function showMessage(elementId, message, type) {
     const messageEl = document.getElementById(elementId);
     if (messageEl) {
-        messageEl.innerHTML = message;
+        messageEl.textContent = message;
         messageEl.className = `auth-message ${type}`;
         messageEl.style.display = 'block';
     }

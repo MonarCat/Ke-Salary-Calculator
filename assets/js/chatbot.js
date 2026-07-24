@@ -278,11 +278,8 @@
         var messages = document.getElementById('kazi-chat-messages');
         var msg = document.createElement('div');
         msg.className = 'kazi-msg kazi-msg-' + role;
-        if (role === 'bot') {
-            msg.innerHTML = text.replace(/\n/g, '<br>');
-        } else {
-            msg.textContent = text;
-        }
+        msg.textContent = text;
+        msg.style.whiteSpace = 'pre-line';
         messages.appendChild(msg);
         messages.scrollTop = messages.scrollHeight;
     }

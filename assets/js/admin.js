@@ -283,7 +283,10 @@ async function loadOrganisations() {
 // Show message in specific container
 function showMessage(containerId, message, type) {
     const container = document.getElementById(containerId);
-    container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+    alert.textContent = message;
+    container.replaceChildren(alert);
     
     // Auto-hide after 5 seconds
     setTimeout(() => {

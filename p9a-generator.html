@@ -444,6 +444,12 @@
             return Number(v || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
+        function esc(value) {
+            const node = document.createElement('div');
+            node.textContent = value == null ? '' : String(value);
+            return node.innerHTML;
+        }
+
         function showAuthPrompt() {
             document.getElementById('main-content').innerHTML = `
                 <div style="text-align:center;padding:60px 20px;">
@@ -940,24 +946,24 @@
                     </div>
                     <div class="p9a-print-badge">
                         <span class="label">Tax Year</span>
-                        <span class="value">${taxYear}</span>
+                        <span class="value">${esc(taxYear)}</span>
                     </div>
                 </div>
                 <div class="p9a-print-meta">
                     <div class="p9a-print-panel">
                         <h3>Employee Details</h3>
                         <div class="p9a-print-list">
-                            <div><span>Name</span><span>${employeeName || 'Employee'}</span></div>
-                            <div><span>Reference</span><span>${employeeRef || '—'}</span></div>
+                            <div><span>Name</span><span>${esc(employeeName || 'Employee')}</span></div>
+                            <div><span>Reference</span><span>${esc(employeeRef || '—')}</span></div>
                             <div><span>Generated On</span><span>${generatedOn}</span></div>
-                            <div><span>KRA PIN</span><span>${employeeKRA}</span></div>
+                            <div><span>KRA PIN</span><span>${esc(employeeKRA)}</span></div>
                         </div>
                     </div>
                     <div class="p9a-print-panel">
                         <h3>Employer Details</h3>
                         <div class="p9a-print-list">
-                            <div><span>Employer</span><span>${employerName}</span></div>
-                            <div><span>KRA PIN</span><span>${employerKRA}</span></div>
+                            <div><span>Employer</span><span>${esc(employerName)}</span></div>
+                            <div><span>KRA PIN</span><span>${esc(employerKRA)}</span></div>
                             <div><span>Document Type</span><span>P9A Annual Tax Card</span></div>
                         </div>
                     </div>
@@ -1084,7 +1090,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>P9A — ${employeeName} — ${taxYear}</title>
+<title>P9A — ${esc(employeeName)} — ${esc(taxYear)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 10px; color: #122118; background: #fff; padding: 10mm; }
@@ -1124,18 +1130,18 @@
     <h1>KRA P9A — Annual Employee Tax Deduction Card</h1>
     <p>Prepared from payroll data for annual tax reconciliation &nbsp;|&nbsp; Generated: ${generatedOn}</p>
   </div>
-  <div class="year-badge"><span class="label">Tax Year</span><span class="value">${taxYear}</span></div>
+  <div class="year-badge"><span class="label">Tax Year</span><span class="value">${esc(taxYear)}</span></div>
 </div>
 <div class="meta-grid">
   <div class="meta-panel">
     <h3>Employee Details</h3>
-    <div class="meta-row"><span>Name</span><span>${employeeName || 'Employee'}</span></div>
-    <div class="meta-row"><span>KRA PIN</span><span>${employeeKRA}</span></div>
+    <div class="meta-row"><span>Name</span><span>${esc(employeeName || 'Employee')}</span></div>
+    <div class="meta-row"><span>KRA PIN</span><span>${esc(employeeKRA)}</span></div>
   </div>
   <div class="meta-panel">
     <h3>Employer Details</h3>
-    <div class="meta-row"><span>Employer</span><span>${employerName}</span></div>
-    <div class="meta-row"><span>KRA PIN</span><span>${employerKRA}</span></div>
+    <div class="meta-row"><span>Employer</span><span>${esc(employerName)}</span></div>
+    <div class="meta-row"><span>KRA PIN</span><span>${esc(employerKRA)}</span></div>
   </div>
 </div>
 <div class="summary-grid">
@@ -1239,12 +1245,15 @@
                     <table class="records-table">
                         <thead><tr><th>Employee</th><th>Tax Year</th><th>Last Updated</th><th>Action</th></tr></thead>
                         <tbody>${records.map(r => `<tr>
-                            <td>${r.employee_name || r.employee_id}</td>
-                            <td>${r.tax_year}</td>
+                            <td>${esc(r.employee_name || r.employee_id)}</td>
+                            <td>${Number(r.tax_year) || ''}</td>
                             <td>${new Date(r.updated_at).toLocaleDateString('en-KE')}</td>
-                            <td><button onclick="loadRecord('${r.employee_id}',${r.tax_year})" style="padding:5px 12px;background:#006600;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:0.85em;">Open</button></td>
+                            <td><button class="p9a-open-record" data-employee-id="${esc(r.employee_id)}" data-tax-year="${Number(r.tax_year) || ''}" style="padding:5px 12px;background:#006600;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:0.85em;">Open</button></td>
                         </tr>`).join('')}</tbody>
                     </table></div>`;
+                cont.querySelectorAll('.p9a-open-record').forEach((button) => {
+                    button.addEventListener('click', () => loadRecord(button.dataset.employeeId, Number(button.dataset.taxYear)));
+                });
             } catch (e) {
                 console.warn('Failed loading records:', e);
             }

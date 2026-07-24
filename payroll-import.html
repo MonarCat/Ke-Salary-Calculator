@@ -444,6 +444,12 @@
             });
         }
 
+        function esc(value) {
+            const node = document.createElement('div');
+            node.textContent = value == null ? '' : String(value);
+            return node.innerHTML;
+        }
+
         // ── Template download helpers ──────────────────────────────────────
         function downloadCSV(type) {
             const t = TEMPLATES[type];
@@ -551,7 +557,7 @@
             // Render error panel
             if (errorRows.length) {
                 const ul = document.getElementById('errorList');
-                ul.innerHTML = errorRows.slice(0,10).map(e => `<li>Row ${e.row}: ${e.error}</li>`).join('');
+                ul.innerHTML = errorRows.slice(0,10).map(e => `<li>Row ${Number(e.row) || 0}: ${esc(e.error)}</li>`).join('');
                 document.getElementById('errorPanel').style.display = '';
                 document.getElementById('btnErrReport').style.display = '';
             } else {
@@ -562,11 +568,11 @@
             // Render preview table
             const thead = document.getElementById('previewHead');
             const tbody = document.getElementById('previewBody');
-            thead.innerHTML = '<tr>' + parsedData.headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+            thead.innerHTML = '<tr>' + parsedData.headers.map(h => `<th>${esc(h)}</th>`).join('') + '</tr>';
             tbody.innerHTML = parsedData.rows.slice(0,10).map((row, idx) => {
                 const isErr = idx >= validRows.length && errorRows.some(e => e.row === idx + 2);
                 const cls = isErr ? 'class="error-row"' : '';
-                return `<tr ${cls}>${parsedData.headers.map(h => `<td>${row[h] ?? ''}</td>`).join('')}</tr>`;
+                return `<tr ${cls}>${parsedData.headers.map(h => `<td>${esc(row[h])}</td>`).join('')}</tr>`;
             }).join('');
 
             document.getElementById('btnConfirm').disabled = validRows.length === 0;
@@ -742,10 +748,10 @@
                     <thead><tr><th>Date</th><th>Template</th><th>File</th><th>Rows</th><th>Status</th></tr></thead>
                     <tbody>${data.map(b => `<tr>
                         <td>${new Date(b.created_at).toLocaleDateString('en-KE')}</td>
-                        <td>${b.template_type || '-'}</td>
-                        <td>${b.file_name || '-'}</td>
+                        <td>${esc(b.template_type || '-')}</td>
+                        <td>${esc(b.file_name || '-')}</td>
                         <td>${b.total_rows || 0}</td>
-                        <td><span style="padding:3px 10px;border-radius:12px;font-size:0.82em;background:${b.status==='completed'?'#e8f5e9':'#fff3e0'};color:${b.status==='completed'?'#2e7d32':'#e65100'};">${b.status}</span></td>
+                        <td><span style="padding:3px 10px;border-radius:12px;font-size:0.82em;background:${b.status==='completed'?'#e8f5e9':'#fff3e0'};color:${b.status==='completed'?'#2e7d32':'#e65100'};">${esc(b.status)}</span></td>
                     </tr>`).join('')}</tbody>
                 </table></div>`;
         }

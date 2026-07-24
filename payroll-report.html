@@ -705,7 +705,7 @@ function renderCharts(employees) {
     const deptHtml = Object.entries(depts).sort((a,b) => b[1]-a[1]).map(([d, v]) => {
         const pct = Math.round(v / maxDept * 100);
         return `<li>
-            <div class="bar-label"><span>${d}</span><span>${fmtKES(v)}</span></div>
+            <div class="bar-label"><span>${escHtml(d)}</span><span>${fmtKES(v)}</span></div>
             <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
         </li>`;
     }).join('');
@@ -731,7 +731,7 @@ function renderTable(employees) {
             <td>${escHtml(emp.name || '—')}</td>
             <td>${escHtml(emp.employeeId || '—')}</td>
             <td>${escHtml(emp.department || '—')}</td>
-            <td><span class="tag ${tagMap[s]||'tag-active'}">${s}</span></td>
+            <td><span class="tag ${tagMap[s]||'tag-active'}">${escHtml(s)}</span></td>
             <td>${fmtNum(gross)}</td>
             <td>${fmtNum(d.paye)}</td>
             <td>${fmtNum(d.nssf)}</td>

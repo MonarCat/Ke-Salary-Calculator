@@ -2062,7 +2062,7 @@
             // Build a simple HTML table that Excel can open
             let html = '<table><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
             rows.forEach(r => {
-                html += '<tr>' + headers.map(h => `<td>${r[h] ?? ''}</td>`).join('') + '</tr>';
+                html += '<tr>' + headers.map(h => `<td>${esc(r[h] ?? '')}</td>`).join('') + '</tr>';
             });
             html += '</table>';
             const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
@@ -2078,7 +2078,7 @@
                 <tr style="background:#006600;color:white;">${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
             rows.forEach((r, i) => {
                 const bg = i % 2 === 0 ? '#fff' : '#f5f5f5';
-                tableHtml += `<tr style="background:${bg};">${headers.map(h => `<td>${r[h] ?? ''}</td>`).join('')}</tr>`;
+                tableHtml += `<tr style="background:${bg};">${headers.map(h => `<td>${esc(r[h] ?? '')}</td>`).join('')}</tr>`;
             });
             tableHtml += '</table>';
             const win = window.open('', '_blank');
