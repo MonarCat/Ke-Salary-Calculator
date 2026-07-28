@@ -1,0 +1,21 @@
+# robots.txt for Kenya Salary Calculator
+
+# Allow all web crawlers access to all content
+User-agent: *
+Allow: /
+
+# Disallow admin pages from being indexed
+Disallow: /admin.html
+Disallow: /admin-auth.html
+
+# Specifically allow Google AdSense crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+# Allow Google AdSense verification bot
+User-agent: AdsBot-Google
+Allow: /
+
+# Sitemap location (update with actual URL when available)
+# Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://salarycalculator.co.ke/sitemap.xml

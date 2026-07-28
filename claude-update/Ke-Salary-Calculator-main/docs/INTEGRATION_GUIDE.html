@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="My Salo" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>Integration Guide – KeSalaryCalculator Premium & Components</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.6; }
+        h1 { color: #006600; border-bottom: 3px solid #006600; padding-bottom: 10px; }
+        h2 { color: #2e7d32; margin-top: 40px; }
+        h3 { color: #333; }
+        pre { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 0.88rem; }
+        code { background: #f0f0f0; border-radius: 3px; padding: 2px 5px; font-size: 0.9em; }
+        .step { background: #e8f5e9; border-left: 4px solid #006600; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+        .warn { background: #fff8e1; border-left: 4px solid #f9a825; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+        .file-path { font-weight: 700; color: #006600; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+        th { background: #e8f5e9; }
+        a { color: #006600; }
+    </style>
+</head>
+<body>
+
+<h1>🇰🇪 Integration Guide</h1>
+<p>Step-by-step instructions for wiring all premium and monetisation components into the Kenya Salary Calculator.</p>
+
+<hr>
+
+<!-- ─── STEP 1 ─────────────────────────────────────────────────────────── -->
+<h2>Step 1 — Run the SQL Migration</h2>
+<p>Open the <strong>Supabase SQL Editor</strong> and run the contents of:</p>
+<p class="file-path">database/004_premium_and_newsletter.sql</p>
+<p>This adds <code>premium</code>, <code>premium_expires_at</code>, <code>premium_source</code> columns to <code>user_profiles</code>, creates the <code>paypal_transactions</code> audit table, updates <code>newsletter_subscribers</code>, and creates the <code>check_premium_active()</code> and <code>grant_premium()</code> SQL functions.</p>
+
+<div class="warn">
+    <strong>⚠️ Order matters.</strong> Run this <em>after</em> <code>blog-schema-additions.sql</code> because it requires the <code>user_profiles</code> table to already exist.
+</div>
+
+<!-- ─── STEP 2 ─────────────────────────────────────────────────────────── -->
+<h2>Step 2 — Deploy the Vercel Webhook Function</h2>
+
+<h3>2a. vercel.json</h3>
+<p>Ensure this file exists at the repository root (already included in this project):</p>
+<pre><code>{
+  "functions": {
+    "api/**/*.mjs": { "runtime": "nodejs20.x" }
+  }
+}
+</code></pre>
+
+<h3>2b. Environment variables (Vercel dashboard)</h3>
+<p>Go to <strong>Project settings → Environment Variables</strong> and add:</p>
+<table>
+    <tr><th>Variable</th><th>Value</th></tr>
+    <tr><td><code>SUPABASE_URL</code></td><td>Your Supabase project URL, e.g. <code>https://xyzxyz.supabase.co</code></td></tr>
+    <tr><td><code>SUPABASE_SERVICE_KEY</code></td><td>Your Supabase <strong>service-role</strong> key (keep secret!)</td></tr>
+    <tr><td><code>PAYPAL_MODE</code></td><td><code>live</code> or <code>sandbox</code></td></tr>
+</table>
+
+<h3>2c. PayPal IPN URL</h3>
+<p>In your PayPal account go to <strong>Account Settings → Instant Payment Notifications</strong> and set the notification URL to:</p>
+<pre><code>https://&lt;your-vercel-site&gt;.vercel.app/api/paypal-webhook</code></pre>
+<p>Or update the <code>notify_url</code> field in your PayPal button form:</p>
+<pre><code>&lt;input type="hidden" name="notify_url"
+       value="https://&lt;your-vercel-site&gt;.vercel.app/api/paypal-webhook" /&gt;</code></pre>
+
+<!-- ─── STEP 3 ─────────────────────────────────────────────────────────── -->
+<h2>Step 3 — Update calculator.html</h2>
+
+<h3>3a. CSS links (inside &lt;head&gt;)</h3>
+<p>These are auto-injected by <code>calculator-enhancements.js</code>, so no manual <code>&lt;link&gt;</code> tags are needed. Skip to 3b.</p>
+
+<h3>3b. Add placeholder &lt;div&gt; elements</h3>
+<p>Place these divs in the appropriate locations inside the results section of <code>calculator.html</code>:</p>
+
+<pre><code>&lt;!-- Share result – place immediately after the results table --&gt;
+&lt;div id="ke-share-result" style="display:none;"&gt;&lt;/div&gt;
+
+&lt;!-- Financial tools – place after the share bar --&gt;
+&lt;div id="ke-financial-tools" style="display:none;"&gt;&lt;/div&gt;
+
+&lt;!-- Newsletter – place near the bottom of the main content area --&gt;
+&lt;div data-ke-newsletter="calculator"&gt;&lt;/div&gt;
+
+&lt;!-- Ad slots – place where you want ads to appear --&gt;
+&lt;div id="ke-ad-top"&gt;&lt;/div&gt;
+&lt;div id="ke-ad-mid"&gt;&lt;/div&gt;
+&lt;div id="ke-ad-bottom"&gt;&lt;/div&gt;</code></pre>
+
+<h3>3c. Load the entry-point script</h3>
+<p>Add this <strong>after</strong> the existing <code>&lt;script&gt;</code> tags at the bottom of <code>calculator.html</code>:</p>
+
+<pre><code>&lt;!-- Premium &amp; monetisation components --&gt;
+&lt;script src="src/components/calculator-enhancements.js" defer&gt;&lt;/script&gt;</code></pre>
+
+<h3>3d. Dispatch event from calculateSalary()</h3>
+<p>Open <code>assets/js/script.js</code> and find the end of the <code>calculateSalary()</code> function (just before the closing <code>}</code> of the function, after the call to <code>generateShareLink()</code>).</p>
+<p>Add this one line:</p>
+<pre><code>    // Notify premium/share/financial-tools components
+    window.dispatchEvent(new CustomEvent('salaryCalculated', { detail: {
+        grossPay, netPay, paye, nssf, shif, housingLevy, totalIncome
+    }}));
+</code></pre>
+
+<!-- ─── STEP 4 ─────────────────────────────────────────────────────────── -->
+<h2>Step 4 — Update PayPal Premium Button</h2>
+<p>Open <code>src/components/premium.js</code> and replace <code>PREMIUM_BUTTON_ID</code> with your actual PayPal subscription button ID:</p>
+<pre><code>&lt;input type="hidden" name="hosted_button_id" value="YOUR_ACTUAL_BUTTON_ID" /&gt;</code></pre>
+
+<!-- ─── STEP 5 ─────────────────────────────────────────────────────────── -->
+<h2>Step 5 — index.html (optional newsletter)</h2>
+<p>To show the newsletter block on the homepage, add:</p>
+<pre><code>&lt;!-- Newsletter block --&gt;
+&lt;div data-ke-newsletter="index"&gt;&lt;/div&gt;
+
+&lt;!-- Load newsletter component --&gt;
+&lt;script src="src/components/newsletter.js" defer&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="src/components/newsletter.css"&gt;</code></pre>
+
+<!-- ─── STEP 6 ─────────────────────────────────────────────────────────── -->
+<h2>Step 6 — Manually Activate M-Pesa Payments</h2>
+<p>For users who pay via M-Pesa, call <code>grant_premium()</code> directly from the Supabase SQL Editor:</p>
+<pre><code>SELECT grant_premium(
+    'user-uuid-here',   -- p_user_id
+    'mpesa',            -- p_source
+    30                  -- p_duration_days
+);</code></pre>
+
+<!-- ─── AFFILIATE URLS ──────────────────────────────────────────────────── -->
+<h2>Appendix — Replacing Affiliate URLs</h2>
+<p>Open <code>src/components/financial-tools.js</code> and replace the placeholder <code>#</code> / placeholder URLs in <code>CARD_SETS</code> with real affiliate URLs from your partnerships:</p>
+<table>
+    <tr><th>Card ID</th><th>Partner</th><th>Get Link From</th></tr>
+    <tr><td><code>tala</code></td><td>Tala</td><td>Tala Kenya affiliate programme</td></tr>
+    <tr><td><code>branch</code></td><td>Branch</td><td>Branch affiliate / referral portal</td></tr>
+    <tr><td><code>cytonn</code></td><td>Cytonn</td><td>Cytonn referral programme</td></tr>
+    <tr><td><code>jubilee</code></td><td>Jubilee Insurance</td><td>Jubilee broker portal</td></tr>
+    <tr><td><code>britam</code></td><td>Britam</td><td>Britam agent/broker portal</td></tr>
+</table>
+
+<!-- ─── MONETAG ────────────────────────────────────────────────────────── -->
+<h2>Appendix — Monetag Zone IDs</h2>
+<p>Open <code>src/components/adslots.js</code> and replace the empty strings in <code>AD_SLOTS</code> with your actual Monetag zone IDs:</p>
+<pre><code>const AD_SLOTS = {
+    'ke-ad-top':    '1234567',
+    'ke-ad-mid':    '1234568',
+    'ke-ad-bottom': '1234569',
+};</code></pre>
+
+<hr>
+<p style="text-align:center; color:#888; font-size:0.85rem;">
+    KeSalaryCalculator Integration Guide · generated 2025
+</p>
+</body>
+</html>

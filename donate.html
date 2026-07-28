@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/sw.js" async></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="My Salo" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>Support Us - Donate | Kenya Salary Calculator</title>
+    <meta name="description" content="Support Kenya Salary Calculator with a secure donation. Your contribution helps keep PAYE, NSSF, SHIF and payslip tools free for thousands of Kenyans.">
+    <meta name="keywords" content="donate Kenya Salary Calculator, support salary calculator Kenya, fund free payroll tools Kenya">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://salarycalculator.co.ke/donate.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://salarycalculator.co.ke/donate.html">
+    <meta property="og:title" content="Support Us - Donate | Kenya Salary Calculator">
+    <meta property="og:description" content="Your donation helps keep Kenya Salary Calculator's PAYE, NSSF, SHIF and payslip tools free for everyone.">
+    <meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+
+    <link rel="stylesheet" href="assets/css/styles.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!--
+      Optional payment methods shown as extra cards on this page.
+      Leave any field blank to hide that card — nothing fake is ever shown.
+      Fill these in with your real M-Pesa / bank details to enable them.
+    -->
+    <script>
+        window.__DONATION_CONFIG = {
+            mpesa: { paybill: "", account: "", till: "" },
+            bank:  { bankName: "", accountName: "", accountNumber: "", branch: "" }
+        };
+    </script>
+
+    <style>
+        .donate-hero {
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: #fff;
+            padding: 44px 28px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .donate-hero .donate-hero-icon { font-size: 2.4em; margin-bottom: 10px; }
+        .donate-hero h1 { color: #fff; font-size: clamp(1.6rem, 4vw, 2.4rem); margin-bottom: 12px; }
+        .donate-hero p { font-size: 1.1em; color: #f0f0f0; max-width: 640px; margin: 0 auto; }
+
+        .donate-content { max-width: 860px; margin: 0 auto; }
+
+        .donate-message-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px 28px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            line-height: 1.75;
+            color: #444;
+        }
+        .donate-message-card h2 { color: #006600; margin-top: 0; font-size: 1.3em; }
+
+        .donate-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 26px 28px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        .donate-card legend, .donate-card h2 {
+            color: #006600;
+            font-size: 1.2em;
+            font-weight: 700;
+            padding: 0;
+            margin: 0 0 16px;
+        }
+        .donate-card fieldset { border: none; padding: 0; margin: 0 0 22px; }
+
+        .donate-amount-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .donate-amount-btn {
+            font-family: inherit;
+            font-size: 1.05em;
+            font-weight: 700;
+            padding: 16px 8px;
+            border: 2px solid #d8eed8;
+            border-radius: 8px;
+            background: #f5fbf5;
+            color: #006600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .donate-amount-btn:hover { border-color: #006600; transform: translateY(-2px); }
+        .donate-amount-btn:focus-visible { outline: 3px solid #009900; outline-offset: 2px; }
+        .donate-amount-btn.selected,
+        .donate-amount-btn[aria-pressed="true"] {
+            background: #006600;
+            border-color: #006600;
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(0,102,0,0.3);
+        }
+
+        .donate-custom-wrapper { position: relative; }
+        .donate-custom-wrapper span {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: #666; font-weight: 600; pointer-events: none;
+        }
+        #donate-custom-amount {
+            width: 100%; box-sizing: border-box;
+            padding: 14px 14px 14px 68px;
+            border: 1.5px solid #d0d0d0; border-radius: 8px;
+            font-size: 1.05em; font-family: inherit;
+        }
+        #donate-custom-amount:focus { outline: none; border-color: #006600; box-shadow: 0 0 0 3px rgba(0,102,0,0.15); }
+
+        .donate-form-group { margin-bottom: 16px; }
+        .donate-form-group label { display: block; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .donate-form-group input {
+            width: 100%; box-sizing: border-box;
+            padding: 12px 14px; border: 1.5px solid #d0d0d0; border-radius: 8px;
+            font-size: 1em; font-family: inherit;
+        }
+        .donate-form-group input:focus { outline: none; border-color: #006600; box-shadow: 0 0 0 3px rgba(0,102,0,0.15); }
+        .donate-form-group .hint { font-size: 0.85em; color: #777; margin-top: 4px; }
+
+        #donate-error {
+            background: #fdecea; color: #a30000; border: 1px solid #f3b8b3;
+            padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.95em;
+        }
+
+        .donate-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            color: #fff; border: none; border-radius: 8px;
+            padding: 16px; font-size: 1.1em; font-weight: 700;
+            font-family: inherit; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .donate-submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,102,0,0.35); }
+        .donate-submit-btn:focus-visible { outline: 3px solid #003d00; outline-offset: 2px; }
+        .donate-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .donate-secure-note {
+            text-align: center; color: #777; font-size: 0.85em; margin-top: 12px;
+        }
+
+        .donate-methods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .donate-method-card {
+            background: #f9f9f9; border: 1px solid #eee; border-radius: 8px;
+            padding: 18px 20px;
+        }
+        .donate-method-card i { color: #006600; font-size: 1.6em; margin-bottom: 8px; display: block; }
+        .donate-method-card h3 { margin: 0 0 10px; color: #333; font-size: 1.05em; }
+        .donate-method-card p { display: flex; justify-content: space-between; gap: 10px; margin: 6px 0; font-size: 0.92em; color: #555; }
+        .donate-method-card p span { color: #888; }
+        .donate-method-card p strong { color: #222; }
+
+        #donate-success {
+            background: #fff; border-radius: 10px; padding: 46px 28px;
+            text-align: center; box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+        #donate-success .donate-success-icon {
+            font-size: 3.4em; color: #009900; margin-bottom: 16px;
+        }
+        #donate-success h2 { color: #006600; margin: 0 0 10px; }
+        #donate-success p { color: #555; line-height: 1.7; }
+        .donate-success-ref {
+            display: inline-block; margin: 14px 0 22px; padding: 8px 16px;
+            background: #f5fbf5; border-radius: 6px; font-family: monospace;
+            font-size: 0.92em; color: #006600;
+        }
+        .donate-success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .donate-success-actions a, .donate-success-actions button {
+            padding: 12px 22px; border-radius: 6px; font-family: inherit; font-size: 0.95em;
+            font-weight: 600; text-decoration: none; cursor: pointer; border: none;
+        }
+        .donate-success-actions .btn-primary { background: #006600; color: #fff; }
+        .donate-success-actions .btn-outline { background: #fff; color: #006600; border: 1.5px solid #006600; }
+
+        @media (max-width: 480px) {
+            .donate-amount-group { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* Dark mode */
+        body.dark-mode .donate-message-card,
+        body.dark-mode .donate-card,
+        body.dark-mode #donate-success {
+            background: #16213e; color: #e0e0e0; box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .donate-message-card h2,
+        body.dark-mode .donate-card legend,
+        body.dark-mode .donate-card h2,
+        body.dark-mode #donate-success h2 { color: #4caf50; }
+        body.dark-mode .donate-amount-btn {
+            background: #1a1a2e; border-color: #2a2a4e; color: #4caf50;
+        }
+        body.dark-mode .donate-amount-btn.selected,
+        body.dark-mode .donate-amount-btn[aria-pressed="true"] {
+            background: #4caf50; border-color: #4caf50; color: #16213e;
+        }
+        body.dark-mode #donate-custom-amount,
+        body.dark-mode .donate-form-group input {
+            background: #1a1a2e; border-color: #2a2a4e; color: #e0e0e0;
+        }
+        body.dark-mode .donate-form-group label { color: #cfd8dc; }
+        body.dark-mode .donate-method-card { background: #1a1a2e; border-color: #2a2a4e; }
+        body.dark-mode .donate-method-card h3 { color: #e0e0e0; }
+        body.dark-mode .donate-method-card p strong { color: #e0e0e0; }
+        body.dark-mode .donate-success-ref { background: #1a1a2e; color: #4caf50; }
+        body.dark-mode .donate-success-actions .btn-outline { color: #4caf50; border-color: #4caf50; }
+        body.dark-mode .donate-success-actions .btn-primary { background: #4caf50; color: #16213e; }
+    </style>
+</head>
+<body>
+    <!-- Nav drawer overlay (backdrop for mobile slide-in drawer) -->
+    <div class="nav-drawer-overlay" id="navDrawerOverlay" aria-hidden="true"></div>
+
+    <div class="overlay">
+        <div class="container">
+            <!-- Logo Container -->
+            <div class="logo-container">
+                <a href="/">
+                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
+                </a>
+            </div>
+
+            <!-- Navigation Menu -->
+            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="main-nav">
+                <a href="/">Home</a>
+
+                <!-- Calculators Dropdown -->
+                <div class="nav-dropdown">
+                    <span class="nav-dropdown-toggle">
+                        Calculators <i class="fas fa-chevron-down"></i>
+                    </span>
+                    <div class="nav-dropdown-menu">
+                        <a href="/calculator.html">Salary Calculator</a>
+                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
+                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
+                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
+                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
+                        <a href="/salary-after-tax.html">Salary After Tax</a>
+                        <a href="/global-salary-calculator.html">Global Calculator</a>
+                        <a href="/budget-planner.html">Budget Planner</a>
+                    </div>
+                </div>
+
+                <a href="/about-us.html">About Us</a>
+                <a href="/blog.html">Blog</a>
+                <a href="/faq.html">FAQ</a>
+                <a href="/contact-us.html">Contact Us</a>
+                <a href="/employees.html">Manage Employees</a>
+
+                <a href="/donate.html" class="active"><i class="fas fa-heart"></i> Donate</a>
+                <div id="auth-links" class="auth-links-container"></div>
+            </nav>
+
+            <!-- Hero Section -->
+            <div class="donate-hero">
+                <div class="donate-hero-icon" aria-hidden="true">❤️</div>
+                <h1>Support Kenya Salary Calculator</h1>
+                <p>We keep PAYE, NSSF, SHIF, Housing Levy and payslip tools free for every Kenyan. If this tool has saved you time, a small donation helps us keep it that way.</p>
+            </div>
+
+            <div class="donate-content">
+                <!-- Why donate -->
+                <section class="donate-message-card" aria-labelledby="donate-why-heading">
+                    <h2 id="donate-why-heading"><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Why your support matters</h2>
+                    <p>
+                        Kenya Salary Calculator is free to use and always will be. Your donation goes directly
+                        towards hosting, data and SMS/email costs, and the time we spend keeping PAYE, NSSF, SHIF
+                        and Housing Levy figures accurate as rates change every year. Every contribution — big or
+                        small — helps us reach more employees and employers across Kenya.
+                    </p>
+                </section>
+
+                <!-- Donation form -->
+                <section id="donate-form-section" class="donate-card" aria-labelledby="donate-amount-heading">
+                    <form id="donate-form" novalidate>
+                        <div id="donate-error" role="alert" hidden></div>
+
+                        <fieldset>
+                            <legend id="donate-amount-heading">Choose an amount</legend>
+                            <div class="donate-amount-group" id="donate-amount-group" role="group" aria-label="Preset donation amounts">
+                                <button type="button" class="donate-amount-btn" data-amount="100" aria-pressed="false">KES 100</button>
+                                <button type="button" class="donate-amount-btn" data-amount="250" aria-pressed="false">KES 250</button>
+                                <button type="button" class="donate-amount-btn" data-amount="500" aria-pressed="false">KES 500</button>
+                                <button type="button" class="donate-amount-btn" data-amount="1000" aria-pressed="false">KES 1,000</button>
+                            </div>
+                            <label for="donate-custom-amount" class="hint" style="display:block;margin-bottom:6px;font-weight:600;color:#333;">Or enter a custom amount</label>
+                            <div class="donate-custom-wrapper">
+                                <span aria-hidden="true">KES</span>
+                                <input type="number" id="donate-custom-amount" name="amount" min="10" step="1" inputmode="numeric" placeholder="e.g. 750" aria-describedby="donate-amount-hint">
+                            </div>
+                            <p id="donate-amount-hint" class="hint">Minimum donation: KES 10</p>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend class="sc-sr-only">Your details</legend>
+                            <div class="donate-form-group">
+                                <label for="donate-name">Name <span style="font-weight:400;color:#888;">(optional)</span></label>
+                                <input type="text" id="donate-name" name="name" autocomplete="name" placeholder="Your name">
+                            </div>
+                            <div class="donate-form-group">
+                                <label for="donate-email">Email <span style="color:#a30000;">*</span></label>
+                                <input type="email" id="donate-email" name="email" autocomplete="email" placeholder="you@example.com" required aria-required="true">
+                                <p class="hint">We'll send your payment receipt to this address.</p>
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" id="donate-submit" class="donate-submit-btn">
+                            <i class="fas fa-lock" aria-hidden="true"></i> Donate Securely
+                        </button>
+                        <p class="donate-secure-note"><i class="fas fa-shield-alt" aria-hidden="true"></i> Payments are processed securely by Paystack. We never see or store your card details.</p>
+                    </form>
+                </section>
+
+                <!-- Payment methods -->
+                <section class="donate-card" aria-labelledby="donate-methods-heading">
+                    <h2 id="donate-methods-heading"><i class="fas fa-credit-card" aria-hidden="true"></i> Payment Methods</h2>
+                    <div class="donate-methods-grid">
+                        <div class="donate-method-card">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                            <h3>Card &amp; M-Pesa (Secure Checkout)</h3>
+                            <p style="display:block;">Pay instantly above with your debit/credit card or M-Pesa via our secure Paystack checkout — no account needed.</p>
+                        </div>
+                        <!-- Extra cards (M-Pesa Paybill / Bank) are injected here only if configured in the page <head> -->
+                    </div>
+                    <div class="donate-methods-grid" id="donate-alt-methods" style="margin-top:16px;" hidden></div>
+                </section>
+
+                <!-- Success state (hidden until a payment completes) -->
+                <section id="donate-success" hidden>
+                    <div class="donate-success-icon" aria-hidden="true"><i class="fas fa-check-circle"></i></div>
+                    <h2>Thank you for your support! 🎉</h2>
+                    <p>Your donation of <strong id="donate-success-amount">KES 0</strong> was received successfully. A receipt has been sent to your email.</p>
+                    <div class="donate-success-ref">Ref: <span id="donate-success-ref"></span></div>
+                    <div class="donate-success-actions">
+                        <button type="button" id="donate-again-btn" class="btn-outline">Make Another Donation</button>
+                        <a href="/" class="btn-primary">Back to Home</a>
+                    </div>
+                </section>
+            </div>
+
+            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <p style="margin-bottom: 10px;">
+                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
+                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
+                    <a href="/contact-us.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Contact Us</a>
+                </p>
+                <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/format-utils.js?v=1.0"></script>
+    <script src="assets/js/donate.js?v=1.0"></script>
+</body>
+</html>

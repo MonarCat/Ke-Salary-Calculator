@@ -1,0 +1,200 @@
+/* premium-gate.css – Styles for the KePremium lock overlay and upgrade modal */
+
+/* ── Lock overlay ─────────────────────────────────────────────────────────── */
+
+.ke-premium-gate {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: inherit;
+}
+
+.ke-premium-gate__inner {
+    text-align: center;
+    padding: 24px 32px;
+    max-width: 320px;
+}
+
+.ke-premium-gate__lock {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.ke-premium-gate__title {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.ke-premium-gate__desc {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0 0 16px;
+}
+
+.ke-premium-gate__btn {
+    display: inline-block;
+    background: #006600;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ke-premium-gate__btn:hover {
+    background: #004d00;
+}
+
+.ke-premium-gate__mpesa {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #777;
+}
+
+.ke-premium-gate__mpesa a {
+    color: #006600;
+    text-decoration: underline;
+}
+
+/* dark mode */
+body.dark-mode .ke-premium-gate {
+    background: rgba(30, 30, 30, 0.88);
+}
+body.dark-mode .ke-premium-gate__title {
+    color: #f0f0f0;
+}
+body.dark-mode .ke-premium-gate__desc {
+    color: #ccc;
+}
+body.dark-mode .ke-premium-gate__mpesa {
+    color: #aaa;
+}
+
+/* ── Upgrade modal ────────────────────────────────────────────────────────── */
+
+.ke-premium-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+}
+
+.ke-premium-modal--open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ke-premium-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.ke-premium-modal__box {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    border-radius: 12px;
+    padding: 36px 32px 28px;
+    max-width: 440px;
+    width: calc(100% - 32px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+    text-align: center;
+}
+
+.ke-premium-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+    padding: 4px 6px;
+}
+
+.ke-premium-modal__close:hover {
+    color: #111;
+}
+
+.ke-premium-modal__icon {
+    font-size: 2.8rem;
+    margin-bottom: 8px;
+}
+
+.ke-premium-modal__title {
+    margin: 0 0 6px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.ke-premium-modal__subtitle {
+    font-size: 0.95rem;
+    color: #555;
+    margin: 0 0 18px;
+}
+
+.ke-premium-modal__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    text-align: left;
+    font-size: 0.92rem;
+    color: #333;
+}
+
+.ke-premium-modal__features li {
+    padding: 5px 0;
+}
+
+.ke-premium-modal__paypal {
+    margin: 0 0 14px;
+}
+
+.ke-premium-modal__mpesa {
+    font-size: 0.83rem;
+    color: #777;
+}
+
+.ke-premium-modal__mpesa a {
+    color: #006600;
+    text-decoration: underline;
+}
+
+/* dark mode */
+body.dark-mode .ke-premium-modal__box {
+    background: #1e1e1e;
+    color: #f0f0f0;
+}
+body.dark-mode .ke-premium-modal__title {
+    color: #f0f0f0;
+}
+body.dark-mode .ke-premium-modal__subtitle,
+body.dark-mode .ke-premium-modal__features {
+    color: #ccc;
+}
+body.dark-mode .ke-premium-modal__mpesa {
+    color: #aaa;
+}
+body.dark-mode .ke-premium-modal__close {
+    color: #aaa;
+}
+body.dark-mode .ke-premium-modal__close:hover {
+    color: #f0f0f0;
+}
