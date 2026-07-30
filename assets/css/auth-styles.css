@@ -147,7 +147,7 @@
     display: block;
     margin-bottom: 6px;
     color: #333;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
 }
 
@@ -161,13 +161,13 @@
 .auth-form-container input[type="password"],
 .auth-form-container select {
     width: 100%;
-    padding: 11px 14px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    padding: 0.84rem 0.95rem;
+    border: 1px solid #dce7dc;
+    border-radius: 10px;
     font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
     box-sizing: border-box;
-    background: #fafafa;
+    background: #fcfffc;
 }
 
 .auth-form-container input[type="text"]:focus,
@@ -178,6 +178,27 @@
     border-color: #006600;
     box-shadow: 0 0 0 3px rgba(0, 102, 0, 0.12);
     background: white;
+}
+
+.auth-message {
+    margin-top: 0.75rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border: 1px solid transparent;
+}
+
+.auth-message.error {
+    background: #fff5f5;
+    color: #a50000;
+    border-color: #f7c7c7;
+}
+
+.auth-message.success {
+    background: #f3fcf4;
+    color: #0b5d1d;
+    border-color: #cfe9d5;
 }
 
 /* Password field with show/hide toggle */

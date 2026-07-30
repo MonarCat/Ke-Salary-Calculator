@@ -117,22 +117,45 @@
     </script>
     <style>
         .hero-section {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #0a1f0a 0%, #003300 50%, #1a0000 100%);
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.75fr);
+            gap: 1.25rem;
+            align-items: center;
+            text-align: left;
+            padding: clamp(1.3rem, 3vw, 2rem);
+            background: linear-gradient(125deg, #0a1f0a 0%, #003300 48%, #1a0000 100%);
             color: white;
-            border-radius: 10px;
-            margin: 20px 0;
+            border-radius: 24px;
+            margin: 1.15rem 0 1.5rem;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.16);
+        }
+        .hero-copy {
+            max-width: 720px;
+        }
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #f7f7f2;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.9rem;
         }
         .hero-section h1 {
             color: white;
             font-family: 'Oswald', 'Arial Narrow', Arial, sans-serif;
-            font-size: 2.8em;
+            font-size: clamp(2rem, 3.4vw, 2.9rem);
             font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+            letter-spacing: 0.01em;
+            text-transform: none;
+            margin-bottom: 0.85rem;
+            text-shadow: none;
             padding-bottom: 0;
         }
         .hero-section h1::after { display: none; }
@@ -143,57 +166,96 @@
             color: #77dd44;
         }
         .hero-section p {
-            font-size: 1.2em;
-            margin-bottom: 30px;
-            color: #f0f0f0;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            color: #f4f6ee;
+            line-height: 1.75;
+            max-width: 640px;
+        }
+        .hero-meta {
+            font-size: 0.96rem;
+            margin-top: 0.2rem;
+            color: #d8ebcf;
         }
         .cta-buttons {
             display: flex;
-            gap: 20px;
-            justify-content: center;
+            gap: 0.8rem;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            margin-top: 30px;
+            margin-top: 1.2rem;
         }
         .cta-button {
-            padding: 15px 35px;
-            font-size: 18px;
-            font-weight: bold;
+            padding: 0.9rem 1.25rem;
+            font-size: 0.97rem;
+            font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 999px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.22s ease;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .cta-button.primary {
             background: white;
             color: #006600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.16);
         }
         .cta-button.primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.22);
         }
         .cta-button.secondary {
-            background: transparent;
+            background: rgba(255,255,255,0.12);
             color: white;
-            border: 2px solid white;
+            border: 1px solid rgba(255,255,255,0.22);
         }
         .cta-button.secondary:hover {
             background: white;
             color: #006600;
+        }
+        .hero-side-card {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            backdrop-filter: blur(6px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        .hero-side-title {
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #dcefd4;
+            margin-bottom: 0.7rem;
+        }
+        .hero-side-services {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .hero-side-services span {
+            padding: 0.44rem 0.68rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.16);
+            color: #f7f7f2;
+            font-size: 0.82rem;
+            font-weight: 600;
         }
         .support-ke-salary-card {
             display: grid;
             grid-template-columns: auto minmax(0, 1fr) auto;
             align-items: center;
             gap: 18px;
-            margin: 22px 0 28px;
-            padding: 22px 24px;
-            border: 1px solid #cfe7d1;
-            border-radius: 12px;
+            margin: 1.25rem 0 1.5rem;
+            padding: 1.1rem 1.2rem;
+            border: 1px solid #dce8dc;
+            border-radius: 18px;
             background: linear-gradient(110deg, #f6fbf6, #ffffff);
-            box-shadow: 0 4px 18px rgba(0, 76, 0, 0.07);
+            box-shadow: 0 12px 30px rgba(0, 76, 0, 0.06);
         }
         .support-ke-salary-icon {
             display: grid;
@@ -214,7 +276,7 @@
             gap: 8px;
             padding: 11px 16px;
             border: 2px solid #006600;
-            border-radius: 7px;
+            border-radius: 999px;
             background: #006600;
             color: #fff;
             font-weight: 700;
@@ -224,10 +286,76 @@
         }
         .support-ke-salary-button:hover, .footer-support-link:hover { background: #004d00; color: #fff; text-decoration: none; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,102,0,.2); }
         .support-ke-salary-button:focus-visible, .footer-support-link:focus-visible { outline: 3px solid #cc0000; outline-offset: 3px; }
-        .footer-support { max-width: 360px; margin: 0 auto 18px; padding-bottom: 18px; border-bottom: 1px solid #d8e6d8; }
+        .footer-support { max-width: 100%; margin: 0 auto 18px; padding-bottom: 18px; border-bottom: 1px solid #d8e6d8; }
         .footer-support h2 { color: #006600; font-size: 1rem; margin: 0 0 8px; }
         .footer-support p { margin: 4px 0; line-height: 1.5; }
         .footer-support-link { margin-top: 10px; padding: 8px 17px; }
+        .homepage-panel {
+            background: #fff;
+            border: 1px solid #e6efe6;
+            border-radius: 20px;
+            padding: 1.25rem 1.3rem;
+            box-shadow: 0 14px 32px rgba(0, 76, 0, 0.06);
+            margin: 0 0 1.2rem;
+        }
+        .homepage-panel--soft {
+            background: linear-gradient(135deg, #f9fdf8 0%, #ffffff 100%);
+        }
+        .homepage-panel--compact {
+            padding: 1.15rem 1.2rem;
+            margin: 1.1rem 0 1.3rem;
+        }
+        .section-title {
+            margin: 0 0 0.55rem;
+            color: #006600;
+            font-size: clamp(1.1rem, 2vw, 1.28rem);
+        }
+        .section-copy {
+            color: #4b5563;
+            line-height: 1.78;
+            margin: 0;
+        }
+        .section-copy + .section-copy {
+            margin-top: 0.75rem;
+        }
+        .highlight-link {
+            color: #006600;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .highlight-link:hover {
+            text-decoration: underline;
+        }
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+            margin: 1.15rem 0 1.45rem;
+        }
+        .trust-card {
+            background: linear-gradient(135deg, #f8fdf8 0%, #ffffff 100%);
+            border: 1px solid #dfeedd;
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 10px 24px rgba(0, 76, 0, 0.05);
+        }
+        .trust-card i {
+            display: block;
+            color: #006600;
+            font-size: 1.15rem;
+            margin-bottom: 0.45rem;
+        }
+        .trust-card h3 {
+            margin: 0 0 0.28rem;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+        .trust-card p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 0.86rem;
+            line-height: 1.6;
+        }
         body.dark-mode .support-ke-salary-card { background: linear-gradient(110deg, #162b22, #16213e); border-color: #295238; box-shadow: none; }
         body.dark-mode .support-ke-salary-copy h2, body.dark-mode .footer-support h2 { color: #77dd88; }
         body.dark-mode .support-ke-salary-copy p { color: #d4ded5; }
@@ -235,23 +363,50 @@
         body.dark-mode .support-ke-salary-button, body.dark-mode .footer-support-link { background: #4caf50; border-color: #4caf50; color: #102114; }
         body.dark-mode .support-ke-salary-button:hover, body.dark-mode .footer-support-link:hover { background: #77dd88; color: #102114; }
         body.dark-mode .footer-support { border-bottom-color: #2a4a36; }
+        body.dark-mode .homepage-panel,
+        body.dark-mode .trust-card,
+        body.dark-mode .feature-card,
+        body.dark-mode .mini-calc-section,
+        body.dark-mode .tool-card,
+        body.dark-mode .poll-card,
+        body.dark-mode .more-polls-card,
+        body.dark-mode .trends-card,
+        body.dark-mode .email-alert-section,
+        body.dark-mode .footer-column {
+            background: #16213e;
+            border-color: #2b3c58;
+            color: #e2e8f0;
+            box-shadow: none;
+        }
+        body.dark-mode .section-title,
+        body.dark-mode .trust-card h3,
+        body.dark-mode .footer-column h3 { color: #77dd88; }
+        body.dark-mode .section-copy,
+        body.dark-mode .trust-card p,
+        body.dark-mode .footer-column p,
+        body.dark-mode .footer-column a { color: #c7d2e1; }
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin: 40px 0;
+            gap: 1.05rem;
+            margin: 1.75rem 0 2.1rem;
+            align-items: stretch;
         }
         .feature-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            padding: 1.2rem 1rem;
+            border: 1px solid #e5efe5;
+            border-radius: 18px;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.06);
             text-align: center;
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.1);
         }
         .feature-card i {
             font-size: 3em;
@@ -260,17 +415,19 @@
         }
         .feature-card h3 {
             color: #006600;
-            margin-bottom: 10px;
+            margin: 0 0 10px;
+            font-size: 1.02rem;
         }
         .feature-card p {
             color: #666;
             line-height: 1.6;
         }
         .pricing-section {
-            background: #f9f9f9;
-            padding: 40px;
-            border-radius: 10px;
-            margin: 40px 0;
+            background: linear-gradient(135deg, #f7fcf7 0%, #f1f7f0 100%);
+            border: 1px solid #e1ebe1;
+            padding: 1.4rem;
+            border-radius: 20px;
+            margin: 1.75rem 0 2rem;
         }
         .pricing-section h2 {
             text-align: center;
@@ -285,10 +442,14 @@
             margin-top: 30px;
         }
         .pricing-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            padding: 1.25rem 1.1rem;
+            border: 1px solid #e6efe6;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
             text-align: center;
             position: relative;
         }
@@ -325,8 +486,9 @@
         .pricing-features {
             list-style: none;
             padding: 0;
-            margin: 25px 0;
+            margin: 25px 0 0;
             text-align: left;
+            flex: 1;
         }
         .pricing-features li {
             padding: 10px 0;
@@ -378,13 +540,12 @@
         /* Mini Calculator on Homepage */
         .mini-calc-section {
             background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 3px 20px rgba(0,0,0,0.12);
-            margin: 30px 0;
-            max-width: 560px;
-            margin-left: auto;
-            margin-right: auto;
+            border: 1px solid #e6efe6;
+            border-radius: 20px;
+            padding: 1.35rem;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            margin: 1.2rem 0 1.4rem;
+            max-width: 100%;
         }
         .mini-calc-section h2 {
             color: #006600;
@@ -516,9 +677,9 @@
         .salary-insight-card {
             background: linear-gradient(135deg, #003d00 0%, #006600 100%);
             color: white;
-            border-radius: 12px;
-            padding: 22px 24px;
-            margin: 24px 0;
+            border-radius: 20px;
+            padding: 1.2rem 1.25rem;
+            margin: 1.2rem 0 1.4rem;
             position: relative;
             overflow: hidden;
         }
@@ -561,19 +722,23 @@
         .tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 14px;
-            margin: 22px 0;
+            gap: 0.8rem;
+            margin: 1.2rem 0 1.4rem;
         }
         .tool-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 112px;
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 18px 14px;
+            border: 1px solid #e5efe5;
+            border-radius: 16px;
+            padding: 0.95rem 0.85rem;
             text-align: center;
             text-decoration: none;
             color: #333;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
         }
         .tool-card:hover {
             border-color: #006600;
@@ -586,11 +751,12 @@
         /* Poll */
         .poll-card {
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px 22px;
-            margin: 22px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border: 1px solid #e4eee4;
+            border-radius: 18px;
+            padding: 1.15rem 1.2rem;
+            margin: 1.15rem 0 1.3rem;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+            height: 100%;
         }
         .poll-card h3 { color: #006600; margin: 0 0 14px; font-size: 1.05em; }
         .poll-btn {
@@ -628,11 +794,12 @@
         /* More Polls */
         .more-polls-card {
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px 22px;
-            margin: 22px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border: 1px solid #e4eee4;
+            border-radius: 18px;
+            padding: 1.15rem 1.2rem;
+            margin: 1.15rem 0 1.3rem;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+            height: 100%;
         }
         .more-polls-card h3 { color: #006600; margin: 0; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .more-polls-toggle-btn { background: none; border: none; cursor: pointer; padding: 0; color: #006600; font-size: 1em; transition: transform 0.25s; }
@@ -665,11 +832,12 @@
         /* Salary Trends */
         .trends-card {
             background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px 22px;
-            margin: 22px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border: 1px solid #e4eee4;
+            border-radius: 18px;
+            padding: 1.15rem 1.2rem;
+            margin: 1.15rem 0 1.3rem;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+            height: 100%;
         }
         .trends-card h3 { color: #006600; margin: 0 0 14px; }
         .trends-grid {
@@ -691,9 +859,9 @@
         .challenge-card {
             background: linear-gradient(135deg, #1a0000 0%, #a00000 100%);
             color: white;
-            border-radius: 12px;
-            padding: 22px 24px;
-            margin: 22px 0;
+            border-radius: 20px;
+            padding: 1.2rem 1.25rem;
+            margin: 1.15rem 0 1.3rem;
         }
         .challenge-card h3 { margin: 0 0 10px; font-size: 1.1em; }
         .challenge-breakdown {
@@ -714,11 +882,13 @@
         /* Email alert signup */
         .email-alert-section {
             background: #fff;
-            border: 2px solid #006600;
-            border-radius: 12px;
-            padding: 22px;
-            margin: 22px 0;
+            border: 1px solid #dcecdc;
+            border-radius: 20px;
+            padding: 1.2rem 1.25rem;
+            margin: 1.15rem 0 1.3rem;
             text-align: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+            height: 100%;
         }
         .email-alert-section h3 { color: #006600; margin: 0 0 8px; }
         .email-alert-section p { color: #555; font-size: 0.92em; margin: 0 0 14px; }
@@ -735,9 +905,93 @@
         .email-alert-btn:hover { background: #004d00; }
 
         /* ── Responsive overrides for mobile ────────────────────────────── */
+        .homepage-footer {
+            text-align: center;
+            padding: 1.2rem 0 0;
+            margin-top: 1.75rem;
+            font-size: 12px;
+            color: #666;
+        }
+        .homepage-footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .footer-column {
+            background: #f8fcf8;
+            border: 1px solid #e2ece2;
+            border-radius: 16px;
+            padding: 0.95rem 1rem;
+            text-align: left;
+        }
+        .footer-column h3 {
+            margin: 0 0 0.45rem;
+            font-size: 0.95rem;
+            color: #006600;
+        }
+        .footer-column p,
+        .footer-column a {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+            font-size: 0.86rem;
+        }
+        .footer-column a {
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 0.2rem;
+        }
+        .footer-column a:hover {
+            color: #006600;
+            text-decoration: underline;
+        }
+        .footer-link-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+        }
+        @media (max-width: 1024px) {
+            .hero-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .trust-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .tools-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 900px) {
+            .trust-grid,
+            .homepage-footer-grid,
+            .features-grid,
+            .pricing-cards,
+            .tools-grid,
+            .challenge-breakdown {
+                grid-template-columns: 1fr;
+            }
+            .support-ke-salary-card {
+                grid-template-columns: auto 1fr;
+            }
+            .mini-result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         @media (max-width: 768px) {
             /* 1.8 General safeguard: prevent any element from overflowing horizontally */
             * { max-width: 100%; box-sizing: border-box; }
+            .support-ke-salary-card {
+                grid-template-columns: 1fr;
+                align-items: start;
+            }
+            .support-ke-salary-button {
+                justify-self: start;
+            }
             .mini-calc-row {
                 flex-direction: column;
             }
@@ -752,13 +1006,30 @@
             }
         }
         @media (max-width: 600px) {
-            .hero-section { padding: 24px 16px; margin: 12px 0; }
+            .hero-section {
+                grid-template-columns: 1fr;
+                padding: 24px 16px;
+                margin: 12px 0;
+            }
             .hero-section h1 { font-size: clamp(1.2rem, 5vw, 1.75rem); letter-spacing: 1px; margin-bottom: 12px; }
-            /* 1.1 Hero subtitle & badge: clamp font-size, centered, wrap safely */
+            .hero-copy { max-width: none; }
+            .feature-card,
+            .pricing-card,
+            .tool-card,
+            .poll-card,
+            .more-polls-card,
+            .trends-card,
+            .email-alert-section,
+            .mini-calc-section,
+            .trust-card,
+            .footer-column {
+                padding: 1rem;
+                border-radius: 16px;
+            }
             .hero-section p {
                 font-size: clamp(0.85rem, 3.5vw, 1rem);
-                text-align: center;
-                padding: 0 1rem;
+                text-align: left;
+                padding: 0;
                 overflow-wrap: break-word;
                 word-break: break-word;
                 margin-bottom: 18px;
@@ -773,9 +1044,11 @@
             .pricing-cards { gap: 20px; }
             .pricing-card { padding: 22px 16px; }
             .pricing-card.featured { transform: none; }
-            .support-ke-salary-card { grid-template-columns: auto 1fr; padding: 18px; gap: 14px; }
-            .support-ke-salary-button { grid-column: 1 / -1; width: 100%; }
+            .support-ke-salary-card { grid-template-columns: 1fr; padding: 18px; gap: 14px; }
+            .support-ke-salary-button { grid-column: 1 / -1; width: 100%; justify-content: center; }
             .stats-section { flex-direction: column; padding: 20px 16px; }
+            .homepage-panel, .homepage-panel--compact, .trust-card, .footer-column { padding: 1rem; }
+            .tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .stat-item { padding: 10px; }
             .stat-number { font-size: 2em; }
             .mini-result-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -809,8 +1082,9 @@
 
         @media (max-width: 480px) {
             /* 1.3 Salary Intelligence Tools: font-size & padding on cards */
-            .tool-card { padding: 0.75rem; }
+            .tool-card { padding: 0.75rem; min-height: 96px; }
             .tool-card span { font-size: clamp(0.75rem, 3vw, 0.9rem); }
+            .tools-grid { grid-template-columns: 1fr 1fr; }
             /* 1.6 Job Salary Explorer: overflow-wrap on card titles */
             #job_salary a > div:first-child {
                 overflow-wrap: break-word;
@@ -827,6 +1101,7 @@
             .hero-section h1 { font-size: 1.45em; }
             .mini-result-grid { grid-template-columns: 1fr; }
             .pricing-section h2 { font-size: 1.3em; }
+            .tools-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -837,18 +1112,17 @@
 
     <div class="overlay">
         <div class="container">
-            <!-- Logo Container -->
-            <div class="logo-container">
-                <a href="/">
-                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo" width="260" height="130" loading="eager">
-                </a>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="main-nav">
+            <div class="site-header">
+                <div class="logo-container">
+                    <a href="/">
+                        <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo" width="260" height="130" loading="eager">
+                    </a>
+                </div>
+
+                <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <nav class="main-nav">
                 <a href="/" class="active">Home</a>
                 
                 <!-- Calculators Dropdown -->
@@ -898,22 +1172,35 @@
                 
                 <div id="auth-links" class="auth-links-container"></div>
                 <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
-            </nav>
+                </nav>
+            </div>
 
             <!-- AdSense Header Banner -->
 
             <!-- Hero Section -->
             <div class="hero-section">
-                <h1>🇰🇪 <span class="hero-title-salary">Salary</span> <span class="hero-title-calc">Calculator</span></h1>
-                <p>Calculate your exact take-home pay in seconds. Generate KRA-compliant payslips. Run payroll for your whole team — free.</p>
-                <p style="font-size: 1em; margin-top: 10px;">✅ Updated for FY 2025/2026 &nbsp;|&nbsp; Rates verified March 2026</p>
-                <div class="cta-buttons">
-                    <a href="/calculator.html" class="cta-button primary">
-                        <i class="fas fa-calculator"></i> Full Calculator
-                    </a>
-                    <a href="/auth.html" class="cta-button secondary signup-cta">
-                        <i class="fas fa-user-circle"></i> Sign In / Sign Up Free
-                    </a>
+                <div class="hero-copy">
+                    <div class="hero-pill">Updated for FY 2025/2026</div>
+                    <h1>🇰🇪 <span class="hero-title-salary">Salary</span> <span class="hero-title-calc">Calculator</span></h1>
+                    <p>Calculate your exact take-home pay in seconds. Generate KRA-compliant payslips. Run payroll for your whole team — free.</p>
+                    <p class="hero-meta">✅ Rates verified March 2026</p>
+                    <div class="cta-buttons">
+                        <a href="/calculator.html" class="cta-button primary">
+                            <i class="fas fa-calculator"></i> Full Calculator
+                        </a>
+                        <a href="/auth.html" class="cta-button secondary signup-cta">
+                            <i class="fas fa-user-circle"></i> Sign In / Sign Up Free
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-side-card" aria-label="KeSalary highlights">
+                    <div class="hero-side-title">Built for Kenyan payroll</div>
+                    <div class="hero-side-services">
+                        <span>PAYE</span>
+                        <span>NSSF</span>
+                        <span>SHIF</span>
+                        <span>Housing Levy</span>
+                    </div>
                 </div>
             </div>
 
@@ -926,11 +1213,29 @@
                 <a class="support-ke-salary-button" href="/donate.html" aria-label="Support KeSalary on the donation page">Support KeSalary <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </section>
 
-            <section style="background:#fff;border-radius:10px;padding:24px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:20px;">
-                <h2 style="color:#006600;margin:0 0 12px;">How Kenya Salary Calculator helps employees and employers</h2>
-                <p style="color:#444;line-height:1.85;margin-bottom:12px;">Kenya Salary Calculator is built to make payroll and salary deductions easier to understand for everyone in Kenya. Many workers know their gross pay but struggle to explain the difference between gross salary and net salary after statutory deductions. On the employer side, small businesses and HR teams often need a fast way to cross-check PAYE, NSSF, SHIF, and Housing Levy amounts before final payroll runs. This platform brings those calculations together in one place, with current Kenya rates and clear breakdowns that are easy to verify.</p>
-                <p style="color:#444;line-height:1.85;margin-bottom:12px;">For employees, the tool helps answer practical questions: Why did net pay change this month? How much of salary goes to PAYE? Is the SHIF amount on my payslip correct? For employers, it supports payroll consistency, cleaner payslip generation, and fewer disputes caused by unclear deduction lines. We also publish plain-language guides so users can learn the logic behind each deduction, not just the final output figure.</p>
-                <p style="color:#444;line-height:1.85;margin-bottom:0;">If you are researching Kenyan payroll rules, start with these resources: <a href="/how-paye-is-calculated-kenya-2026.html" style="color:#006600;font-weight:700;">How PAYE is calculated</a>, <a href="/nssf-tier-i-vs-tier-ii-kenya.html" style="color:#006600;font-weight:700;">NSSF Tier I vs Tier II</a>, <a href="/what-is-shif-levy-kenya.html" style="color:#006600;font-weight:700;">What SHIF levy means</a>, and the full <a href="/faq.html" style="color:#006600;font-weight:700;">Payroll FAQ</a>.</p>
+            <section class="trust-grid" aria-label="Trust indicators">
+                <article class="trust-card">
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                    <h3>Updated rates</h3>
+                    <p>Verified for FY 2025/2026 so payroll calculations stay aligned with current Kenyan rules.</p>
+                </article>
+                <article class="trust-card">
+                    <i class="fas fa-lock" aria-hidden="true"></i>
+                    <h3>Secure by default</h3>
+                    <p>Account tools and payroll records are protected while keeping the public calculator easy to use.</p>
+                </article>
+                <article class="trust-card">
+                    <i class="fas fa-flag-checkered" aria-hidden="true"></i>
+                    <h3>Built for Kenya</h3>
+                    <p>Designed around local salary realities, deductions and professional payroll needs.</p>
+                </article>
+            </section>
+
+            <section class="homepage-panel homepage-panel--soft">
+                <h2 class="section-title">How Kenya Salary Calculator helps employees and employers</h2>
+                <p class="section-copy">Kenya Salary Calculator is built to make payroll and salary deductions easier to understand for everyone in Kenya. Many workers know their gross pay but struggle to explain the difference between gross salary and net salary after statutory deductions. On the employer side, small businesses and HR teams often need a fast way to cross-check PAYE, NSSF, SHIF, and Housing Levy amounts before final payroll runs. This platform brings those calculations together in one place, with current Kenya rates and clear breakdowns that are easy to verify.</p>
+                <p class="section-copy">For employees, the tool helps answer practical questions: Why did net pay change this month? How much of salary goes to PAYE? Is the SHIF amount on my payslip correct? For employers, it supports payroll consistency, cleaner payslip generation, and fewer disputes caused by unclear deduction lines. We also publish plain-language guides so users can learn the logic behind each deduction, not just the final output figure.</p>
+                <p class="section-copy">If you are researching Kenyan payroll rules, start with these resources: <a class="highlight-link" href="/how-paye-is-calculated-kenya-2026.html">How PAYE is calculated</a>, <a class="highlight-link" href="/nssf-tier-i-vs-tier-ii-kenya.html">NSSF Tier I vs Tier II</a>, <a class="highlight-link" href="/what-is-shif-levy-kenya.html">What SHIF levy means</a>, and the full <a class="highlight-link" href="/faq.html">Payroll FAQ</a>.</p>
             </section>
 
             <!-- Mini Calculator on Homepage -->
@@ -1171,8 +1476,8 @@
             </div>
 
             <!-- Quick Salary Links -->
-            <div style="background:white; border-radius:10px; padding:18px 20px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.07);">
-                <h3 style="color:#006600; margin:0 0 12px; font-size:1em;"><i class="fas fa-link"></i> Quick Salary Breakdowns</h3>
+            <div class="homepage-panel homepage-panel--compact">
+                <h3 class="section-title"><i class="fas fa-link"></i> Quick Salary Breakdowns</h3>
                 <div style="display:flex; flex-wrap:wrap; gap:8px;">
                     <a href="/30000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 30,000</a>
                     <a href="/40000.html" style="background:#f0fff0; border:1px solid #a5d6a7; color:#006600; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:0.88em; font-weight:600;">KES 40,000</a>
@@ -1189,8 +1494,8 @@
             </div>
 
             <!-- Job Salary Explorer -->
-            <div style="background:white; border-radius:10px; padding:18px 20px; margin:20px 0; box-shadow:0 2px 10px rgba(0,0,0,0.07);" id="job_salary">
-                <h3 style="color:#006600; margin:0 0 12px; font-size:1em;"><i class="fas fa-briefcase"></i> Job Salary Explorer</h3>
+            <div class="homepage-panel homepage-panel--compact" id="job_salary">
+                <h3 class="section-title"><i class="fas fa-briefcase"></i> Job Salary Explorer</h3>
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px;" class="job-salary-inner-grid">
                     <a href="/salary/software-engineer-kenya.html" style="background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px; text-decoration:none; display:block;">
                         <div style="font-size:0.78em; color:#555;">Software Engineer</div>
@@ -1386,19 +1691,36 @@
             </aside>
             </div><!-- end .index-layout -->
 
-            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+            <footer class="homepage-footer">
                 <section class="footer-support" aria-labelledby="footer-support-heading">
                     <h2 id="footer-support-heading">Support</h2>
                     <p><span aria-hidden="true">❤️</span> <strong>Support KeSalary</strong></p>
                     <p>Help us keep salarycalculator.co.ke free and continuously improving.</p>
-                    <a class="footer-support-link" href="/donate.html" aria-label="Donate to support KeSalary">Donate</a>
+                    <a class="footer-support-link" href="/donate.html" aria-label="Support KeSalary through donations">Support KeSalary</a>
                 </section>
-                <p style="margin-bottom: 10px;">
-                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
-                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
-                </p>
-                <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
+                <div class="homepage-footer-grid">
+                    <div class="footer-column">
+                        <h3>Support KeSalary</h3>
+                        <p>Your contribution helps keep the calculator, payslip tools and salary resources available to Kenyans for free.</p>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Policies</h3>
+                        <div class="footer-link-list">
+                            <a href="/privacy-policy.html">Privacy Policy</a>
+                            <a href="/terms-of-service.html">Terms of Service</a>
+                            <a href="/cookie-policy.html">Cookie Policy</a>
+                        </div>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Explore</h3>
+                        <div class="footer-link-list">
+                            <a href="/calculator.html">Salary Calculator</a>
+                            <a href="/salary-news.html">Salary News</a>
+                            <a href="/contact-us.html">Contact Us</a>
+                        </div>
+                    </div>
+                </div>
+                <p class="section-copy" style="margin-top: 0.75rem;">© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
             </footer>
         </div>
     </div>

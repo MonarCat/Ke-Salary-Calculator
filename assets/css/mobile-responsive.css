@@ -53,6 +53,11 @@ a, button, [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
 
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(0, 102, 0, 0.18);
+  outline-offset: 2px;
+}
+
 /* Improve touch target size */
 button, .btn, a.btn, input[type="submit"] {
   min-height: 44px;
