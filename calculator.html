@@ -178,6 +178,39 @@
             margin-left: 10px;
         }
         .twitter-share-btn:hover { background: #0d8bd9; }
+        /* Donation button */
+        .donate-info {
+            margin-top: 24px;
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .paypal-donate-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            background: #0070ba;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        .paypal-donate-btn:hover { background: #005ea6; }
+        .donate-note {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #475569;
+        }
+        body.dark-mode .donate-info {
+            background: #0f3460;
+            border-color: #234;
+        }
+        body.dark-mode .donate-note { color: #cbd5e1; }
         /* Kenya Percentile tab */
         .percentile-bar-wrap {
             background: #e8f5e9;
@@ -1168,6 +1201,16 @@
                     <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
                 </div>
                         <!-- PayPal -->
+                        <div class="donate-info">
+                            <strong>Support This Project</strong>
+                            <div>
+                                <a href="https://www.paypal.com/donate/?hosted_button_id=YOUR_BUTTON_ID" target="_blank" rel="noopener noreferrer" class="paypal-donate-btn">
+                                    <i class="fab fa-paypal"></i>
+                                    Donate with PayPal
+                                </a>
+                            </div>
+                            <p class="donate-note">Thank you for supporting this free salary calculator.</p>
+                        </div>
                         <!-- Mobile Payment -->
                     </div>
                 </div>
