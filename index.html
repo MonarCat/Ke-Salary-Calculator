@@ -183,6 +183,58 @@
             background: white;
             color: #006600;
         }
+        .support-ke-salary-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 18px;
+            margin: 22px 0 28px;
+            padding: 22px 24px;
+            border: 1px solid #cfe7d1;
+            border-radius: 12px;
+            background: linear-gradient(110deg, #f6fbf6, #ffffff);
+            box-shadow: 0 4px 18px rgba(0, 76, 0, 0.07);
+        }
+        .support-ke-salary-icon {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            color: #a61b1b;
+            background: #fff0f0;
+            font-size: 1.15rem;
+        }
+        .support-ke-salary-copy h2 { margin: 0 0 5px; color: #006600; font-size: 1.2rem; }
+        .support-ke-salary-copy p { margin: 0; color: #4a5a4a; line-height: 1.55; }
+        .support-ke-salary-button, .footer-support-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border: 2px solid #006600;
+            border-radius: 7px;
+            background: #006600;
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+        }
+        .support-ke-salary-button:hover, .footer-support-link:hover { background: #004d00; color: #fff; text-decoration: none; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,102,0,.2); }
+        .support-ke-salary-button:focus-visible, .footer-support-link:focus-visible { outline: 3px solid #cc0000; outline-offset: 3px; }
+        .footer-support { max-width: 360px; margin: 0 auto 18px; padding-bottom: 18px; border-bottom: 1px solid #d8e6d8; }
+        .footer-support h2 { color: #006600; font-size: 1rem; margin: 0 0 8px; }
+        .footer-support p { margin: 4px 0; line-height: 1.5; }
+        .footer-support-link { margin-top: 10px; padding: 8px 17px; }
+        body.dark-mode .support-ke-salary-card { background: linear-gradient(110deg, #162b22, #16213e); border-color: #295238; box-shadow: none; }
+        body.dark-mode .support-ke-salary-copy h2, body.dark-mode .footer-support h2 { color: #77dd88; }
+        body.dark-mode .support-ke-salary-copy p { color: #d4ded5; }
+        body.dark-mode .support-ke-salary-icon { background: #402127; color: #ff9a9a; }
+        body.dark-mode .support-ke-salary-button, body.dark-mode .footer-support-link { background: #4caf50; border-color: #4caf50; color: #102114; }
+        body.dark-mode .support-ke-salary-button:hover, body.dark-mode .footer-support-link:hover { background: #77dd88; color: #102114; }
+        body.dark-mode .footer-support { border-bottom-color: #2a4a36; }
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -721,6 +773,8 @@
             .pricing-cards { gap: 20px; }
             .pricing-card { padding: 22px 16px; }
             .pricing-card.featured { transform: none; }
+            .support-ke-salary-card { grid-template-columns: auto 1fr; padding: 18px; gap: 14px; }
+            .support-ke-salary-button { grid-column: 1 / -1; width: 100%; }
             .stats-section { flex-direction: column; padding: 20px 16px; }
             .stat-item { padding: 10px; }
             .stat-number { font-size: 2em; }
@@ -842,7 +896,6 @@
                 <a href="/employees.html">Manage Employees</a>
                 <a href="/external-links.html">External Links</a>
                 
-                <a href="/donate.html"><i class="fas fa-heart"></i> Donate</a>
                 <div id="auth-links" class="auth-links-container"></div>
                 <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
@@ -863,6 +916,15 @@
                     </a>
                 </div>
             </div>
+
+            <section class="support-ke-salary-card" aria-labelledby="support-ke-salary-heading">
+                <div class="support-ke-salary-icon" aria-hidden="true"><i class="fas fa-heart"></i></div>
+                <div class="support-ke-salary-copy">
+                    <h2 id="support-ke-salary-heading">Support KeSalary</h2>
+                    <p>KeSalary helps Kenyans calculate salaries, generate payslips and manage payroll for free. Your contribution helps us maintain servers, improve payroll tools and build useful new features.</p>
+                </div>
+                <a class="support-ke-salary-button" href="/donate.html" aria-label="Support KeSalary on the donation page">Support KeSalary <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+            </section>
 
             <section style="background:#fff;border-radius:10px;padding:24px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:20px;">
                 <h2 style="color:#006600;margin:0 0 12px;">How Kenya Salary Calculator helps employees and employers</h2>
@@ -1325,6 +1387,12 @@
             </div><!-- end .index-layout -->
 
             <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
+                <section class="footer-support" aria-labelledby="footer-support-heading">
+                    <h2 id="footer-support-heading">Support</h2>
+                    <p><span aria-hidden="true">❤️</span> <strong>Support KeSalary</strong></p>
+                    <p>Help us keep salarycalculator.co.ke free and continuously improving.</p>
+                    <a class="footer-support-link" href="/donate.html" aria-label="Donate to support KeSalary">Donate</a>
+                </section>
                 <p style="margin-bottom: 10px;">
                     <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
                     <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |

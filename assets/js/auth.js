@@ -549,31 +549,36 @@ async function updateAuthUI() {
             
             authLinks.innerHTML = `
                 <div class="user-profile">
-                    <div class="user-welcome-btn" onclick="toggleUserDropdown()">
-                        <div class="user-avatar">
+                    <button type="button" class="user-welcome-btn" onclick="toggleUserDropdown()" aria-expanded="false" aria-controls="user-dropdown">
+                        <span class="user-avatar" aria-hidden="true">
                             ${userName.charAt(0).toUpperCase()}
-                        </div>
+                        </span>
                         <span class="user-welcome-text">Welcome, ${userName}</span>
                         <i class="fas fa-chevron-down user-welcome-chevron"></i>
-                    </div>
-                    <div class="user-dropdown" id="user-dropdown">
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown" role="menu">
                         <div class="user-dropdown-item">
                             <i class="fas fa-user"></i> ${userName}
                         </div>
                         <div class="user-dropdown-item">
                             <i class="fas fa-envelope"></i> ${user.email}
                         </div>
+                        ${isEmployer ? `
+                        <div class="user-dropdown-item" onclick="window.location.href='/organisation-profile.html'">
+                            <i class="fas fa-building"></i> Organisation Profile
+                        </div>
+                        ` : ''}
                         <div class="user-dropdown-item" onclick="window.location.href='/profile.html'">
                             <i class="fas fa-id-card"></i> My Profile
                         </div>
                         <div class="user-dropdown-item" onclick="window.location.href='/account'">
                             <i class="fas fa-credit-card"></i> Account &amp; Billing
                         </div>
-                        ${isEmployer ? `
-                        <div class="user-dropdown-item" onclick="window.location.href='/organisation-profile.html'">
-                            <i class="fas fa-building"></i> Organisation Profile
-                        </div>
-                        ` : ''}
+                        <div class="user-dropdown-divider" role="separator"></div>
+                        <a class="user-dropdown-item user-dropdown-item--support" href="/donate.html" role="menuitem">
+                            <i class="fas fa-heart" aria-hidden="true"></i> Support KeSalary
+                        </a>
+                        <div class="user-dropdown-divider" role="separator"></div>
                         <div class="user-dropdown-item" onclick="handleLogout()">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </div>
@@ -596,6 +601,8 @@ function toggleUserDropdown() {
     const dropdown = document.getElementById('user-dropdown');
     if (dropdown) {
         dropdown.classList.toggle('active');
+        const trigger = document.querySelector('.user-welcome-btn');
+        if (trigger) trigger.setAttribute('aria-expanded', dropdown.classList.contains('active'));
     }
 }
 
@@ -606,6 +613,8 @@ document.addEventListener('click', function(event) {
     
     if (userProfile && dropdown && !userProfile.contains(event.target)) {
         dropdown.classList.remove('active');
+        const trigger = userProfile.querySelector('.user-welcome-btn');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
     }
 });
 

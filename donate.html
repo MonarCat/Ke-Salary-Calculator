@@ -46,36 +46,40 @@
 
     <style>
         .donate-hero {
-            background: linear-gradient(135deg, #006600 0%, #009900 100%);
+            background: radial-gradient(circle at top right, rgba(119,221,136,.24), transparent 35%), linear-gradient(135deg, #003d20 0%, #006600 55%, #087a35 100%);
             color: #fff;
-            padding: 44px 28px;
-            border-radius: 10px;
+            padding: clamp(38px, 6vw, 64px) clamp(22px, 5vw, 54px);
+            border-radius: 14px;
             text-align: center;
-            margin-bottom: 28px;
+            margin: 14px 0 32px;
+            box-shadow: 0 12px 28px rgba(0, 76, 0, .18);
         }
-        .donate-hero .donate-hero-icon { font-size: 2.4em; margin-bottom: 10px; }
-        .donate-hero h1 { color: #fff; font-size: clamp(1.6rem, 4vw, 2.4rem); margin-bottom: 12px; }
-        .donate-hero p { font-size: 1.1em; color: #f0f0f0; max-width: 640px; margin: 0 auto; }
+        .donate-hero .donate-hero-icon { font-size: 2.4em; margin-bottom: 8px; }
+        .donate-eyebrow { margin: 0 0 8px !important; color: #b9f5c3 !important; font-size: .84rem !important; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .donate-hero h1 { color: #fff; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.12; margin-bottom: 14px; }
+        .donate-hero p:not(.donate-eyebrow) { font-size: clamp(1rem, 2vw, 1.15rem); line-height: 1.65; color: #f0fdf1; max-width: 680px; margin: 0 auto; }
 
-        .donate-content { max-width: 860px; margin: 0 auto; }
+        .donate-content { max-width: 760px; margin: 0 auto 48px; }
 
         .donate-message-card {
             background: #fff;
-            border-radius: 10px;
-            padding: 24px 28px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
-            line-height: 1.75;
+            border-radius: 12px;
+            padding: clamp(22px, 4vw, 32px);
+            border: 1px solid #e1ede1;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            line-height: 1.7;
             color: #444;
         }
         .donate-message-card h2 { color: #006600; margin-top: 0; font-size: 1.3em; }
 
         .donate-card {
             background: #fff;
-            border-radius: 10px;
-            padding: 26px 28px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
+            border-radius: 12px;
+            padding: clamp(22px, 4vw, 32px);
+            border: 1px solid #e1ede1;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
         }
         .donate-card legend, .donate-card h2 {
             color: #006600;
@@ -85,6 +89,7 @@
             margin: 0 0 16px;
         }
         .donate-card fieldset { border: none; padding: 0; margin: 0 0 22px; }
+        .donate-custom-label { display:block; margin-bottom:6px; font-weight:600; color:#333; }
 
         .donate-amount-group {
             display: grid;
@@ -198,13 +203,14 @@
 
         @media (max-width: 480px) {
             .donate-amount-group { grid-template-columns: repeat(2, 1fr); }
+            .donate-hero { border-radius: 10px; }
         }
 
         /* Dark mode */
         body.dark-mode .donate-message-card,
         body.dark-mode .donate-card,
         body.dark-mode #donate-success {
-            background: #16213e; color: #e0e0e0; box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+            background: #16213e; color: #e0e0e0; border-color: #2a4a36; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
         }
         body.dark-mode .donate-message-card h2,
         body.dark-mode .donate-card legend,
@@ -222,6 +228,7 @@
             background: #1a1a2e; border-color: #2a2a4e; color: #e0e0e0;
         }
         body.dark-mode .donate-form-group label { color: #cfd8dc; }
+        body.dark-mode .donate-custom-label { color: #cfd8dc; }
         body.dark-mode .donate-method-card { background: #1a1a2e; border-color: #2a2a4e; }
         body.dark-mode .donate-method-card h3 { color: #e0e0e0; }
         body.dark-mode .donate-method-card p strong { color: #e0e0e0; }
@@ -273,26 +280,26 @@
                 <a href="/contact-us.html">Contact Us</a>
                 <a href="/employees.html">Manage Employees</a>
 
-                <a href="/donate.html" class="active"><i class="fas fa-heart"></i> Donate</a>
                 <div id="auth-links" class="auth-links-container"></div>
+                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
             </nav>
 
             <!-- Hero Section -->
             <div class="donate-hero">
                 <div class="donate-hero-icon" aria-hidden="true">❤️</div>
-                <h1>Support Kenya Salary Calculator</h1>
-                <p>We keep PAYE, NSSF, SHIF, Housing Levy and payslip tools free for every Kenyan. If this tool has saved you time, a small donation helps us keep it that way.</p>
+                <p class="donate-eyebrow">Community support</p>
+                <h1>Support KeSalary</h1>
+                <p>Help keep KeSalary free for everyone. Your contribution helps maintain reliable payroll tools and build new features for Kenyan employers and employees.</p>
             </div>
 
             <div class="donate-content">
                 <!-- Why donate -->
                 <section class="donate-message-card" aria-labelledby="donate-why-heading">
-                    <h2 id="donate-why-heading"><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Why your support matters</h2>
+                    <h2 id="donate-why-heading"><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Built to remain useful</h2>
                     <p>
-                        Kenya Salary Calculator is free to use and always will be. Your donation goes directly
-                        towards hosting, data and SMS/email costs, and the time we spend keeping PAYE, NSSF, SHIF
-                        and Housing Levy figures accurate as rates change every year. Every contribution — big or
-                        small — helps us reach more employees and employers across Kenya.
+                        KeSalary is free to use. Contributions help us maintain servers, keep PAYE, NSSF, SHIF and
+                        Housing Levy information current, and continue improving the tools that support employers and
+                        employees across Kenya.
                     </p>
                 </section>
 
@@ -302,14 +309,14 @@
                         <div id="donate-error" role="alert" hidden></div>
 
                         <fieldset>
-                            <legend id="donate-amount-heading">Choose an amount</legend>
+                            <legend id="donate-amount-heading">Choose your contribution</legend>
                             <div class="donate-amount-group" id="donate-amount-group" role="group" aria-label="Preset donation amounts">
                                 <button type="button" class="donate-amount-btn" data-amount="100" aria-pressed="false">KES 100</button>
                                 <button type="button" class="donate-amount-btn" data-amount="250" aria-pressed="false">KES 250</button>
                                 <button type="button" class="donate-amount-btn" data-amount="500" aria-pressed="false">KES 500</button>
                                 <button type="button" class="donate-amount-btn" data-amount="1000" aria-pressed="false">KES 1,000</button>
                             </div>
-                            <label for="donate-custom-amount" class="hint" style="display:block;margin-bottom:6px;font-weight:600;color:#333;">Or enter a custom amount</label>
+                            <label for="donate-custom-amount" class="hint donate-custom-label">Or enter a custom amount</label>
                             <div class="donate-custom-wrapper">
                                 <span aria-hidden="true">KES</span>
                                 <input type="number" id="donate-custom-amount" name="amount" min="10" step="1" inputmode="numeric" placeholder="e.g. 750" aria-describedby="donate-amount-hint">
@@ -331,7 +338,7 @@
                         </fieldset>
 
                         <button type="submit" id="donate-submit" class="donate-submit-btn">
-                            <i class="fas fa-lock" aria-hidden="true"></i> Donate Securely
+                            <i class="fas fa-lock" aria-hidden="true"></i> Continue to secure payment
                         </button>
                         <p class="donate-secure-note"><i class="fas fa-shield-alt" aria-hidden="true"></i> Payments are processed securely by Paystack. We never see or store your card details.</p>
                     </form>

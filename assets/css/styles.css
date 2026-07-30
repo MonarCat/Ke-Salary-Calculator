@@ -165,28 +165,6 @@ h1::after {
     color: white;
 }
 
-/* Donate CTA — same pill style as other nav links, with a subtle red accent */
-.main-nav a[href="/donate.html"] {
-    border-color: #CC0000;
-    color: #CC0000;
-}
-.main-nav a[href="/donate.html"]:hover,
-.main-nav a[href="/donate.html"].active {
-    background-color: #CC0000;
-    border-color: #CC0000;
-    color: white;
-}
-body.dark-mode .main-nav a[href="/donate.html"] {
-    border-color: #ff6b6b;
-    color: #ff6b6b;
-    background-color: #1a1a2e;
-}
-body.dark-mode .main-nav a[href="/donate.html"]:hover,
-body.dark-mode .main-nav a[href="/donate.html"].active {
-    background-color: #ff6b6b;
-    color: #1a1a2e;
-}
-
 /* Dropdown Container */
 .nav-dropdown {
     position: relative;
@@ -649,6 +627,25 @@ footer a:hover {
     color: #009900;
     text-decoration: underline;
 }
+
+.user-dropdown-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: #e7ece7;
+}
+
+.user-dropdown-item--support {
+    color: #9b1c1c;
+    font-weight: 700;
+    display: block;
+    text-decoration: none;
+}
+
+.user-dropdown-item--support i { color: #cc0000; }
+
+body.dark-mode .user-dropdown-divider { background: #2a2a4e; }
+body.dark-mode .user-dropdown-item--support { color: #ff9a9a; }
+body.dark-mode .user-dropdown-item--support i { color: #ff7777; }
 
 .harambee-star {
     color: #CC0000;
@@ -2091,4 +2088,3 @@ body.dark-mode .bottom-tab-bar a:hover {
         border-bottom: 1px solid #000;
     }
 }
-

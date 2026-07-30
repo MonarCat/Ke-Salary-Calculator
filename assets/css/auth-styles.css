@@ -532,6 +532,13 @@
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s;
+    border: 0;
+    font: inherit;
+}
+
+.user-welcome-btn:focus-visible {
+    outline: 3px solid #cc0000;
+    outline-offset: 3px;
 }
 
 .user-welcome-btn:hover {
