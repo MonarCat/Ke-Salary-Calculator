@@ -9,6 +9,15 @@ function redirect(res, location) {
   return res.end();
 }
 
+function getSafeHttpUrl(value) {
+  try {
+    const parsed = new URL(String(value || ""));
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   const id = String(req.query?.id || "").trim();
   if (!id || !SERVICE_ROLE_KEY) return redirect(res, "/");
@@ -23,9 +32,11 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     if (error || !booking?.id || !booking?.click_url) return redirect(res, "/");
+    const safeClickUrl = getSafeHttpUrl(booking.click_url);
+    if (!safeClickUrl) return redirect(res, "/");
 
     await admin.rpc("increment_ad_click", { booking_id: booking.id });
-    return redirect(res, booking.click_url);
+    return redirect(res, safeClickUrl);
   } catch (_) {
     return redirect(res, "/");
   }

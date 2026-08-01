@@ -49,12 +49,22 @@ create policy "public read active bookings" on public.ad_bookings
 
 create or replace function public.increment_ad_impression(booking_id uuid)
 returns void language sql security definer as $$
-  update public.ad_bookings set impressions = impressions + 1 where id = booking_id;
+  update public.ad_bookings
+    set impressions = impressions + 1
+  where id = booking_id
+    and status = 'active'
+    and start_date <= current_date
+    and end_date >= current_date;
 $$;
 
 create or replace function public.increment_ad_click(booking_id uuid)
 returns void language sql security definer as $$
-  update public.ad_bookings set clicks = clicks + 1 where id = booking_id;
+  update public.ad_bookings
+    set clicks = clicks + 1
+  where id = booking_id
+    and status = 'active'
+    and start_date <= current_date
+    and end_date >= current_date;
 $$;
 
 insert into public.ad_bookings
