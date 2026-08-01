@@ -9,6 +9,7 @@
     { "source": "/api/paystack-donation-verify", "destination": "/api/paystack-donation-verify.js" },
     { "source": "/api/admin-ops",        "destination": "/api/admin-ops.js"        },
     { "source": "/api/send-email",       "destination": "/api/send-email.js"       },
+    { "source": "/ad-click/:id",        "destination": "/api/ad-click/:id"         },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },
     { "source": "/blog",                 "destination": "/blog.html"                },

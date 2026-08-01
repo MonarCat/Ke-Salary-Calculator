@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="/sw.js" async></script>
-  <meta charset="UTF-8" />
+<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -88,6 +87,7 @@
       <button data-section="revenue" onclick="showSection('revenue',this)">💰 Revenue</button>
       <button data-section="email" onclick="showSection('email',this)">✉️ Email Center</button>
       <button data-section="audit" onclick="showSection('audit',this)">🔍 Audit Log</button>
+      <button data-section="ad-bookings" onclick="showSection('ad-bookings',this)">🧾 Ad Bookings</button>
       <button onclick="doLogout()">🚪 Sign out</button>
     </div>
     <div class="profile"><div id="admin-initial" class="avatar">A</div><div><div id="admin-name">Admin</div><div style="font:11px var(--mono);color:var(--text3)">SUPER ADMIN</div></div></div>
@@ -230,6 +230,42 @@
         <div class="pagination" style="margin-top:12px"><div id="audit-info">—</div><div id="audit-btns"></div></div>
       </div>
     </section>
+
+    <!-- AD BOOKINGS -->
+    <section id="section-ad-bookings" class="section">
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <div>
+            <div class="label">Ad Bookings</div>
+            <div style="font-size:13px;color:var(--text3);margin-top:4px">Manage direct-sold slot delivery and status.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <a class="btn" href="https://app.supabase.com/project/wznopthjoaqusalqoyru/storage/buckets/ads" target="_blank" rel="noopener">📁 Open Ads Bucket</a>
+            <button class="btn" onclick="loadAdBookings()">↺ Refresh</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin:-4px 0 10px">Creative specs: Rails 160×600, Strip 728×90, static jpg/png/webp only, max 150KB, no GIF/video/autoplay.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Advertiser</th>
+                <th>Slot</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ad-bookings-tbody">
+              <tr><td colspan="8" style="color:var(--text3)">Loading ad bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- MODALS -->
@@ -334,7 +370,7 @@
     });
     const{SUPA_URL,ANON_KEY,ADMIN_FN,SEND_EMAIL_FN,MONTHLY,ADS}=APP_CONFIG;
     const sb=supabase.createClient(SUPA_URL,ANON_KEY);
-    const state={users:[],filteredUsers:[],analytics:null,growth:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null};
+    const state={users:[],filteredUsers:[],analytics:null,growth:[],adBookings:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null};
     const charts={};
     let booted=false,loading=false,searchTimer,toastTimer,emailCenterReady=false;
 
@@ -350,6 +386,7 @@
         state.analytics=a.analytics||null;
         state.growth=Array.isArray(a.growth)?a.growth:[];
         await loadUsers(1);
+        await loadAdBookings();
         renderStats();renderCharts();renderActivityFeed();
       }catch(e){showToast('Error loading data: '+e.message,'error');console.error(e);}
       finally{loading=false;}
@@ -643,6 +680,53 @@
     function addSendLogEntry({subject,sent,target}){const log=document.getElementById('send-log');if(!log)return;if(log.querySelector('[style*="color:var(--text3)"]'))log.innerHTML='';const icons={all:'📋',premium:'⭐',free:'🆓',single:'👤'},entry=document.createElement('div');entry.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px';entry.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--text)">${icons[target]||'✉️'} ${esc(subject.slice(0,40))}${subject.length>40?'…':''}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font:11px var(--mono);color:var(--text3)">${new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'})}</span><span style="font:700 11px var(--mono);color:var(--accent)">${sent} sent</span></div>`;log.insertBefore(entry,log.firstChild);}
     function initEmailCenter(){if(emailCenterReady)return;emailCenterReady=true;renderTemplateList();loadTemplate('welcome');updateRecipientCountLabel();}
 
+
+    // ── Ad bookings ───────────────────────────────────────────────────────
+    async function loadAdBookings(){
+      const tbody=document.getElementById('ad-bookings-tbody');
+      if(!tbody)return;
+      tbody.innerHTML='<tr><td colspan="8" style="color:var(--text3)">Loading ad bookings...</td></tr>';
+      const res=await callAdminFn({action:'list_ad_bookings'});
+      if(res.error){
+        tbody.innerHTML=`<tr><td colspan="8" style="color:var(--red)">${esc(res.error)}</td></tr>`;
+        return;
+      }
+      state.adBookings=Array.isArray(res.bookings)?res.bookings:[];
+      renderAdBookings();
+    }
+
+    function renderAdBookings(){
+      const tbody=document.getElementById('ad-bookings-tbody');
+      if(!tbody)return;
+      const rows=Array.isArray(state.adBookings)?state.adBookings:[];
+      if(!rows.length){
+        tbody.innerHTML='<tr><td colspan="8" style="color:var(--text3)">No ad bookings yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML=rows.map((b)=>{
+        const isActive=String(b.status||'')==='active';
+        const nextStatus=isActive?'paused':'active';
+        const label=isActive?'Pause':'Activate';
+        return `<tr>
+          <td>${esc(b.advertiser_name||'—')}</td>
+          <td>${esc(b.slot_id||'—')}</td>
+          <td>${esc(formatDay(b.start_date))}</td>
+          <td>${esc(formatDay(b.end_date))}</td>
+          <td><span class="plan-badge ${isActive?'premium':'expired'}">${esc(b.status||'pending')}</span></td>
+          <td>${Number(b.impressions||0).toLocaleString()}</td>
+          <td>${Number(b.clicks||0).toLocaleString()}</td>
+          <td><button class="act-btn" onclick="toggleAdBookingStatus('${esc(b.id)}','${nextStatus}')">${label}</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function toggleAdBookingStatus(id,status){
+      const res=await callAdminFn({action:'update_ad_booking_status',id,status});
+      if(res.error){showToast('Ad booking update failed: '+res.error,'error');return;}
+      showToast('Ad booking status updated');
+      await loadAdBookings();
+    }
+
     // ── Auth ──────────────────────────────────────────────────────────────
     async function doLogin(){const email=document.getElementById('login-email').value.trim(),pwd=document.getElementById('login-pwd').value,err=document.getElementById('login-err');err.style.display='none';if(!email||!pwd){err.textContent='Please fill in both fields.';err.style.display='block';return;}setBtnLoading('login-btn',true,'Signing in...');const{data,error}=await sb.auth.signInWithPassword({email,password:pwd});setBtnLoading('login-btn',false,'Access Admin Dashboard →');if(error){err.textContent=error.message;err.style.display='block';return;}state.adminUser=data.user;hideLoginForm();await boot();}
     async function doLogout(){await sb.auth.signOut();}
@@ -671,10 +755,11 @@
       document.getElementById(`section-${id}`)?.classList.add('active');
       document.querySelectorAll('.nav button[data-section]').forEach((b)=>b.classList.remove('active'));
       if(btn)btn.classList.add('active');
-      const titles={overview:'Overview',users:'Users',revenue:'Revenue',email:'Email Center',audit:'Audit Log'};
+      const titles={overview:'Overview',users:'Users',revenue:'Revenue',email:'Email Center',audit:'Audit Log','ad-bookings':'Ad Bookings'};
       setText('topbar-title',titles[id]||'Overview');
       if(id==='email')initEmailCenter();
       if(id==='audit')loadAuditLog(1);
+      if(id==='ad-bookings')loadAdBookings();
     }
 
     function onSearchInput(v){

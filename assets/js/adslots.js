@@ -10,15 +10,15 @@
  *   adManager.init(isPremium);
  *
  * Ad slot IDs must match the div IDs in your HTML:
- *   #ad-after-result  — below salary breakdown table
- *   #ad-sidebar       — desktop only (hidden ≤768px via CSS)
- *   #ad-homepage-mid  — homepage middle section
+ *   #ad-rail-left            — left rail
+ *   #ad-rail-right           — right rail
+ *   #ad-strip-below-results  — strip below salary results
  */
 
 const AD_SLOT_IDS = [
-  "ad-after-result",
-  "ad-sidebar",
-  "ad-homepage-mid",
+  "ad-rail-left",
+  "ad-rail-right",
+  "ad-strip-below-results",
 ];
 
 export class AdSlotManager {
