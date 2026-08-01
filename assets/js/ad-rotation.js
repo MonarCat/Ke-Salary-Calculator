@@ -62,6 +62,7 @@ async function renderSlot(supabase, slotKey, bookings) {
   if (!container || !bookings?.length) return;
 
   const renderBooking = async (booking) => {
+    container.querySelectorAll("ins.adsbygoogle").forEach((el) => el.remove());
     const previous = container.querySelector(".ad-slot-creative");
     const next = createCreative(booking, config);
     next.classList.add("ad-fade-enter");

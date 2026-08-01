@@ -1313,16 +1313,17 @@
       initEasterGiftBanner(_sbE);
     </script>
     <script type="module">
-      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
       import { AdSlotManager } from '/assets/js/adslots.js';
       import { checkPremium } from '/assets/js/premium.js';
       import { initAdRotation } from '/assets/js/ad-rotation.js';
 
       (async () => {
-        const supabase = window.supabaseClient || createClient(
+        const createClient = window.supabase?.createClient;
+        const supabase = window.supabaseClient || (createClient ? createClient(
           window.__SUPABASE_URL || 'https://wznopthjoaqusalqoyru.supabase.co',
           window.__SUPABASE_ANON_KEY || ''
-        );
+        ) : null);
+        if (!supabase) return;
 
         const { isPremium } = await checkPremium(supabase);
         const adManager = new AdSlotManager();
