@@ -501,6 +501,38 @@ export default async function handler(req, res) {
         return res.json(deliveryData || { success: true });
       }
 
+
+      // ── Ad bookings ──────────────────────────────────────────────────────
+      case 'list_ad_bookings': {
+        const { data, error } = await admin
+          .from('ad_bookings')
+          .select('id, advertiser_name, slot_id, start_date, end_date, status, impressions, clicks, created_at')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return res.json({ bookings: data ?? [] });
+      }
+
+      case 'update_ad_booking_status': {
+        const { id, status } = body;
+        const allowed = new Set(['active', 'paused']);
+        if (!id || !allowed.has(String(status))) {
+          return res.status(400).json({ error: 'id and valid status are required' });
+        }
+
+        const { data, error } = await admin
+          .from('ad_bookings')
+          .update({ status: String(status) })
+          .eq('id', id)
+          .select('id, advertiser_name, status')
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: 'Booking not found' });
+
+        await log('update_ad_booking_status', data.advertiser_name, id, { status: data.status });
+        return res.json({ success: true, booking: data });
+      }
+
       default:
         return res.status(400).json({ error: `Unknown action: ${action}` });
     }

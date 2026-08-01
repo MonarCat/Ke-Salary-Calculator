@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="/sw.js" async></script>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -47,6 +46,7 @@
     <link rel="stylesheet" href="assets/css/styles.css?v=2.2">
     <link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
     <link rel="stylesheet" href="assets/css/auth-styles.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/adsense-styles.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -649,24 +649,25 @@
         body.dark-mode footer a,
         body.dark-mode .mini-calc-cta { color: #4caf50; }
 
-        /* Advertisement sidebar */
+        /* Advertisement rails + partner sidebar */
         .index-layout {
-            display: flex;
+            display: grid;
+            grid-template-columns: 160px minmax(0, 1fr) 160px 220px;
             gap: 22px;
             align-items: flex-start;
         }
-        .index-main-content {
-            flex: 1;
-            min-width: 0;
-        }
+        .index-main-content { min-width: 0; }
         .index-partner-sidebar {
-            width: 180px;
-            flex-shrink: 0;
+            width: 100%;
             position: sticky;
             top: 80px;
         }
+        @media (max-width: 1200px) {
+            .index-layout { grid-template-columns: minmax(0, 1fr) 220px; }
+            #ad-rail-left, #ad-rail-right { display: none !important; }
+        }
         @media (max-width: 820px) {
-            .index-layout { flex-direction: column; }
+            .index-layout { grid-template-columns: 1fr; }
             .index-partner-sidebar {
                 width: 100%;
                 position: static;
@@ -1105,7 +1106,6 @@
         }
     </style>
 </head>
-    <script src="https://quge5.com/88/tag.min.js" data-zone="219979" async data-cfasync="false"></script>
 <body>
     <!-- Nav drawer overlay (backdrop for mobile slide-in drawer) -->
     <div class="nav-drawer-overlay" id="navDrawerOverlay" aria-hidden="true"></div>
@@ -1240,6 +1240,9 @@
 
             <!-- Mini Calculator on Homepage -->
             <div class="index-layout">
+            <aside id="ad-rail-left" class="adsense-container ad-rail-slot" aria-label="Advertisement left rail">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="vertical" data-full-width-responsive="false"></ins>
+            </aside>
             <div class="index-main-content">
 
             <!-- Quick Navigation Cards (entice exploration) -->
@@ -1299,6 +1302,9 @@
                     </div>
                     <a href="/calculator.html" class="mini-calc-cta"><i class="fas fa-arrow-right"></i> Full breakdown with payslip generator →</a>
                 </div>
+            </div>
+            <div id="ad-strip-below-results" class="adsense-container ad-strip-slot" aria-label="Advertisement below salary breakdown">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
             </div>
 
             
@@ -1660,6 +1666,10 @@
 
             </div><!-- end .index-main-content -->
 
+            <aside id="ad-rail-right" class="adsense-container ad-rail-slot" aria-label="Advertisement right rail">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="vertical" data-full-width-responsive="false"></ins>
+            </aside>
+
             <!-- Partners Sidebar -->
             <aside class="index-partner-sidebar" aria-label="Partner links sidebar">
 
@@ -1757,6 +1767,24 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        import { AdSlotManager } from '/assets/js/adslots.js';
+        import { checkPremium } from '/assets/js/premium.js';
+        import { initAdRotation } from '/assets/js/ad-rotation.js';
+
+        (async () => {
+            const supabase = window.supabaseClient || createClient(
+                window.__SUPABASE_URL || 'https://wznopthjoaqusalqoyru.supabase.co',
+                window.__SUPABASE_ANON_KEY || ''
+            );
+
+            const { isPremium } = await checkPremium(supabase);
+            const adManager = new AdSlotManager();
+            adManager.init(isPremium);
+            await initAdRotation({ supabase, isPremium });
+        })();
+    </script>
     <script>
         // ── Mini Calculator ──────────────────────────────────────────────────
         function debounce(fn, delay) {

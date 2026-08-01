@@ -18,9 +18,9 @@
 
     // Map of slot-id → ad zone/placement id
     const AD_SLOTS = {
-        'ke-ad-top':    '',
-        'ke-ad-mid':    '',
-        'ke-ad-bottom': '',
+        'ad-rail-left': '',
+        'ad-rail-right': '',
+        'ad-strip-below-results': '',
     };
 
     // CSS class applied to every ad wrapper
@@ -52,8 +52,7 @@
             placeholder.classList.add(WRAPPER_CLASS);
 
             if (!zoneId) {
-                // Dev mode: show a labelled placeholder so you can see ad positions
-                placeholder.innerHTML = `<div class="ke-ad-slot__placeholder">Ad – ${slotId}</div>`;
+                // Keep existing fallback markup untouched when no direct network zone is configured
                 return;
             }
         });
