@@ -1,9 +1,9 @@
 (function () {
   const CURRENT_AD = {
-    campaignName: 'Afams House Ad',
-    campaignSlug: 'afams_house_ad',
+    campaignName: 'Afams Gardening House Ad',
+    campaignSlug: 'afams_gardening_house_ad',
     imageSrc: '/assets/images/afams-house-ad.svg',
-    altText: 'Afams HR, payroll, and staffing solutions for Kenyan businesses',
+    altText: 'Afams GrowBags, FarmBags, and Prosoil for home gardening',
     href: 'https://afams.co.ke/'
   };
 
@@ -20,9 +20,17 @@
   }
 
   function buildTrackedHref(ad) {
-    return ad.href +
-      '?utm_source=salarycalculator&utm_medium=house_ad&utm_campaign=' +
-      encodeURIComponent(ad.campaignSlug);
+    const url = new URL(ad.href, window.location.origin);
+    if (!url.searchParams.has('utm_source')) {
+      url.searchParams.set('utm_source', 'salarycalculator');
+    }
+    if (!url.searchParams.has('utm_medium')) {
+      url.searchParams.set('utm_medium', 'house_ad');
+    }
+    if (!url.searchParams.has('utm_campaign')) {
+      url.searchParams.set('utm_campaign', ad.campaignSlug);
+    }
+    return url.toString();
   }
 
   function collapseSlot(slot) {
