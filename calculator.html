@@ -236,15 +236,11 @@
         /* Ad rails for calculator page */
         .calc-page-layout {
             display: grid;
-            grid-template-columns: 160px minmax(0, 1fr) 160px;
+            grid-template-columns: minmax(0, 1fr);
             gap: 20px;
             align-items: flex-start;
         }
         .calc-page-main { min-width: 0; }
-        @media (max-width: 768px) {
-            .calc-page-layout { grid-template-columns: 1fr; }
-            #ad-rail-left, #ad-rail-right { display: none !important; }
-        }
     </style>
 
     <link rel="stylesheet" href="/css/ads.css?v=1.0">
@@ -416,9 +412,6 @@
             <!-- Salary Calculator Tab -->
             <div id="calculator" class="tab-content" style="display: block;">
                 <div class="calc-page-layout">
-                    <aside id="ad-rail-left" class="adsense-container ad-rail-slot" aria-label="Advertisement left rail">
-                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="vertical" data-full-width-responsive="false"></ins>
-                    </aside>
                     <div class="calc-page-main">
                 <div class="input-section">
                     <div class="form-group rates-year-group">
@@ -735,12 +728,6 @@
                     <p><strong>Disclaimer:</strong> The calculations provided are estimates based on current tax rates. Always consult with a qualified accountant for official computations.</p>
                 </div>
                     </div>
-                    <aside id="ad-rail-right" class="adsense-container ad-rail-slot" aria-label="Advertisement right rail">
-                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="vertical" data-full-width-responsive="false"></ins>
-                    </aside>
-                </div>
-                <div id="ad-strip-below-results" class="adsense-container ad-strip-slot" aria-label="Advertisement below results">
-                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6832553346534070" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
                 </div>
             </div>
 
@@ -1315,25 +1302,6 @@
         window.__SUPABASE_ANON_KEY || ''
       );
       initEasterGiftBanner(_sbE);
-    </script>
-    <script type="module">
-      import { AdSlotManager } from '/assets/js/adslots.js';
-      import { checkPremium } from '/assets/js/premium.js';
-      import { initAdRotation } from '/assets/js/ad-rotation.js';
-
-      (async () => {
-        const createClient = window.supabase?.createClient;
-        const supabase = window.supabaseClient || (createClient ? createClient(
-          window.__SUPABASE_URL || 'https://wznopthjoaqusalqoyru.supabase.co',
-          window.__SUPABASE_ANON_KEY || ''
-        ) : null);
-        if (!supabase) return;
-
-        const { isPremium } = await checkPremium(supabase);
-        const adManager = new AdSlotManager();
-        adManager.init(isPremium);
-        await initAdRotation({ supabase, isPremium });
-      })();
     </script>
     <script>
         // Dark mode
