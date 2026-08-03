@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="220" viewBox="0 0 1200 220" role="img" aria-label="Afams payroll and staffing">
+  <defs>
+    <linearGradient id="afamsBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#006600"/>
+      <stop offset="100%" stop-color="#004400"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="220" rx="18" fill="url(#afamsBg)"/>
+  <rect x="26" y="26" width="1148" height="168" rx="14" fill="#ffffff" fill-opacity="0.11"/>
+  <text x="64" y="95" fill="#ffffff" font-family="Arial, sans-serif" font-size="42" font-weight="700">Afams</text>
+  <text x="64" y="138" fill="#dff5df" font-family="Arial, sans-serif" font-size="25">Trusted HR, Payroll &amp; Staffing Solutions in Kenya</text>
+  <rect x="875" y="72" width="255" height="74" rx="37" fill="#ffffff"/>
+  <text x="1003" y="118" text-anchor="middle" fill="#006600" font-family="Arial, sans-serif" font-size="26" font-weight="700">Visit Afams</text>
+</svg>

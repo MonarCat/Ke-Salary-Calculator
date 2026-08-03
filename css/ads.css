@@ -1,0 +1,58 @@
+.sc-ad-slot {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto 1rem;
+    padding: 0 1rem;
+    min-height: 116px;
+}
+
+.sc-ad-banner {
+    position: relative;
+    border: 1px solid var(--sc-border, #dce7dc);
+    border-radius: var(--sc-radius, 12px);
+    background: var(--sc-surface, #ffffff);
+    padding: 1.4rem 0.85rem 0.75rem;
+    box-shadow: var(--sc-shadow, 0 10px 24px rgba(15, 23, 42, 0.06));
+}
+
+.sc-ad-label {
+    position: absolute;
+    top: 0.45rem;
+    left: 0.85rem;
+    font-size: 0.68rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sc-muted, #5b6472);
+}
+
+.sc-ad-link {
+    display: block;
+    border-radius: calc(var(--sc-radius, 12px) - 2px);
+    overflow: hidden;
+}
+
+.sc-ad-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.sc-ad-slot[data-ad-state="empty"],
+html.sc-ads-disabled .sc-ad-slot {
+    display: none !important;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .sc-ad-slot {
+        padding: 0 0.75rem;
+        min-height: 98px;
+    }
+
+    .sc-ad-banner {
+        padding: 1.3rem 0.6rem 0.55rem;
+    }
+}
