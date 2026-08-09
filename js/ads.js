@@ -45,8 +45,13 @@
     slot.removeAttribute('aria-hidden');
   }
 
+  function canPlayWmvVideo() {
+    const video = document.createElement('video');
+    return typeof video.canPlayType === 'function' && video.canPlayType('video/x-ms-wmv') !== '';
+  }
+
   function renderVideoBanner(slot, ad) {
-    if (!ad?.source) {
+    if (!ad?.source && !ad?.poster) {
       collapseSlot(slot);
       return;
     }
@@ -58,20 +63,6 @@
     label.className = 'sc-ad-label';
     label.textContent = 'Advertisement';
 
-    const video = document.createElement('video');
-    video.className = 'sc-ad-video';
-    video.muted = true;
-    video.autoplay = true;
-    video.loop = true;
-    video.playsInline = true;
-    video.controls = true;
-    video.poster = ad.poster || '';
-
-    const source = document.createElement('source');
-    source.src = ad.source;
-    source.type = 'video/x-ms-wmv';
-    video.appendChild(source);
-
     const fallbackLink = document.createElement('a');
     fallbackLink.className = 'sc-ad-fallback-link';
     fallbackLink.href = buildTrackedHref(ad);
@@ -80,7 +71,38 @@
     fallbackLink.textContent = 'Open Afams ad';
 
     wrapper.appendChild(label);
-    wrapper.appendChild(video);
+    if (ad?.source && canPlayWmvVideo()) {
+      const video = document.createElement('video');
+      video.className = 'sc-ad-video';
+      video.muted = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.controls = true;
+      video.poster = ad.poster || '';
+
+      const source = document.createElement('source');
+      source.src = ad.source;
+      source.type = 'video/x-ms-wmv';
+      video.appendChild(source);
+      wrapper.appendChild(video);
+    } else if (ad?.poster) {
+      const posterLink = document.createElement('a');
+      posterLink.className = 'sc-ad-link';
+      posterLink.href = fallbackLink.href;
+      posterLink.target = fallbackLink.target;
+      posterLink.rel = fallbackLink.rel;
+      posterLink.setAttribute('aria-label', 'Open Afams ad');
+
+      const posterImage = document.createElement('img');
+      posterImage.className = 'sc-ad-image';
+      posterImage.src = ad.poster;
+      posterImage.alt = 'Afams ad poster';
+      posterImage.loading = 'lazy';
+      posterImage.decoding = 'async';
+      posterLink.appendChild(posterImage);
+      wrapper.appendChild(posterLink);
+    }
     wrapper.appendChild(fallbackLink);
 
     slot.innerHTML = '';
