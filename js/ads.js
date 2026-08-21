@@ -18,6 +18,8 @@
   const BANNER_SLOT_SELECTOR = '[data-ad-slot="banner"]';
   const SIDEBAR_MEDIA_SELECTOR = '[data-ad-slot="sidebar-media"]';
   const SIDEBAR_ROTATION_MS = 9000;
+  const PREMIUM_CACHE_KEY = 'sc_premium_status';
+  const EASTER_FREE_UNTIL = new Date('2026-04-30T23:59:59+03:00');
 
   function buildTrackedHref(ad) {
     const url = new URL(ad.fallbackHref, window.location.origin);
@@ -43,6 +45,60 @@
     slot.style.display = '';
     slot.setAttribute('data-ad-state', 'ready');
     slot.removeAttribute('aria-hidden');
+  }
+
+  function hasActivePremium(profile) {
+    if (!profile?.premium) return false;
+    if (!profile.premium_expires_at) return true;
+    return new Date(profile.premium_expires_at) > new Date();
+  }
+
+  function getCachedPremiumStatus() {
+    const raw = sessionStorage.getItem(PREMIUM_CACHE_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.data?.isPremium === 'boolean') return parsed.data.isPremium;
+    } catch (_) {}
+    return null;
+  }
+
+  function hideAllAdsForPremium() {
+    document.body?.classList?.add('premium-user');
+    document.querySelectorAll(
+      `${BANNER_SLOT_SELECTOR}, ${SIDEBAR_MEDIA_SELECTOR}, .sc-ad-slot, .adsense-container, .adsbygoogle, [id^="adsense-"], [id*="monetag"], [class*="monetag"], #ad-rail-left, #ad-rail-right, #ad-strip-below-results, iframe[src*="omg10.com"]`
+    ).forEach((el) => {
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  async function isPremiumUser() {
+    const cachedPremium = getCachedPremiumStatus();
+    if (cachedPremium !== null) return cachedPremium;
+
+    if (window.__SC_IS_PREMIUM === true) return true;
+
+    const supabase = window.supabaseClient;
+    if (!supabase?.auth) return false;
+
+    try {
+      const { data: { user } = {} } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      if (Date.now() < EASTER_FREE_UNTIL.getTime()) return true;
+
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('premium, premium_expires_at')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error || !profile) return false;
+      return hasActivePremium(profile);
+    } catch (_) {
+      return false;
+    }
   }
 
   function canPlayWmvVideo() {
@@ -145,7 +201,12 @@
     setSlotReady(slot);
   }
 
-  function initAds() {
+  async function initAds() {
+    if (await isPremiumUser()) {
+      hideAllAdsForPremium();
+      return;
+    }
+
     document.querySelectorAll(BANNER_SLOT_SELECTOR).forEach((slot) => {
       renderVideoBanner(slot, HOME_ADS.bannerVideo);
     });
