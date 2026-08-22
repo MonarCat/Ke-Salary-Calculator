@@ -1114,76 +1114,14 @@
 
     <div class="overlay">
         <div class="container">
-            <div class="site-header">
-                <div class="logo-container">
-                    <a href="/">
-                        <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo" width="260" height="130" loading="eager">
-                    </a>
-                </div>
-
-                <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <nav class="main-nav">
-                <a href="/" class="active">Home</a>
-                
-                <!-- Calculators Dropdown -->
-                <div class="nav-dropdown">
-                    <span class="nav-dropdown-toggle">
-                        Calculators <i class="fas fa-chevron-down"></i>
-                    </span>
-                    <div class="nav-dropdown-menu">
-                        <a href="/calculator.html">Salary Calculator</a>
-                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
-                        <a href="/salary-after-tax.html">Salary After Tax</a>
-                        <a href="/global-salary-calculator.html">Global Calculator</a>
-                        <a href="/budget-planner.html">Budget Planner</a>
-                        <a href="/salary-raise-calculator.html">Raise Calculator</a>
-                        <a href="/salary-comparison.html">Salary Comparison</a>
-                    </div>
-                </div>
-
-                <!-- Salaries Dropdown -->
-                <div class="nav-dropdown">
-                    <span class="nav-dropdown-toggle">
-                        Salaries <i class="fas fa-chevron-down"></i>
-                    </span>
-                    <div class="nav-dropdown-menu">
-                        <a href="/salary-index.html">Salary Index Table</a>
-                        <a href="/salary/software-engineer-kenya.html">Software Engineer</a>
-                        <a href="/salary/nurse-kenya.html">Nurse</a>
-                        <a href="/salary/teacher-kenya.html">Teacher</a>
-                        <a href="/salary/accountant-kenya.html">Accountant</a>
-                        <a href="/salary/doctor-kenya.html">Doctor</a>
-                        <a href="/50000.html">KES 50,000 Salary</a>
-                        <a href="/100000.html">KES 100,000 Salary</a>
-                    </div>
-                </div>
-                <a href="/budget-planner.html">Budget Planner</a>
-                
-                <a href="/about-us.html">About Us</a>
-                <a href="/blog.html">Blog</a>
-                <a href="/faq.html">FAQ</a>
-                <a href="/salary-news.html">Salary News</a>
-                <a href="/contact-us.html">Contact Us</a>
-                <a href="/employees.html">Manage Employees</a>
-                <a href="/external-links.html">External Links</a>
-                
-                <div id="auth-links" class="auth-links-container"></div>
-                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
-                </nav>
-            <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>
-            </div>
+            <div id="site-header"></div>
 
             <!-- AdSense Header Banner -->
 
             <!-- Hero Section -->
             <div class="hero-section">
                 <div class="hero-copy">
-                    <div class="hero-pill">Updated for FY 2025/2026</div>
+                    <div class="hero-pill"><span data-tax-year-label></span></div>
                     <h1>🇰🇪 <span class="hero-title-salary">Salary</span> <span class="hero-title-calc">Calculator</span></h1>
                     <p>Calculate your exact take-home pay in seconds. Generate KRA-compliant payslips. Run payroll for your whole team — free.</p>
                     <p class="hero-meta">✅ Rates verified March 2026</p>
@@ -1705,37 +1643,7 @@
             </aside>
             </div><!-- end .index-layout -->
 
-            <footer class="homepage-footer">
-                <section class="footer-support" aria-labelledby="footer-support-heading">
-                    <h2 id="footer-support-heading">Support</h2>
-                    <p><span aria-hidden="true">❤️</span> <strong>Support KeSalary</strong></p>
-                    <p>Help us keep salarycalculator.co.ke free and continuously improving.</p>
-                    <a class="footer-support-link" href="/donate.html" aria-label="Support KeSalary through donations">Support KeSalary</a>
-                </section>
-                <div class="homepage-footer-grid">
-                    <div class="footer-column">
-                        <h3>Support KeSalary</h3>
-                        <p>Your contribution helps keep the calculator, payslip tools and salary resources available to Kenyans for free.</p>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Policies</h3>
-                        <div class="footer-link-list">
-                            <a href="/privacy-policy.html">Privacy Policy</a>
-                            <a href="/terms-of-service.html">Terms of Service</a>
-                            <a href="/cookie-policy.html">Cookie Policy</a>
-                        </div>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Explore</h3>
-                        <div class="footer-link-list">
-                            <a href="/calculator.html">Salary Calculator</a>
-                            <a href="/salary-news.html">Salary News</a>
-                            <a href="/contact-us.html">Contact Us</a>
-                        </div>
-                    </div>
-                </div>
-                <p class="section-copy" style="margin-top: 0.75rem;">© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
-            </footer>
+            <div id="site-footer"></div>
         </div>
     </div>
 
@@ -1767,6 +1675,8 @@
             <span>More</span>
         </a>
     </nav>
+
+    <script src="/assets/js/nav-partial.js?v=1.0"></script>
 
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>

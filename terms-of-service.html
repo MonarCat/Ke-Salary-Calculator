@@ -75,46 +75,7 @@
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
-            <div class="logo-container">
-                <a href="/">
-                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
-                </a>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="main-nav">
-                <a href="/">Home</a>
-                
-                <!-- Calculators Dropdown -->
-                <div class="nav-dropdown">
-                    <span class="nav-dropdown-toggle">
-                        Calculators <i class="fas fa-chevron-down"></i>
-                    </span>
-                    <div class="nav-dropdown-menu">
-                        <a href="/calculator.html">Salary Calculator</a>
-                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
-                        <a href="/salary-after-tax.html">Salary After Tax</a>
-                        <a href="/global-salary-calculator.html">Global Calculator</a>
-                        <a href="/budget-planner.html">Budget Planner</a>
-                    </div>
-                </div>
-                
-                
-                <a href="/about-us.html">About Us</a>
-                <a href="/blog.html">Blog</a>
-                <a href="/contact-us.html">Contact Us</a>
-                <a href="/employees.html">Manage Employees</a>
-                <a href="/external-links.html">External Links</a>
-                
-                <div id="auth-links" class="auth-links-container"></div>
-            </nav>
-            <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>
+            <div id="site-header"></div>
 
             <div class="legal-content">
                 <h1>Terms of Service</h1>
@@ -255,14 +216,7 @@
                 <p>By using the Service, you acknowledge that you have read these Terms of Service and agree to be bound by them.</p>
             </div>
 
-            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
-                <p>
-                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
-                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
-                </p>
-                <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
-            </footer>
+            <div id="site-footer"></div>
         </div>
     </div>
 
@@ -270,6 +224,8 @@
     <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <script src="/assets/js/nav-partial.js?v=1.0"></script>
 
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
