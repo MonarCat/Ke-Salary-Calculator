@@ -142,6 +142,22 @@ async function sendViaBrevo({ to, toName, subject, htmlContent }) {
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
+  try {
+    return await handleSendEmail(req, res);
+  } catch (fatalErr) {
+    // Last-resort catch-all: without this, an unhandled exception anywhere
+    // below crashes the whole serverless invocation and Vercel returns a
+    // plain-text "FUNCTION_INVOCATION_FAILED" page instead of JSON, which is
+    // what the admin dashboard was seeing (a parse error on the frontend).
+    console.error('[send-email] Unhandled error:', fatalErr);
+    if (!res.headersSent) {
+      setCors(req, res);
+      return res.status(500).json({ error: 'Unexpected server error: ' + (fatalErr?.message || String(fatalErr)) });
+    }
+  }
+}
+
+async function handleSendEmail(req, res) {
   setCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
@@ -212,28 +228,37 @@ export default async function handler(req, res) {
     return res.json({ success: true, sent: 0, failed: 0, total: 0, message: 'No recipients in that segment' });
   }
 
-  // ── Send in batches ────────────────────────────────────────────────────────
+  // ── Send in concurrent batches ───────────────────────────────────────────
+  // Sending strictly one-at-a-time was slow enough that larger recipient
+  // lists (e.g. "All Users") could run past the serverless function's max
+  // execution time and get killed mid-request — which is what produced the
+  // FUNCTION_INVOCATION_FAILED / unparseable-response error in the admin UI.
+  // Sending each batch concurrently keeps the whole job well under that limit.
   let sent = 0, failed = 0;
   const errors = [];
 
-  for (let i = 0; i < recipients.length; i++) {
-    const r = recipients[i];
-    try {
-      await sendViaBrevo({
-        to:          r.email,
-        toName:      r.name,
-        subject:     personalise(subject, r),
-        htmlContent: wrapInEmailShell(personalise(html_body, r)),
-      });
-      sent++;
-    } catch (e) {
-      failed++;
-      errors.push(`${r.email}: ${e.message}`);
-      console.error('[send-email] failed:', r.email, e.message);
-    }
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(batch.map((r) => sendViaBrevo({
+      to:          r.email,
+      toName:      r.name,
+      subject:     personalise(subject, r),
+      htmlContent: wrapInEmailShell(personalise(html_body, r)),
+    })));
 
-    // Rate-limit: pause between batches, not every single email
-    if (recipients.length > 1 && (i + 1) % BATCH_SIZE === 0) {
+    results.forEach((result, idx) => {
+      if (result.status === 'fulfilled') {
+        sent++;
+      } else {
+        failed++;
+        const email = batch[idx].email;
+        const message = result.reason?.message || String(result.reason);
+        errors.push(`${email}: ${message}`);
+        console.error('[send-email] failed:', email, message);
+      }
+    });
+
+    if (i + BATCH_SIZE < recipients.length) {
       await delay(DELAY_MS);
     }
   }
