@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="My Salo" />
     <link rel="manifest" href="/site.webmanifest" />
     <title>Kenya Net Salary Calculator 2025 | PAYE after Housing Levy, NSSF & SHIF</title>
-    <meta name="description" content="Free Kenya net salary calculator 2025. Instantly calculate PAYE after Housing Levy, NSSF, SHIF deductions. Updated for FY 2025/2026 KRA tax rates.">
+    <meta name="description" content="Free Kenya net salary calculator 2025. Instantly calculate PAYE after Housing Levy, NSSF, SHIF deductions. <span data-tax-year-label></span> KRA tax rates.">
     <meta name="keywords" content="Kenya net salary calculator 2025, PAYE calculator after housing levy, Kenya salary calculator, NSSF SHIF calculator Kenya, KRA PAYE 2025">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://salarycalculator.co.ke/calculator.html">
@@ -318,56 +318,12 @@
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
-            <div class="logo-container">
-                <a href="/">
-                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
-                </a>
-            </div>
-            
-            <!-- Navigation Menu -->
-            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="main-nav">
-                <a href="/">Home</a>
-                
-                <!-- Calculators Dropdown -->
-                <div class="nav-dropdown">
-                    <span class="nav-dropdown-toggle">
-                        Calculators <i class="fas fa-chevron-down"></i>
-                    </span>
-                    <div class="nav-dropdown-menu">
-                        <a href="/calculator.html">Salary Calculator</a>
-                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
-                        <a href="/salary-after-tax.html">Salary After Tax</a>
-                        <a href="/global-salary-calculator.html">Global Calculator</a>
-                        <a href="/budget-planner.html">Budget Planner</a>
-                        <a href="/calculator.html#percentile">Kenya Percentile</a>
-                        <a href="/payroll-import.html">Payroll Import Premium</a>
-                        <a href="/p9a-generator.html">P9A Generator Premium</a>
-                    </div>
-                </div>
-                
-                <a href="/budget-planner.html">Budget Planner</a>
-                
-                <a href="/about-us.html">About Us</a>
-                <a href="/blog.html">Blog</a>
-                <a href="/contact-us.html">Contact Us</a>
-                <a href="/employees.html">Manage Employees</a>
-                <a href="/external-links.html">External Links</a>
-                
-                <div id="auth-links" class="auth-links-container"></div>
-                <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>
-            </nav>
-            <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>
+            <div id="site-header"></div>
 
 
             <!-- Trust badge -->
             <div style="text-align:center;">
-                <span class="trust-badge"><i class="fas fa-check-circle"></i> Updated for FY 2025/2026 &nbsp;|&nbsp; Last updated: February 2025 &nbsp;|&nbsp; Based on <a href="https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye" target="_blank" rel="noopener noreferrer" style="color:#2e7d32;">KRA PAYE guidelines</a></span>
+                <span class="trust-badge"><i class="fas fa-check-circle"></i> <span data-tax-year-label></span> &nbsp;|&nbsp; Based on <a href="https://www.kra.go.ke/individual/filing-paying/types-of-taxes/paye" target="_blank" rel="noopener noreferrer" style="color:#2e7d32;">KRA PAYE guidelines</a></span>
             </div>
 
             <!-- Intro Content -->
@@ -1178,14 +1134,7 @@
             <div data-ke-newsletter="calculator"></div>
 
 
-            <footer style="text-align: center; padding: 20px; margin-top: 30px; font-size: 12px; color: #666;">
-                <p style="margin-bottom: 10px;">
-                    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |
-                    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |
-                    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>
-                </p>
-                <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>
-            </footer>
+            <div id="site-footer"></div>
         </div>
     </div>
 
@@ -1193,6 +1142,8 @@
     <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <script src="/assets/js/nav-partial.js?v=1.0"></script>
 
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>

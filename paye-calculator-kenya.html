@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="My Salo" />
     <link rel="manifest" href="/site.webmanifest" />
     <title>PAYE Calculator Kenya 2025 | Accurate KRA PAYE Computation</title>
-    <meta name="description" content="Free PAYE Calculator Kenya 2025. Accurately compute KRA PAYE tax using current tax bands and personal relief. Updated for FY 2025/2026. Ideal for employees and employers.">
+    <meta name="description" content="Free PAYE Calculator Kenya 2025. Accurately compute KRA PAYE tax using current tax bands and personal relief. <span data-tax-year-label></span>. Ideal for employees and employers.">
     <meta name="keywords" content="PAYE calculator Kenya 2025, KRA PAYE computation, Pay As You Earn Kenya, income tax calculator Kenya, PAYE tax bands Kenya, personal relief Kenya, Kenya tax rates 2025">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://salarycalculator.co.ke/paye-calculator-kenya.html">
@@ -33,45 +33,7 @@
     <div class="overlay">
         <div class="container">
             <!-- Logo Container -->
-            <div class="logo-container">
-                <a href="/">
-                    <img src="assets/images/Logo.png" alt="Kenya Salary Calculator Logo">
-                </a>
-            </div>
-            <!-- Navigation Menu -->
-            <button class="mobile-menu-toggle" aria-label="Toggle navigation menu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="main-nav">
-                <a href="/">Home</a>
-                
-                <!-- Calculators Dropdown -->
-                <div class="nav-dropdown">
-                    <span class="nav-dropdown-toggle">
-                        Calculators <i class="fas fa-chevron-down"></i>
-                    </span>
-                    <div class="nav-dropdown-menu">
-                        <a href="/calculator.html">Salary Calculator</a>
-                        <a href="/paye-calculator-kenya.html">PAYE Calculator</a>
-                        <a href="/statutory-deductions-kenya.html">Statutory Deductions</a>
-                        <a href="/payslip-generator-kenya.html">Payslip Generator</a>
-                        <a href="/reverse-salary-calculator.html">Reverse Calculator</a>
-                        <a href="/salary-after-tax.html">Salary After Tax</a>
-                        <a href="/global-salary-calculator.html">Global Calculator</a>
-                        <a href="/budget-planner.html">Budget Planner</a>
-                    </div>
-                </div>
-                
-                
-                <a href="/about-us.html">About Us</a>
-                <a href="/blog.html">Blog</a>
-                <a href="/contact-us.html">Contact Us</a>
-                <a href="/employees.html">Manage Employees</a>
-                <a href="/external-links.html">External Links</a>
-                
-                <div id="auth-links" class="auth-links-container"></div>
-            </nav>
-            <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>
+            <div id="site-header"></div>
 
             <h1>PAYE Calculator Kenya</h1>
 
@@ -258,9 +220,7 @@
                 <p>Built specifically for Kenya 🇰🇪 using official KRA, NSSF & SHIF guidelines.</p>
             </div>
 
-            <footer style="text-align: center; padding: 10px; font-size: 12px; color: #666;">
-                © <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi
-            </footer>
+            <div id="site-footer"></div>
         </div>
     </div>
 
@@ -268,6 +228,8 @@
     <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top">
         <i class="fas fa-arrow-up"></i>
     </button>
+
+    <script src="/assets/js/nav-partial.js?v=1.0"></script>
 
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
