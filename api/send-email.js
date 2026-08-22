@@ -150,8 +150,8 @@ export default async function handler(req, res) {
     // plain-text "FUNCTION_INVOCATION_FAILED" page instead of JSON, which is
     // what the admin dashboard was seeing (a parse error on the frontend).
     console.error('[send-email] Unhandled error:', fatalErr);
-    setCors(req, res);
     if (!res.headersSent) {
+      setCors(req, res);
       return res.status(500).json({ error: 'Unexpected server error: ' + (fatalErr?.message || String(fatalErr)) });
     }
   }
