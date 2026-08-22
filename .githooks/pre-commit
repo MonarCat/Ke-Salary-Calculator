@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+max_bytes=$((2 * 1024 * 1024))
+violations=()
+
+while IFS= read -r -d '' file; do
+  [ -f "$file" ] || continue
+
+  if git check-attr filter -- "$file" | grep -q 'filter: lfs'; then
+    continue
+  fi
+
+  size=$(wc -c < "$file")
+  if [ "$size" -gt "$max_bytes" ]; then
+    violations+=("$file ($size bytes)")
+  fi
+done < <(git diff --cached --name-only -z --diff-filter=ACMRT)
+
+if [ "${#violations[@]}" -gt 0 ]; then
+  echo "✗ Commit blocked: staged files larger than 2MB must use Git LFS." >&2
+  printf ' - %s\n' "${violations[@]}" >&2
+  echo "Track with Git LFS, then recommit." >&2
+  exit 1
+fi
