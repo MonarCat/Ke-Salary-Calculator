@@ -73,18 +73,14 @@
     @media(max-width:1200px){:root{--sidebar:240px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-grid{grid-template-columns:1fr}#section-email>div{grid-template-columns:1fr!important}}
     @media(max-width:820px){body{display:block}#sidebar{position:relative;inset:auto;width:auto;margin:12px;border-radius:22px}.profile{position:relative;left:auto;right:auto;bottom:auto;margin:12px}#main{margin:0;width:100%;padding:0 12px 16px}.topbar{top:8px;border-radius:18px;flex-wrap:wrap}.grid{grid-template-columns:1fr}.toolbar input{min-width:100%}#impersonation-banner{left:12px;right:12px;top:12px}.value{font-size:24px}}
   </style>
-
-    <link rel="stylesheet" href="/css/ads.css?v=1.0">
-    <script defer src="/js/ads.js?v=1.0" onerror="document.documentElement.classList.add('sc-ads-disabled')"></script>
 </head>
 <body>
 
-            <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>
   <div id="loading-screen"><div style="font-family:var(--display);font-size:22px;color:var(--accent)">Salary Admin</div><div class="spinner"></div></div>
   <div id="auth-overlay"><div class="auth-box"><h2>Admin Sign In</h2><p>Restricted access.</p><div id="login-err"></div><label>Email</label><input id="login-email" type="email"><label>Password</label><input id="login-pwd" type="password"><button id="login-btn" class="btn primary" style="width:100%;margin-top:10px" onclick="doLogin()">Access Admin Dashboard →</button></div></div>
 
   <aside id="sidebar">
-    <div class="logo">Salary Admin</div>
+    <div class="logo">Salary Admin<div style="font:600 10px var(--mono);color:rgba(255,255,255,.4);margin-top:6px;letter-spacing:.02em;text-transform:none">Managed by Mikaju Software Solutions</div></div>
     <div class="badge-row"><span>Total <b id="sb-total-count">—</b></span><span>Premium <b id="sb-prem-count">—</b></span><span>Free <b id="sb-free-count">—</b></span><span>Expired <b id="sb-exp-count">—</b></span></div>
     <div class="nav">
       <button class="active" data-section="overview" onclick="showSection('overview',this)">📊 Overview</button>
@@ -118,7 +114,7 @@
         <div class="card"><div class="label">Total Users</div><div class="value" id="stat-total">—</div></div>
         <div class="card"><div class="label">Premium Users</div><div class="value" id="stat-premium">—</div></div>
         <div class="card"><div class="label">Free Users</div><div class="value" id="stat-free">—</div></div>
-        <div class="card"><div class="label">MRR</div><div class="value" id="stat-mrr">—</div></div>
+        <div class="card"><div class="label">Total Revenue</div><div class="value" id="stat-mrr">—</div></div>
         <div class="card"><div class="label">Conversion</div><div class="value" id="stat-conv">—</div></div>
         <div class="card"><div class="label">Payslips</div><div class="value" id="stat-payslips">—</div></div>
         <div class="card"><div class="label">Calculations</div><div class="value" id="stat-calcs">—</div></div>
@@ -161,14 +157,15 @@
 
     <!-- REVENUE -->
     <section id="section-revenue" class="section">
-      <div class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));">
-        <div class="card"><div class="label">Subs MRR</div><div class="value" id="rev-subs-mrr">—</div></div>
-        <div class="card"><div class="label">AdSense Est.</div><div class="value" id="rev-ads-est">—</div></div>
-        <div class="card"><div class="label">Total MRR</div><div class="value" id="rev-total-mrr">—</div></div>
+      <div class="grid" style="grid-template-columns:repeat(5,minmax(0,1fr));">
+        <div class="card"><div class="label">Total Revenue (All-Time)</div><div class="value" id="rev-total-alltime">—</div></div>
+        <div class="card"><div class="label">Total Transactions</div><div class="value" id="rev-txn-count">—</div></div>
+        <div class="card"><div class="label">Active Subs MRR (est.)</div><div class="value" id="rev-subs-mrr">—</div></div>
         <div class="card"><div class="label">ARR (proj.)</div><div class="value" id="rev-arr">—</div></div>
+        <div class="card"><div class="label">Avg. Revenue / Txn</div><div class="value" id="rev-avg-txn">—</div></div>
       </div>
       <div class="card" style="margin-bottom:14px">
-        <div class="label" style="margin-bottom:12px">Revenue Breakdown</div>
+        <div class="label" style="margin-bottom:12px">Revenue Breakdown — all figures from actual premium subscription payments</div>
         <canvas id="revenueBreakdownChart" style="max-height:300px"></canvas>
       </div>
     </section>
@@ -271,6 +268,10 @@
         </div>
       </div>
     </section>
+
+    <div style="text-align:center;padding:18px 0 6px;color:var(--text3);font:11px var(--mono)">
+      SalaryCalculator.co.ke Admin &middot; Managed by Mikaju Software Solutions
+    </div>
   </main>
 
   <!-- MODALS -->
@@ -371,9 +372,8 @@
       SEND_EMAIL_FN:'/api/send-email',
       MONTHLY:99,
       YEARLY:999,
-      ADS:12480,
     });
-    const{SUPA_URL,ANON_KEY,ADMIN_FN,SEND_EMAIL_FN,MONTHLY,ADS}=APP_CONFIG;
+    const{SUPA_URL,ANON_KEY,ADMIN_FN,SEND_EMAIL_FN,MONTHLY}=APP_CONFIG;
     const sb=supabase.createClient(SUPA_URL,ANON_KEY);
     const state={users:[],filteredUsers:[],analytics:null,growth:[],adBookings:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null};
     const charts={};
@@ -421,12 +421,12 @@
     }
 
     // ── Stats & Charts ────────────────────────────────────────────────────
-    function renderStats(){const a=state.analytics;if(!a)return;const premium=Number(a.premium_users||0),free=Number(a.free_users||0),expired=Number(a.expired_users||0),total=Number(a.total_users||0),conv=total>0?((premium/total)*100).toFixed(1):'0.0',subs=premium*MONTHLY,totalMrr=subs+ADS;setText('stat-total',total.toLocaleString());setText('stat-premium',premium.toLocaleString());setText('stat-free',free.toLocaleString());setText('stat-mrr',`KES ${totalMrr.toLocaleString()}`);setText('stat-conv',conv+'%');setText('stat-payslips',Number(a.total_payslips||0).toLocaleString());setText('stat-calcs',Number(a.total_calculations||0).toLocaleString());setText('stat-week-new',Number(a.new_this_week||0).toLocaleString());setText('stat-month-new',Number(a.new_this_month||0).toLocaleString());setText('stat-active-week',Number(a.active_this_week||0).toLocaleString());setText('sb-total-count',total.toLocaleString());setText('sb-prem-count',premium.toLocaleString());setText('sb-free-count',free.toLocaleString());setText('sb-exp-count',expired.toLocaleString());setText('rev-subs-mrr',`KES ${subs.toLocaleString()}`);setText('rev-ads-est',`KES ${ADS.toLocaleString()}`);setText('rev-total-mrr',`KES ${totalMrr.toLocaleString()}`);setText('rev-arr',`KES ${(premium*(MONTHLY*12)).toLocaleString()}`);}
+    function renderStats(){const a=state.analytics;if(!a)return;const premium=Number(a.premium_users||0),free=Number(a.free_users||0),expired=Number(a.expired_users||0),total=Number(a.total_users||0),conv=total>0?((premium/total)*100).toFixed(1):'0.0',subsMrr=premium*MONTHLY,totalRevenue=Number(a.total_revenue_kes||0),txnCount=Number(a.total_transactions||0),avgTxn=txnCount>0?Math.round(totalRevenue/txnCount):0;setText('stat-total',total.toLocaleString());setText('stat-premium',premium.toLocaleString());setText('stat-free',free.toLocaleString());setText('stat-mrr',`KES ${totalRevenue.toLocaleString()}`);setText('stat-conv',conv+'%');setText('stat-payslips',Number(a.total_payslips||0).toLocaleString());setText('stat-calcs',Number(a.total_calculations||0).toLocaleString());setText('stat-week-new',Number(a.new_this_week||0).toLocaleString());setText('stat-month-new',Number(a.new_this_month||0).toLocaleString());setText('stat-active-week',Number(a.active_this_week||0).toLocaleString());setText('sb-total-count',total.toLocaleString());setText('sb-prem-count',premium.toLocaleString());setText('sb-free-count',free.toLocaleString());setText('sb-exp-count',expired.toLocaleString());setText('rev-total-alltime',`KES ${totalRevenue.toLocaleString()}`);setText('rev-txn-count',txnCount.toLocaleString());setText('rev-subs-mrr',`KES ${subsMrr.toLocaleString()}`);setText('rev-arr',`KES ${(premium*(MONTHLY*12)).toLocaleString()}`);setText('rev-avg-txn',`KES ${avgTxn.toLocaleString()}`);}
     function renderCharts(){renderGrowthChart();renderPlanChart();renderRevenueChart();renderRevenueBreakdown();}
     function renderGrowthChart(){const c=document.getElementById('growthChart');if(!c)return;charts.growth?.destroy();charts.growth=new Chart(c,{type:'line',data:{labels:state.growth.map((d)=>formatDay(d.day)),datasets:[{label:'Signups',data:state.growth.map((d)=>Number(d.signups||0)),borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,.08)',fill:true,tension:.35,pointRadius:2,borderWidth:2},{label:'Premium',data:state.growth.map((d)=>Number(d.premium_signups||0)),borderColor:'#f5c842',backgroundColor:'rgba(245,200,66,.05)',fill:true,tension:.35,pointRadius:2,borderWidth:2}]},options:{responsive:true,animation:false,plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{maxTicksLimit:8}},y:{beginAtZero:true}}}});}
     function renderPlanChart(){const c=document.getElementById('planChart');if(!c)return;charts.plan?.destroy();const a=state.analytics||{};charts.plan=new Chart(c,{type:'doughnut',data:{labels:['Premium','Free','Expired'],datasets:[{data:[Number(a.premium_users||0),Number(a.free_users||0),Number(a.expired_users||0)],backgroundColor:['#f5c842','#00d4aa','#ff4d6d'],borderColor:'#ffffff',borderWidth:3}]},options:{responsive:true,animation:false,plugins:{legend:{position:'bottom'}}}});}
     function renderRevenueChart(){const c=document.getElementById('revenueChart');if(!c)return;charts.revenue?.destroy();const tail=state.growth.slice(-6);charts.revenue=new Chart(c,{type:'bar',data:{labels:tail.map((d)=>formatDay(d.day)),datasets:[{label:'Est. subs MRR added',data:tail.map((d)=>Math.round(Number(d.signups||0)*0.2*MONTHLY)),backgroundColor:'rgba(245,200,66,.3)',borderColor:'#f5c842',borderWidth:2,borderRadius:4}]},options:{responsive:true,animation:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});}
-    function renderRevenueBreakdown(){const c=document.getElementById('revenueBreakdownChart');if(!c)return;charts.revBreak?.destroy();const a=state.analytics||{};const subs=Number(a.premium_users||0)*MONTHLY;charts.revBreak=new Chart(c,{type:'bar',data:{labels:['Subscriptions (MRR)','AdSense (est.)','Total MRR'],datasets:[{data:[subs,ADS,subs+ADS],backgroundColor:['rgba(0,212,170,.35)','rgba(245,200,66,.35)','rgba(26,107,60,.5)'],borderColor:['#00d4aa','#f5c842','#1a6b3c'],borderWidth:2,borderRadius:6}]},options:{responsive:true,animation:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:(v)=>'KES '+v.toLocaleString()}}}}});}
+    function renderRevenueBreakdown(){const c=document.getElementById('revenueBreakdownChart');if(!c)return;charts.revBreak?.destroy();const a=state.analytics||{};const monthly=Number(a.monthly_plan_revenue_kes||0),yearly=Number(a.yearly_plan_revenue_kes||0),total=Number(a.total_revenue_kes||0);charts.revBreak=new Chart(c,{type:'bar',data:{labels:['Monthly Plan (all-time)','Yearly Plan (all-time)','Total Subscription Revenue'],datasets:[{data:[monthly,yearly,total],backgroundColor:['rgba(0,212,170,.35)','rgba(245,200,66,.35)','rgba(26,107,60,.5)'],borderColor:['#00d4aa','#f5c842','#1a6b3c'],borderWidth:2,borderRadius:6}]},options:{responsive:true,animation:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:(v)=>'KES '+v.toLocaleString()}}}}});}
     function renderActivityFeed(){const el=document.getElementById('activity-feed');if(!el)return;const rows=state.users.slice(0,8);if(!rows.length){el.innerHTML='<div style="color:var(--text3)">No recent activity.</div>';return;}el.innerHTML=rows.map((u)=>`<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--border);padding-bottom:7px"><div><strong style="color:var(--text)">${esc(u.email||'unknown')}</strong> ${isPremiumActive(u)?'upgraded/active premium':u.is_banned?'<span style="color:var(--orange)">BANNED</span>':'signed up'}</div><div style="font:11px var(--mono);color:var(--text3)">${relTime(u.created_at)}</div></div>`).join('');}
 
     // ── User Table ────────────────────────────────────────────────────────
