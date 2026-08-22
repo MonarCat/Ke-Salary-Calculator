@@ -239,7 +239,41 @@ export default async function handler(req, res) {
       case 'get_analytics': {
         const { data, error } = await admin.from('user_profiles').select('*');
         if (error) throw error;
-        return res.json(buildAnalytics(data));
+        const result = buildAnalytics(data);
+
+        // Real revenue = the sum of every completed premium subscription
+        // payment ever made (public.payments, populated by the Paystack
+        // webhook via process_verified_paystack_payment). This is the only
+        // source of revenue for the product — no ad estimates included.
+        try {
+          const { data: paymentRows, error: paymentsErr } = await admin
+            .from('payments')
+            .select('amount_kobo, plan');
+          if (paymentsErr) throw paymentsErr;
+
+          let totalRevenueKobo = 0, monthlyRevenueKobo = 0, yearlyRevenueKobo = 0;
+          for (const p of paymentRows || []) {
+            const amt = Number(p.amount_kobo || 0);
+            totalRevenueKobo += amt;
+            if (p.plan === 'yearly') yearlyRevenueKobo += amt;
+            else monthlyRevenueKobo += amt;
+          }
+
+          result.analytics.total_revenue_kes        = totalRevenueKobo / 100;
+          result.analytics.total_transactions        = (paymentRows || []).length;
+          result.analytics.monthly_plan_revenue_kes  = monthlyRevenueKobo / 100;
+          result.analytics.yearly_plan_revenue_kes   = yearlyRevenueKobo / 100;
+        } catch (revenueErr) {
+          if (!isMissingRelationOrSchemaCacheError(revenueErr)) {
+            console.error('[admin-ops] revenue query failed:', revenueErr);
+          }
+          result.analytics.total_revenue_kes       = 0;
+          result.analytics.total_transactions       = 0;
+          result.analytics.monthly_plan_revenue_kes = 0;
+          result.analytics.yearly_plan_revenue_kes  = 0;
+        }
+
+        return res.json(result);
       }
 
       // ── List / search users ────────────────────────────────────────────

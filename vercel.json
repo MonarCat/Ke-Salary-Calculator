@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": null,
   "outputDirectory": ".",
+  "functions": {
+    "api/send-email.js": { "maxDuration": 60 },
+    "api/admin-ops.js": { "maxDuration": 30 }
+  },
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
