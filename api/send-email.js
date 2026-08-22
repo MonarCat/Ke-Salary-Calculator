@@ -41,7 +41,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com'
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
 // Brevo free plan allows 300/day; keep batches safe
-const BATCH_SIZE   = 50;   // recipients per Brevo API call (use BCC-style or individual)
+const BATCH_SIZE   = 10;   // cap concurrent sends per batch to reduce throttling risk
 const DELAY_MS     = 300;  // ms between batches
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

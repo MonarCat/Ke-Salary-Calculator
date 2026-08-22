@@ -246,21 +246,27 @@ export default async function handler(req, res) {
         // webhook via process_verified_paystack_payment). This is the only
         // source of revenue for the product — no ad estimates included.
         try {
-          const { data: paymentRows, error: paymentsErr } = await admin
+          const { data: paymentAggRows, error: paymentsErr } = await admin
             .from('payments')
-            .select('amount_kobo, plan');
+            .select('plan,total_amount_kobo:amount_kobo.sum(),transaction_count:id.count()');
           if (paymentsErr) throw paymentsErr;
 
-          let totalRevenueKobo = 0, monthlyRevenueKobo = 0, yearlyRevenueKobo = 0;
-          for (const p of paymentRows || []) {
-            const amt = Number(p.amount_kobo || 0);
-            totalRevenueKobo += amt;
-            if (p.plan === 'yearly') yearlyRevenueKobo += amt;
-            else monthlyRevenueKobo += amt;
+          let totalRevenueKobo = 0, monthlyRevenueKobo = 0, yearlyRevenueKobo = 0, totalTransactions = 0;
+          for (const row of paymentAggRows || []) {
+            const amountKobo = Number(row.total_amount_kobo || 0);
+            const transactionCount = Number(row.transaction_count || 0);
+            totalRevenueKobo += amountKobo;
+            totalTransactions += transactionCount;
+
+            if (row.plan === 'yearly') {
+              yearlyRevenueKobo += amountKobo;
+            } else {
+              monthlyRevenueKobo += amountKobo;
+            }
           }
 
           result.analytics.total_revenue_kes        = totalRevenueKobo / 100;
-          result.analytics.total_transactions        = (paymentRows || []).length;
+          result.analytics.total_transactions        = totalTransactions;
           result.analytics.monthly_plan_revenue_kes  = monthlyRevenueKobo / 100;
           result.analytics.yearly_plan_revenue_kes   = yearlyRevenueKobo / 100;
         } catch (revenueErr) {
