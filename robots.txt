@@ -16,6 +16,5 @@ Allow: /
 User-agent: AdsBot-Google
 Allow: /
 
-# Sitemap location (update with actual URL when available)
-# Sitemap: https://yourdomain.com/sitemap.xml
+# Sitemap location
 Sitemap: https://salarycalculator.co.ke/sitemap.xml

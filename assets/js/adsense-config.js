@@ -2,9 +2,9 @@
  * Google AdSense Configuration
  * 
  * This file contains all AdSense ad unit configurations.
- * Replace the placeholder values with your actual Google AdSense codes.
+ * Ad unit placeholders must remain unset until the site is approved in AdSense.
  * 
- * To get your AdSense codes:
+ * After AdSense approval, get your ad unit codes:
  * 1. Sign in to your Google AdSense account
  * 2. Navigate to Ads > By ad unit
  * 3. Create new ad units or copy existing ones
@@ -15,6 +15,8 @@
 const ADSENSE_PUBLISHER_ID = 'ca-pub-6832553346534070';
 
 // Ad Unit IDs
+// NOTE: Keep these placeholders until AdSense approval is complete.
+// Replace each 'XXXXXXXXXX' with a real ad unit ID only after approval.
 const AD_UNITS = {
     // Header banner ad (728x90 or responsive)
     HEADER_BANNER: 'XXXXXXXXXX',
