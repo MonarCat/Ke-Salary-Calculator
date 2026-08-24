@@ -11,7 +11,7 @@
  * ENV required (set via window.__PAYSTACK_PUBLIC_KEY in your HTML head):
  *   window.__PAYSTACK_PUBLIC_KEY = "pk_live_xxxxxxxxxxxx";
  *
- * checkPremium() returns: { isPremium, expiresAt, isLoggedIn, email }
+ * checkPremium() returns: { isPremium, expiresAt, isLoggedIn, email, premiumCheckIndeterminate }
  *
  * Compatible with Vercel and Cloudflare Pages.
  */
@@ -92,7 +92,7 @@ export function getPremiumExpiry(profile) {
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
- * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null, premiumSource: string|null, premiumExpiresAt: string|null }>}
+ * @returns {Promise<{ isPremium: boolean, expiresAt: Date|null, isLoggedIn: boolean, email: string|null, premiumSource: string|null, premiumExpiresAt: string|null, premiumCheckIndeterminate: boolean }>}
  */
 export async function checkPremium(supabase) {
   const cached = sessionStorage.getItem(CACHE_KEY);
@@ -103,7 +103,8 @@ export async function checkPremium(supabase) {
     } catch (_) {}
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) return _build({ premiumCheckIndeterminate: true });
   if (!user) return _build({ isLoggedIn: false });
 
   const { data: profile, error } = await supabase
@@ -112,7 +113,13 @@ export async function checkPremium(supabase) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error || !profile) return _build({ isLoggedIn: true, email: user.email || null });
+  if (error || !profile) {
+    return _build({
+      isLoggedIn: true,
+      email: user.email || null,
+      premiumCheckIndeterminate: true,
+    });
+  }
 
   // Easter 2026 Holiday Promotion: grant free premium access to all signed-in users.
   const duringEaster = Date.now() < EASTER_FREE_UNTIL.getTime();
@@ -128,6 +135,7 @@ export async function checkPremium(supabase) {
     email:            user.email || null,
     premiumSource:    profile.premium_source || null,
     premiumExpiresAt: profile.premium_expires_at || null,
+    premiumCheckIndeterminate: false,
   });
 
   sessionStorage.setItem(CACHE_KEY, JSON.stringify({ cachedAt: Date.now(), data: result }));
@@ -142,6 +150,7 @@ function _build(o = {}) {
     email:            null,
     premiumSource:    null,
     premiumExpiresAt: null,
+    premiumCheckIndeterminate: false,
     ...o,
   };
 }
