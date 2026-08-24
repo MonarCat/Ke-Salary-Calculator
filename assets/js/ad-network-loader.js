@@ -75,7 +75,7 @@ async function unregisterMonetagServiceWorker() {
       const scriptURL = reg.active?.scriptURL || reg.installing?.scriptURL || reg.waiting?.scriptURL || '';
       if (scriptURL.endsWith('/sw.js')) {
         await reg.unregister();
-        console.log('[ad-network-loader] Premium user — unregistered lingering Monetag service worker.');
+        console.log('[ad-network-loader] Unregistered lingering Monetag service worker.');
       }
     }
   } catch (err) {
