@@ -26,6 +26,8 @@
 
 import { checkPremium } from '/assets/js/premium.js';
 
+const PAUSE_THIRD_PARTY_ADS = true;
+
 const MONETAG_SRC = 'https://quge5.com/88/tag.min.js';
 const MONETAG_ZONE = '219979';
 
@@ -82,6 +84,12 @@ async function unregisterMonetagServiceWorker() {
 }
 
 async function initThirdPartyAds() {
+  if (PAUSE_THIRD_PARTY_ADS) {
+    console.log('[ad-network-loader] Monetag/Adsterra are paused.');
+    unregisterMonetagServiceWorker();
+    return;
+  }
+
   const isPremium = await resolvePremiumStatus();
 
   if (isPremium) {
