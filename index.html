@@ -1333,6 +1333,9 @@
             <!-- Daily Poll -->
             <div class="poll-card" id="salary_poll">
                 <h3><i class="fas fa-poll"></i> Quick Poll — Share Your View</h3>
+                <p id="pollAggregateCount" style="display:none; font-size:0.82em; color:#006600; font-weight:600; margin:-6px 0 12px;">
+                    <i class="fas fa-users"></i> <span id="pollAggregateNum">0</span> people have taken part across our polls
+                </p>
                 <p id="pollQuestion" style="font-weight:600; color:#333; margin-bottom:14px;">Do you think Kenyan salaries are fair relative to the cost of living?</p>
                 <div id="pollOptions"></div>
                 <p id="pollThanks" style="display:none; color:#006600; font-weight:bold; margin-top:10px;">
@@ -1850,6 +1853,42 @@
                 q: 'How do you primarily manage your personal finances?',
                 opts: ['Strict monthly budget', 'Mobile money (M-Pesa) tracking', 'I rely on my bank app', 'I don\'t track — I just spend'],
                 votes: [0, 0, 0, 0]
+            },
+            // ── idx 12 ───────────────────────────────────────────────────────
+            {
+                q: 'Would you take a 20% pay cut for a fully remote job?',
+                opts: ['Yes, instantly', 'Yes, but I\'d negotiate more', 'No, never', 'Depends on the role'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 13 ───────────────────────────────────────────────────────
+            {
+                q: 'Salaried job vs self-employment — which builds more wealth in Kenya today?',
+                opts: ['A salaried job (stability)', 'Self-employment / business', 'A mix of both', 'Neither — investing matters more'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 14 ───────────────────────────────────────────────────────
+            {
+                q: 'Which month hits your wallet hardest?',
+                opts: ['January (school fees + post-holiday)', 'April (mid-year school fees)', 'December (festive spending)', 'Every month feels tight'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 15 ───────────────────────────────────────────────────────
+            {
+                q: 'Have you ever successfully negotiated a higher salary?',
+                opts: ['Yes, got more than offered', 'Tried, but they said no', 'Never tried', 'Didn\'t know you could'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 16 ───────────────────────────────────────────────────────
+            {
+                q: 'Would you relocate to a different Kenyan county for a 30% pay raise?',
+                opts: ['Yes, immediately', 'Yes, if family could come too', 'No, my county is home', 'Depends on the county'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 17 ───────────────────────────────────────────────────────
+            {
+                q: 'Which generation had an easier time financially?',
+                opts: ['Our parents\' generation', 'Our generation', 'About the same', 'It varies by sector'],
+                votes: [0, 0, 0, 0]
             }
         ];
 
@@ -1952,12 +1991,26 @@
             } catch(e) { console.error('Poll vote error:', e); return null; }
         }
 
+        async function updatePollAggregateCount() {
+            var el = document.getElementById('pollAggregateCount');
+            var numEl = document.getElementById('pollAggregateNum');
+            if (!el || !numEl || !window.supabaseClient) return;
+            try {
+                var res = await window.supabaseClient.rpc('get_total_poll_participants');
+                if (res && res.data != null) {
+                    numEl.textContent = Number(res.data).toLocaleString('en-KE');
+                    el.style.display = 'block';
+                }
+            } catch (e) { /* fail silently, keep hidden */ }
+        }
+
         async function initPoll() {
             const poll = POLLS[pollIdx];
             const qEl = document.getElementById('pollQuestion');
             const optsEl = document.getElementById('pollOptions');
             if (!qEl || !optsEl) return;
             qEl.textContent = poll.q;
+            updatePollAggregateCount();
             await fetchPollVotesFromDB(poll, pollIdx);
             var pollUser = await getPollCurrentUser();
             if (!pollUser) {
