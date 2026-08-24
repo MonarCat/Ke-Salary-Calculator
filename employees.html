@@ -1446,18 +1446,44 @@
 
         // Show upgrade prompt when free plan employee limit is reached
         function _showFreeEmployeeLimitModal() {
-            const msg = [
-                `You've reached the free plan limit of ${FREE_EMPLOYEE_LIMIT} employees.\n\n`,
-                `Upgrade to Premium (KES 99/mo) for:\n`,
-                `  • Unlimited employees\n`,
-                `  • Unlimited payslip downloads\n`,
-                `  • Payroll reports & analytics\n`,
-                `  • Bulk payslip generation\n\n`,
-                `Visit Account & Billing to upgrade.`
-            ].join('');
-            if (confirm(msg + '\n\nGo to Account & Billing now?')) {
-                window.location.href = '/account.html';
-            }
+            const existing = document.getElementById('sc-employee-limit-modal');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'sc-employee-limit-modal';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-label', 'Upgrade to Premium');
+            overlay.style.cssText = [
+                'position:fixed', 'inset:0', 'z-index:99999',
+                'background:rgba(0,0,0,0.55)',
+                'display:flex', 'align-items:center', 'justify-content:center',
+                'padding:20px'
+            ].join(';');
+
+            overlay.innerHTML = `
+                <div style="max-width:420px;width:100%;text-align:center;padding:40px 28px;
+                            background:linear-gradient(135deg,#FFD700,#FFA500);border-radius:15px;
+                            color:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative;">
+                    <button aria-label="Close" onclick="document.getElementById('sc-employee-limit-modal').remove()"
+                        style="position:absolute;top:12px;right:14px;background:none;border:none;color:#fff;
+                               font-size:1.3em;cursor:pointer;line-height:1;">&times;</button>
+                    <i class="fas fa-crown" style="font-size:2.6em;margin-bottom:14px;"></i>
+                    <h2 style="margin:0 0 10px;">Employee Limit Reached</h2>
+                    <p style="margin:0 0 6px;">You've reached the free plan limit of <strong>${FREE_EMPLOYEE_LIMIT} employees</strong>.</p>
+                    <ul style="text-align:left;list-style:none;padding:0;margin:16px 0;font-size:0.95em;line-height:1.7;">
+                        <li>✅ Unlimited employees</li>
+                        <li>✅ Unlimited payslip downloads</li>
+                        <li>✅ Payroll reports &amp; analytics</li>
+                        <li>✅ Bulk payslip generation</li>
+                    </ul>
+                    <p style="margin:0 0 16px;"><strong>KES 99/month</strong> or <strong>KES 999/year</strong></p>
+                    <a href="/account.html#upgrade" style="display:inline-block;padding:14px 36px;background:#006600;
+                        color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Upgrade to Premium →</a>
+                </div>`;
+
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
         }
 
         // Close employee modal
