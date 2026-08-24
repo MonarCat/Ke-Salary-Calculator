@@ -1,3 +1,1 @@
 google.com, pub-6832553346534070, DIRECT, f08c47fec0942fa0
-monetag.com, 3264328, DIRECT
-adsterra.com, 3442055, DIRECT
