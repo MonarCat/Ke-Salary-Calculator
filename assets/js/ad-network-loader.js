@@ -57,6 +57,7 @@ async function resolvePremiumStatus() {
   }
   try {
     const status = await checkPremium(client);
+    if (status.premiumCheckIndeterminate !== false) return true;
     return !!status.isPremium;
   } catch (err) {
     console.warn('[ad-network-loader] Premium check failed — defaulting to NOT showing third-party ads.', err);
