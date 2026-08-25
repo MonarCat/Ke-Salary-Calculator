@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="module" src="/assets/js/ad-network-loader.js"></script>
+<meta charset="UTF-8">
+<meta name="google-adsense-account" content="ca-pub-6832553346534070">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="My Salo" />
+<link rel="manifest" href="/site.webmanifest" />
+<title>Kenya Salary & Work Polls 2025 | Vote & See What Kenyans Really Think</title>
+<meta name="description" content="Vote on Kenya's biggest salary, work and money questions — pay fairness, side hustles, negotiation, minimum wage and more. Vote once, see live results instantly.">
+<meta name="keywords" content="Kenya salary poll, Kenya work poll, salary survey Kenya, minimum wage Kenya opinion, Kenya pay poll, salary negotiation Kenya survey">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://salarycalculator.co.ke/polls.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://salarycalculator.co.ke/polls.html">
+<meta property="og:title" content="Kenya Salary & Work Polls 2025 | Vote & See What Kenyans Really Think">
+<meta property="og:description" content="Vote on Kenya's biggest salary, work and money questions. Vote once, see live results instantly.">
+<meta property="og:image" content="https://salarycalculator.co.ke/kenyan-economy-coins.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kenya Salary & Work Polls 2025">
+<meta name="twitter:description" content="Vote on Kenya's biggest salary, work and money questions. Vote once, see live results instantly.">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="stylesheet" href="assets/css/styles.css?v=2.1">
+<link rel="stylesheet" href="assets/css/mobile-responsive.css?v=1.0">
+<link rel="stylesheet" href="assets/css/auth-styles.css?v=2.1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    .polls-hero {
+        background: linear-gradient(135deg, #006600 0%, #009900 100%);
+        color: white; border-radius: 12px; padding: 28px 24px 20px;
+        margin-bottom: 20px; text-align: center;
+    }
+    .polls-hero h1 { margin: 0 0 6px; font-size: 1.7em; }
+    .polls-hero p  { margin: 0; font-size: 1em; opacity: 0.9; }
+    .polls-aggregate {
+        text-align:center; font-size:0.92em; color:#006600; font-weight:600;
+        margin: 0 0 20px; padding: 10px; background:#f0fff0; border:1px solid #a5d6a7;
+        border-radius: 10px; display:none;
+    }
+    .polls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 18px;
+    }
+    .poll-card { margin: 0; scroll-margin-top: 90px; }
+    .poll-card .poll-vote-count { font-size:0.78em; }
+    .poll-locked-hint {
+        font-size: 0.78em; color: #888; margin-top: 6px; font-style: italic;
+    }
+    .poll-auth-note {
+        font-size: 0.8em; color: #667085; margin-top: 8px; padding-top: 8px;
+        border-top: 1px solid #eee;
+    }
+
+    /* Reused exactly from index.html poll widget for visual consistency */
+    .poll-btn {
+        display: block; width: 100%; background: #ffffff; border: 2px solid #006600;
+        border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; cursor: pointer;
+        text-align: left; font-size: 0.95em; font-weight: 500; color: #1a1a1a;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.10); transition: all 0.2s;
+    }
+    .poll-btn:hover { border-color: #004d00; background: #e8f5e9; color: #1a1a1a; box-shadow: 0 2px 8px rgba(0,102,0,0.15); }
+    .poll-btn.selected { border-color: #006600; background: #e8f5e9; font-weight: 600; }
+    .poll-result-bar { height: 8px; background: #e0e0e0; border-radius: 4px; margin-top: 6px; overflow: hidden; }
+    .poll-result-fill { height: 100%; background: #006600; border-radius: 4px; transition: width 0.5s ease; }
+    .poll-vote-count { font-size: 0.82em; color: #888; margin-top: 8px; }
+    .poll-share { margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee; }
+    .poll-share p { font-size: 0.85em; color: #555; margin: 0 0 8px; font-weight: 600; }
+    .poll-share-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .poll-share-btn {
+        display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 6px;
+        font-size: 0.8em; font-weight: 600; text-decoration: none; color: #fff; border: none;
+        cursor: pointer; transition: opacity 0.2s;
+    }
+    .poll-share-btn:hover { opacity: 0.85; }
+    .poll-share-btn.x-btn   { background: #000; }
+    .poll-share-btn.fb-btn  { background: #1877F2; }
+    .poll-share-btn.li-btn  { background: #0A66C2; }
+    .poll-share-btn.wa-btn  { background: #25D366; }
+</style>
+</head>
+<body>
+    <div class="overlay">
+        <div class="container">
+        <!-- Premium promo banner (non-blocking) -->
+<div style="max-width:100%;margin:14px 0;padding:14px 18px;border-radius:10px;
+            background:linear-gradient(135deg,#FFF7E0,#FFEFC2);border:1px solid #FFD700;
+            display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <i class="fas fa-crown" style="color:#e8830a;font-size:1.4em;flex-shrink:0;"></i>
+    <div style="flex:1;min-width:220px;">
+        <strong style="color:#5a4400;">Go Premium:</strong>
+        <span style="color:#5a4400;">unlimited payslip downloads, budget planner, payslip history &amp; P9A tax cards — from <strong>KES 99/month</strong>.</span>
+    </div>
+    <a href="/account.html#upgrade" style="flex-shrink:0;padding:8px 18px;background:#006600;color:#fff;
+        border-radius:6px;text-decoration:none;font-weight:bold;font-size:0.9em;white-space:nowrap;">Upgrade →</a>
+</div>
+            <div id="site-header"></div>
+
+            <!-- Hero -->
+            <div class="polls-hero">
+                <h1><i class="fas fa-poll"></i> Kenya Salary & Work Polls</h1>
+                <p>Vote once on each question, then see how the rest of Kenya answered — live.</p>
+            </div>
+
+            <p class="polls-aggregate" id="pollsAggregate">
+                <i class="fas fa-users"></i> <span id="pollsAggregateNum">0</span> people have voted across these polls so far
+            </p>
+
+            <div class="polls-grid" id="pollsGrid"></div>
+
+            <div style="text-align:center; margin: 24px 0;">
+                <a href="/calculator.html" class="cta-button primary" style="text-decoration:none; display:inline-block; padding:13px 28px;">
+                    <i class="fas fa-calculator"></i> Use the Full Kenya Salary Calculator
+                </a>
+            </div>
+
+            <div id="site-footer"></div>
+        </div>
+    </div>
+
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Scroll to top"><i class="fas fa-arrow-up"></i></button>
+
+    <script src="/assets/js/nav-partial.js?v=1.0"></script>
+    <script src="assets/js/nav-toggle.js?v=2.0"></script>
+    <script src="assets/js/supabase-config.js?v=2.0"></script>
+    <script src="assets/js/auth.js?v=2.0"></script>
+    <script>
+    (function() {
+        if (localStorage.getItem('darkMode') === 'on') document.body.classList.add('dark-mode');
+    })();
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('darkModeToggle');
+        if (!btn) return;
+        const upd = () => { btn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark'; };
+        upd();
+        btn.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
+            upd();
+        });
+    });
+    </script>
+    <script>
+const POLLS = [
+            // ── idx 0 ────────────────────────────────────────────────────────
+            {
+                q: 'Do you think Kenyan salaries are fair relative to the cost of living?',
+                opts: ['Yes, they are fair', 'No, too low', 'Depends on profession', 'Not sure'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 1 ────────────────────────────────────────────────────────
+            {
+                q: 'Would you accept a job paying KES 60,000 in Nairobi?',
+                opts: ['Yes, definitely', 'Only if remote/WFH', 'No, too low for Nairobi', 'Depends on benefits'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 2 ────────────────────────────────────────────────────────
+            {
+                q: 'Which deduction do you find most burdensome?',
+                opts: ['PAYE (income tax)', 'NSSF contributions', 'SHIF (health levy)', 'Housing Levy'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 3 ────────────────────────────────────────────────────────
+            {
+                q: 'Do you have a side hustle or additional income source?',
+                opts: ['Yes, it earns more than my job', 'Yes, a small supplement', 'No, but I plan to', 'No, my salary is enough'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 4 ────────────────────────────────────────────────────────
+            {
+                q: 'What percentage of your monthly salary do you manage to save?',
+                opts: ['Nothing — it\'s all spent', '1–10%', '11–20%', 'More than 20%'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 5 ────────────────────────────────────────────────────────
+            {
+                q: 'Would you consider working abroad (e.g. Middle East, Europe) for higher pay?',
+                opts: ['Already working abroad', 'Yes, actively considering it', 'Maybe, depends on the offer', 'No, I prefer to stay in Kenya'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 6 ────────────────────────────────────────────────────────
+            {
+                q: 'How has the cost of living in Kenya changed for you over the past year?',
+                opts: ['Much more expensive', 'Slightly more expensive', 'About the same', 'Actually cheaper'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 7 ────────────────────────────────────────────────────────
+            {
+                q: 'What is your biggest financial goal right now?',
+                opts: ['Build an emergency fund', 'Buy land or property', 'Clear debts/loans', 'Start or grow a business'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 8 ────────────────────────────────────────────────────────
+            {
+                q: 'Does your employer pay your salary on time every month?',
+                opts: ['Always on time', 'Usually on time', 'Frequently delayed', 'Very irregular'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 9 ────────────────────────────────────────────────────────
+            {
+                q: 'How satisfied are you with Kenya\'s current minimum wage?',
+                opts: ['Very satisfied', 'Somewhat satisfied', 'Unsatisfied — too low', 'Unsatisfied — enforcement is poor'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 10 ───────────────────────────────────────────────────────
+            {
+                q: 'Which benefit matters most to you when choosing a job?',
+                opts: ['Medical/health cover', 'Pension / NSSF matching', 'Flexible working hours', 'Annual leave & bonuses'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 11 ───────────────────────────────────────────────────────
+            {
+                q: 'How do you primarily manage your personal finances?',
+                opts: ['Strict monthly budget', 'Mobile money (M-Pesa) tracking', 'I rely on my bank app', 'I don\'t track — I just spend'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 12 ───────────────────────────────────────────────────────
+            {
+                q: 'Would you take a 20% pay cut for a fully remote job?',
+                opts: ['Yes, instantly', 'Yes, but I\'d negotiate more', 'No, never', 'Depends on the role'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 13 ───────────────────────────────────────────────────────
+            {
+                q: 'Salaried job vs self-employment — which builds more wealth in Kenya today?',
+                opts: ['A salaried job (stability)', 'Self-employment / business', 'A mix of both', 'Neither — investing matters more'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 14 ───────────────────────────────────────────────────────
+            {
+                q: 'Which month hits your wallet hardest?',
+                opts: ['January (school fees + post-holiday)', 'April (mid-year school fees)', 'December (festive spending)', 'Every month feels tight'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 15 ───────────────────────────────────────────────────────
+            {
+                q: 'Have you ever successfully negotiated a higher salary?',
+                opts: ['Yes, got more than offered', 'Tried, but they said no', 'Never tried', 'Didn\'t know you could'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 16 ───────────────────────────────────────────────────────
+            {
+                q: 'Would you relocate to a different Kenyan county for a 30% pay raise?',
+                opts: ['Yes, immediately', 'Yes, if family could come too', 'No, my county is home', 'Depends on the county'],
+                votes: [0, 0, 0, 0]
+            },
+            // ── idx 17 ───────────────────────────────────────────────────────
+            {
+                q: 'Which generation had an easier time financially?',
+                opts: ['Our parents\' generation', 'Our generation', 'About the same', 'It varies by sector'],
+                votes: [0, 0, 0, 0]
+            }
+        ];
+    // ── Anonymous voter identity (persisted) ────────────────────────────────
+    function getAnonToken() {
+        var key = 'sc_poll_anon_token';
+        var t = localStorage.getItem(key);
+        if (!t) {
+            t = (window.crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : 'anon-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            localStorage.setItem(key, t);
+        }
+        return t;
+    }
+
+    async function getPollsCurrentUser() {
+        if (!window.supabaseClient?.auth) return null;
+        try {
+            var sessionRes = await window.supabaseClient.auth.getSession();
+            return sessionRes?.data?.session?.user || null;
+        } catch (e) { return null; }
+    }
+
+    // ── Aggregate stat ───────────────────────────────────────────────────────
+    async function updatePollsAggregate() {
+        var el = document.getElementById('pollsAggregate');
+        var numEl = document.getElementById('pollsAggregateNum');
+        if (!el || !numEl || !window.supabaseClient) return;
+        try {
+            var res = await window.supabaseClient.rpc('get_total_poll_participants');
+            if (res && res.data != null) {
+                numEl.textContent = Number(res.data).toLocaleString('en-KE');
+                el.style.display = 'block';
+            }
+        } catch (e) { /* fail silently */ }
+    }
+
+    // ── Vote / results plumbing (per poll) ──────────────────────────────────
+    async function fetchPollVotes(poll, idx) {
+        if (!window.supabaseClient) return;
+        try {
+            var res = await window.supabaseClient
+                .from('poll_votes')
+                .select('option_idx, count')
+                .eq('poll_idx', idx);
+            if (res.error || !res.data) return;
+            res.data.forEach(function (row) {
+                if (row.option_idx >= 0 && row.option_idx < poll.votes.length) {
+                    poll.votes[row.option_idx] = Number(row.count) || 0;
+                }
+            });
+        } catch (e) { /* fail silently, keep local zeros */ }
+    }
+
+    async function checkVoted(idx, anonToken) {
+        if (!window.supabaseClient) return null;
+        try {
+            var res = await window.supabaseClient.rpc('check_poll_vote', { p_poll_idx: idx, p_anon_token: anonToken });
+            if (res.error || !res.data) return null;
+            return res.data.already_voted ? res.data.option_idx : null;
+        } catch (e) { return null; }
+    }
+
+    async function submitVote(idx, optionIdx, anonToken) {
+        if (!window.supabaseClient) return null;
+        try {
+            var res = await window.supabaseClient.rpc('submit_poll_vote', { p_poll_idx: idx, p_option_idx: optionIdx, p_anon_token: anonToken });
+            if (res.error) return null;
+            return res.data;
+        } catch (e) { return null; }
+    }
+
+    async function getParticipantCount(idx) {
+        if (!window.supabaseClient) return null;
+        try {
+            var res = await window.supabaseClient.rpc('get_poll_participant_count', { p_poll_idx: idx });
+            return (res && res.data != null) ? Number(res.data) : null;
+        } catch (e) { return null; }
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────────────
+    function pollCardShell(idx, poll) {
+        var card = document.createElement('div');
+        card.className = 'poll-card';
+        card.id = 'poll-' + idx;
+        var h3 = document.createElement('h3');
+        h3.innerHTML = '<i class="fas fa-poll"></i> Poll #' + (idx + 1);
+        var q = document.createElement('p');
+        q.style.cssText = 'font-weight:600;color:#333;margin-bottom:14px;';
+        q.textContent = poll.q;
+        var opts = document.createElement('div');
+        opts.className = 'poll-options';
+        var voteCount = document.createElement('p');
+        voteCount.className = 'poll-vote-count';
+        var shareWrap = document.createElement('div');
+        shareWrap.className = 'poll-share';
+        shareWrap.style.display = 'none';
+        card.appendChild(h3);
+        card.appendChild(q);
+        card.appendChild(opts);
+        card.appendChild(voteCount);
+        card.appendChild(shareWrap);
+        return { card: card, opts: opts, voteCount: voteCount, shareWrap: shareWrap };
+    }
+
+    function renderShareButtons(shareWrap, idx, poll) {
+        var shareUrl = encodeURIComponent(window.location.origin + '/polls.html#poll-' + idx);
+        var shareText = encodeURIComponent('I just voted on this Kenya poll: "' + poll.q + '" — see the results and vote yourself:');
+        shareWrap.innerHTML =
+            '<p><i class="fas fa-share-alt"></i> Share this poll:</p>' +
+            '<div class="poll-share-btns">' +
+            '<a class="poll-share-btn x-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/post?text=' + shareText + '&url=' + shareUrl + '"><i class="fab fa-x-twitter"></i> X</a>' +
+            '<a class="poll-share-btn fb-btn" target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '"><i class="fab fa-facebook-f"></i> Facebook</a>' +
+            '<a class="poll-share-btn li-btn" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/sharing/share-offsite/?url=' + shareUrl + '"><i class="fab fa-linkedin-in"></i> LinkedIn</a>' +
+            '<a class="poll-share-btn wa-btn" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=' + shareText + '%20' + shareUrl + '"><i class="fab fa-whatsapp"></i> WhatsApp</a>' +
+            '</div>';
+        shareWrap.style.display = 'block';
+    }
+
+    async function renderResults(refs, idx, poll, selectedOption) {
+        var total = poll.votes.reduce(function (a, b) { return a + b; }, 0);
+        refs.opts.innerHTML = '';
+        poll.opts.forEach(function (opt, i) {
+            var pct = total > 0 ? Math.round(poll.votes[i] / total * 100) : 0;
+            var div = document.createElement('div');
+            div.style.marginBottom = '10px';
+            div.innerHTML =
+                '<div style="display:flex;justify-content:space-between;font-size:0.9em;' + (i === selectedOption ? 'font-weight:700;color:#006600;' : '') + '">' +
+                '<span>' + opt + (i === selectedOption ? ' \u2713' : '') + '</span><span>' + pct + '%</span></div>' +
+                '<div class="poll-result-bar"><div class="poll-result-fill" style="width:' + pct + '%;"></div></div>';
+            refs.opts.appendChild(div);
+        });
+        var count = await getParticipantCount(idx);
+        refs.voteCount.textContent = (count != null ? count : total).toLocaleString('en-KE') + ' Participated in this Poll';
+        renderShareButtons(refs.shareWrap, idx, poll);
+    }
+
+    function renderVotingButtons(refs, idx, poll, anonToken) {
+        refs.opts.innerHTML = '';
+        poll.opts.forEach(function (opt, i) {
+            var btn = document.createElement('button');
+            btn.className = 'poll-btn';
+            btn.textContent = opt;
+            btn.onclick = async function () {
+                btn.disabled = true;
+                var result = await submitVote(idx, i, anonToken);
+                if (result && result.already_voted) {
+                    await fetchPollVotes(poll, idx);
+                    await renderResults(refs, idx, poll, result.option_idx != null ? result.option_idx : -1);
+                    return;
+                }
+                if (result === null) {
+                    refs.voteCount.textContent = 'Vote could not be recorded — please try again.';
+                    btn.disabled = false;
+                    return;
+                }
+                poll.votes[i]++;
+                await renderResults(refs, idx, poll, i);
+            };
+            refs.opts.appendChild(btn);
+        });
+        var hint = document.createElement('p');
+        hint.className = 'poll-locked-hint';
+        hint.innerHTML = '<i class="fas fa-lock"></i> Vote to see live results';
+        refs.opts.appendChild(hint);
+    }
+
+    async function renderPoll(idx, sourcePoll, anonToken) {
+        var poll = Object.assign({}, sourcePoll, { opts: sourcePoll.opts.slice(), votes: sourcePoll.votes.slice() });
+        var refs = pollCardShell(idx, poll);
+        document.getElementById('pollsGrid').appendChild(refs.card);
+
+        await fetchPollVotes(poll, idx);
+        var votedOption = await checkVoted(idx, anonToken);
+
+        if (votedOption !== null) {
+            await renderResults(refs, idx, poll, votedOption);
+        } else {
+            renderVotingButtons(refs, idx, poll, anonToken);
+        }
+    }
+
+    async function initAllPolls() {
+        updatePollsAggregate();
+        var anonToken = getAnonToken();
+        for (var i = 0; i < POLLS.length; i++) {
+            await renderPoll(i, POLLS[i], anonToken);
+        }
+        // Deep-link scroll: if URL has #poll-N, bring it into view once rendered
+        if (window.location.hash && window.location.hash.indexOf('#poll-') === 0) {
+            var target = document.getElementById(window.location.hash.slice(1));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initAllPolls);
+    </script>
+    <!-- Kazi Chatbot -->
+    <script src="/assets/js/disclaimer-banner.js"></script>
+</body>
+</html>
