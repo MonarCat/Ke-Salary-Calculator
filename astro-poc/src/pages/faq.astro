@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Accordion from '../components/Accordion.astro';
+
+const items = [
+  {
+    question: 'How is PAYE calculated in Kenya?',
+    answer:
+      'PAYE is calculated on taxable income after deducting NSSF. Kenya uses progressive tax bands (10%, 25%, 30%, 32.5%, and 35%), then applies monthly personal relief of KES 2,400.',
+  },
+  {
+    question: 'Does SHIF replace NHIF in Kenya?',
+    answer:
+      'Yes. SHIF replaced NHIF in October 2024. The employee deduction is 2.75% of gross salary, and employers also contribute.',
+  },
+  {
+    question: 'How is NSSF calculated under Tier I and Tier II?',
+    answer:
+      'NSSF is 6% of pensionable pay split into Tier I on the first KES 8,000 and Tier II on the next KES 64,000, capped at KES 72,000.',
+  },
+  {
+    question: 'What is the Housing Levy deduction?',
+    answer:
+      'The Affordable Housing Levy is 1.5% of gross salary for employees, with an additional 1.5% employer contribution.',
+  },
+  {
+    question: 'Can I generate compliant Kenyan payslips with this tool?',
+    answer:
+      'Yes. Salary Calculator provides salary breakdowns and payslip generation aligned with current PAYE, NSSF, SHIF, and Housing Levy rules.',
+  },
+];
+---
+<BaseLayout title="FAQ — Astro proof of concept" description="Sandbox migration of the FAQ page content to Astro.">
+  <p class="card" style="background: var(--color-brand-soft); border-color: var(--color-brand); margin-bottom: var(--space-6);">
+    <strong>Sandbox page.</strong> This is a Phase 0 proof-of-concept, not linked from the live site
+    and not wired into <code>vercel.json</code> routing. It exists to validate the Astro build
+    pattern before any production page is migrated.
+  </p>
+  <h1>Frequently asked questions</h1>
+  <Accordion items={items} />
+</BaseLayout>

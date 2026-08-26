@@ -1,0 +1,29 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+  </head>
+  <body>
+    <Header />
+    <main class="container" style="padding-top: var(--space-8); padding-bottom: var(--space-12);">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

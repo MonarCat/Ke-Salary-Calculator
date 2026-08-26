@@ -1,0 +1,44 @@
+---
+interface Item {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+<div class="accordion">
+  {items.map((item, i) => (
+    <details class="accordion__item">
+      <summary class="accordion__trigger" aria-describedby={`accordion-answer-${i}`}>
+        {item.question}
+      </summary>
+      <p class="accordion__panel" id={`accordion-answer-${i}`}>{item.answer}</p>
+    </details>
+  ))}
+</div>
+
+<style>
+  .accordion__item {
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-4) 0;
+  }
+  .accordion__trigger {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .accordion__trigger:focus-visible {
+    outline: 2px solid var(--color-info);
+    outline-offset: 2px;
+  }
+  .accordion__panel {
+    color: var(--color-text-secondary);
+    margin: var(--space-3) 0 0;
+  }
+</style>
