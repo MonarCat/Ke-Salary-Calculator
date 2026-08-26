@@ -1,0 +1,56 @@
+---
+const nav = [
+  { label: 'Salary', href: '/salary-calculator' },
+  { label: 'Tools', href: '/tools' },
+  { label: 'Salaries', href: '/salaries' },
+  { label: 'Learn', href: '/learn' },
+];
+---
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__logo" href="/">Salary Calculator</a>
+    <nav class="site-header__nav">
+      {nav.map((item) => (
+        <a href={item.href}>{item.label}</a>
+      ))}
+    </nav>
+    <a class="site-header__signin" href="/auth.html">Sign in</a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    height: 64px;
+  }
+  .site-header__logo {
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .site-header__nav {
+    display: flex;
+    gap: var(--space-6);
+  }
+  .site-header__nav a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .site-header__signin {
+    text-decoration: none;
+    font-weight: 600;
+  }
+  @media (max-width: 767px) {
+    .site-header__nav {
+      display: none;
+    }
+  }
+</style>
