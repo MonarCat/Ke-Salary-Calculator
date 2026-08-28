@@ -16,7 +16,7 @@
       orgProfile: false,
       personalPayslipHistory: false,
       p9aPersonal: false,
-      budgetPlanner: false,
+      budgetPlanner: true,
     },
     premium_personal: {
       label: 'Premium — Personal',
