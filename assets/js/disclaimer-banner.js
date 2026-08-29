@@ -2,8 +2,18 @@
  * /assets/js/disclaimer-banner.js
  *
  * Site-wide updates notice banner.
- * DISABLED — banner retired. Script left in place (rather than removing the
- * <script> tag from 74 HTML files) so it's a one-line revert if needed later.
+ * DISABLED — banner retired.
+ *
+ * Both IIFEs below are now no-ops. Previously only the first one had the
+ * early `return`, but it and the second (functional) IIFE below run as two
+ * completely independent invocations -- disabling the first did nothing to
+ * stop the second, which still mounted the banner in full for anyone with
+ * no `sc_update_notice_dismissed` flag in localStorage (i.e. every new
+ * visitor, every fresh browser profile, every incognito window). Fixed by
+ * adding the same early return to the second IIFE.
+ *
+ * Script left in place (rather than removing the <script> tag from every
+ * HTML page that references it) so re-enabling is still a one-line revert.
  */
  
 (function () {
@@ -11,6 +21,8 @@
 })();
  
 (function () {
+  return; // banner disabled — remove this line to re-enable (was missing here; this was the actual live bug)
+
   var DISMISS_KEY = "sc_update_notice_dismissed";
   var BANNER_ID   = "sc-disclaimer-banner";
  
