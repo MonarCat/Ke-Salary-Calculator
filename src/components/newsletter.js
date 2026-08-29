@@ -26,9 +26,19 @@
             return { ok: false, message: 'Service unavailable. Please try again later.' };
         }
 
-        const { error } = await supabaseClient
-            .from('newsletter_subscribers')
-            .upsert({ email, source: source || 'website' }, { onConflict: 'email' });
+        // Uses a SECURITY DEFINER RPC rather than a raw table upsert. A raw
+        // `.upsert(..., {onConflict:'email'})` from an anonymous client
+        // always failed here: Postgres must evaluate the table's UPDATE/
+        // SELECT RLS policies to plan any INSERT ... ON CONFLICT DO UPDATE
+        // statement (even for a brand-new email with no real conflict), and
+        // this table intentionally has no permissive SELECT policy for
+        // anon (so the subscriber list can't be scraped via the public
+        // key). The RPC gives a safe, narrow, validated write path without
+        // loosening that protection.
+        const { error } = await supabaseClient.rpc('subscribe_to_newsletter', {
+            p_email: email,
+            p_source: source || 'website',
+        });
 
         if (error) {
             console.warn('[KeNewsletter] subscribe error:', error.message);

@@ -32,9 +32,10 @@ async function _subscribe(supabase, email, source) {
     userId = session?.user?.id ?? null;
   } catch (_) {}
 
-  const { error } = await supabase
-    .from("newsletter_subscribers")
-    .upsert({ email, user_id: userId, confirmed: false, source: source || "website" }, { onConflict: "email" });
+  const { error } = await supabase.rpc("subscribe_to_newsletter", {
+    p_email: email,
+    p_source: source || "website",
+  });
 
   if (error) {
     console.error("[Newsletter] subscribe error:", error.message);
