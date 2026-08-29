@@ -26,7 +26,7 @@ const EMAIL_FOOTER = `
     <tr><td style="font-size:13px;color:#667085;padding-top:6px;line-height:1.8;font-family:Arial,sans-serif">Accurate Kenyan PAYE, SHIF, NSSF &amp; Payroll Tools</td></tr>
     <tr><td style="padding-top:12px;font-size:13px;line-height:1.9;font-family:Arial,sans-serif">
       <a href="https://salarycalculator.co.ke" style="color:#1a6b3c;text-decoration:none">salarycalculator.co.ke</a><br>
-      <a href="mailto:${FROM_EMAIL}" style="color:#1a6b3c;text-decoration:none">${FROM_EMAIL}</a>
+      <a href="https://salarycalculator.co.ke/contact-us.html" style="color:#1a6b3c;text-decoration:none;font-weight:600">Message Us / Feedback →</a>
     </td></tr>
     <tr><td style="padding-top:18px">
       <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid #e5e7eb"></td></tr></table>

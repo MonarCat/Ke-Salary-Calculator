@@ -1611,7 +1611,7 @@
             <!-- Partners Sidebar -->
             <aside class="index-partner-sidebar" aria-label="Advertisements and partner links sidebar">
 
-                <div class="sc-ad-slot sc-ad-slot--sidebar-media" data-ad-slot="sidebar-media" aria-live="polite"></div>
+            <!-- Afams ad removed per request -->
 
                 <!-- Partners & Affiliate Deals -->
                 <div class="affiliate-section" aria-label="Partner recommendations">
@@ -2404,21 +2404,12 @@
             var msg = document.getElementById('alertMsg');
             // Store subscriber list in Supabase if available, else fallback to localStorage
             if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
-                // Resolve user_id asynchronously before upserting
-                (supabaseClient.auth.getSession ? supabaseClient.auth.getSession() : Promise.resolve({ data: {} }))
-                    .then(function(sessionRes) {
-                        var userId = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user
-                            ? sessionRes.data.session.user.id : null;
-                        return supabaseClient.from('newsletter_subscribers').upsert({
-                            email:     email,
-                            user_id:   userId,
-                            confirmed: false,
-                            source:    'homepage',
-                        }, { onConflict: 'email' });
-                    })
+                // Uses a SECURITY DEFINER RPC rather than a raw table upsert --
+                // a raw upsert from an anonymous client always failed here
+                // (see subscribe_to_newsletter migration for why).
+                supabaseClient.rpc('subscribe_to_newsletter', { p_email: email, p_source: 'homepage' })
                     .then(function(res) {
                         if (res.error) {
-                            // Table may not exist yet or RLS denied — fallback to localStorage
                             console.warn('Newsletter subscribe error:', res.error.message || res.error);
                             _localSubscribe(email);
                         } else {

@@ -75,10 +75,16 @@
         .faq-hero{background:linear-gradient(135deg,#003d00 0%,#006600 100%);color:#fff;padding:34px 28px;border-radius:10px;margin:18px 0 24px}
         .faq-hero h1{color:#fff;margin:0 0 10px;padding-bottom:0}
         .faq-hero h1::after{display:none}
-        .faq-card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:22px 24px;margin-bottom:14px}
-        .faq-card h2{font-size:1.1em;color:#006600;margin:0 0 10px;padding-bottom:0}
+        .faq-card{background:#fff;border:1px solid #e6e6e6;border-radius:10px;padding:0;margin-bottom:14px;overflow:hidden}
+        .faq-card details{padding:0}
+        .faq-card summary{padding:22px 24px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none}
+        .faq-card summary::-webkit-details-marker{display:none}
+        .faq-card summary::after{content:'+';font-size:1.4em;font-weight:400;color:#006600;flex-shrink:0;transition:transform .2s}
+        .faq-card details[open] summary::after{transform:rotate(45deg)}
+        .faq-card summary:hover{background:#f5fbf5}
+        .faq-card h2{font-size:1.1em;color:#006600;margin:0;padding-bottom:0}
         .faq-card h2::after{display:none}
-        .faq-card p{margin:0;color:#444;line-height:1.8}
+        .faq-card p{margin:0;color:#444;line-height:1.8;padding:0 24px 22px}
         .faq-links{background:#f5fbf5;border:1px solid #d8eed8;border-radius:10px;padding:18px 22px;margin-top:22px}
         .faq-links a{color:#006600;text-decoration:none;font-weight:700}
         .faq-links a:hover{text-decoration:underline}
@@ -99,28 +105,38 @@
             </header>
 
             <article class="faq-card">
-                <h2>How is PAYE calculated in Kenya?</h2>
-                <p>PAYE is charged on taxable income after deducting NSSF. Kenya applies progressive rates: 10%, 25%, 30%, 32.5%, and 35%, then subtracts personal relief of KES 2,400 per month.</p>
+                <details>
+                    <summary><h2>How is PAYE calculated in Kenya?</h2></summary>
+                    <p>PAYE is charged on taxable income after deducting NSSF. Kenya applies progressive rates: 10%, 25%, 30%, 32.5%, and 35%, then subtracts personal relief of KES 2,400 per month.</p>
+                </details>
             </article>
 
             <article class="faq-card">
-                <h2>What changed with SHIF?</h2>
-                <p>SHIF replaced NHIF from October 2024. Employees contribute 2.75% of gross salary, and employers make a matching contribution.</p>
+                <details>
+                    <summary><h2>What changed with SHIF?</h2></summary>
+                    <p>SHIF replaced NHIF from October 2024. Employees contribute 2.75% of gross salary, and employers make a matching contribution.</p>
+                </details>
             </article>
 
             <article class="faq-card">
-                <h2>How do NSSF Tier I and Tier II work?</h2>
-                <p>NSSF is 6% of pensionable pay. Tier I applies to the first KES 8,000 and Tier II applies to the next KES 64,000. The current upper pensionable limit is KES 72,000.</p>
+                <details>
+                    <summary><h2>How do NSSF Tier I and Tier II work?</h2></summary>
+                    <p>NSSF is 6% of pensionable pay. Tier I applies to the first KES 8,000 and Tier II applies to the next KES 64,000. The current upper pensionable limit is KES 72,000.</p>
+                </details>
             </article>
 
             <article class="faq-card">
-                <h2>How much is the Affordable Housing Levy?</h2>
-                <p>The employee deduction is 1.5% of gross salary. Employers also contribute 1.5% on top of employee pay.</p>
+                <details>
+                    <summary><h2>How much is the Affordable Housing Levy?</h2></summary>
+                    <p>The employee deduction is 1.5% of gross salary. Employers also contribute 1.5% on top of employee pay.</p>
+                </details>
             </article>
 
             <article class="faq-card">
-                <h2>Does this website support employers?</h2>
-                <p>Yes. Employers can calculate salary deductions, generate payslips, and use payroll features for multiple employees.</p>
+                <details>
+                    <summary><h2>Does this website support employers?</h2></summary>
+                    <p>Yes. Employers can calculate salary deductions, generate payslips, and use payroll features for multiple employees.</p>
+                </details>
             </article>
 
             <section class="faq-links">

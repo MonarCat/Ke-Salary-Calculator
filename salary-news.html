@@ -446,7 +446,7 @@
     function snDoSubscribe(email) {
         const msg = document.getElementById('sn_email_msg');
         if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
-            supabaseClient.from('newsletter_subscribers').upsert({ email: email }, { onConflict: 'email' })
+            supabaseClient.rpc('subscribe_to_newsletter', { p_email: email, p_source: 'salary-news' })
                 .then(function(res) {
                     if (res.error) {
                         console.warn('Newsletter subscribe error:', res.error.message || res.error);

@@ -513,7 +513,7 @@
         function blogDoSubscribe(email){
             var msg=document.getElementById('blog_email_msg');
             if(typeof supabaseClient!=='undefined'&&supabaseClient&&typeof isSupabaseConfigured==='function'&&isSupabaseConfigured()){
-                supabaseClient.from('newsletter_subscribers').upsert({email:email},{onConflict:'email'}).then(function(res){
+                supabaseClient.rpc('subscribe_to_newsletter',{p_email:email,p_source:'blog'}).then(function(res){
                     if(res.error){localStorage.setItem('blog_subscribed',email);}
                     msg.style.color='#c8f0c8';msg.textContent='✓ Thanks! We\'ll notify you of Kenya tax changes.';msg.style.display='block';
                 });
