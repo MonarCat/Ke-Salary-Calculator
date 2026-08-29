@@ -172,7 +172,6 @@ body.dark-mode .scf-error,
 `;
 
     // ── HTML ─────────────────────────────────────────────────────────────────
-    const RECIPIENT = 'info@salarycalculator.co.ke';
     const API_ENDPOINT = '/api/feedback-form';
 
     const HTML = `
@@ -220,9 +219,7 @@ body.dark-mode .scf-error,
     <div class="scf-error" id="scf-error" role="alert" aria-live="polite"></div>
     <div class="scf-info" id="scf-info" style="display:none;" role="status">
         <i class="fas fa-check-circle"></i> <strong>Message sent — thank you!</strong>
-        We've received your message and will get back to you if a reply is needed.
-        You can also always reach us directly at
-        <a href="mailto:${RECIPIENT}" style="color:inherit;font-weight:bold;">${RECIPIENT}</a>.
+        We've received your message and will get back to you asap!
     </div>
 </form>
 `;
@@ -311,7 +308,7 @@ body.dark-mode .scf-error,
                 if (info) info.style.display = 'block';
                 e.target.reset();
             } catch (err) {
-                showError('Could not reach the server. Please check your connection and try again, or email us directly at ' + RECIPIENT + '.');
+                showError('Could not reach the server. Please check your connection and try again in a moment.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnHtml;

@@ -101,22 +101,42 @@
             text-align: center;
         }
         .faq-item {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
+            margin-bottom: 12px;
+            padding-bottom: 0;
             border-bottom: 1px solid #e0e0e0;
         }
         .faq-item:last-child {
             border-bottom: none;
         }
+        .faq-item summary {
+            list-style: none;
+            cursor: pointer;
+            user-select: none;
+            padding: 14px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+';
+            font-size: 1.4em;
+            color: #006600;
+            flex-shrink: 0;
+            transition: transform .2s;
+        }
+        .faq-item[open] summary::after { transform: rotate(45deg); }
         .faq-question {
             color: #006600;
             font-weight: bold;
             font-size: 1.1em;
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
         .faq-answer {
             color: #555;
             line-height: 1.6;
+            padding-bottom: 18px;
         }
         .response-time {
             background: #f9f9f9;
@@ -205,68 +225,68 @@
                 <div class="faq-section">
                     <h2>Frequently Asked Questions</h2>
                     
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> How accurate are the salary calculations?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> How accurate are the salary calculations?</span>
+                        </summary>
                         <div class="faq-answer">
                             Our calculations are based on current Kenyan tax laws and KRA regulations. We regularly update our system to reflect any changes. However, we recommend verifying calculations with a qualified accountant for official purposes.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> Is the service really free?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> Is the service really free?</span>
+                        </summary>
                         <div class="faq-answer">
                             Yes! All our core features including salary calculations, payslip generation, and employee management are completely free. There are no hidden charges or premium tiers.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> How do I generate payslips for multiple employees?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> How do I generate payslips for multiple employees?</span>
+                        </summary>
                         <div class="faq-answer">
                             Create a free account, add your employees to the system, and use our bulk payslip generation feature. You can generate and email payslips to all employees with just a few clicks.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> Is my data secure?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> Is my data secure?</span>
+                        </summary>
                         <div class="faq-answer">
                             Absolutely. We use bank-level encryption to protect your data. All information is securely stored and we never share your personal or business data with third parties. Read our <a href="/privacy-policy.html" style="color: #006600;">Privacy Policy</a> for more details.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> Can I customize the payslips with my company logo?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> Can I customize the payslips with my company logo?</span>
+                        </summary>
                         <div class="faq-answer">
                             Yes! You can customize payslips with your company name, logo, and branding. This feature is available to all registered users at no extra cost.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> What if I find an error in the calculations?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> What if I find an error in the calculations?</span>
+                        </summary>
                         <div class="faq-answer">
                             Please contact us immediately if you notice any discrepancies. We take accuracy very seriously and will investigate and correct any issues promptly. Your feedback helps us improve the service for everyone.
                         </div>
-                    </div>
+                    </details>
 
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <i class="fas fa-question-circle"></i> Do you offer training or support for employers?
-                        </div>
+                    <details class="faq-item">
+                        <summary class="faq-question">
+                            <span><i class="fas fa-question-circle"></i> Do you offer training or support for employers?</span>
+                        </summary>
                         <div class="faq-answer">
                             Yes! We provide online support to help you get started. Use our contact form above. We also have resources and guides in our <a href="/about-us.html" style="color: #006600;">About Us</a> and <a href="/blog.html" style="color: #006600;">Blog</a> pages to help you make the most of our platform.
                         </div>
-                    </div>
+                    </details>
                 </div>
 
                 <!-- What to Include -->
