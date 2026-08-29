@@ -195,7 +195,7 @@ async function handleSendEmail(req, res) {
   }
 
   // ── Parse body ────────────────────────────────────────────────────────────
-  const { template_key, subject, html_body, target, single_email } = req.body || {};
+  const { template_key, subject, html_body, target, single_email, bulk_emails } = req.body || {};
   if (!subject?.trim() || !html_body?.trim()) {
     return res.status(400).json({ error: 'subject and html_body are required' });
   }
@@ -210,6 +210,34 @@ async function handleSendEmail(req, res) {
       if (!email) return res.status(400).json({ error: 'single_email is required for target=single' });
       const { data } = await admin.from('user_profiles').select('*').eq('email', email).maybeSingle();
       recipients = [{ ...(data || {}), email, name: getName(data || { email }) }];
+    } else if (target === 'bulk') {
+      // Arbitrary pasted addresses -- may or may not correspond to existing
+      // registered users (mirrors the "prospects" use case: emailing leads,
+      // not just customers). Never trust client-side extraction/dedup alone;
+      // re-validate and re-cap server-side.
+      const EMAIL_SHAPE_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+      const seen = new Set();
+      const cleanEmails = [];
+      for (const raw of Array.isArray(bulk_emails) ? bulk_emails : []) {
+        const email = String(raw || '').trim().toLowerCase();
+        if (!email || seen.has(email) || !EMAIL_SHAPE_RE.test(email)) continue;
+        seen.add(email);
+        cleanEmails.push(email);
+        if (cleanEmails.length >= 250) break;
+      }
+      if (!cleanEmails.length) {
+        return res.status(400).json({ error: 'bulk_emails must contain at least one valid email address' });
+      }
+      // Enrich with existing profile data where it exists, so {{name}}/
+      // {{plan}}/{{expires}} personalise() correctly for known users too.
+      const { data: matched, error: matchErr } = await admin
+        .from('user_profiles').select('email, full_name, premium_expires_at').in('email', cleanEmails);
+      if (matchErr) throw matchErr;
+      const byEmail = new Map((matched || []).map(u => [u.email?.toLowerCase(), u]));
+      recipients = cleanEmails.map(email => {
+        const profile = byEmail.get(email);
+        return { ...(profile || {}), email, name: getName(profile || { email }) };
+      });
     } else {
       const now = new Date().toISOString();
       let q = admin.from('user_profiles').select('id, email, full_name, premium_expires_at');

@@ -173,11 +173,11 @@ body.dark-mode .scf-error,
 
     // ── HTML ─────────────────────────────────────────────────────────────────
     const RECIPIENT = 'info@salarycalculator.co.ke';
-    const SUBJECT_PREFIX = '[SalaryCalculator.co.ke]';
+    const API_ENDPOINT = '/api/feedback-form';
 
     const HTML = `
 <h2 class="scf-heading"><i class="fas fa-paper-plane" style="color:#006600;"></i> Message Us / Feedback</h2>
-<p class="scf-subtitle">Have a question, suggestion or found a bug? We'd love to hear from you. Fill in the form and click "Open in Mail App &amp; Send" — your default mail client will open a pre-filled draft.</p>
+<p class="scf-subtitle">Have feedback, a comment, an inquiry or a suggestion? We'd love to hear from you — fill in the form below and we'll get your message directly.</p>
 
 <form id="scf-form" novalidate>
     <div class="scf-form-row">
@@ -191,30 +191,37 @@ body.dark-mode .scf-error,
         </div>
     </div>
     <div class="scf-form-group">
-        <label for="scf-subject"><i class="fas fa-tag"></i> Subject <span style="color:#cc0000;">*</span></label>
-        <select id="scf-subject" name="subject" required>
-            <option value="">— Select a subject —</option>
-            <option value="General Inquiry">General Inquiry</option>
-            <option value="Feedback / Suggestion">Feedback / Suggestion</option>
-            <option value="Bug Report">Bug Report</option>
-            <option value="Feature Request">Feature Request</option>
-            <option value="Calculation Error">Calculation Error</option>
-            <option value="Other">Other</option>
+        <label for="scf-category"><i class="fas fa-tag"></i> Type <span style="color:#cc0000;">*</span></label>
+        <select id="scf-category" name="category" required>
+            <option value="">— Select a type —</option>
+            <option value="feedback">Feedback</option>
+            <option value="comment">Comment</option>
+            <option value="inquiry">Inquiry</option>
+            <option value="suggestion">Suggestion</option>
+            <option value="bug_report">Bug Report</option>
+            <option value="other">Other</option>
         </select>
     </div>
     <div class="scf-form-group">
         <label for="scf-message"><i class="fas fa-comment-alt"></i> Message <span style="color:#cc0000;">*</span></label>
-        <textarea id="scf-message" name="message" placeholder="Please describe your question, feedback or issue in as much detail as possible…" required></textarea>
+        <textarea id="scf-message" name="message" placeholder="Please describe your feedback, comment, inquiry or suggestion in as much detail as possible…" required></textarea>
+    </div>
+
+    <!-- Honeypot: hidden from real users via CSS, bots often fill every field they can see in the DOM -->
+    <div class="scf-form-group" style="position:absolute;left:-9999px;" aria-hidden="true">
+        <label for="scf-website">Website</label>
+        <input type="text" id="scf-website" name="website" tabindex="-1" autocomplete="off">
     </div>
 
     <button type="submit" class="scf-submit-btn">
-        <i class="fas fa-paper-plane"></i> Open in Mail App &amp; Send
+        <i class="fas fa-paper-plane"></i> Send Message
     </button>
 
     <div class="scf-error" id="scf-error" role="alert" aria-live="polite"></div>
     <div class="scf-info" id="scf-info" style="display:none;" role="status">
-        <i class="fas fa-check-circle"></i> <strong>Your mail app should open now.</strong>
-        If it didn't open automatically, email us directly at
+        <i class="fas fa-check-circle"></i> <strong>Message sent — thank you!</strong>
+        We've received your message and will get back to you if a reply is needed.
+        You can also always reach us directly at
         <a href="mailto:${RECIPIENT}" style="color:inherit;font-weight:bold;">${RECIPIENT}</a>.
     </div>
 </form>
@@ -259,19 +266,21 @@ body.dark-mode .scf-error,
             });
         });
 
-        document.getElementById('scf-form').addEventListener('submit', function (e) {
+        document.getElementById('scf-form').addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const name    = document.getElementById('scf-name').value.trim();
-            const email   = document.getElementById('scf-email').value.trim();
-            const subject = document.getElementById('scf-subject').value;
-            const message = document.getElementById('scf-message').value.trim();
-            const info    = document.getElementById('scf-info');
+            const name     = document.getElementById('scf-name').value.trim();
+            const email    = document.getElementById('scf-email').value.trim();
+            const category = document.getElementById('scf-category').value;
+            const message  = document.getElementById('scf-message').value.trim();
+            const website  = document.getElementById('scf-website').value; // honeypot
+            const info     = document.getElementById('scf-info');
+            const submitBtn = e.target.querySelector('.scf-submit-btn');
 
             hideError();
             if (info) info.style.display = 'none';
 
-            if (!name || !email || !subject || !message) {
+            if (!name || !email || !category || !message) {
                 showError('Please fill in all required fields.');
                 return;
             }
@@ -282,22 +291,31 @@ body.dark-mode .scf-error,
                 return;
             }
 
-            const body = [
-                'Name: ' + name,
-                'From: ' + email,
-                '',
-                'Message:',
-                message
-            ].join('\n');
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
 
-            const mailtoHref =
-                'mailto:' + RECIPIENT +
-                '?subject=' + encodeURIComponent(SUBJECT_PREFIX + ' ' + subject) +
-                '&body='    + encodeURIComponent(body);
+            try {
+                const resp = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, email: email, category: category, message: message, website: website })
+                });
+                const data = await resp.json().catch(function () { return {}; });
 
-            window.location.href = mailtoHref;
+                if (!resp.ok) {
+                    showError(data.error || 'Something went wrong. Please try again or email us directly.');
+                    return;
+                }
 
-            if (info) info.style.display = 'block';
+                if (info) info.style.display = 'block';
+                e.target.reset();
+            } catch (err) {
+                showError('Could not reach the server. Please check your connection and try again, or email us directly at ' + RECIPIENT + '.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
         });
     }
 

@@ -4,8 +4,13 @@
   "outputDirectory": ".",
   "functions": {
     "api/send-email.js": { "maxDuration": 60 },
-    "api/admin-ops.js": { "maxDuration": 30 }
+    "api/admin-ops.js": { "maxDuration": 30 },
+    "api/email-automation-cron.js": { "maxDuration": 60 },
+    "api/feedback-form.js": { "maxDuration": 15 }
   },
+  "crons": [
+    { "path": "/api/email-automation-cron", "schedule": "0 8 * * *" }
+  ],
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
     { "source": "/api/paystack-verify",  "destination": "/api/paystack-verify.js"  },
@@ -13,6 +18,8 @@
     { "source": "/api/paystack-donation-verify", "destination": "/api/paystack-donation-verify.js" },
     { "source": "/api/admin-ops",        "destination": "/api/admin-ops.js"        },
     { "source": "/api/send-email",       "destination": "/api/send-email.js"       },
+    { "source": "/api/email-automation-cron", "destination": "/api/email-automation-cron.js" },
+    { "source": "/api/feedback-form",    "destination": "/api/feedback-form.js"    },
     { "source": "/ad-click/:id",        "destination": "/api/ad-click/:id"         },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },
