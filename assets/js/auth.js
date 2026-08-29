@@ -576,7 +576,7 @@ async function updateAuthUI() {
                         </div>
                         <div class="user-dropdown-divider" role="separator"></div>
                         <a class="user-dropdown-item user-dropdown-item--support" href="/donate.html" role="menuitem">
-                            <i class="fas fa-heart" aria-hidden="true"></i> Support KeSalary
+                            <i class="fas fa-heart" aria-hidden="true"></i> Support Salary Calculator
                         </a>
                         <div class="user-dropdown-divider" role="separator"></div>
                         <div class="user-dropdown-item" onclick="handleLogout()">

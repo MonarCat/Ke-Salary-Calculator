@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script type="module" src="/assets/js/ad-network-loader.js?v=1.0"></script>
+<script type="module" src="/assets/js/ad-network-loader.js?v=2.0"></script>
 <meta charset="UTF-8">
     <meta name="google-adsense-account" content="ca-pub-6832553346534070">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -73,6 +73,34 @@
             color: #444;
         }
         .donate-message-card h2 { color: #006600; margin-top: 0; font-size: 1.3em; }
+
+        .donate-adfree-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #eafcf0 100%);
+            border: 1px solid #b9f5c3;
+            position: relative;
+            overflow: hidden;
+        }
+        .donate-adfree-card h2 { display: flex; align-items: center; gap: 8px; }
+        .donate-adfree-card p { margin: 0 0 10px; }
+        .donate-adfree-card p:last-child { margin-bottom: 0; }
+        .donate-adfree-badge {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #16a34a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+        }
+        @media (max-width: 480px) {
+            .donate-adfree-badge { display: none; }
+        }
 
         .donate-card {
             background: #fff;
@@ -217,6 +245,10 @@
         body.dark-mode .donate-card legend,
         body.dark-mode .donate-card h2,
         body.dark-mode #donate-success h2 { color: #4caf50; }
+        body.dark-mode .donate-adfree-card {
+            background: linear-gradient(135deg, #16213e 0%, #1a2e22 100%);
+            border-color: #2a6b3f;
+        }
         body.dark-mode .donate-amount-btn {
             background: #1a1a2e; border-color: #2a2a4e; color: #4caf50;
         }
@@ -254,16 +286,32 @@
             <div class="donate-hero">
                 <div class="donate-hero-icon" aria-hidden="true">❤️</div>
                 <p class="donate-eyebrow">Community support</p>
-                <h1>Support KeSalary</h1>
-                <p>Help keep KeSalary free for everyone. Your contribution helps maintain reliable payroll tools and build new features for Kenyan employers and employees.</p>
+                <h1>Support Salary Calculator</h1>
+                <p>Help keep Salary Calculator free for everyone. Your contribution helps maintain reliable payroll tools and build new features for Kenyan employers and employees.</p>
             </div>
 
             <div class="donate-content">
+                <!-- No More Intrusive Ads -->
+                <section class="donate-message-card donate-adfree-card" aria-labelledby="donate-adfree-heading">
+                    <div class="donate-adfree-badge" aria-hidden="true"><i class="fas fa-check"></i></div>
+                    <h2 id="donate-adfree-heading"><i class="fas fa-ban" aria-hidden="true"></i> No More Intrusive Ads</h2>
+                    <p>
+                        We heard you — the ads were intrusive. They're gone. Salary Calculator no longer
+                        runs pop-ups, pop-unders, or disruptive third-party ad networks, so you're free to
+                        explore every feature on the site without interruption.
+                    </p>
+                    <p>
+                        To help us maintain that ad-free experience for everyone, we encourage kind
+                        donations. Your support gives every user — not just subscribers — a premium,
+                        distraction-free feel.
+                    </p>
+                </section>
+
                 <!-- Why donate -->
                 <section class="donate-message-card" aria-labelledby="donate-why-heading">
                     <h2 id="donate-why-heading"><i class="fas fa-hand-holding-heart" aria-hidden="true"></i> Built to remain useful</h2>
                     <p>
-                        KeSalary is free to use. Contributions help us maintain servers, keep PAYE, NSSF, SHIF and
+                        Salary Calculator is free to use. Contributions help us maintain servers, keep PAYE, NSSF, SHIF and
                         Housing Levy information current, and continue improving the tools that support employers and
                         employees across Kenya.
                     </p>
