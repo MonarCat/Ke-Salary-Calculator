@@ -189,6 +189,7 @@
               <option value="free">🆓 Free Users Only</option>
               <option value="single">👤 Specific User</option>
               <option value="bulk">📝 Paste Email List (up to 250)</option>
+              <option value="prospects">🗂️ Prospect List (campaign-tracked)</option>
             </select>
           </div>
           <div style="margin:-2px 0 12px;font-size:12px;color:var(--text3)">Sent with <strong style="color:var(--accent)">Brevo</strong> transactional email delivery.</div>
@@ -198,7 +199,21 @@
             <textarea id="bulk-email-input" oninput="updateRecipientCountLabel()" placeholder="Paste up to 250 addresses -- one per line, or separated by commas/spaces. A messy paragraph works too, we'll pull the addresses out automatically." style="min-height:120px;font-family:var(--mono);font-size:12px"></textarea>
             <div id="bulk-email-status" style="font-size:11px;color:var(--text3);margin-top:4px">0 valid addresses found</div>
           </div>
-          <div class="field"><label>Subject Line</label><input id="email-subject" type="text" placeholder="Your subject line..."></div>
+          <div id="prospects-wrap" class="field" style="display:none">
+            <label>Prospect List</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="prospect-list-picker" onchange="onCampaignInputsChanged()" style="flex:1"></select>
+              <button type="button" class="btn" onclick="openManageProspectsModal()" style="white-space:nowrap">🗂️ Manage Lists</button>
+            </div>
+            <label style="margin-top:12px">Batch Size <span style="color:var(--text3);font-weight:400">(max 300 — Brevo's daily cap, shared with other email)</span></label>
+            <input type="number" id="campaign-batch-size" value="250" min="1" max="300" oninput="onCampaignInputsChanged()">
+            <div id="campaign-dry-run-status" style="font-size:12px;color:var(--text3);margin-top:10px;line-height:1.6"></div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button type="button" class="btn" onclick="runCampaignDryRun()">🔍 Check Status (Dry Run)</button>
+              <button type="button" class="btn primary" id="send-campaign-btn" onclick="sendCampaignBatch()" disabled>📤 Send This Batch</button>
+            </div>
+          </div>
+          <div class="field"><label>Subject Line</label><input id="email-subject" type="text" placeholder="Your subject line..." oninput="onCampaignInputsChanged()"></div>
           <div class="field">
             <label>Personalization Tokens</label>
             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
@@ -209,9 +224,9 @@
               <button class="act-btn" type="button" onclick="insertToken('{{upgrade_link}}')">{{upgrade_link}}</button>
             </div>
             <label>Message Body (HTML supported)</label>
-            <textarea id="email-body" style="min-height:260px;font-family:var(--mono);font-size:12px"></textarea>
+            <textarea id="email-body" style="min-height:260px;font-family:var(--mono);font-size:12px" oninput="onCampaignInputsChanged()"></textarea>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div id="standard-send-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div style="font:12px var(--mono);color:var(--text3)" id="recipient-count-label">to — recipients</div>
             <div style="display:flex;gap:8px">
               <button class="btn" type="button" onclick="previewEmail()">👁 Preview</button>
@@ -360,6 +375,32 @@
     </div>
   </div>
 
+  <div id="prospects-modal" class="modal-overlay">
+    <div class="modal" style="width:min(640px,94vw);max-height:82vh;overflow-y:auto">
+      <h3>🗂️ Prospect Lists</h3>
+      <p style="font-size:12px;color:var(--text3);margin:-8px 0 14px">Saved lists for cold outreach beyond your existing users/subscribers. Sending to a list uses campaign tracking — see the batch size + dry run controls in the composer.</p>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" id="new-list-name" placeholder="New list name, e.g. Nairobi Schools" style="flex:1">
+        <button class="btn primary" onclick="createProspectList()">+ Create</button>
+      </div>
+
+      <div id="prospects-list-container"></div>
+
+      <div id="prospect-emails-panel" style="display:none;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong id="emails-panel-list-name" style="font-size:14px"></strong>
+          <button class="btn" onclick="closeEmailsPanel()">← Back to lists</button>
+        </div>
+        <textarea id="add-emails-textarea" placeholder="Paste emails to add — a messy paragraph or a directory page copied wholesale works too, we extract every email-shaped address automatically." style="min-height:90px;width:100%;font-family:var(--mono);font-size:12px"></textarea>
+        <button class="btn" onclick="addEmailsToCurrentList()" style="margin-top:8px">+ Add Emails</button>
+        <div id="emails-list-container" style="margin-top:14px;max-height:240px;overflow-y:auto"></div>
+      </div>
+
+      <div class="modal-actions"><button class="btn" onclick="closeModal('prospects-modal')">Close</button></div>
+    </div>
+  </div>
+
   <div id="note-modal" class="modal-overlay">
     <div class="modal"><h3>📝 Admin Note</h3>
       <input id="note-user-id" type="hidden"><input id="note-user-email" type="hidden">
@@ -378,12 +419,14 @@
       ANON_KEY:document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim()||'',
       ADMIN_FN:'/api/admin-ops',
       SEND_EMAIL_FN:'/api/send-email',
+      MANAGE_PROSPECTS_FN:'/api/manage-prospects',
+      SEND_CAMPAIGN_FN:'/api/send-campaign',
       MONTHLY:99,
       YEARLY:999,
     });
-    const{SUPA_URL,ANON_KEY,ADMIN_FN,SEND_EMAIL_FN,MONTHLY}=APP_CONFIG;
+    const{SUPA_URL,ANON_KEY,ADMIN_FN,SEND_EMAIL_FN,MANAGE_PROSPECTS_FN,SEND_CAMPAIGN_FN,MONTHLY}=APP_CONFIG;
     const sb=supabase.createClient(SUPA_URL,ANON_KEY);
-    const state={users:[],filteredUsers:[],analytics:null,growth:[],adBookings:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null};
+    const state={users:[],filteredUsers:[],analytics:null,growth:[],adBookings:[],filter:'all',searchQuery:'',page:1,pageSize:20,totalUsers:0,selectedIds:new Set(),adminUser:null,prospectLists:[],currentEmailsPanelListId:null,dryRunValid:false};
     const charts={};
     let booted=false,loading=false,searchTimer,toastTimer,emailCenterReady=false;
 
@@ -513,6 +556,27 @@
       let data=null;
       if(raw){try{data=JSON.parse(raw);}catch(e){console.error('Send-email parse error:',raw.slice(0,300));}}
       if(!r.ok)return{error:data?.error||(raw?`Email error (${r.status}): ${raw.slice(0,160)}`:`Email error (${r.status})`)};
+      return data||{};
+    }
+
+    // Generic helper reused by manage-prospects.js and send-campaign.js --
+    // identical auth/error-handling shape to callSendEmailFn above, just
+    // parameterised on the endpoint URL so it isn't duplicated twice more.
+    async function callAdminApi(url,payload){
+      const{data:{session}}=await sb.auth.getSession();
+      if(!session)return{error:'Session expired — please sign in again.'};
+      let r;
+      try{
+        r=await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':ANON_KEY},
+          body:JSON.stringify(payload)
+        });
+      }catch(_e){return{error:'Network error — check your connection.'};}
+      const raw=await r.text();
+      let data=null;
+      if(raw){try{data=JSON.parse(raw);}catch(e){console.error('API parse error:',raw.slice(0,300));}}
+      if(!r.ok)return{error:data?.error||(raw?`Error (${r.status}): ${raw.slice(0,160)}`:`Error (${r.status})`)};
       return data||{};
     }
 
@@ -680,19 +744,203 @@
     }
 
     // ── Email Center ──────────────────────────────────────────────────────
-    const TEMPLATES={welcome:{label:'👋 Welcome Email',desc:'New user onboarding',tag:'TRANSACTIONAL',subject:'Welcome to Salary Calculator Kenya 🎉',body:`<div style="text-align:center;margin:0 0 26px"><div style="font-size:34px;margin-bottom:8px">🎉</div><div style="font-size:19px;font-weight:700;color:#111827;font-family:Arial,sans-serif">Welcome aboard, {{name}}!</div><div style="font-size:14px;color:#667085;margin-top:6px;font-family:Arial,sans-serif">Kenya's most accurate payslip &amp; payroll calculator</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 22px">We're glad you're here. Your account is ready — all FY 2025/2026 tax rates are already built in, so your numbers are accurate from your very first calculation.</p>\n\n<table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 26px"><tr><td width="50%" style="padding:4px"><table cellpadding="0" cellspacing="0" width="100%" style="background:#f0fdf6;border:1px solid #cfe8da;border-radius:12px"><tr><td style="padding:16px;font-family:Arial,sans-serif"><div style="font-size:20px;margin-bottom:6px">🧮</div><div style="font-size:13px;font-weight:700;color:#1a6b3c">Instant Calculations</div><div style="font-size:12px;color:#667085;margin-top:3px;line-height:1.5">PAYE, NSSF, SHIF &amp; Housing Levy — done in seconds</div></td></tr></table></td><td width="50%" style="padding:4px"><table cellpadding="0" cellspacing="0" width="100%" style="background:#f0fdf6;border:1px solid #cfe8da;border-radius:12px"><tr><td style="padding:16px;font-family:Arial,sans-serif"><div style="font-size:20px;margin-bottom:6px">📄</div><div style="font-size:13px;font-weight:700;color:#1a6b3c">Payslips &amp; P9A</div><div style="font-size:12px;color:#667085;margin-top:3px;line-height:1.5">Generate clean, downloadable documents anytime</div></td></tr></table></td></tr></table>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/calculator.html" style="display:inline-block;padding:15px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Start Calculating →</a></td></tr></table>\n\n<p style="margin-top:32px;font-size:14px;color:#667085;line-height:1.7">Questions any time? <a href="https://salarycalculator.co.ke/contact-us.html" style="color:#1a6b3c;font-weight:600;">Message us here</a>.</p>\n\n<p style="margin-top:20px;font-size:15px;color:#111827">Asante sana,<br><strong>Moses &amp; The SC Team</strong></p>`},premium_activated:{label:'⭐ Premium Activated',desc:'After payment or admin grant',tag:'TRANSACTIONAL',subject:'⭐ Your Premium Access is Now Active',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fef9e7;border:2px solid #f5c842;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center"><div style="font-size:28px;margin-bottom:6px">⭐</div><div style="font-size:18px;font-weight:700;color:#92650a;font-family:Arial,sans-serif">Premium Access Active</div><div style="font-size:13px;color:#b07d12;margin-top:4px;font-family:Arial,sans-serif">Active until: <strong>{{expires}}</strong></div></div>\n\n<p>You now have watermark-free payslips, P9A form generation, and Payroll Import.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px 0"><tr><td style="background:#060b18;border-radius:8px"><a href="https://salarycalculator.co.ke/payslip-generator-kenya.html" style="display:block;padding:14px 32px;color:#00d4aa;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Generate Premium Payslip →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Thank you,<br><strong>Moses &amp; The SC Team</strong></p>`},premium_expiring:{label:'⏰ Premium Expiring',desc:'3-day renewal reminder',tag:'RETENTION',subject:'⏰ Your Premium expires in 3 days — renew now',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fff8f0;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px"><div style="font-size:14px;font-weight:700;color:#92400e;font-family:Arial,sans-serif">⏰ Your Premium expires on <strong>{{expires}}</strong></div><div style="font-size:13px;color:#b45309;margin-top:4px;font-family:Arial,sans-serif">Payslips will display a watermark after this date.</div></div>\n\n<p>Renew today to keep your clean payslips and premium features.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px auto"><tr><td style="background:#00d4aa;border-radius:8px"><a href="{{upgrade_link}}" style="display:block;padding:14px 36px;color:#03120f;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Renew Premium →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Asante,<br><strong>The SC Team</strong></p>`},premium_expired:{label:'🔒 Premium Expired',desc:'Winback after expiry',tag:'WINBACK',subject:'🔒 Your Premium has expired — re-activate to restore clean payslips',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fff1f2;border-left:4px solid #ff4d6d;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px"><div style="font-size:14px;font-weight:700;color:#9f1239;font-family:Arial,sans-serif">🔒 Your Premium subscription has expired</div><div style="font-size:13px;color:#be123c;margin-top:4px;font-family:Arial,sans-serif">Your payslips now show a watermark. Re-activate to restore full access.</div></div>\n\n<p>We'd love to have you back. Your history is still saved.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px auto"><tr><td style="background:#00d4aa;border-radius:8px"><a href="{{upgrade_link}}" style="display:block;padding:14px 36px;color:#03120f;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Re-activate Premium →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Hope to see you back,<br><strong>Moses &amp; The SC Team</strong></p>`},upgrade_nudge:{label:'💎 Premium Offer',desc:'Free user premium upsell',tag:'MARKETING',subject:'Upgrade to Salary Calculator Premium for KES 99/month',body:`<p style="font-size:18px;margin:0 0 22px;color:#111827">Hello <strong>{{name}}</strong>,</p>\n\n<p style="font-size:15px;line-height:1.8;color:#475467;margin:0 0 24px">Thank you for using <strong>Salary Calculator</strong>. If you generate payslips regularly, upgrading to Premium will significantly improve your workflow and document quality.</p>\n\n<div style="background:#eef9f3;border:1px solid #cfe8da;border-radius:16px;padding:28px;text-align:center;margin:30px 0">\n  <div style="font-size:40px;font-weight:800;color:#1a6b3c;line-height:1;font-family:Arial,sans-serif">KES 99</div>\n  <div style="font-size:14px;color:#667085;margin-top:6px;font-family:Arial,sans-serif">per month</div>\n  <div style="margin-top:22px;font-size:15px;color:#344054;line-height:2;font-family:Arial,sans-serif">\n    ✓ Watermark-free PDF Payslips<br>\n    ✓ P9A Form Generation<br>\n    ✓ Payroll Import Tools<br>\n    ✓ Faster Payroll Workflow\n  </div>\n</div>\n\n<table cellpadding="0" cellspacing="0" style="margin:34px auto 10px"><tr><td style="border-radius:12px;background:#1a6b3c"><a href=\"{{upgrade_link}}\" style=\"display:inline-block;background:linear-gradient(135deg,#1a6b3c,#0f5132);color:#ffffff;text-decoration:none;padding:16px 34px;border-radius:12px;font-size:15px;font-weight:700;font-family:Arial,sans-serif;box-shadow:0 10px 20px rgba(26,107,60,0.22)\">Upgrade to Premium →</a></td></tr></table>\n\n<p style="margin-top:34px;font-size:14px;color:#667085;line-height:1.7">Thank you for supporting Salary Calculator and helping us build better payroll tools for Kenya.</p>\n\n<p style="margin-top:24px;font-size:15px;color:#111827;line-height:1.7">Regards,<br><strong>Moses Mwombe</strong><br>Founder — Salary Calculator</p>`},marketing_generic:{label:'📣 Generic Marketing',desc:'Product overview for cold outreach',tag:'COLD OUTREACH',subject:'Accurate Kenyan payroll, payslips & PAYE — without the spreadsheet',body:`<div style="text-align:center;margin:0 0 24px"><div style="font-size:13px;font-weight:700;letter-spacing:0.06em;color:#1a6b3c;text-transform:uppercase;font-family:Arial,sans-serif">Kenya's Payroll Toolkit</div><div style="font-size:22px;font-weight:800;color:#111827;margin-top:8px;font-family:Arial,sans-serif;line-height:1.4">Accurate payslips, PAYE &amp; payroll — without the spreadsheet headache</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 24px">Hi {{name}},</p>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 26px">Whether you run payroll for a team or just need your own accurate payslip, <strong>Salary Calculator Kenya</strong> handles the FY 2025/2026 numbers correctly — PAYE, NSSF, SHIF and Housing Levy — every time.</p>\n\n<table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 26px"><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">🧮</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Accurate net-pay calculations</div><div style="font-size:13px;color:#667085;margin-top:2px">Current PAYE bands, NSSF, SHIF 2.75% &amp; Housing Levy 1.5% built in</div></td></tr></table></td></tr><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">📄</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Payslips &amp; P9A tax cards</div><div style="font-size:13px;color:#667085;margin-top:2px">Generate clean, downloadable documents in seconds</div></td></tr></table></td></tr><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">👥</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Built for teams too</div><div style="font-size:13px;color:#667085;margin-top:2px">Manage multiple employees, run bulk payslips, export payroll reports</div></td></tr></table></td></tr><tr><td style="padding:10px 0"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">💰</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Simple pricing</div><div style="font-size:13px;color:#667085;margin-top:2px">Free to start. Premium unlocks unlimited downloads from KES 99/month</div></td></tr></table></td></tr></table>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/calculator.html" style="display:inline-block;padding:16px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Try It Free →</a></td></tr></table>\n\n<p style="margin-top:30px;font-size:14px;color:#667085;line-height:1.7">No signup required to calculate — create an account only when you're ready to save payslips or add employees.</p>\n\n<p style="margin-top:22px;font-size:15px;color:#111827;line-height:1.7">Regards,<br><strong>Moses Mwombe</strong><br>Founder — Salary Calculator Kenya</p>`},custom:{label:'✏️ Custom Broadcast',desc:'Compose from scratch',tag:'BROADCAST',subject:'',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<p style="margin:0 0 16px">Write your message here...</p>\n\n<p style="margin-top:32px;color:#1a2540">Best regards,<br><strong>The SC Team</strong></p>`},no_intrusive_ads:{label:'🚫 No More Intrusive Ads',desc:'Announcement + donation ask',tag:'ANNOUNCEMENT',subject:'We heard you — no more intrusive ads on Salary Calculator',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center"><div style="font-size:28px;margin-bottom:6px">🚫</div><div style="font-size:18px;font-weight:700;color:#166534;font-family:Arial,sans-serif">No More Intrusive Ads</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 20px">We heard you — the intrusive ads are gone for good.</p>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 26px">You're now free to explore the many features Salary Calculator provides, without pop-ups, pop-unders, or disruptive ad networks getting in your way. You may still see the occasional, clean ad from Google — these help keep the platform running, and are never the disruptive kind.</p>\n\n<div style="background:#f8fafc;border-left:4px solid #1a6b3c;border-radius:0 8px 8px 0;padding:18px 20px;margin-bottom:26px"><p style="margin:0;font-size:14px;line-height:1.8;color:#344054">To help us go fully ad-free for everyone, we encourage kind donations. Premium members and supporters enjoy a completely ad-free, distraction-free experience — no exceptions.</p></div>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/donate.html" style="display:inline-block;padding:15px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Support Salary Calculator →</a></td></tr></table>\n\n<p style="margin-top:32px;font-size:14px;color:#667085;line-height:1.7">Thank you for being part of this community.</p>\n\n<p style="margin-top:20px;font-size:15px;color:#111827">Asante sana,<br><strong>Moses &amp; The SC Team</strong></p>`}};
+    const TEMPLATES={welcome:{label:'👋 Welcome Email',desc:'New user onboarding',tag:'TRANSACTIONAL',subject:'Welcome to Salary Calculator Kenya 🎉',body:`<div style="text-align:center;margin:0 0 26px"><div style="font-size:34px;margin-bottom:8px">🎉</div><div style="font-size:19px;font-weight:700;color:#111827;font-family:Arial,sans-serif">Welcome aboard, {{name}}!</div><div style="font-size:14px;color:#667085;margin-top:6px;font-family:Arial,sans-serif">Kenya's most accurate payslip &amp; payroll calculator</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 22px">We're glad you're here. Your account is ready — all FY 2025/2026 tax rates are already built in, so your numbers are accurate from your very first calculation.</p>\n\n<table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 26px"><tr><td width="50%" style="padding:4px"><table cellpadding="0" cellspacing="0" width="100%" style="background:#f0fdf6;border:1px solid #cfe8da;border-radius:12px"><tr><td style="padding:16px;font-family:Arial,sans-serif"><div style="font-size:20px;margin-bottom:6px">🧮</div><div style="font-size:13px;font-weight:700;color:#1a6b3c">Instant Calculations</div><div style="font-size:12px;color:#667085;margin-top:3px;line-height:1.5">PAYE, NSSF, SHIF &amp; Housing Levy — done in seconds</div></td></tr></table></td><td width="50%" style="padding:4px"><table cellpadding="0" cellspacing="0" width="100%" style="background:#f0fdf6;border:1px solid #cfe8da;border-radius:12px"><tr><td style="padding:16px;font-family:Arial,sans-serif"><div style="font-size:20px;margin-bottom:6px">📄</div><div style="font-size:13px;font-weight:700;color:#1a6b3c">Payslips &amp; P9A</div><div style="font-size:12px;color:#667085;margin-top:3px;line-height:1.5">Generate clean, downloadable documents anytime</div></td></tr></table></td></tr></table>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/calculator.html" style="display:inline-block;padding:15px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Start Calculating →</a></td></tr></table>\n\n<p style="margin-top:32px;font-size:14px;color:#667085;line-height:1.7">Questions any time? <a href="https://salarycalculator.co.ke/contact-us.html" style="color:#1a6b3c;font-weight:600;">Message us here</a>.</p>\n\n<p style="margin-top:20px;font-size:15px;color:#111827">Asante sana,<br><strong>Moses &amp; The SC Team</strong></p>`},premium_activated:{label:'⭐ Premium Activated',desc:'After payment or admin grant',tag:'TRANSACTIONAL',subject:'⭐ Your Premium Access is Now Active',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fef9e7;border:2px solid #f5c842;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center"><div style="font-size:28px;margin-bottom:6px">⭐</div><div style="font-size:18px;font-weight:700;color:#92650a;font-family:Arial,sans-serif">Premium Access Active</div><div style="font-size:13px;color:#b07d12;margin-top:4px;font-family:Arial,sans-serif">Active until: <strong>{{expires}}</strong></div></div>\n\n<p>You now have watermark-free payslips, P9A form generation, and Payroll Import.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px 0"><tr><td style="background:#060b18;border-radius:8px"><a href="https://salarycalculator.co.ke/payslip-generator-kenya.html" style="display:block;padding:14px 32px;color:#00d4aa;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Generate Premium Payslip →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Thank you,<br><strong>Moses &amp; The SC Team</strong></p>`},premium_expiring:{label:'⏰ Premium Expiring',desc:'3-day renewal reminder',tag:'RETENTION',subject:'⏰ Your Premium expires in 3 days — renew now',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fff8f0;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px"><div style="font-size:14px;font-weight:700;color:#92400e;font-family:Arial,sans-serif">⏰ Your Premium expires on <strong>{{expires}}</strong></div><div style="font-size:13px;color:#b45309;margin-top:4px;font-family:Arial,sans-serif">Payslips will display a watermark after this date.</div></div>\n\n<p>Renew today to keep your clean payslips and premium features.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px auto"><tr><td style="background:#00d4aa;border-radius:8px"><a href="{{upgrade_link}}" style="display:block;padding:14px 36px;color:#03120f;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Renew Premium →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Asante,<br><strong>The SC Team</strong></p>`},premium_expired:{label:'🔒 Premium Expired',desc:'Winback after expiry',tag:'WINBACK',subject:'🔒 Your Premium has expired — re-activate to restore clean payslips',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#fff1f2;border-left:4px solid #ff4d6d;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px"><div style="font-size:14px;font-weight:700;color:#9f1239;font-family:Arial,sans-serif">🔒 Your Premium subscription has expired</div><div style="font-size:13px;color:#be123c;margin-top:4px;font-family:Arial,sans-serif">Your payslips now show a watermark. Re-activate to restore full access.</div></div>\n\n<p>We'd love to have you back. Your history is still saved.</p>\n\n<table cellpadding="0" cellspacing="0" style="margin:24px auto"><tr><td style="background:#00d4aa;border-radius:8px"><a href="{{upgrade_link}}" style="display:block;padding:14px 36px;color:#03120f;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif">Re-activate Premium →</a></td></tr></table>\n\n<p style="margin-top:24px;color:#1a2540">Hope to see you back,<br><strong>Moses &amp; The SC Team</strong></p>`},upgrade_nudge:{label:'💎 Premium Offer',desc:'Free user premium upsell',tag:'MARKETING',subject:'Upgrade to Salary Calculator Premium for KES 99/month',body:`<p style="font-size:18px;margin:0 0 22px;color:#111827">Hello <strong>{{name}}</strong>,</p>\n\n<p style="font-size:15px;line-height:1.8;color:#475467;margin:0 0 24px">Thank you for using <strong>Salary Calculator</strong>. If you generate payslips regularly, upgrading to Premium will significantly improve your workflow and document quality.</p>\n\n<div style="background:#eef9f3;border:1px solid #cfe8da;border-radius:16px;padding:28px;text-align:center;margin:30px 0">\n  <div style="font-size:40px;font-weight:800;color:#1a6b3c;line-height:1;font-family:Arial,sans-serif">KES 99</div>\n  <div style="font-size:14px;color:#667085;margin-top:6px;font-family:Arial,sans-serif">per month</div>\n  <div style="margin-top:22px;font-size:15px;color:#344054;line-height:2;font-family:Arial,sans-serif">\n    ✓ Watermark-free PDF Payslips<br>\n    ✓ P9A Form Generation<br>\n    ✓ Payroll Import Tools<br>\n    ✓ Faster Payroll Workflow\n  </div>\n</div>\n\n<table cellpadding="0" cellspacing="0" style="margin:34px auto 10px"><tr><td style="border-radius:12px;background:#1a6b3c"><a href=\"{{upgrade_link}}\" style=\"display:inline-block;background:linear-gradient(135deg,#1a6b3c,#0f5132);color:#ffffff;text-decoration:none;padding:16px 34px;border-radius:12px;font-size:15px;font-weight:700;font-family:Arial,sans-serif;box-shadow:0 10px 20px rgba(26,107,60,0.22)\">Upgrade to Premium →</a></td></tr></table>\n\n<p style="margin-top:34px;font-size:14px;color:#667085;line-height:1.7">Thank you for supporting Salary Calculator and helping us build better payroll tools for Kenya.</p>\n\n<p style="margin-top:24px;font-size:15px;color:#111827;line-height:1.7">Regards,<br><strong>Moses Mwombe</strong><br>Founder — Salary Calculator</p>`},marketing_generic:{label:'📣 Generic Marketing',desc:'Product overview for cold outreach',tag:'COLD OUTREACH',subject:'Accurate Kenyan payroll, payslips & PAYE — without the spreadsheet',body:`<div style="text-align:center;margin:0 0 24px"><div style="font-size:13px;font-weight:700;letter-spacing:0.06em;color:#1a6b3c;text-transform:uppercase;font-family:Arial,sans-serif">Kenya's Payroll Toolkit</div><div style="font-size:22px;font-weight:800;color:#111827;margin-top:8px;font-family:Arial,sans-serif;line-height:1.4">Accurate payslips, PAYE &amp; payroll — without the spreadsheet headache</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 24px">Hi {{name}},</p>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 26px">Whether you run payroll for a team or just need your own accurate payslip, <strong>Salary Calculator Kenya</strong> handles the FY 2025/2026 numbers correctly — PAYE, NSSF, SHIF and Housing Levy — every time.</p>\n\n<table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 26px"><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">🧮</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Accurate net-pay calculations</div><div style="font-size:13px;color:#667085;margin-top:2px">Current PAYE bands, NSSF, SHIF 2.75% &amp; Housing Levy 1.5% built in</div></td></tr></table></td></tr><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">📄</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Payslips &amp; P9A tax cards</div><div style="font-size:13px;color:#667085;margin-top:2px">Generate clean, downloadable documents in seconds</div></td></tr></table></td></tr><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">👥</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Built for teams too</div><div style="font-size:13px;color:#667085;margin-top:2px">Manage multiple employees, run bulk payslips, export payroll reports</div></td></tr></table></td></tr><tr><td style="padding:10px 0"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">💰</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Simple pricing</div><div style="font-size:13px;color:#667085;margin-top:2px">Free to start. Premium unlocks unlimited downloads from KES 99/month</div></td></tr></table></td></tr></table>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/calculator.html" style="display:inline-block;padding:16px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Try It Free →</a></td></tr></table>\n\n<p style="margin-top:30px;font-size:14px;color:#667085;line-height:1.7">No signup required to calculate — create an account only when you're ready to save payslips or add employees.</p>\n\n<p style="margin-top:22px;font-size:15px;color:#111827;line-height:1.7">Regards,<br><strong>Moses Mwombe</strong><br>Founder — Salary Calculator Kenya</p>`},custom:{label:'✏️ Custom Broadcast',desc:'Compose from scratch',tag:'BROADCAST',subject:'',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<p style="margin:0 0 16px">Write your message here...</p>\n\n<p style="margin-top:32px;color:#1a2540">Best regards,<br><strong>The SC Team</strong></p>`},b2b_institutional:{label:'🏢 Institutional Outreach',desc:'B2B — schools, companies, cold prospect lists',tag:'B2B · COLD OUTREACH',subject:'Simplify payroll &amp; PAYE compliance for your organisation',body:`<div style="text-align:center;margin:0 0 24px"><div style="font-size:13px;font-weight:700;letter-spacing:0.06em;color:#1a6b3c;text-transform:uppercase;font-family:Arial,sans-serif">For Employers &amp; Institutions</div><div style="font-size:22px;font-weight:800;color:#111827;margin-top:8px;font-family:Arial,sans-serif;line-height:1.4">Accurate payroll for your whole team, without the spreadsheet</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 20px">Dear Team,</p>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 26px">If your organisation processes payroll for staff, <strong>Salary Calculator Kenya</strong> can help you generate accurate payslips, PAYE, NSSF, SHIF and Housing Levy calculations for every employee — without maintaining a spreadsheet by hand.</p>\n\n<table cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 26px"><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">👥</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Manage multiple employees</div><div style="font-size:13px;color:#667085;margin-top:2px">Add your staff once, run payroll for everyone in a few clicks</div></td></tr></table></td></tr><tr><td style="padding:10px 0;border-bottom:1px solid #eef2f6"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">📄</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Bulk payslips &amp; P9A forms</div><div style="font-size:13px;color:#667085;margin-top:2px">Generate and download documents for your whole team at once</div></td></tr></table></td></tr><tr><td style="padding:10px 0"><table cellpadding="0" cellspacing="0"><tr><td style="width:34px;vertical-align:top;font-size:18px">✅</td><td style="font-family:Arial,sans-serif"><div style="font-size:14px;font-weight:700;color:#111827">Always current with FY 2025/2026 rates</div><div style="font-size:13px;color:#667085;margin-top:2px">PAYE bands, NSSF Tier I/II, SHIF and Housing Levy built in and kept up to date</div></td></tr></table></td></tr></table>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/employees.html" style="display:inline-block;padding:16px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">See Payroll Tools →</a></td></tr></table>\n\n<p style="margin-top:30px;font-size:14px;color:#667085;line-height:1.7">Questions about how this fits your organisation? <a href="https://salarycalculator.co.ke/contact-us.html" style="color:#1a6b3c;font-weight:600">Message us here</a> and we'll be glad to help.</p>\n\n<p style="margin-top:22px;font-size:15px;color:#111827;line-height:1.7">Regards,<br><strong>Moses Mwombe</strong><br>Founder — Salary Calculator Kenya</p>`},no_intrusive_ads:{label:'🚫 No More Intrusive Ads',desc:'Announcement + donation ask',tag:'ANNOUNCEMENT',subject:'We heard you — no more intrusive ads on Salary Calculator',body:`<p style="font-size:17px;margin:0 0 20px">Hello {{name}},</p>\n\n<div style="background:#f0fdf4;border:2px solid #16a34a;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center"><div style="font-size:28px;margin-bottom:6px">🚫</div><div style="font-size:18px;font-weight:700;color:#166534;font-family:Arial,sans-serif">No More Intrusive Ads</div></div>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 20px">We heard you — the intrusive ads are gone for good.</p>\n\n<p style="font-size:15px;line-height:1.8;color:#344054;margin:0 0 26px">You're now free to explore the many features Salary Calculator provides, without pop-ups, pop-unders, or disruptive ad networks getting in your way. You may still see the occasional, clean ad from Google — these help keep the platform running, and are never the disruptive kind.</p>\n\n<div style="background:#f8fafc;border-left:4px solid #1a6b3c;border-radius:0 8px 8px 0;padding:18px 20px;margin-bottom:26px"><p style="margin:0;font-size:14px;line-height:1.8;color:#344054">To help us go fully ad-free for everyone, we encourage kind donations. Premium members and supporters enjoy a completely ad-free, distraction-free experience — no exceptions.</p></div>\n\n<table cellpadding="0" cellspacing="0" style="margin:0 auto 10px"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#1a6b3c,#0f5132)"><a href="https://salarycalculator.co.ke/donate.html" style="display:inline-block;padding:15px 34px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;font-family:Arial,sans-serif;border-radius:12px">Support Salary Calculator →</a></td></tr></table>\n\n<p style="margin-top:32px;font-size:14px;color:#667085;line-height:1.7">Thank you for being part of this community.</p>\n\n<p style="margin-top:20px;font-size:15px;color:#111827">Asante sana,<br><strong>Moses &amp; The SC Team</strong></p>`}};
     let activeTemplate='welcome';
 
     function renderTemplateList(){const el=document.getElementById('template-list');if(!el)return;el.innerHTML=Object.entries(TEMPLATES).map(([key,t])=>`<div onclick="loadTemplate('${key}')" id="tpl-btn-${key}" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s"><div style="font-size:13px;font-weight:600;color:var(--text)">${t.label}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${t.desc}</div><div style="display:inline-block;margin-top:5px;font:700 9px var(--mono);padding:2px 7px;border-radius:14px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)">${t.tag}</div></div>`).join('');}
     function loadTemplate(key){activeTemplate=key;const t=TEMPLATES[key];if(!t)return;document.querySelectorAll('#template-list > div').forEach((d)=>{d.style.borderColor='var(--border)';d.style.background='var(--card)';});const btn=document.getElementById(`tpl-btn-${key}`);if(btn){btn.style.borderColor='var(--accent)';btn.style.background='rgba(0,212,170,.07)';}document.getElementById('email-subject').value=t.subject;document.getElementById('email-body').value=t.body;document.getElementById('email-preview-box').style.display='none';updateRecipientCountLabel();}
     function insertToken(token){const ta=document.getElementById('email-body');if(!ta)return;const s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;ta.value=v.slice(0,s)+token+v.slice(e);ta.selectionStart=ta.selectionEnd=s+token.length;ta.focus();}
-    function onTargetChange(){const t=document.getElementById('email-target').value;document.getElementById('single-email-wrap').style.display=t==='single'?'block':'none';document.getElementById('bulk-email-wrap').style.display=t==='bulk'?'block':'none';updateRecipientCountLabel();}
+    function onTargetChange(){const t=document.getElementById('email-target').value;document.getElementById('single-email-wrap').style.display=t==='single'?'block':'none';document.getElementById('bulk-email-wrap').style.display=t==='bulk'?'block':'none';document.getElementById('prospects-wrap').style.display=t==='prospects'?'block':'none';document.getElementById('standard-send-row').style.display=t==='prospects'?'none':'flex';if(t==='prospects')loadProspectListsIntoPicker();updateRecipientCountLabel();}
     const EMAIL_EXTRACT_RE=/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
     function extractEmails(raw){const matches=String(raw||'').match(EMAIL_EXTRACT_RE)||[];const seen={};const out=[];matches.forEach((m)=>{const e=m.toLowerCase();if(!seen[e]){seen[e]=true;out.push(e);}});return out;}
     function updateRecipientCountLabel(){const target=document.getElementById('email-target')?.value;const a=state.analytics;let count='—';if(target==='bulk'){const valid=extractEmails(document.getElementById('bulk-email-input')?.value);count=valid.length;const status=document.getElementById('bulk-email-status');if(status){if(valid.length>250){status.style.color='var(--red,#dc2626)';status.textContent=`${valid.length} valid addresses found — over the 250 limit, only the first 250 will be sent to.`;}else{status.style.color='var(--text3)';status.textContent=`${valid.length} valid address${valid.length===1?'':'es'} found`;}}}else if(a){if(target==='all')count=Number(a.total_users||0);if(target==='premium')count=Number(a.premium_users||0);if(target==='free')count=Number(a.free_users||0);if(target==='single')count=1;}setText('recipient-count-label',`to ${count} recipient${count===1?'':'s'}`);}
     function previewEmail(){const subject=document.getElementById('email-subject').value,body=document.getElementById('email-body').value,sample=state.filteredUsers[0]||state.users[0];if(!sample){showToast('No real users available for preview yet.','error');return;}const name=getUserName(sample),email=sample.email||'—',plan=isPremiumActive(sample)?'Premium':isPremiumExpired(sample)?'Expired':'Free',expiry=sample.premium_expires_at?new Date(sample.premium_expires_at).toLocaleDateString('en-KE',{year:'numeric',month:'long',day:'numeric'}):'Not set';const pSubj=subject.replace(/\{\{name\}\}/g,name).replace(/\{\{email\}\}/g,email).replace(/\{\{plan\}\}/g,plan).replace(/\{\{expires\}\}/g,expiry).replace(/\{\{upgrade_link\}\}/g,'https://salarycalculator.co.ke/#pricing');const pBody=body.replace(/\{\{name\}\}/g,name).replace(/\{\{email\}\}/g,email).replace(/\{\{plan\}\}/g,plan).replace(/\{\{expires\}\}/g,expiry).replace(/\{\{upgrade_link\}\}/g,'https://salarycalculator.co.ke/#pricing').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();setText('preview-subject',pSubj||'(no subject)');setText('preview-body',pBody.slice(0,400)+(pBody.length>400?'...':''));document.getElementById('email-preview-box').style.display='block';}
+
+    // ── Prospect Lists & Campaign-Tracked Batch Sending ─────────────────────
+    // Ported from afams-web's Email Center. A "campaign" identifies exact
+    // email content (subject+body); re-running a dry run / send always
+    // recomputes against whatever is CURRENTLY in the composer, so any edit
+    // to the list, batch size, subject, or body invalidates a previous dry
+    // run and requires re-checking before Send unlocks again -- prevents
+    // sending against stale counts.
+    function onCampaignInputsChanged(){state.dryRunValid=false;const btn=document.getElementById('send-campaign-btn');if(btn)btn.disabled=true;const status=document.getElementById('campaign-dry-run-status');if(status&&document.getElementById('email-target').value==='prospects')status.innerHTML='<span style="color:var(--text3)">Run a dry check before sending — shows exactly how many will receive this batch.</span>';}
+
+    async function loadProspectListsIntoPicker(){
+      const picker=document.getElementById('prospect-list-picker');
+      if(!picker)return;
+      picker.innerHTML='<option value="">Loading lists…</option>';
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'list_lists'});
+      if(result.error){picker.innerHTML='<option value="">Error loading lists</option>';return showToast('Could not load prospect lists: '+result.error,'error');}
+      state.prospectLists=result.lists||[];
+      if(!state.prospectLists.length){picker.innerHTML='<option value="">No lists yet — click Manage Lists to create one</option>';return;}
+      picker.innerHTML=state.prospectLists.map((l)=>`<option value="${l.id}">${esc(l.name)} (${l.email_count})</option>`).join('');
+      onCampaignInputsChanged();
+    }
+
+    async function openManageProspectsModal(){
+      openModal('prospects-modal');
+      closeEmailsPanel();
+      await refreshProspectsListContainer();
+    }
+
+    async function refreshProspectsListContainer(){
+      const container=document.getElementById('prospects-list-container');
+      container.innerHTML='<div style="font-size:12px;color:var(--text3)">Loading…</div>';
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'list_lists'});
+      if(result.error){container.innerHTML='';return showToast('Could not load lists: '+result.error,'error');}
+      state.prospectLists=result.lists||[];
+      if(!state.prospectLists.length){
+        container.innerHTML='<div style="font-size:13px;color:var(--text3);padding:14px 0;text-align:center">No prospect lists yet. Create one above.</div>';
+        return;
+      }
+      container.innerHTML=state.prospectLists.map((l)=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(l.name)}</div>
+            <div style="font-size:11px;color:var(--text3)">${l.email_count} email${l.email_count===1?'':'s'}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn" style="padding:4px 10px;font-size:12px" onclick="openEmailsPanel('${l.id}','${jsAttrSafe(l.name)}')">View / Add</button>
+            <button class="btn" style="padding:4px 10px;font-size:12px" onclick="renameProspectListPrompt('${l.id}','${jsAttrSafe(l.name)}')">Rename</button>
+            <button class="btn danger" style="padding:4px 10px;font-size:12px" onclick="deleteProspectListConfirm('${l.id}','${jsAttrSafe(l.name)}')">Delete</button>
+          </div>
+        </div>`).join('');
+    }
+
+    async function createProspectList(){
+      const input=document.getElementById('new-list-name');
+      const name=input.value.trim();
+      if(!name)return showToast('Enter a list name','error');
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'create_list',name});
+      if(result.error)return showToast('Could not create list: '+result.error,'error');
+      input.value='';
+      showToast(`List "${name}" created`);
+      await refreshProspectsListContainer();
+      if(document.getElementById('email-target').value==='prospects')await loadProspectListsIntoPicker();
+    }
+
+    async function renameProspectListPrompt(listId,currentName){
+      const name=prompt('Rename list:',currentName);
+      if(!name||!name.trim()||name.trim()===currentName)return;
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'rename_list',list_id:listId,name:name.trim()});
+      if(result.error)return showToast('Rename failed: '+result.error,'error');
+      showToast('List renamed');
+      await refreshProspectsListContainer();
+      if(document.getElementById('email-target').value==='prospects')await loadProspectListsIntoPicker();
+    }
+
+    async function deleteProspectListConfirm(listId,name){
+      if(!confirm(`Delete the list "${name}" and all its saved emails? This cannot be undone.`))return;
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'delete_list',list_id:listId});
+      if(result.error)return showToast('Delete failed: '+result.error,'error');
+      showToast('List deleted');
+      if(state.currentEmailsPanelListId===listId)closeEmailsPanel();
+      await refreshProspectsListContainer();
+      if(document.getElementById('email-target').value==='prospects')await loadProspectListsIntoPicker();
+    }
+
+    async function openEmailsPanel(listId,listName){
+      state.currentEmailsPanelListId=listId;
+      document.getElementById('prospect-emails-panel').style.display='block';
+      setText('emails-panel-list-name',listName);
+      document.getElementById('add-emails-textarea').value='';
+      await loadEmailsForCurrentList();
+    }
+
+    function closeEmailsPanel(){
+      state.currentEmailsPanelListId=null;
+      const panel=document.getElementById('prospect-emails-panel');
+      if(panel)panel.style.display='none';
+    }
+
+    async function loadEmailsForCurrentList(){
+      const listId=state.currentEmailsPanelListId;
+      if(!listId)return;
+      const container=document.getElementById('emails-list-container');
+      container.innerHTML='<div style="font-size:12px;color:var(--text3)">Loading…</div>';
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'list_emails',list_id:listId});
+      if(result.error){container.innerHTML='';return showToast('Could not load emails: '+result.error,'error');}
+      const emails=result.emails||[];
+      if(!emails.length){container.innerHTML='<div style="font-size:12px;color:var(--text3);padding:10px 0">No emails in this list yet.</div>';return;}
+      container.innerHTML=emails.map((e)=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="font-family:var(--mono);color:var(--text2)">${esc(e.email)}</span>
+          <button onclick="deleteEmailFromCurrentList('${jsAttrSafe(e.email)}')" style="background:none;border:none;color:var(--red,#dc2626);cursor:pointer;font-size:15px;padding:0 4px" title="Remove">×</button>
+        </div>`).join('');
+    }
+
+    async function addEmailsToCurrentList(){
+      const listId=state.currentEmailsPanelListId;
+      if(!listId)return;
+      const textarea=document.getElementById('add-emails-textarea');
+      const raw=textarea.value;
+      if(!extractEmails(raw).length)return showToast('No valid email addresses found in the pasted text','error');
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'add',list_id:listId,raw});
+      if(result.error)return showToast('Could not add emails: '+result.error,'error');
+      textarea.value='';
+      showToast(`Added ${result.added_count} address${result.added_count===1?'':'es'} (list now has ${result.email_count})`);
+      await loadEmailsForCurrentList();
+      await refreshProspectsListContainer();
+      if(document.getElementById('email-target').value==='prospects')await loadProspectListsIntoPicker();
+    }
+
+    async function deleteEmailFromCurrentList(email){
+      const listId=state.currentEmailsPanelListId;
+      if(!listId)return;
+      if(!confirm(`Remove ${email} from this list?`))return;
+      const result=await callAdminApi(MANAGE_PROSPECTS_FN,{action:'delete_email',list_id:listId,email});
+      if(result.error)return showToast('Could not remove email: '+result.error,'error');
+      await loadEmailsForCurrentList();
+      await refreshProspectsListContainer();
+      if(document.getElementById('email-target').value==='prospects')await loadProspectListsIntoPicker();
+    }
+
+    function getCampaignInputs(){
+      const listId=document.getElementById('prospect-list-picker')?.value;
+      const subject=document.getElementById('email-subject').value.trim();
+      const body=document.getElementById('email-body').value.trim();
+      const batchSize=Number(document.getElementById('campaign-batch-size').value)||250;
+      return{listId,subject,body,batchSize};
+    }
+
+    async function runCampaignDryRun(){
+      const{listId,subject,body,batchSize}=getCampaignInputs();
+      if(!listId)return showToast('Select a prospect list first','error');
+      if(!subject)return showToast('Subject is required','error');
+      if(!body)return showToast('Message body is required','error');
+      const statusEl=document.getElementById('campaign-dry-run-status');
+      statusEl.innerHTML='<span style="color:var(--text3)">Checking…</span>';
+      const result=await callAdminApi(SEND_CAMPAIGN_FN,{list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:true});
+      if(result.error){statusEl.innerHTML=`<span style="color:var(--red,#dc2626)">${esc(result.error)}</span>`;return showToast('Dry run failed: '+result.error,'error');}
+      state.dryRunValid=true;
+      const sendBtn=document.getElementById('send-campaign-btn');
+      if(sendBtn)sendBtn.disabled=result.will_send<=0;
+      statusEl.innerHTML=`
+        <div><strong>${result.list_total}</strong> total in list · <strong>${result.already_sent}</strong> already received this exact content · <strong>${result.remaining}</strong> remaining</div>
+        <div style="margin-top:4px;color:var(--accent);font-weight:700">${result.will_send>0?`This batch will send to ${result.will_send} recipient${result.will_send===1?'':'s'}.`:'Everyone in this list has already received this exact campaign — nothing to send. Edit the subject or body to start a fresh campaign.'}</div>`;
+    }
+
+    async function sendCampaignBatch(){
+      if(!state.dryRunValid)return showToast('Run a dry check first','error');
+      const{listId,subject,body,batchSize}=getCampaignInputs();
+      if(!listId)return showToast('Select a prospect list first','error');
+      const listName=state.prospectLists.find((l)=>l.id===listId)?.name||'this list';
+      if(!confirm(`Send this batch to up to ${batchSize} recipients in "${listName}"? This cannot be undone.`))return;
+      setBtnLoading('send-campaign-btn',true,'⏳ Sending…');
+      const result=await callAdminApi(SEND_CAMPAIGN_FN,{list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:false});
+      setBtnLoading('send-campaign-btn',false);
+      if(result.error)return showToast('Send error: '+result.error,'error');
+      showToast(`✉️ Sent to ${result.sent} recipient${result.sent===1?'':'s'}${result.failed?` · ${result.failed} failed`:''} · ${result.remaining_after} remaining in this campaign`);
+      addSendLogEntry({subject,sent:Number(result.sent||0),target:'prospects',template:activeTemplate});
+      // Force a fresh dry run before another batch can be sent, so the
+      // admin always sees current numbers rather than trusting a stale count.
+      state.dryRunValid=false;
+      document.getElementById('send-campaign-btn').disabled=true;
+      await runCampaignDryRun();
+    }
+
     async function sendEmail(){const target=document.getElementById('email-target').value,subject=document.getElementById('email-subject').value.trim(),body=document.getElementById('email-body').value.trim();if(!subject)return showToast('Subject is required','error');if(!body)return showToast('Message body is required','error');if(target==='single'&&!document.getElementById('single-email-input').value.trim())return showToast('Enter the user email','error');const bulkEmails=target==='bulk'?extractEmails(document.getElementById('bulk-email-input').value).slice(0,250):null;if(target==='bulk'&&(!bulkEmails||bulkEmails.length===0))return showToast('Paste at least one valid email address','error');const recipientLabel=document.getElementById('recipient-count-label').textContent;if(!confirm(`Send this email ${recipientLabel}? This cannot be undone.`))return;setBtnLoading('send-email-btn',true,'⏳ Sending...');const result=await callSendEmailFn({template_key:activeTemplate,subject,html_body:body,target,single_email:target==='single'?document.getElementById('single-email-input').value.trim():null,bulk_emails:bulkEmails});setBtnLoading('send-email-btn',false);if(result.error)return showToast('Send error: '+result.error,'error');showToast(`✉️ Sent to ${Number(result.sent||0)} recipient${Number(result.sent||0)===1?'':'s'}${result.failed?` · ${result.failed} failed`:''}`);addSendLogEntry({subject,sent:Number(result.sent||0),target,template:activeTemplate});}
-    function addSendLogEntry({subject,sent,target}){const log=document.getElementById('send-log');if(!log)return;if(log.querySelector('[style*="color:var(--text3)"]'))log.innerHTML='';const icons={all:'📋',premium:'⭐',free:'🆓',single:'👤'},entry=document.createElement('div');entry.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px';entry.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--text)">${icons[target]||'✉️'} ${esc(subject.slice(0,40))}${subject.length>40?'…':''}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font:11px var(--mono);color:var(--text3)">${new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'})}</span><span style="font:700 11px var(--mono);color:var(--accent)">${sent} sent</span></div>`;log.insertBefore(entry,log.firstChild);}
+    function addSendLogEntry({subject,sent,target}){const log=document.getElementById('send-log');if(!log)return;if(log.querySelector('[style*="color:var(--text3)"]'))log.innerHTML='';const icons={all:'📋',premium:'⭐',free:'🆓',single:'👤',bulk:'📝',prospects:'🗂️'},entry=document.createElement('div');entry.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px';entry.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--text)">${icons[target]||'✉️'} ${esc(subject.slice(0,40))}${subject.length>40?'…':''}</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font:11px var(--mono);color:var(--text3)">${new Date().toLocaleTimeString('en-KE',{hour:'2-digit',minute:'2-digit'})}</span><span style="font:700 11px var(--mono);color:var(--accent)">${sent} sent</span></div>`;log.insertBefore(entry,log.firstChild);}
     function initEmailCenter(){if(emailCenterReady)return;emailCenterReady=true;renderTemplateList();loadTemplate('welcome');updateRecipientCountLabel();}
 
 
@@ -812,6 +1060,16 @@
     function formatDay(d){if(!d)return'—';const x=new Date(d);return Number.isNaN(x.getTime())?String(d):x.toLocaleDateString('en-KE',{month:'short',day:'numeric'});}
     function relTime(iso){if(!iso)return'—';const mins=Math.floor((Date.now()-new Date(iso).getTime())/60000);if(mins<1)return'just now';if(mins<60)return`${mins}m ago`;const hrs=Math.floor(mins/60);if(hrs<24)return`${hrs}h ago`;return`${Math.floor(hrs/24)}d ago`;}
     function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+    // For embedding a string inside a single-quoted JS argument that itself
+    // sits inside a double-quoted HTML attribute (e.g. onclick="fn('${x}')").
+    // esc() alone is NOT safe here: browsers HTML-entity-decode attribute
+    // values BEFORE handing them to the JS engine, so esc()'s &#39; becomes
+    // a literal ' again right before JS parses it -- breaking (or worse,
+    // injecting into) any name containing an apostrophe. This escapes the
+    // JS string boundary with a real backslash first (untouched by HTML
+    // entity decoding), then HTML-escapes only what the attribute boundary
+    // itself needs.
+    function jsAttrSafe(s){return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;');}
 
     // ── Global listeners ──────────────────────────────────────────────────
     document.addEventListener('click',(e)=>{if(e.target.classList?.contains('modal-overlay'))e.target.classList.remove('show');});

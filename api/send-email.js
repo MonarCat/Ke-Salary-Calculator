@@ -118,6 +118,11 @@ async function sendViaBrevo({ to, toName, subject, htmlContent }) {
     to:      [{ email: to, name: toName || to }],
     subject,
     htmlContent,
+    // Reply-to is the real, monitored admin inbox, not FROM_EMAIL
+    // (info@salarycalculator.co.ke) -- a custom-domain monitored inbox
+    // isn't paid for yet, and every template already points readers to
+    // the Contact Us / Message Us form as the primary channel.
+    replyTo: { email: 'adminkesalo@gmail.com' },
     headers: {
       'List-Unsubscribe': '<https://salarycalculator.co.ke/account.html?unsubscribe=1>',
       'X-Mailer':         'SC Admin Dashboard',
