@@ -61,6 +61,8 @@ function wrapInEmailShell(bodyHtml, { heading = 'Salary Calculator', subheading 
 </body></html>`;
 }
 
+const ADMIN_INBOX = 'adminkesalo@gmail.com'; // real, monitored -- see feedback-form.js
+
 async function sendViaBrevo({ to, toName, subject, htmlContent, replyTo }) {
   if (!BREVO_KEY) throw new Error('BREVO_API_KEY is not configured');
   const body = {
@@ -68,8 +70,13 @@ async function sendViaBrevo({ to, toName, subject, htmlContent, replyTo }) {
     to:      [{ email: to, name: toName || to }],
     subject,
     htmlContent,
+    // Default reply-to is the real monitored admin inbox rather than
+    // FROM_EMAIL (info@salarycalculator.co.ke), which isn't read -- a
+    // custom-domain monitored inbox isn't paid for yet. Callers can still
+    // override this (e.g. feedback-form.js sets it to the submitter's own
+    // email so a reply reaches them directly, not the admin).
+    replyTo: { email: replyTo || ADMIN_INBOX },
   };
-  if (replyTo) body.replyTo = { email: replyTo };
 
   const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
     method:  'POST',
@@ -89,4 +96,4 @@ function getName(user) {
   return String(user?.full_name || user?.name || prefix).trim();
 }
 
-export { wrapInEmailShell, sendViaBrevo, getName, FROM_EMAIL };
+export { wrapInEmailShell, sendViaBrevo, getName, FROM_EMAIL, ADMIN_INBOX };
