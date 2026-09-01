@@ -1,10 +1,17 @@
 /**
- * /api/manage-prospects.js
+ * /api/prospects.js
  *
- * Admin-only CRUD for prospect lists, ported from afams-web's Email Center.
- * Mirrors api/send-email.js's exact auth pattern (Bearer session token ->
- * ADMIN_EMAILS check) so it's consistent with the rest of the admin API
- * surface, rather than introducing a second auth convention.
+ * Merged from api/manage-prospects.js + api/send-campaign.js. Vercel's
+ * Hobby plan caps a deployment at 12 serverless functions; adding both
+ * files separately pushed this project to 13 and broke every deployment
+ * (build failed outright, so NOTHING from that push went live, not just
+ * this feature). Consolidating two closely-related files -- prospect
+ * list CRUD and campaign-tracked sending to those same lists -- into one
+ * router-style file with an `action` dispatch is the natural fix: same
+ * feature area, same auth check, no reason they needed separate routes.
+ *
+ * All original behavior is preserved exactly; only the entry point and
+ * the (now-shared, previously duplicated) auth check changed.
  *
  * Actions (POST body: { action, ...params }):
  *   list_lists              -> [{ id, name, created_at, email_count }]
@@ -14,12 +21,41 @@
  *   add           { list_id, raw }         -- raw = pasted blob, smart-extracted
  *   list_emails   { list_id }              -> [{ id, email, created_at }]
  *   delete_email  { list_id, email }
+ *   send_campaign { list_id, subject, html_body, batch_size, dry_run }
+ *                 -- see the original send-campaign.js header comment
+ *                    (reproduced below) for the full campaign-tracking
+ *                    explanation
+ *
+ * ── Campaign tracking (formerly send-campaign.js) ───────────────────────
+ * A "campaign" is identified by campaign_key = sha256(subject + '\0' +
+ * html_body). Sending the SAME content to the same list again -- later
+ * today, tomorrow, next week -- continues that campaign: only prospects
+ * who haven't received this exact content yet are eligible, up to
+ * batch_size. Editing the subject or body produces a different
+ * campaign_key, so it's correctly treated as a new campaign against the
+ * whole list. Only successfully-delivered sends are recorded in
+ * prospect_sends -- anything Brevo rejects in a batch stays eligible for
+ * the very next attempt automatically.
+ *
+ * IMPORTANT LIMITATION: sends happen sequentially within a single
+ * serverless invocation, which has a hard execution timeout (see
+ * vercel.json's maxDuration for this file). A very large batch_size
+ * (approaching the 300 cap) could theoretically exceed that timeout
+ * before finishing. This is safe (only successfully-recorded sends are
+ * counted; interrupted work just retries on the next call), but the
+ * response would never arrive, showing as a timeout error in the admin
+ * UI rather than a clean "X sent" result. If this happens in practice,
+ * use a smaller batch_size (e.g. 100) and click Send Batch multiple
+ * times -- campaign tracking makes this exactly as safe as one large
+ * batch, just more clicks.
  *
  * Required Vercel env vars (all already exist for send-email.js):
- *   SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, ADMIN_EMAILS
+ *   SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, ADMIN_EMAILS,
+ *   BREVO_API_KEY, BREVO_SENDER_EMAIL, BREVO_SENDER_NAME
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { wrapInEmailShell, sendViaBrevo, getName } from './_lib/mailer.js';
 
 const ALLOWED_ORIGINS = new Set([
   'https://salarycalculator.co.ke',
@@ -40,10 +76,13 @@ const ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com')
   .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 
+const MAX_BATCH_SIZE = 300;
+const DEFAULT_BATCH_SIZE = 250;
+const SEND_DELAY_MS = 100;
+
 // Same tolerant email-shape extraction used in admin.html's "Paste Email
 // List" bulk-send box -- pulls every email-shaped substring out of any
-// pasted blob (a directory page, a messy paragraph, whatever), not just a
-// clean comma/newline list.
+// pasted blob, not just a clean comma/newline list.
 const EMAIL_EXTRACT_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 function extractEmails(raw) {
   const matches = String(raw || '').match(EMAIL_EXTRACT_RE) || [];
@@ -56,11 +95,21 @@ function extractEmails(raw) {
   return out;
 }
 
+async function campaignKey(subject, htmlBody) {
+  const data = new TextEncoder().encode(String(subject) + '\u0000' + String(htmlBody));
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default async function handler(req, res) {
   try {
     return await run(req, res);
   } catch (fatalErr) {
-    console.error('[manage-prospects] Unhandled error:', fatalErr);
+    console.error('[prospects] Unhandled error:', fatalErr);
     if (!res.headersSent) {
       setCors(req, res);
       return res.status(500).json({ error: 'Unexpected server error: ' + (fatalErr?.message || String(fatalErr)) });
@@ -88,7 +137,7 @@ async function run(req, res) {
     if (error || !data?.user) return res.status(401).json({ error: 'Invalid or expired session' });
     caller = data.user;
   } catch (authErr) {
-    console.error('[manage-prospects] getUser threw:', authErr);
+    console.error('[prospects] getUser threw:', authErr);
     return res.status(401).json({ error: 'Authentication check failed' });
   }
   if (!ADMIN_EMAILS.includes(caller.email?.toLowerCase())) {
@@ -106,6 +155,7 @@ async function run(req, res) {
     case 'add':              return await addEmails(admin, res, req.body);
     case 'list_emails':     return await listEmails(admin, res, req.body);
     case 'delete_email':    return await deleteEmail(admin, res, req.body);
+    case 'send_campaign':   return await sendCampaign(admin, res, req.body);
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
   }
@@ -118,8 +168,6 @@ async function listLists(admin, res) {
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
-  // Attach a count per list. Small admin-only table set, so N+1 here is fine
-  // (not a hot path, not user-facing).
   const withCounts = await Promise.all((lists || []).map(async (list) => {
     const { count } = await admin
       .from('prospects')
@@ -161,7 +209,6 @@ async function deleteList(admin, res, body) {
   const listId = body?.list_id;
   if (!listId) return res.status(400).json({ error: 'list_id is required' });
 
-  // ON DELETE CASCADE on both prospects and prospect_sends handles cleanup.
   const { error } = await admin.from('prospect_lists').delete().eq('id', listId);
   if (error) return res.status(500).json({ error: error.message });
 
@@ -172,17 +219,12 @@ async function addEmails(admin, res, body) {
   const listId = body?.list_id;
   if (!listId) return res.status(400).json({ error: 'list_id is required' });
 
-  const emails = extractEmails(body?.raw).slice(0, 2000); // generous cap for a paste, not a per-send cap
+  const emails = extractEmails(body?.raw).slice(0, 2000);
   if (!emails.length) {
     return res.status(400).json({ error: 'No valid email addresses found in the pasted text' });
   }
 
   const rows = emails.map((email) => ({ list_id: listId, email }));
-  // ignoreDuplicates (ON CONFLICT DO NOTHING) rather than a merge/update --
-  // there's nothing to update on a re-paste of the same address, just dedupe
-  // against the unique(list_id, email) constraint. (Using the service role
-  // key here bypasses RLS entirely regardless of which upsert variant is
-  // used, unlike the anon-role newsletter_subscribers case.)
   const { error } = await admin
     .from('prospects')
     .upsert(rows, { onConflict: 'list_id,email', ignoreDuplicates: true });
@@ -219,4 +261,103 @@ async function deleteEmail(admin, res, body) {
   if (error) return res.status(500).json({ error: error.message });
 
   return res.json({ success: true });
+}
+
+async function sendCampaign(admin, res, body) {
+  const { list_id, subject, html_body, batch_size, dry_run } = body || {};
+  if (!list_id) return res.status(400).json({ error: 'list_id is required' });
+  if (!subject?.trim() || !html_body?.trim()) {
+    return res.status(400).json({ error: 'subject and html_body are required' });
+  }
+
+  const key = await campaignKey(subject, html_body);
+
+  const { data: allProspects, error: prospectsErr } = await admin
+    .from('prospects')
+    .select('email')
+    .eq('list_id', list_id);
+  if (prospectsErr) return res.status(500).json({ error: prospectsErr.message });
+
+  const { data: sentRows, error: sentErr } = await admin
+    .from('prospect_sends')
+    .select('email')
+    .eq('list_id', list_id)
+    .eq('campaign_key', key);
+  if (sentErr) return res.status(500).json({ error: sentErr.message });
+
+  const alreadySent = new Set((sentRows || []).map((r) => r.email.toLowerCase()));
+  const remaining = (allProspects || [])
+    .map((p) => p.email.toLowerCase())
+    .filter((email) => !alreadySent.has(email));
+
+  const listTotal = (allProspects || []).length;
+
+  if (dry_run) {
+    return res.json({
+      success: true,
+      dry_run: true,
+      campaign_key: key,
+      list_total: listTotal,
+      already_sent: alreadySent.size,
+      remaining: remaining.length,
+      will_send: Math.min(batch_size || DEFAULT_BATCH_SIZE, remaining.length),
+    });
+  }
+
+  if (!remaining.length) {
+    return res.json({
+      success: true,
+      sent: 0,
+      failed: 0,
+      remaining_after: 0,
+      message: 'Everyone in this list has already received this exact campaign.',
+    });
+  }
+
+  const effectiveBatchSize = Math.min(Number(batch_size) || DEFAULT_BATCH_SIZE, MAX_BATCH_SIZE);
+  const targets = remaining.slice(0, effectiveBatchSize);
+
+  const wrappedHtml = wrapInEmailShell(html_body, { heading: 'Salary Calculator' });
+
+  let sentCount = 0;
+  let failedCount = 0;
+
+  for (const email of targets) {
+    try {
+      const name = getName({ email });
+      const personalizedHtml = wrappedHtml
+        .replace(/\{\{\s*name\s*\}\}/gi, name)
+        .replace(/\{\{\s*email\s*\}\}/gi, email);
+      const personalizedSubject = subject
+        .replace(/\{\{\s*name\s*\}\}/gi, name)
+        .replace(/\{\{\s*email\s*\}\}/gi, email);
+
+      await sendViaBrevo({
+        to: email,
+        toName: name,
+        subject: personalizedSubject,
+        htmlContent: personalizedHtml,
+      });
+
+      const { error: recordErr } = await admin
+        .from('prospect_sends')
+        .insert({ list_id, email, campaign_key: key });
+      if (recordErr && recordErr.code !== '23505') {
+        console.error('[prospects] record insert failed for', email, recordErr.message);
+      }
+
+      sentCount++;
+    } catch (sendErr) {
+      console.error('[prospects] send failed for', email, sendErr.message);
+      failedCount++;
+    }
+    await sleep(SEND_DELAY_MS);
+  }
+
+  return res.json({
+    success: true,
+    sent: sentCount,
+    failed: failedCount,
+    remaining_after: remaining.length - sentCount,
+  });
 }

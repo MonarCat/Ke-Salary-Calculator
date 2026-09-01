@@ -2,7 +2,7 @@
  * api/_lib/mailer.js
  *
  * Shared Brevo sender + branded HTML email shell, used by:
- *   - api/email-automation-cron.js  (lifecycle emails)
+ *   - api/daily-cron.js  (lifecycle emails + referral qualification)
  *   - api/feedback-form.js          (contact form notifications)
  *
  * Deliberately NOT imported by api/send-email.js -- that file works today

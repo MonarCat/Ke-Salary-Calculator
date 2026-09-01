@@ -419,8 +419,8 @@
       ANON_KEY:document.querySelector('meta[name="supabase-anon-key"]')?.content?.trim()||'',
       ADMIN_FN:'/api/admin-ops',
       SEND_EMAIL_FN:'/api/send-email',
-      MANAGE_PROSPECTS_FN:'/api/manage-prospects',
-      SEND_CAMPAIGN_FN:'/api/send-campaign',
+      MANAGE_PROSPECTS_FN:'/api/prospects',
+      SEND_CAMPAIGN_FN:'/api/prospects',
       MONTHLY:99,
       YEARLY:999,
     });
@@ -559,7 +559,7 @@
       return data||{};
     }
 
-    // Generic helper reused by manage-prospects.js and send-campaign.js --
+    // Generic helper reused by prospects.js's various actions --
     // identical auth/error-handling shape to callSendEmailFn above, just
     // parameterised on the endpoint URL so it isn't duplicated twice more.
     async function callAdminApi(url,payload){
@@ -910,7 +910,7 @@
       if(!body)return showToast('Message body is required','error');
       const statusEl=document.getElementById('campaign-dry-run-status');
       statusEl.innerHTML='<span style="color:var(--text3)">Checking…</span>';
-      const result=await callAdminApi(SEND_CAMPAIGN_FN,{list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:true});
+      const result=await callAdminApi(SEND_CAMPAIGN_FN,{action:'send_campaign',list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:true});
       if(result.error){statusEl.innerHTML=`<span style="color:var(--red,#dc2626)">${esc(result.error)}</span>`;return showToast('Dry run failed: '+result.error,'error');}
       state.dryRunValid=true;
       const sendBtn=document.getElementById('send-campaign-btn');
@@ -927,7 +927,7 @@
       const listName=state.prospectLists.find((l)=>l.id===listId)?.name||'this list';
       if(!confirm(`Send this batch to up to ${batchSize} recipients in "${listName}"? This cannot be undone.`))return;
       setBtnLoading('send-campaign-btn',true,'⏳ Sending…');
-      const result=await callAdminApi(SEND_CAMPAIGN_FN,{list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:false});
+      const result=await callAdminApi(SEND_CAMPAIGN_FN,{action:'send_campaign',list_id:listId,subject,html_body:body,batch_size:batchSize,dry_run:false});
       setBtnLoading('send-campaign-btn',false);
       if(result.error)return showToast('Send error: '+result.error,'error');
       showToast(`✉️ Sent to ${result.sent} recipient${result.sent===1?'':'s'}${result.failed?` · ${result.failed} failed`:''} · ${result.remaining_after} remaining in this campaign`);
