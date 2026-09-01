@@ -289,6 +289,12 @@ async function handleSignup(event) {
     if (referralCode) {
         localStorage.setItem('sc_pending_referral_code', referralCode);
     }
+    // Same reasoning as the referral code above: this flag distinguishes
+    // "SIGNED_IN just fired because of a fresh signup" from "SIGNED_IN
+    // fired because of a normal login", which the event itself doesn't
+    // tell you. Must be set before signUp() is called, not after, for the
+    // identical timing reason.
+    localStorage.setItem('sc_just_signed_up', '1');
 
     try {
         const { data, error } = await supabaseClient.auth.signUp({
@@ -314,6 +320,7 @@ async function handleSignup(event) {
             // No account was actually (re)created here either -- same
             // cleanup reasoning as the catch block below.
             localStorage.removeItem('sc_pending_referral_code');
+            localStorage.removeItem('sc_just_signed_up');
             showMessage('signup-message',
                 `This email is already registered. Please <button type="button" onclick="switchAuthTab('login')" class="inline-link-btn">sign in</button> instead, or use a different email.`,
                 'error');
@@ -330,11 +337,12 @@ async function handleSignup(event) {
         
     } catch (error) {
         // A failed signup means no account was actually created via this
-        // attempt -- clear any pending referral code we just stashed so it
-        // can't wrongly attach to some unrelated later sign-in on this
-        // same browser (e.g. the user then logs into an existing account
-        // instead of retrying signup).
+        // attempt -- clear any pending referral code / signup flag we just
+        // stashed so they can't wrongly attach to some unrelated later
+        // sign-in on this same browser (e.g. the user then logs into an
+        // existing account instead of retrying signup).
         localStorage.removeItem('sc_pending_referral_code');
+        localStorage.removeItem('sc_just_signed_up');
 
         // Provide a friendlier message for the known Supabase trigger failure
         const msg = (error.message || '').toLowerCase();
@@ -561,6 +569,25 @@ if (supabaseClient && supabaseClient.auth) {
                         }
                     })
                     .catch((err) => console.warn('[referral] link_referral unexpected error:', err));
+            }
+
+            // Send the welcome email immediately for a fresh signup, rather
+            // than waiting for the once-daily cron to pick it up (which can
+            // take up to ~24 hours -- too late for a "welcome" to feel like
+            // one). The endpoint is idempotent against the exact same
+            // email_automation_log constraint the cron uses, so there's no
+            // risk of a duplicate even if the cron also reaches this user
+            // before its 3-day window passes.
+            const justSignedUp = localStorage.getItem('sc_just_signed_up');
+            if (justSignedUp) {
+                localStorage.removeItem('sc_just_signed_up');
+                supabaseClient.auth.getSession().then(({ data: { session: freshSession } }) => {
+                    if (!freshSession?.access_token) return;
+                    return fetch('/api/send-welcome-email', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${freshSession.access_token}` },
+                    });
+                }).catch((err) => console.warn('[welcome-email] send-welcome-email call failed:', err));
             }
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out');
