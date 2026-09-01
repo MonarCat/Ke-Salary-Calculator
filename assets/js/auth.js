@@ -290,6 +290,17 @@ async function handleSignup(event) {
         
         if (error) throw error;
 
+        // Signup does not establish an active session while email
+        // confirmation is required, so auth.uid() isn't available yet to
+        // link a referral code server-side. Stash it in localStorage; the
+        // SIGNED_IN handler below links it once a real session exists,
+        // whether that's right after confirmation or a later sign-in.
+        const referralCodeInput = document.getElementById('signup-referral-code');
+        const referralCode = referralCodeInput ? referralCodeInput.value.trim() : '';
+        if (referralCode) {
+            localStorage.setItem('sc_pending_referral_code', referralCode);
+        }
+
         // Detect duplicate email: Supabase returns an empty identities array (not an error)
         // when "Email Enumeration Protection" is enabled in Supabase Auth settings and
         // the submitted email is already registered. This prevents user enumeration attacks
@@ -303,7 +314,7 @@ async function handleSignup(event) {
         
         showMessage('signup-message', `✅ Account created! 📧 Please check your email to verify your account.<br><br>
             <small><strong>Tip:</strong> If you don't see our email in your inbox, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" to ensure links work properly.<br>
-            For assistance, contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a></small>`, 'success');
+            For assistance, use our <a href="/contact-us.html">Contact Us form</a></small>`, 'success');
         
         // Reset form
         event.target.reset();
@@ -315,7 +326,7 @@ async function handleSignup(event) {
         if (msg.includes('database error saving new user')) {
             showMessage('signup-message',
                 'We could not complete your registration due to a temporary server issue. ' +
-                'Please try again in a moment or contact <a href="mailto:support@salarycalculator.co.ke">support@salarycalculator.co.ke</a> if the problem persists.',
+                'Please try again in a moment or use our <a href="/contact-us.html">Contact Us form</a> if the problem persists.',
                 'error');
         } else {
             // Escape error.message before inserting into innerHTML to prevent XSS
@@ -514,6 +525,27 @@ if (supabaseClient && supabaseClient.auth) {
                         redirectFromAuthPage();
                     }
                 }, OAUTH_REDIRECT_DELAY_MS);
+            }
+
+            // Link a pending referral code (stashed at signup time) now
+            // that a real session exists. link_referral() itself already
+            // rejects self-referral, invalid codes, and double-linking --
+            // this just fires it once per pending code and clears it
+            // either way so it's never retried indefinitely.
+            const pendingReferralCode = localStorage.getItem('sc_pending_referral_code');
+            if (pendingReferralCode) {
+                localStorage.removeItem('sc_pending_referral_code');
+                supabaseClient.rpc('link_referral', { p_code: pendingReferralCode })
+                    .then(({ data, error }) => {
+                        if (error) {
+                            console.warn('[referral] link_referral RPC error:', error.message);
+                        } else if (data && data.success === false) {
+                            console.warn('[referral] Referral not linked:', data.error);
+                        } else {
+                            console.log('[referral] Referral code linked successfully.');
+                        }
+                    })
+                    .catch((err) => console.warn('[referral] link_referral unexpected error:', err));
             }
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out');

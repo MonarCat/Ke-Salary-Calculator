@@ -8,10 +8,12 @@
     "api/email-automation-cron.js": { "maxDuration": 60 },
     "api/feedback-form.js": { "maxDuration": 15 },
     "api/manage-prospects.js": { "maxDuration": 30 },
-    "api/send-campaign.js": { "maxDuration": 120 }
+    "api/send-campaign.js": { "maxDuration": 120 },
+    "api/referral-qualification-cron.js": { "maxDuration": 60 }
   },
   "crons": [
-    { "path": "/api/email-automation-cron", "schedule": "0 8 * * *" }
+    { "path": "/api/email-automation-cron", "schedule": "0 8 * * *" },
+    { "path": "/api/referral-qualification-cron", "schedule": "0 9 * * *" }
   ],
   "rewrites": [
     { "source": "/api/paystack-webhook", "destination": "/api/paystack-webhook.js" },
@@ -24,6 +26,7 @@
     { "source": "/api/feedback-form",    "destination": "/api/feedback-form.js"    },
     { "source": "/api/manage-prospects", "destination": "/api/manage-prospects.js" },
     { "source": "/api/send-campaign",    "destination": "/api/send-campaign.js"    },
+    { "source": "/api/referral-qualification-cron", "destination": "/api/referral-qualification-cron.js" },
     { "source": "/ad-click/:id",        "destination": "/api/ad-click/:id"         },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },

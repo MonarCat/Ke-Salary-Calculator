@@ -57,12 +57,17 @@ function personalise(text, user) {
     ? new Date(user.premium_expires_at).toLocaleDateString('en-KE', { year:'numeric', month:'long', day:'numeric' })
     : 'N/A';
   const isPremium = user.premium_expires_at && new Date(user.premium_expires_at) > new Date();
+  const referralLink = user.referral_code
+    ? `https://salarycalculator.co.ke/auth.html?ref=${encodeURIComponent(user.referral_code)}`
+    : 'https://salarycalculator.co.ke/account.html';
   return String(text || '')
-    .replace(/\{\{name\}\}/g,         getName(user))
-    .replace(/\{\{email\}\}/g,        user.email || '')
-    .replace(/\{\{plan\}\}/g,         isPremium ? 'Premium' : 'Free')
-    .replace(/\{\{expires\}\}/g,      expiry)
-    .replace(/\{\{upgrade_link\}\}/g, 'https://salarycalculator.co.ke/#pricing');
+    .replace(/\{\{name\}\}/g,           getName(user))
+    .replace(/\{\{email\}\}/g,          user.email || '')
+    .replace(/\{\{plan\}\}/g,           isPremium ? 'Premium' : 'Free')
+    .replace(/\{\{expires\}\}/g,        expiry)
+    .replace(/\{\{upgrade_link\}\}/g,   'https://salarycalculator.co.ke/#pricing')
+    .replace(/\{\{referral_code\}\}/g,  user.referral_code || '(visit your account page)')
+    .replace(/\{\{referral_link\}\}/g,  referralLink);
 }
 
 // ─── Email shell ───────────────────────────────────────────────────────────────
@@ -236,7 +241,7 @@ async function handleSendEmail(req, res) {
       // Enrich with existing profile data where it exists, so {{name}}/
       // {{plan}}/{{expires}} personalise() correctly for known users too.
       const { data: matched, error: matchErr } = await admin
-        .from('user_profiles').select('email, full_name, premium_expires_at').in('email', cleanEmails);
+        .from('user_profiles').select('email, full_name, premium_expires_at, referral_code').in('email', cleanEmails);
       if (matchErr) throw matchErr;
       const byEmail = new Map((matched || []).map(u => [u.email?.toLowerCase(), u]));
       recipients = cleanEmails.map(email => {
@@ -245,7 +250,7 @@ async function handleSendEmail(req, res) {
       });
     } else {
       const now = new Date().toISOString();
-      let q = admin.from('user_profiles').select('id, email, full_name, premium_expires_at');
+      let q = admin.from('user_profiles').select('id, email, full_name, premium_expires_at, referral_code');
       if (target === 'premium') q = q.gt('premium_expires_at', now);
       else if (target === 'free') q = q.or(`premium_expires_at.is.null,premium_expires_at.lte.${now}`);
       const { data, error } = await q;
