@@ -7,7 +7,8 @@
     "api/admin-ops.js": { "maxDuration": 30 },
     "api/daily-cron.js": { "maxDuration": 60 },
     "api/feedback-form.js": { "maxDuration": 15 },
-    "api/prospects.js": { "maxDuration": 120 }
+    "api/prospects.js": { "maxDuration": 120 },
+    "api/send-welcome-email.js": { "maxDuration": 15 }
   },
   "crons": [
     { "path": "/api/daily-cron", "schedule": "0 8 * * *" }
@@ -22,6 +23,7 @@
     { "source": "/api/daily-cron",       "destination": "/api/daily-cron.js"       },
     { "source": "/api/feedback-form",    "destination": "/api/feedback-form.js"    },
     { "source": "/api/prospects",        "destination": "/api/prospects.js"        },
+    { "source": "/api/send-welcome-email", "destination": "/api/send-welcome-email.js" },
     { "source": "/ad-click/:id",        "destination": "/api/ad-click/:id"         },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },
