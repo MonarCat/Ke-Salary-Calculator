@@ -59,7 +59,21 @@ export async function initReferralWidget(supabase, containerId) {
   const daysEarned = Number(summary.total_premium_days_earned || 0);
   const totalReferrals = Number(summary.total_qualified_referrals || 0);
   const pending = Number(summary.pending_referrals || 0);
+  const freeBatchProgress = Number(summary.free_referrals_toward_next_batch || 0);
   const isLifetime = !!summary.is_lifetime_premium;
+
+  // Qualification (including the 3-for-1 free-tier batching) runs once a
+  // day, and free-tier referrals additionally need a short waiting period
+  // after signup before they count -- this is intentional, it's what
+  // stops someone from farming free months with instant fake accounts.
+  // "Pending" is expected to be non-zero right after someone uses your
+  // link; it clears on its own within about a week.
+  let progressLine = '';
+  if (freeBatchProgress > 0) {
+    progressLine = `<div style="margin-top:10px;font-size:13px;color:#166534;font-weight:600">🎉 ${freeBatchProgress} of 3 friends toward your next free month — ${3 - freeBatchProgress} more to go!</div>`;
+  } else if (pending > 0) {
+    progressLine = `<div style="margin-top:10px;font-size:12px;color:#92400e">⏳ ${pending} referral${pending === 1 ? '' : 's'} still confirming — new sign-ups need about a week before they count, to keep the program fair for everyone.</div>`;
+  }
 
   container.innerHTML = `
     <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin-bottom:14px">
@@ -71,6 +85,8 @@ export async function initReferralWidget(supabase, containerId) {
         <button type="button" id="sc-ref-copy-code" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer">Copy Code</button>
         <button type="button" id="sc-ref-copy-link" style="background:#fff;color:#16a34a;border:1px solid #16a34a;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer">Copy Share Link</button>
       </div>
+
+      ${progressLine}
 
       ${REWARD_RULES_HTML}
 

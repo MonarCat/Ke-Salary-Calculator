@@ -273,7 +273,23 @@ async function handleSignup(event) {
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
     submitBtn.disabled = true;
-    
+
+    // Stash the referral code (if any) BEFORE calling signUp(), not after.
+    // This project has email confirmation disabled, so signUp() establishes
+    // a session immediately and fires SIGNED_IN synchronously as part of
+    // that same call -- before control even returns to the line after
+    // `await signUp()`. Writing to localStorage after the await was a real
+    // race: the SIGNED_IN handler's localStorage check ran and found
+    // nothing, before this code got a chance to write it. Writing it here,
+    // first, guarantees it's already in place no matter when SIGNED_IN
+    // actually fires (immediately, or later if email confirmation is ever
+    // re-enabled).
+    const referralCodeInput = document.getElementById('signup-referral-code');
+    const referralCode = referralCodeInput ? referralCodeInput.value.trim() : '';
+    if (referralCode) {
+        localStorage.setItem('sc_pending_referral_code', referralCode);
+    }
+
     try {
         const { data, error } = await supabaseClient.auth.signUp({
             email: email,
@@ -290,30 +306,22 @@ async function handleSignup(event) {
         
         if (error) throw error;
 
-        // Signup does not establish an active session while email
-        // confirmation is required, so auth.uid() isn't available yet to
-        // link a referral code server-side. Stash it in localStorage; the
-        // SIGNED_IN handler below links it once a real session exists,
-        // whether that's right after confirmation or a later sign-in.
-        const referralCodeInput = document.getElementById('signup-referral-code');
-        const referralCode = referralCodeInput ? referralCodeInput.value.trim() : '';
-        if (referralCode) {
-            localStorage.setItem('sc_pending_referral_code', referralCode);
-        }
-
         // Detect duplicate email: Supabase returns an empty identities array (not an error)
         // when "Email Enumeration Protection" is enabled in Supabase Auth settings and
         // the submitted email is already registered. This prevents user enumeration attacks
         // but means we must explicitly check identities to give the user accurate feedback.
         if (data.user && data.user.identities && data.user.identities.length === 0) {
+            // No account was actually (re)created here either -- same
+            // cleanup reasoning as the catch block below.
+            localStorage.removeItem('sc_pending_referral_code');
             showMessage('signup-message',
                 `This email is already registered. Please <button type="button" onclick="switchAuthTab('login')" class="inline-link-btn">sign in</button> instead, or use a different email.`,
                 'error');
             return;
         }
         
-        showMessage('signup-message', `✅ Account created! 📧 Please check your email to verify your account.<br><br>
-            <small><strong>Tip:</strong> If you don't see our email in your inbox, please check your <strong>Spam / Junk folder</strong> and mark it as "Not Spam" to ensure links work properly.<br>
+        showMessage('signup-message', `✅ Account created! You're all set — you can start using Salary Calculator right away.<br><br>
+            <small>Keep an eye on your inbox for a welcome email. If you don't see it, check your <strong>Spam / Junk folder</strong>.<br>
             For assistance, use our <a href="/contact-us.html">Contact Us form</a></small>`, 'success');
         
         // Reset form
@@ -321,6 +329,13 @@ async function handleSignup(event) {
         document.getElementById('organization-fields').style.display = 'none';
         
     } catch (error) {
+        // A failed signup means no account was actually created via this
+        // attempt -- clear any pending referral code we just stashed so it
+        // can't wrongly attach to some unrelated later sign-in on this
+        // same browser (e.g. the user then logs into an existing account
+        // instead of retrying signup).
+        localStorage.removeItem('sc_pending_referral_code');
+
         // Provide a friendlier message for the known Supabase trigger failure
         const msg = (error.message || '').toLowerCase();
         if (msg.includes('database error saving new user')) {
