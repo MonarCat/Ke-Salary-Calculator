@@ -177,6 +177,13 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="signup-referral-code">
+                                <i class="fas fa-gift"></i> Referral Code <span style="font-weight:400;color:#6b7280">(optional)</span>
+                            </label>
+                            <input type="text" id="signup-referral-code" placeholder="Have a friend's code? Enter it here" style="text-transform:uppercase" maxlength="20">
+                        </div>
                         
                         <div class="form-options">
                             <label class="remember-me">
@@ -294,6 +301,21 @@
                     }
                 });
             }
+        })();
+
+        // A referral share link (?ref=CODE) both switches to the signup
+        // tab and pre-fills the referral code field, so clicking a shared
+        // link is a one-step signup rather than requiring the visitor to
+        // type the code in by hand.
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const refCode = params.get('ref');
+            if (!refCode) return;
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof switchAuthTab === 'function') switchAuthTab('signup');
+                const input = document.getElementById('signup-referral-code');
+                if (input) input.value = refCode.toUpperCase();
+            });
         })();
     </script>
     <!-- Kazi Chatbot -->

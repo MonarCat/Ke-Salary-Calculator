@@ -212,6 +212,9 @@
                     </table>
                 </div>
 
+                <!-- ★ Refer & Earn widget ★ -->
+                <div id="sc-referral-widget"></div>
+
                 <!-- ★ Billing widget renders here ★ -->
                 <div id="sc-billing-widget"></div>
             </div>
@@ -257,6 +260,14 @@
 
     <!-- ★ Billing widget ★ -->
     <script type="module" src="/assets/js/account-billing.js?v=20260508-1"></script>
+
+    <!-- ★ Refer & Earn widget ★ -->
+    <script type="module">
+        import { initReferralWidget } from '/assets/js/referral-widget.js';
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        const supabase = window.supabaseClient || createClient(window.__SUPABASE_URL, window.__SUPABASE_ANON_KEY);
+        initReferralWidget(supabase, 'sc-referral-widget');
+    </script>
 
     <!-- Easter gift banner -->
     <script type="module">
