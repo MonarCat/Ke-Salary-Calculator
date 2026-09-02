@@ -302,7 +302,7 @@
 
     // Tax calculation (2025/2026 rates)
     function calcBreakdown(gross) {
-        const nssf = Math.min(gross * 0.06, 4320);
+        const nssf = Math.min(gross * 0.06, 6480);
         const shif = gross * 0.0275;
         const hl   = gross * 0.015;
         const taxable = Math.max(0, gross - nssf - shif - hl);

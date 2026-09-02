@@ -38,7 +38,7 @@
         },
         {
             tags: ['nssf', 'national social security', 'nssf rate', 'nssf contribution'],
-            answer: "<strong>NSSF (National Social Security Fund)</strong> contribution is <strong>6% of gross salary</strong>, capped at <strong>KES 4,320 per month</strong>.\n\nBoth employee and employer contribute equally. NSSF savings go towards your pension/retirement fund."
+            answer: "<strong>NSSF (National Social Security Fund)</strong> contribution is <strong>6% of gross salary</strong>, capped at <strong>KES 6,480 per month</strong> (once you reach KES 108,000 gross — rates updated Feb 2026, NSSF Phase 4).\n\nBoth employee and employer contribute equally. NSSF savings go towards your pension/retirement fund."
         },
         {
             tags: ['shif', 'nhif', 'health insurance', 'social health insurance', 'shif rate'],
@@ -98,7 +98,7 @@
         },
         {
             tags: ['net salary', 'take home', 'take-home pay', 'net pay'],
-            answer: "Your <strong>net (take-home) salary</strong> is your gross salary minus:\n• PAYE (income tax)\n• NSSF (6%, max KES 4,320)\n• SHIF (2.75%)\n• Affordable Housing Levy (1.5%)\n\nUse the <a href='/' target='_blank'>calculator on the home page</a> to get your exact net pay instantly!"
+            answer: "Your <strong>net (take-home) salary</strong> is your gross salary minus:\n• PAYE (income tax)\n• NSSF (6%, max KES 6,480)\n• SHIF (2.75%)\n• Affordable Housing Levy (1.5%)\n\nUse the <a href='/' target='_blank'>calculator on the home page</a> to get your exact net pay instantly!"
         },
         {
             tags: ['gross salary', 'gross pay', 'before tax', 'gross income'],
@@ -110,7 +110,7 @@
         },
         {
             tags: ['statutory deductions', 'mandatory deductions', 'deductions kenya', 'payroll deductions'],
-            answer: "Statutory (mandatory) payroll deductions in Kenya:\n• <strong>PAYE</strong> — income tax per KRA bands\n• <strong>NSSF</strong> — 6% (max KES 4,320/mo)\n• <strong>SHIF</strong> — 2.75%\n• <strong>Housing Levy</strong> — 1.5%\n\nFull details: <a href='/statutory-deductions-kenya.html' target='_blank'>Statutory Deductions in Kenya</a>."
+            answer: "Statutory (mandatory) payroll deductions in Kenya:\n• <strong>PAYE</strong> — income tax per KRA bands\n• <strong>NSSF</strong> — 6% (max KES 6,480/mo)\n• <strong>SHIF</strong> — 2.75%\n• <strong>Housing Levy</strong> — 1.5%\n\nFull details: <a href='/statutory-deductions-kenya.html' target='_blank'>Statutory Deductions in Kenya</a>."
         },
         {
             tags: ['negotiate salary', 'salary negotiation', 'how to negotiate'],

@@ -62,13 +62,13 @@
                 <p>PAYE (Pay As You Earn) is income tax deducted by an employer and remitted to KRA every month. Most confusion comes from one detail: PAYE is not charged directly on gross salary. It is charged on taxable pay, which is gross salary after allowable deductions such as NSSF employee contribution.</p>
 
                 <h2>Step 1: Start with gross salary</h2>
-                <p>Gross salary is the contractual salary before statutory deductions. It may include basic salary and taxable allowances.</p>
+                <p>Gross salary is the contractual salary before statutory deductions. It may include basic salary and taxable allowances such as house allowance, transport allowance, or a hardship allowance if these are paid in cash rather than provided as a benefit in kind. Some allowances are exempt up to a threshold — for example, a reasonable per diem for official travel is generally not taxed the same way as a fixed monthly cash allowance. If your payslip shows a gross figure that looks higher than your basic pay, this is usually why: allowances are being added before deductions are applied.</p>
 
                 <h2>Step 2: Compute taxable pay</h2>
-                <p>For most payroll setups, taxable pay is gross salary less NSSF employee contribution. SHIF and Housing Levy do not reduce PAYE taxable pay in the same way NSSF does.</p>
+                <p>For most payroll setups, taxable pay is gross salary less NSSF, SHIF, and Housing Levy — all three are allowable deductions since the 2024 tax changes, meaning they reduce taxable pay before PAYE is calculated. This is a common point of confusion when building a payroll spreadsheet from scratch: the order matters, and skipping any one of these three before applying PAYE bands will overstate the tax owed.</p>
 
                 <h2>Step 3: Apply PAYE bands progressively</h2>
-                <p>Kenya applies a progressive rate system. You do not pay one rate on all income. Each portion is taxed at its own band.</p>
+                <p>Kenya applies a progressive rate system. You do not pay one rate on all income. Each portion is taxed at its own band, and only the amount that falls inside a band is taxed at that band's rate — the whole salary is never taxed at your top rate.</p>
                 <table aria-label="PAYE bands in Kenya">
                     <thead><tr><th>Taxable Income Portion</th><th>Rate</th></tr></thead>
                     <tbody>
@@ -79,15 +79,33 @@
                         <tr><td>Above KES 800,000</td><td>35%</td></tr>
                     </tbody>
                 </table>
+                <p>This is why two people with similar gross salaries can end up with noticeably different take-home percentages if one crosses into a higher band and the other doesn't — even a few hundred shillings of difference in taxable pay can push a portion of income into the next band.</p>
 
                 <h2>Step 4: Subtract reliefs</h2>
-                <p>After gross PAYE is computed from the bands, monthly personal relief (currently KES 2,400) is subtracted to get final PAYE payable.</p>
+                <p>After gross PAYE is computed from the bands, monthly personal relief (currently KES 2,400) is subtracted to get final PAYE payable. This relief is automatic for every employee with a valid KRA PIN registered with their employer — you don't need to apply for it separately. Other reliefs, such as insurance relief on qualifying life insurance premiums or mortgage interest relief, can further reduce PAYE payable, but personal relief is the one that applies to everyone by default.</p>
 
                 <h2>Worked example (gross KES 80,000)</h2>
-                <p>If NSSF is KES 4,320, taxable pay is KES 75,680. Apply each band progressively, total the band tax, then subtract KES 2,400 personal relief. The result is the PAYE deduction for that month.</p>
+                <p>Here's the full calculation, not just the method:</p>
+                <ul>
+                    <li><strong>Gross salary:</strong> KES 80,000</li>
+                    <li><strong>NSSF employee contribution:</strong> KES 4,800 (under the current 2026 NSSF Phase 4 rates)</li>
+                    <li><strong>SHIF (2.75%):</strong> KES 2,200</li>
+                    <li><strong>Housing Levy (1.5%):</strong> KES 1,200</li>
+                    <li><strong>Taxable pay:</strong> KES 80,000 − 4,800 − 2,200 − 1,200 = KES 71,800</li>
+                    <li><strong>Band 1</strong> (first 24,000 at 10%): KES 2,400</li>
+                    <li><strong>Band 2</strong> (next 8,333 at 25%): KES 2,083.25</li>
+                    <li><strong>Band 3</strong> (remaining 39,467 at 30%): KES 11,840.10</li>
+                    <li><strong>Gross PAYE before relief:</strong> KES 16,323.35</li>
+                    <li><strong>Less personal relief:</strong> −KES 2,400</li>
+                    <li><strong>Final PAYE payable:</strong> KES 13,923.35 (rounded to KES 13,923 in most payroll systems)</li>
+                </ul>
+                <p>Total deductions come to KES 22,123.35, giving a final net take-home pay of KES 57,876.65 on a KES 80,000 gross salary.</p>
+
+                <h2>Common mistakes when calculating PAYE by hand</h2>
+                <p>The most frequent error is applying a single flat rate to the whole salary instead of working through the bands progressively — this consistently overstates the tax owed, sometimes significantly at higher incomes. The second most common mistake is forgetting that NSSF, SHIF, and Housing Levy are all allowable deductions and should each reduce taxable pay before PAYE bands are applied — leaving any one of them out overstates the tax owed. The third is forgetting to apply personal relief at all, which overcharges every single employee by KES 2,400 a month.</p>
 
                 <h2>Why this matters for accuracy</h2>
-                <p>Even a small PAYE error compounds over many employees and payroll periods. Accurate PAYE protects employees from unexpected arrears and protects employers from compliance penalties. If your payslip line items do not match this flow, review your payroll rules immediately.</p>
+                <p>Even a small PAYE error compounds over many employees and payroll periods. Accurate PAYE protects employees from unexpected arrears and protects employers from compliance penalties, including interest charged by KRA on underpaid tax. If your payslip line items do not match this flow, review your payroll rules immediately — a systematic error affecting every employee is far more costly to correct retroactively than catching it in a single pay period.</p>
 
                 <div class="cta">
                     <strong>Next step:</strong> Check your exact PAYE using the <a href="/paye-calculator-kenya.html">PAYE calculator</a>, then cross-check the final net pay with the <a href="/calculator.html">salary calculator</a>.

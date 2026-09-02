@@ -7,7 +7,7 @@
 
     const RATES_2026 = {
         personalRelief: 2400,
-        nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
+        nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
         shifRate: 0.0275,
         housingLevyRate: 0.015,
         insuranceReliefRate: 0.15,
@@ -21,10 +21,17 @@
     };
 
     function calculateNSSF(gross) {
-        const tier1 = Math.min(gross, 8000) * 0.06;
-        if (gross > 8000) {
-            const capped = Math.min(gross, 72000);
-            return tier1 + ((capped - 8000) * 0.06);
+        // Reads from RATES_2026 rather than hardcoding the thresholds here
+        // a second time -- this file previously had the NSSF Tier I/II
+        // limits duplicated in three separate places (this function, the
+        // RATES_2026 constant above which this function didn't actually
+        // use, and the nssfTier1 line in calculateDeductions below), so
+        // updating just the constant silently changed nothing about the
+        // real calculation. Single source of truth now.
+        const tier1 = Math.min(gross, RATES_2026.nssfLower) * RATES_2026.nssfRate;
+        if (gross > RATES_2026.nssfLower) {
+            const capped = Math.min(gross, RATES_2026.nssfUpper);
+            return tier1 + ((capped - RATES_2026.nssfLower) * RATES_2026.nssfRate);
         }
         return tier1;
     }
@@ -58,7 +65,7 @@
         const pwdExempt = !!options.pwdExempt;
 
         const nssf      = calculateNSSF(gross);
-        const nssfTier1 = Math.min(gross, 8000) * 0.06;
+        const nssfTier1 = Math.min(gross, RATES_2026.nssfLower) * RATES_2026.nssfRate;
         const nssfTier2 = nssf - nssfTier1;
         const shif      = gross * RATES_2026.shifRate;
         const housingLevy = gross * RATES_2026.housingLevyRate;

@@ -295,7 +295,7 @@
 
     // Kenya 2025/2026 tax calculation
     function calcBreakdown(gross) {
-        const nssf = Math.min(gross * 0.06, 4320);
+        const nssf = Math.min(gross * 0.06, 6480);
         const shif = +(gross * 0.0275).toFixed(0);
         const hl   = +(gross * 0.015).toFixed(0);
         const taxable = Math.max(0, gross - nssf - shif - hl);

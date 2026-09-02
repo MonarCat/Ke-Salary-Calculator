@@ -98,9 +98,10 @@
     '  <p style="margin-bottom: 10px;">',
     '    <a href="/privacy-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Privacy Policy</a> |',
     '    <a href="/terms-of-service.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Terms of Service</a> |',
-    '    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a>',
+    '    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a> |',
+    '    <a href="/contact-us.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Contact Us</a>',
     '  </p>',
-    '  <p>© <script>document.write(new Date().getFullYear())</script> Salary Calculator, Thika Road, Nairobi</p>',
+    '  <p>&copy; ' + new Date().getFullYear() + ' Salary Calculator, Thika Road, Nairobi</p>',
     '</footer>'
   ].join('');
 
