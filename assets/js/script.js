@@ -6,9 +6,9 @@ function debounce(fn, delay) {
 const calculateSalaryDebounced = debounce(calculateSalary, 300);
 const TAX_RATES = {
     '2026': {
-        label: 'Rates updated Feb 2025',
+        label: 'Rates updated Feb 2026 — NSSF Phase 4',
         personalRelief: 2400,
-        nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
+        nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
         shifRate: 0.0275,
         housingLevyRate: 0.015,
         payeBands: [
