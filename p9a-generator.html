@@ -510,7 +510,7 @@
             const nssf = Math.min(gross * 0.06, 2160);
             const chargeable = Math.max(0, gross - nssf - ownerInt - pension);
             const paye = calcPAYE(chargeable);
-            const shif = gross * 0.0275;
+            const shif = Math.max(gross * 0.0275, 300);
             const hl = gross * 0.015;
             const net = gross - paye - nssf - shif - hl;
 

@@ -312,7 +312,7 @@
 
     function calcNetSalary(gross) {
         const nssf = Math.min(gross * 0.06, 6480);
-        const shif = gross * 0.0275;
+        const shif = Math.max(gross * 0.0275, 300);
         const hl   = gross * 0.015;
         const taxable = Math.max(0, gross - nssf - shif - hl);
         let paye = 0;

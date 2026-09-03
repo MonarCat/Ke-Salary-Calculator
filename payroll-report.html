@@ -428,7 +428,7 @@ function calcDeductions(gross) {
     const prev = [24000, 32333, 500000, 800000];
     const tier1 = Math.min(gross, nssfLower) * nssfRate;
     const nssf  = gross > nssfLower ? tier1 + (Math.min(gross, nssfUpper) - nssfLower) * nssfRate : tier1;
-    const shif  = gross * shifRate;
+    const shif  = Math.max(gross * shifRate, 300);
     const ahl   = gross * ahlRate;
     const taxable = gross - nssf - shif - ahl;
     let rawPaye = 0;

@@ -9,6 +9,7 @@
         personalRelief: 2400,
         nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
         shifRate: 0.0275,
+        shifMinimum: 300,
         housingLevyRate: 0.015,
         insuranceReliefRate: 0.15,
         payeBands: [
@@ -67,7 +68,7 @@
         const nssf      = calculateNSSF(gross);
         const nssfTier1 = Math.min(gross, RATES_2026.nssfLower) * RATES_2026.nssfRate;
         const nssfTier2 = nssf - nssfTier1;
-        const shif      = gross * RATES_2026.shifRate;
+        const shif      = Math.max(gross * RATES_2026.shifRate, RATES_2026.shifMinimum);
         const housingLevy = gross * RATES_2026.housingLevyRate;
 
         const allowableDeductions = pension + mortgage;

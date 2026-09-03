@@ -1036,7 +1036,7 @@
                 ? tier1 + (Math.min(gross, nssfUpper) - nssfLower) * nssfRate
                 : tier1;
 
-            const shif = gross * shifRate;
+            const shif = Math.max(gross * shifRate, 300);
             const ahl = gross * ahlRate;
             const taxable = gross - nssf - shif - ahl;
 

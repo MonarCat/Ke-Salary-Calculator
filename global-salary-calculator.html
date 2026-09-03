@@ -238,7 +238,7 @@
                 const nssfLow = 9000, nssfUp = 108000, nssfRate = 0.06;
                 const t1 = Math.min(gross, nssfLow) * nssfRate;
                 const nssf = gross > nssfLow ? t1 + (Math.min(gross, nssfUp) - nssfLow) * nssfRate : t1;
-                const shif = gross * 0.0275;
+                const shif = Math.max(gross * 0.0275, 300);
                 const levy = gross * 0.015;
                 const taxable = gross - nssf - shif - levy;
                 const bands = [[24000,0.10,0],[32333,0.25,2400],[500000,0.30,4483.25],[800000,0.325,140983.25],[Infinity,0.35,238483.25]];
