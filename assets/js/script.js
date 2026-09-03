@@ -196,6 +196,30 @@ async function openPercentileTab() {
     await openProtectedTab('percentile', 'percentile-form-content', 'percentile-auth-prompt');
 }
 
+// Fire-and-forget activity recorder for the admin dashboard's usage stats.
+// Uses getSession() (local/cached, no network round-trip) to skip the RPC
+// entirely for anonymous visitors -- calculating doesn't require signup on
+// this site, so most calculations are anonymous and shouldn't trigger a
+// wasted network call. record_user_activity() itself is also safely a
+// no-op for any caller without a valid session, as a second layer of
+// safety, but checking locally first avoids the round-trip for the common
+// anonymous case. Never awaited -- must not block or slow down the
+// calculation UI in any way, and errors are swallowed since this is
+// purely for internal analytics, never user-facing.
+function recordUserActivity(action) {
+    try {
+        const client = window.supabaseClient;
+        if (!client || typeof client.auth?.getSession !== 'function') return;
+        client.auth.getSession().then(({ data }) => {
+            if (data?.session) {
+                client.rpc('record_user_activity', { p_action: action }).catch(() => {});
+            }
+        }).catch(() => {});
+    } catch (_) {
+        // Never let analytics tracking break the calculator.
+    }
+}
+
 // Salary Calculator Functions
 function calculateSalary() {
     const grossPay = parseFloat(document.getElementById('grossPay').value) || 0;
@@ -228,6 +252,7 @@ function calculateSalary() {
     );
 
     document.getElementById('results').style.display = 'block';
+    recordUserActivity('calculation');
     renderDeductionsChart('deductionsChart', paye, nssf, shif, housingLevy, netPay);
 
     // Voluntary / additional deductions

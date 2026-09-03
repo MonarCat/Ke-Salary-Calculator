@@ -92,6 +92,26 @@ function drawWatermark(canvas) {
   );
 }
 
+// ── Activity recorder (for admin dashboard usage stats) ────────────────────────
+
+/**
+ * Fire-and-forget: records a payslip generation for the admin dashboard's
+ * usage stats. Only fires when checkPremium() already confirmed a session
+ * exists (isLoggedIn), avoiding a second network round-trip just to check
+ * auth state again. record_user_activity() is also a safe no-op server-side
+ * for any caller without a valid session, as a second layer of safety.
+ * Never awaited and never lets an error surface to the user -- this is
+ * purely internal analytics, never part of the actual download flow.
+ */
+function recordPayslipActivity(supabase, isLoggedIn) {
+  if (!isLoggedIn || typeof supabase?.rpc !== "function") return;
+  try {
+    supabase.rpc("record_user_activity", { p_action: "payslip" }).catch(() => {});
+  } catch (_) {
+    // Never let analytics tracking break the payslip download.
+  }
+}
+
 // ── PNG download trigger ──────────────────────────────────────────────────────
 
 function downloadCanvas(canvas, filename) {
@@ -284,6 +304,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
       if (preOpenedPrintWindow && !preOpenedPrintWindow.closed) {
         window.__SC_PREOPENED_PRINT_WINDOW = preOpenedPrintWindow;
       }
+      recordPayslipActivity(supabase, status.isLoggedIn);
       // Premium: clean print via existing function
       if (typeof window.printPayslip === "function") {
         window.printPayslip();
@@ -320,6 +341,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
       const filename = (rawFilename || "payslip-sample") + ".png";
 
       downloadCanvas(canvas, filename);
+      recordPayslipActivity(supabase, status.isLoggedIn);
       // Show expiry-aware upgrade modal for users with an expired premium
       const hasExpired = !!(status.premiumExpiresAt && new Date(status.premiumExpiresAt) < new Date());
       const expiredOn  = hasExpired ? getPremiumExpiry({ premium_expires_at: status.premiumExpiresAt }) : null;
