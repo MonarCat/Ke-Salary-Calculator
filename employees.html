@@ -926,7 +926,6 @@
                                     <thead><tr><th>Description</th><th>Amount (KES)</th></tr></thead>
                                     <tbody>
                                         <tr><td>NSSF (Employer)</td><td id="ps-r-nssf-er" style="text-align:right;"></td></tr>
-                                        <tr><td>SHIF (Employer)</td><td id="ps-r-shif-er" style="text-align:right;"></td></tr>
                                         <tr><td>Housing Levy (Employer)</td><td id="ps-r-hl-er" style="text-align:right;"></td></tr>
                                     </tbody>
                                     <tfoot><tr><td><strong>Total Employer Cost</strong></td><td id="ps-r-total-er" style="text-align:right;"></td></tr></tfoot>
@@ -1737,7 +1736,10 @@
                 nssfEmployee: Math.round(d.nssf),
                 nssfEmployer: Math.round(d.nssf),
                 shifEmployee: Math.round(d.shif),
-                shifEmployer: Math.round(d.shif),
+                // Note: SHIF has no employer-matching contribution -- the
+                // employer only deducts and remits the employee's own
+                // 2.75%, unlike NSSF and Housing Levy which are genuinely
+                // employer-matched. No shifEmployer field.
                 hlEmployee: Math.round(d.ahl),
                 hlEmployer: Math.round(d.ahl),
             };
@@ -1789,9 +1791,8 @@
             document.getElementById('ps-r-gross').textContent = fmt(gross);
 
             document.getElementById('ps-r-nssf-er').textContent = fmt(ded.nssfEmployer);
-            document.getElementById('ps-r-shif-er').textContent = fmt(ded.shifEmployer);
             document.getElementById('ps-r-hl-er').textContent = fmt(ded.hlEmployer);
-            document.getElementById('ps-r-total-er').textContent = fmt(ded.nssfEmployer + ded.shifEmployer + ded.hlEmployer);
+            document.getElementById('ps-r-total-er').textContent = fmt(ded.nssfEmployer + ded.hlEmployer);
 
             document.getElementById('ps-r-paye').textContent = fmt(ded.paye);
             document.getElementById('ps-r-nssf-ee').textContent = fmt(ded.nssfEmployee);

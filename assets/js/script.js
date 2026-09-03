@@ -312,9 +312,13 @@ function calculateSalary() {
 
     // Employer cost section
     const empNssf = nssf; // employer matches employee NSSF
-    const empShif = Math.max(totalIncome * rates.shifRate, 300);
+    // Note: SHIF has no employer-matching contribution -- the employer only
+    // deducts and remits the employee's own 2.75%, unlike NSSF and Housing
+    // Levy which are genuinely employer-matched. Confirmed against multiple
+    // independent sources (WTW, FNJ & Associates) plus eCitizen's own SHIF
+    // Calculator, which shows only an Employee Contribution line.
     const empLevy = totalIncome * rates.housingLevyRate;
-    const totalCostToCompany = totalIncome + empNssf + empShif + empLevy;
+    const totalCostToCompany = totalIncome + empNssf + empLevy;
 
     const empSection = document.getElementById('employerCostSection');
     if (empSection && grossPay > 0) {
@@ -323,8 +327,6 @@ function calculateSalary() {
         document.getElementById('empGrossAnnual').textContent = formatKES(totalIncome * 12);
         document.getElementById('empNssf').textContent = formatKES(empNssf);
         document.getElementById('empNssfAnnual').textContent = formatKES(empNssf * 12);
-        document.getElementById('empShif').textContent = formatKES(empShif);
-        document.getElementById('empShifAnnual').textContent = formatKES(empShif * 12);
         document.getElementById('empLevy').textContent = formatKES(empLevy);
         document.getElementById('empLevyAnnual').textContent = formatKES(empLevy * 12);
         document.getElementById('empTotal').textContent = formatKES(totalCostToCompany);

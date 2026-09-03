@@ -600,7 +600,7 @@ function renderStats(employees) {
         { cls: 'green',  icon: '🏦', label: 'Total Net Payroll',     value: fmtKES(totals.net),       sub: 'Amount to disburse' },
         { cls: 'red',    icon: '📊', label: 'Total PAYE Due',        value: fmtKES(totals.paye),      sub: 'Remit to KRA by 9th' },
         { cls: 'blue',   icon: '🛡️', label: 'Total NSSF Due',       value: fmtKES(totals.nssf),      sub: 'Employer + Employee' },
-        { cls: 'teal',   icon: '🏥', label: 'Total SHIF Due',        value: fmtKES(totals.shif),      sub: 'Employer + Employee' },
+        { cls: 'teal',   icon: '🏥', label: 'Total SHIF Due',        value: fmtKES(totals.shif),      sub: 'Employee only — no employer match' },
         { cls: 'orange', icon: '🏠', label: 'Total Housing Levy',    value: fmtKES(totals.ahl),       sub: 'Employer + Employee' },
         { cls: 'purple', icon: '📈', label: 'Avg Gross per Employee',value: fmtKES(avgGross),          sub: 'Mean gross salary' },
         { cls: 'blue',   icon: '💵', label: 'Avg Net per Employee',  value: fmtKES(avgNet),            sub: 'Mean net pay' },
