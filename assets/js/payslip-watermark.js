@@ -112,6 +112,21 @@ function recordPayslipActivity(supabase, isLoggedIn) {
   }
 }
 
+/**
+ * Fire-and-forget: bumps the site-wide daily payslip counter regardless of
+ * login state (bump_site_activity has no identity requirement). This is
+ * what captures total payslip generation across the whole site, including
+ * any free/anonymous download flows.
+ */
+function bumpSitePayslipActivity(supabase) {
+  if (typeof supabase?.rpc !== "function") return;
+  try {
+    supabase.rpc("bump_site_activity", { p_event_type: "payslip" }).catch(() => {});
+  } catch (_) {
+    // Never let analytics tracking break the payslip download.
+  }
+}
+
 // ── PNG download trigger ──────────────────────────────────────────────────────
 
 function downloadCanvas(canvas, filename) {
@@ -305,6 +320,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
         window.__SC_PREOPENED_PRINT_WINDOW = preOpenedPrintWindow;
       }
       recordPayslipActivity(supabase, status.isLoggedIn);
+      bumpSitePayslipActivity(supabase);
       // Premium: clean print via existing function
       if (typeof window.printPayslip === "function") {
         window.printPayslip();
@@ -342,6 +358,7 @@ export async function initPayslipDownload(supabase, opts = {}) {
 
       downloadCanvas(canvas, filename);
       recordPayslipActivity(supabase, status.isLoggedIn);
+      bumpSitePayslipActivity(supabase);
       // Show expiry-aware upgrade modal for users with an expired premium
       const hasExpired = !!(status.premiumExpiresAt && new Date(status.premiumExpiresAt) < new Date());
       const expiredOn  = hasExpired ? getPremiumExpiry({ premium_expires_at: status.premiumExpiresAt }) : null;

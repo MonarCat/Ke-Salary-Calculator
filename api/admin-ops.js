@@ -273,6 +273,53 @@ export default async function handler(req, res) {
           result.analytics.yearly_plan_revenue_kes  = 0;
         }
 
+        // Site-wide activity totals (calculations, payslips, PDF downloads),
+        // captured regardless of login state via bump_site_activity() --
+        // this site allows calculating without an account, so a per-user
+        // count alone would miss most real usage. Falls back to the
+        // per-user sums already in `result.analytics` (from buildAnalytics)
+        // if this table is unavailable for any reason, rather than showing
+        // a hard error on the whole dashboard.
+        try {
+          const { data: activityRows, error: activityErr } = await admin
+            .from('site_activity_daily')
+            .select('event_type, count');
+          if (activityErr) throw activityErr;
+
+          const totals = { calculation: 0, payslip: 0, pdf_download: 0 };
+          for (const row of activityRows || []) {
+            if (row.event_type in totals) totals[row.event_type] += Number(row.count || 0);
+          }
+          result.analytics.site_total_calculations = totals.calculation;
+          result.analytics.site_total_payslips      = totals.payslip;
+          result.analytics.site_total_pdf_downloads = totals.pdf_download;
+        } catch (activityErr) {
+          if (!isMissingRelationOrSchemaCacheError(activityErr)) {
+            console.error('[admin-ops] site activity query failed:', activityErr);
+          }
+          result.analytics.site_total_calculations = result.analytics.total_calculations || 0;
+          result.analytics.site_total_payslips      = result.analytics.total_payslips || 0;
+          result.analytics.site_total_pdf_downloads = 0;
+        }
+
+        // Real poll participants: the authentic per-voter log, not the
+        // poll_votes aggregate cache (which was found to include seeded
+        // starter counts on nearly every option -- confirmed by comparing
+        // it against this table directly, off by close to +1 per option
+        // in almost every case). This is the honest number.
+        try {
+          const { count: pollCount, error: pollErr } = await admin
+            .from('poll_participants')
+            .select('*', { count: 'exact', head: true });
+          if (pollErr) throw pollErr;
+          result.analytics.total_poll_participants = pollCount || 0;
+        } catch (pollErr) {
+          if (!isMissingRelationOrSchemaCacheError(pollErr)) {
+            console.error('[admin-ops] poll participants query failed:', pollErr);
+          }
+          result.analytics.total_poll_participants = 0;
+        }
+
         return res.json(result);
       }
 
