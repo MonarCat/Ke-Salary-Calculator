@@ -1910,6 +1910,7 @@
                 pagebreak:   { mode: ['avoid-all', 'css', 'legacy'], avoid: ['#payslip-document', '.payslip-a4', '.ps-section', '.ps-table'] }
             };
             html2pdf().set(opt).from(element).save();
+            try { window.supabaseClient?.rpc('bump_site_activity', { p_event_type: 'pdf_download' }); } catch (_) {}
         }
 
         // Backward compatibility for existing button handlers

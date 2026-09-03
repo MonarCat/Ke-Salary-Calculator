@@ -220,6 +220,21 @@ function recordUserActivity(action) {
     }
 }
 
+// Site-wide activity counter -- unlike recordUserActivity above, this fires
+// unconditionally regardless of login state, since bump_site_activity() has
+// no identity requirement at all. This is what actually captures total site
+// activity: calculating doesn't require an account on this site, so most
+// real usage would be invisible to a per-user counter alone.
+function bumpSiteActivity(eventType) {
+    try {
+        const client = window.supabaseClient;
+        if (!client || typeof client.rpc !== 'function') return;
+        client.rpc('bump_site_activity', { p_event_type: eventType }).catch(() => {});
+    } catch (_) {
+        // Never let analytics tracking break the calculator.
+    }
+}
+
 // Salary Calculator Functions
 function calculateSalary() {
     const grossPay = parseFloat(document.getElementById('grossPay').value) || 0;
@@ -253,6 +268,7 @@ function calculateSalary() {
 
     document.getElementById('results').style.display = 'block';
     recordUserActivity('calculation');
+    bumpSiteActivity('calculation');
     renderDeductionsChart('deductionsChart', paye, nssf, shif, housingLevy, netPay);
 
     // Voluntary / additional deductions

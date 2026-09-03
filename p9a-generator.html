@@ -1004,6 +1004,7 @@
                 await html2pdf().set(opt).from(printTarget).save();
                 printTarget.remove();
                 showStatus('✅ PDF downloaded successfully.', true);
+                try { window.supabaseClient?.rpc('bump_site_activity', { p_event_type: 'pdf_download' }); } catch (_) {}
             } catch (err) {
                 console.error('PDF generation failed:', err);
                 showStatus('Failed to generate PDF. Please try again.', false);
