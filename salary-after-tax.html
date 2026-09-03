@@ -246,7 +246,7 @@
 
     function satCalcFrom(gross) {
         const nssf = satNSSF(gross);
-        const shif = gross * SAT_RATES.shifRate;
+        const shif = Math.max(gross * SAT_RATES.shifRate, 300);
         const levy = gross * SAT_RATES.housingLevyRate;
         const taxable = gross - nssf - shif - levy;
         const paye = satPAYE(taxable);

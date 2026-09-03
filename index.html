@@ -1722,7 +1722,7 @@
             const gross = parseFloat(document.getElementById('miniGross').value) || 0;
             if (gross <= 0) { document.getElementById('miniResult').style.display = 'none'; return; }
             const nssf = miniCalcNSSF(gross);
-            const shif = gross * MINI_RATES.shifRate;
+            const shif = Math.max(gross * MINI_RATES.shifRate, 300);
             const levy = gross * MINI_RATES.housingLevyRate;
             const taxable = gross - nssf - shif - levy;
             const paye = miniCalcPAYE(taxable);

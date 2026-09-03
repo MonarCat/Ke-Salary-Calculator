@@ -251,7 +251,7 @@ function calculateSalary() {
 
     const nssf = calculateNSSF(grossPay, rates);
     const housingLevy = totalIncome * rates.housingLevyRate;
-    const shif = totalIncome * rates.shifRate;
+    const shif = Math.max(totalIncome * rates.shifRate, 300);
 
     const deductionsBeforeTax = nssf + housingLevy + shif;
     const taxablePay = totalIncome - deductionsBeforeTax;
@@ -312,7 +312,7 @@ function calculateSalary() {
 
     // Employer cost section
     const empNssf = nssf; // employer matches employee NSSF
-    const empShif = totalIncome * rates.shifRate;
+    const empShif = Math.max(totalIncome * rates.shifRate, 300);
     const empLevy = totalIncome * rates.housingLevyRate;
     const totalCostToCompany = totalIncome + empNssf + empShif + empLevy;
 
@@ -374,7 +374,7 @@ function calculateNSSF(grossPay, rates) {
 
 function calculateSHIF(grossPay, rates) {
     if (!rates) rates = getRates('2026');
-    return grossPay * rates.shifRate;
+    return Math.max(grossPay * rates.shifRate, 300);
 }
 
 function calculateHousingLevy(grossPay, rates) {
@@ -462,7 +462,7 @@ function calculateGrossUp() {
     for (let i = 0; i < MAX_BINARY_SEARCH_ITERATIONS; i++) {
         const mid = (lo + hi) / 2;
         const nssf = calculateNSSF(mid, rates);
-        const shif = mid * rates.shifRate;
+        const shif = Math.max(mid * rates.shifRate, 300);
         const levy = mid * rates.housingLevyRate;
         const taxable = mid - nssf - shif - levy;
         const paye = calculatePAYE(taxable, rates);
@@ -473,7 +473,7 @@ function calculateGrossUp() {
 
     const gross = (lo + hi) / 2;
     const nssf = calculateNSSF(gross, rates);
-    const shif = gross * rates.shifRate;
+    const shif = Math.max(gross * rates.shifRate, 300);
     const levy = gross * rates.housingLevyRate;
     const taxable = gross - nssf - shif - levy;
     const paye = calculatePAYE(taxable, rates);
@@ -511,7 +511,7 @@ function compareSalaries() {
 
     function calcBreakdown(gross) {
         const nssf = calculateNSSF(gross, rates);
-        const shif = gross * rates.shifRate;
+        const shif = Math.max(gross * rates.shifRate, 300);
         const levy = gross * rates.housingLevyRate;
         const taxable = gross - nssf - shif - levy;
         const paye = calculatePAYE(taxable, rates);
