@@ -1,56 +1,14 @@
 // Tax rates by year
+// Rate tables now live in assets/js/salary-engine.js (window.SalaryEngine),
+// the single shared source of truth also used by 9 other pages. This file
+// used to carry its own full copy of TAX_RATES, which is how the KES
+// 3,800.10 PAYE band-base bug had to be hotfixed here separately from the
+// shared engine (see commit 0779e03). getRates() below just forwards to it.
 function debounce(fn, delay) {
     let t;
     return function() { clearTimeout(t); t = setTimeout(fn, delay); };
 }
 const calculateSalaryDebounced = debounce(calculateSalary, 300);
-const TAX_RATES = {
-    '2026': {
-        label: 'Rates updated Feb 2026 — NSSF Phase 4',
-        personalRelief: 2400,
-        nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
-        shifRate: 0.0275,
-        housingLevyRate: 0.015,
-        payeBands: [
-            { limit: 24000, rate: 0.10, base: 0 },
-            { limit: 32333, rate: 0.25, base: 2400 },
-            { limit: 500000, rate: 0.30, base: 4483.25 },
-            { limit: 800000, rate: 0.325, base: 144783.35 },
-            { limit: Infinity, rate: 0.35, base: 242283.35 },
-        ],
-        payePrev: [24000, 32333, 500000, 800000]
-    },
-    '2025': {
-        label: 'Rates updated Feb 2025',
-        personalRelief: 2400,
-        nssfLower: 8000, nssfUpper: 72000, nssfRate: 0.06,
-        shifRate: 0.0275,
-        housingLevyRate: 0.015,
-        payeBands: [
-            { limit: 24000, rate: 0.10, base: 0 },
-            { limit: 32333, rate: 0.25, base: 2400 },
-            { limit: 500000, rate: 0.30, base: 4483.25 },
-            { limit: 800000, rate: 0.325, base: 144783.35 },
-            { limit: Infinity, rate: 0.35, base: 242283.35 },
-        ],
-        payePrev: [24000, 32333, 500000, 800000]
-    },
-    '2024': {
-        label: 'Rates 2024',
-        personalRelief: 2400,
-        nssfLower: 7000, nssfUpper: 36000, nssfRate: 0.06,
-        shifRate: 0.0275,
-        housingLevyRate: 0.015,
-        payeBands: [
-            { limit: 24000, rate: 0.10, base: 0 },
-            { limit: 32333, rate: 0.25, base: 2400 },
-            { limit: 500000, rate: 0.30, base: 4483.25 },
-            { limit: 800000, rate: 0.325, base: 144783.35 },
-            { limit: Infinity, rate: 0.35, base: 242283.35 },
-        ],
-        payePrev: [24000, 32333, 500000, 800000]
-    }
-};
 
 function getSelectedYear(selectId) {
     const el = document.getElementById(selectId);
@@ -58,7 +16,7 @@ function getSelectedYear(selectId) {
 }
 
 function getRates(year) {
-    return TAX_RATES[year] || TAX_RATES['2026'];
+    return window.SalaryEngine.getRates(year);
 }
 
 // Tab functionality
@@ -350,38 +308,22 @@ function calculateSalary() {
 
 function calculatePAYE(taxablePay, rates) {
     if (!rates) rates = getRates('2026');
-    const bands = rates.payeBands;
-    let paye = 0;
-    for (let i = 0; i < bands.length; i++) {
-        const lower = i === 0 ? 0 : bands[i - 1].limit;
-        if (taxablePay > lower) {
-            paye = bands[i].base + (taxablePay - lower) * bands[i].rate;
-        }
-        if (taxablePay <= bands[i].limit) break;
-    }
-    return Math.max(paye - rates.personalRelief, 0);
+    return window.SalaryEngine.calculatePAYE(taxablePay, 0, rates.personalRelief, rates);
 }
 
 function calculateNSSF(grossPay, rates) {
     if (!rates) rates = getRates('2026');
-    const lowerLimit = rates.nssfLower;
-    const upperLimit = rates.nssfUpper;
-    const tier1 = Math.min(grossPay, lowerLimit) * rates.nssfRate;
-    if (grossPay > lowerLimit) {
-        const capped = Math.min(grossPay, upperLimit);
-        return tier1 + ((capped - lowerLimit) * rates.nssfRate);
-    }
-    return tier1;
+    return window.SalaryEngine.calculateNSSF(grossPay, rates);
 }
 
 function calculateSHIF(grossPay, rates) {
     if (!rates) rates = getRates('2026');
-    return Math.max(grossPay * rates.shifRate, 300);
+    return window.SalaryEngine.calculateSHIF(grossPay, rates);
 }
 
 function calculateHousingLevy(grossPay, rates) {
     if (!rates) rates = getRates('2026');
-    return grossPay * rates.housingLevyRate;
+    return window.SalaryEngine.calculateHousingLevy(grossPay, rates);
 }
 
 function displayResults(taxablePay, paye, nssf, shif, housingLevy, personalRelief, netPay) {

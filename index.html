@@ -1680,57 +1680,28 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js"></script>
     <script>
         // ── Mini Calculator ──────────────────────────────────────────────────
+        // Delegates to the shared engine (assets/js/salary-engine.js) rather
+        // than keeping its own copy of the tax tables -- this file's own
+        // copy is exactly what had to be hotfixed separately when the KES
+        // 3,800.10 PAYE band-base bug was found (see commit 0779e03).
         function debounce(fn, delay) {
             var t;
             return function() { clearTimeout(t); t = setTimeout(fn, delay); };
         }
-        const MINI_RATES = {            personalRelief: 2400,
-            nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
-            shifRate: 0.0275, housingLevyRate: 0.015,
-            payeBands: [
-                { limit: 24000, rate: 0.10, base: 0 },
-                { limit: 32333, rate: 0.25, base: 2400 },
-                { limit: 500000, rate: 0.30, base: 4483.25 },
-                { limit: 800000, rate: 0.325, base: 144783.35 },
-                { limit: Infinity, rate: 0.35, base: 242283.35 }
-            ],
-            payePrev: [24000, 32333, 500000, 800000]
-        };
         function miniFormatKES(n) {
             return 'KES ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        }
-        function miniCalcNSSF(gross) {
-            const tier1 = Math.min(gross, MINI_RATES.nssfLower) * MINI_RATES.nssfRate;
-            if (gross > MINI_RATES.nssfLower) {
-                return tier1 + (Math.min(gross, MINI_RATES.nssfUpper) - MINI_RATES.nssfLower) * MINI_RATES.nssfRate;
-            }
-            return tier1;
-        }
-        function miniCalcPAYE(taxable) {
-            const b = MINI_RATES.payeBands, p = MINI_RATES.payePrev;
-            let paye = 0;
-            if (taxable <= p[0])       paye = taxable * b[0].rate;
-            else if (taxable <= p[1])  paye = b[1].base + (taxable - p[0]) * b[1].rate;
-            else if (taxable <= p[2])  paye = b[2].base + (taxable - p[1]) * b[2].rate;
-            else if (taxable <= p[3])  paye = b[3].base + (taxable - p[2]) * b[3].rate;
-            else                       paye = b[4].base + (taxable - p[3]) * b[4].rate;
-            return Math.max(paye - MINI_RATES.personalRelief, 0);
         }
         function miniCalc() {
             const gross = parseFloat(document.getElementById('miniGross').value) || 0;
             if (gross <= 0) { document.getElementById('miniResult').style.display = 'none'; return; }
-            const nssf = miniCalcNSSF(gross);
-            const shif = Math.max(gross * MINI_RATES.shifRate, 300);
-            const levy = gross * MINI_RATES.housingLevyRate;
-            const taxable = gross - nssf - shif - levy;
-            const paye = miniCalcPAYE(taxable);
-            const net = gross - paye - nssf - shif - levy;
-            document.getElementById('miniNet').textContent  = miniFormatKES(Math.max(net, 0));
-            document.getElementById('miniPaye').textContent = miniFormatKES(paye);
-            document.getElementById('miniNssf').textContent = miniFormatKES(nssf);
-                        document.getElementById('miniOther').textContent = miniFormatKES(shif + levy);
+            const d = window.SalaryEngine.calculateDeductions(gross, { year: '2026' });
+            document.getElementById('miniNet').textContent  = miniFormatKES(Math.max(d.netSalary, 0));
+            document.getElementById('miniPaye').textContent = miniFormatKES(d.paye);
+            document.getElementById('miniNssf').textContent = miniFormatKES(d.nssf);
+            document.getElementById('miniOther').textContent = miniFormatKES(d.shif + d.housingLevy);
             document.getElementById('miniResult').style.display = 'block';
         }
         const miniCalcDebounced = debounce(miniCalc, 300);
