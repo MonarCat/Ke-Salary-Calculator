@@ -269,6 +269,7 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js?v=2.0"></script>
     <script>
     (function() {
         if (localStorage.getItem('darkMode') === 'on') document.body.classList.add('dark-mode');
@@ -294,23 +295,13 @@
     };
 
     // Kenya 2025/2026 tax calculation
+    // Delegates to the shared engine (assets/js/salary-engine.js) instead of its
+    // own Math.min(gross*0.06, 6480) NSSF shortcut and hardcoded PAYE band
+    // widths. Verified mathematically equivalent before migrating.
     function calcBreakdown(gross) {
-        const nssf = Math.min(gross * 0.06, 6480);
-        const shif = +Math.max(gross * 0.0275, 300).toFixed(0);
-        const hl   = +(gross * 0.015).toFixed(0);
-        const taxable = Math.max(0, gross - nssf - shif - hl);
-        let paye = 0;
-        if (taxable > 0) {
-            const bands = [[24000,0.10],[8333,0.25],[467667,0.30],[300000,0.325],[Infinity,0.35]];
-            let rem = taxable;
-            for (const [size, rate] of bands) {
-                if (rem <= 0) break;
-                paye += Math.min(rem, size) * rate;
-                rem -= size;
-            }
-            paye = Math.max(0, paye - 2400);
-        }
-        paye = Math.round(paye);
+        const r = window.SalaryEngine.calculateDeductions(gross, {});
+        const paye = Math.round(r.paye);
+        const nssf = r.nssf, shif = +r.shif.toFixed(0), hl = +r.housingLevy.toFixed(0);
         const totalDeductions = nssf + shif + hl + paye;
         const net = gross - totalDeductions;
         const effRate = (totalDeductions / gross * 100);
