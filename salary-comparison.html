@@ -209,6 +209,54 @@
                 </p>
             </div>
 
+            <!-- Compare Two Job Offers -->
+            <div class="sc-form-card" id="job_offer_compare" style="margin-top:22px;">
+                <h2 style="margin-top:0;"><i class="fas fa-balance-scale"></i> Compare Two Job Offers</h2>
+                <p style="color:#555; margin-top:-6px;">Weighing two offers? Enter both gross salaries to see the full net-pay breakdown side by side.</p>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div class="sc-form-group">
+                        <label for="offerA_label"><i class="fas fa-tag"></i> Offer A Label (optional)</label>
+                        <input type="text" id="offerA_label" placeholder="e.g. Company A" maxlength="40">
+                        <label for="offerA_gross" style="margin-top:10px;"><i class="fas fa-money-bill-wave"></i> Offer A Gross Salary (KES)</label>
+                        <input type="number" id="offerA_gross" placeholder="e.g. 120000" min="1" step="1000">
+                    </div>
+                    <div class="sc-form-group">
+                        <label for="offerB_label"><i class="fas fa-tag"></i> Offer B Label (optional)</label>
+                        <input type="text" id="offerB_label" placeholder="e.g. Company B" maxlength="40">
+                        <label for="offerB_gross" style="margin-top:10px;"><i class="fas fa-money-bill-wave"></i> Offer B Gross Salary (KES)</label>
+                        <input type="number" id="offerB_gross" placeholder="e.g. 135000" min="1" step="1000">
+                    </div>
+                </div>
+                <button class="sc-btn" style="margin-top:16px;" onclick="runOfferComparison()">
+                    <i class="fas fa-balance-scale"></i> Compare Offers
+                </button>
+
+                <div id="offer_compare_results" style="display:none; margin-top:20px;">
+                    <div id="offer_compare_verdict" style="text-align:center; background:linear-gradient(135deg, #006600, #009900); color:white; border-radius:12px; padding:18px 20px; margin-bottom:18px; font-size:1.1em; font-weight:700;"></div>
+                    <div style="overflow-x:auto;">
+                        <table class="breakdown-table" style="width:100%; min-width:480px;">
+                            <thead>
+                                <tr>
+                                    <th>Item (Monthly, KES)</th>
+                                    <th id="offerA_th">Offer A</th>
+                                    <th id="offerB_th">Offer B</th>
+                                    <th>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Gross Salary</td><td id="cmpGrossA"></td><td id="cmpGrossB"></td><td id="cmpGrossDiff"></td></tr>
+                                <tr class="deduction-row"><td>PAYE</td><td id="cmpPayeA"></td><td id="cmpPayeB"></td><td id="cmpPayeDiff"></td></tr>
+                                <tr class="deduction-row"><td>NSSF</td><td id="cmpNssfA"></td><td id="cmpNssfB"></td><td id="cmpNssfDiff"></td></tr>
+                                <tr class="deduction-row"><td>SHIF</td><td id="cmpShifA"></td><td id="cmpShifB"></td><td id="cmpShifDiff"></td></tr>
+                                <tr class="deduction-row"><td>Housing Levy</td><td id="cmpHlA"></td><td id="cmpHlB"></td><td id="cmpHlDiff"></td></tr>
+                                <tr class="net-row"><td><strong>Net Take-Home Pay</strong></td><td id="cmpNetA"><strong></strong></td><td id="cmpNetB"><strong></strong></td><td id="cmpNetDiff"><strong></strong></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="color:#777; font-size:0.85em; margin-top:10px;">This compares gross-for-gross take-home pay only. It doesn't account for benefits, bonuses, allowances, pension top-ups, or cost-of-living differences between roles — factor those in separately.</p>
+                </div>
+            </div>
+
             <!-- Methodology -->
             
 <div class="info-section">
@@ -382,7 +430,73 @@
         document.getElementById('sc_salary').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') runComparison();
         });
+        document.getElementById('offerA_gross').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') runOfferComparison();
+        });
+        document.getElementById('offerB_gross').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') runOfferComparison();
+        });
     });
+
+    // ── Compare Two Job Offers ──────────────────────────────────────────────
+    function fmtKESSigned(n) {
+        const sign = n > 0 ? '+' : (n < 0 ? '−' : '');
+        return sign + 'KES ' + Math.abs(Math.round(n)).toLocaleString('en-KE');
+    }
+
+    function runOfferComparison() {
+        const grossA = parseFloat(document.getElementById('offerA_gross').value) || 0;
+        const grossB = parseFloat(document.getElementById('offerB_gross').value) || 0;
+        const resultsDiv = document.getElementById('offer_compare_results');
+
+        if (grossA <= 0 || grossB <= 0) {
+            resultsDiv.style.display = 'none';
+            alert('Enter a gross salary for both offers to compare them.');
+            return;
+        }
+        if (!window.SalaryEngine) {
+            alert('The comparison engine is still loading — please try again in a moment.');
+            return;
+        }
+
+        const labelA = (document.getElementById('offerA_label').value || 'Offer A').trim();
+        const labelB = (document.getElementById('offerB_label').value || 'Offer B').trim();
+        document.getElementById('offerA_th').textContent = labelA;
+        document.getElementById('offerB_th').textContent = labelB;
+
+        const a = window.SalaryEngine.calculateDeductions(grossA, {});
+        const b = window.SalaryEngine.calculateDeductions(grossB, {});
+
+        const fmt = (n) => 'KES ' + Math.round(n).toLocaleString('en-KE');
+        const rows = [
+            ['cmpGross', a.gross, b.gross],
+            ['cmpPaye', a.paye, b.paye],
+            ['cmpNssf', a.nssf, b.nssf],
+            ['cmpShif', a.shif, b.shif],
+            ['cmpHl', a.housingLevy, b.housingLevy],
+            ['cmpNet', a.netSalary, b.netSalary],
+        ];
+        rows.forEach(([id, valA, valB]) => {
+            document.getElementById(id + 'A').textContent = fmt(valA);
+            document.getElementById(id + 'B').textContent = fmt(valB);
+            document.getElementById(id + 'Diff').textContent = fmtKESSigned(valB - valA);
+        });
+
+        const netDiff = b.netSalary - a.netSalary;
+        const verdictEl = document.getElementById('offer_compare_verdict');
+        if (Math.abs(netDiff) < 1) {
+            verdictEl.textContent = `${labelA} and ${labelB} pay almost identical net take-home (within KES 1).`;
+        } else {
+            const better = netDiff > 0 ? labelB : labelA;
+            const worse = netDiff > 0 ? labelA : labelB;
+            const diffAbs = Math.abs(netDiff);
+            const pctOfWorse = worse === labelA ? (diffAbs / a.netSalary * 100) : (diffAbs / b.netSalary * 100);
+            verdictEl.textContent = `${better} pays ${fmt(diffAbs)}/month more net (${pctOfWorse.toFixed(1)}% higher take-home) than ${worse}.`;
+        }
+
+        resultsDiv.style.display = 'block';
+        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
     </script>
     <!-- Kazi Chatbot -->
     <script src="/assets/js/disclaimer-banner.js"></script>
