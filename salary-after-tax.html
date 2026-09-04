@@ -210,49 +210,23 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js?v=2.0"></script>
     <script>
     // ── Tax Calculation (Kenya 2025/2026 rates) ─────────────────────────────
-    const SAT_RATES = {
-        personalRelief: 2400,
-        nssfLower: 9000, nssfUpper: 108000, nssfRate: 0.06,
-        shifRate: 0.0275, housingLevyRate: 0.015,
-        payeBands: [
-            { limit: 24000,   rate: 0.10,  base: 0         },
-            { limit: 32333,   rate: 0.25,  base: 2400      },
-            { limit: 500000,  rate: 0.30,  base: 4483.25   },
-            { limit: 800000,  rate: 0.325, base: 140983.25 },
-            { limit: Infinity,rate: 0.35,  base: 238483.25 },
-        ]
-    };
-
-    function satNSSF(gross) {
-        const r = SAT_RATES;
-        const t1 = Math.min(gross, r.nssfLower) * r.nssfRate;
-        if (gross > r.nssfLower) return t1 + (Math.min(gross, r.nssfUpper) - r.nssfLower) * r.nssfRate;
-        return t1;
-    }
-    function satPAYE(taxable) {
-        const bands = SAT_RATES.payeBands;
-        let paye = 0;
-        for (let i = 0; i < bands.length; i++) {
-            const lower = i === 0 ? 0 : bands[i - 1].limit;
-            if (taxable > lower) paye = bands[i].base + (taxable - lower) * bands[i].rate;
-            if (taxable <= bands[i].limit) break;
-        }
-        return Math.max(paye - SAT_RATES.personalRelief, 0);
-    }
+    // Delegates to the shared engine (assets/js/salary-engine.js) instead of
+    // keeping its own copy of SAT_RATES / satNSSF / satPAYE — this page's own
+    // NSSF/SHIF/PAYE constants were exactly the kind of duplication that let
+    // the NSSF Phase 4 threshold go stale without anyone noticing.
     function satFmt(n) { return 'KES ' + Math.round(n).toLocaleString('en-KE'); }
     function satFmtNum(n) { return Math.round(n).toLocaleString('en-KE'); }
 
     function satCalcFrom(gross) {
-        const nssf = satNSSF(gross);
-        const shif = Math.max(gross * SAT_RATES.shifRate, 300);
-        const levy = gross * SAT_RATES.housingLevyRate;
-        const taxable = gross - nssf - shif - levy;
-        const paye = satPAYE(taxable);
-        const net = gross - paye - nssf - shif - levy;
-        const totalDed = paye + nssf + shif + levy;
-        return { gross, nssf, shif, levy, paye, net, totalDed, relief: SAT_RATES.personalRelief };
+        const r = window.SalaryEngine.calculateDeductions(gross, {});
+        return {
+            gross: r.gross, nssf: r.nssf, shif: r.shif, levy: r.housingLevy,
+            paye: r.paye, net: r.netSalary, totalDed: r.totalStatutory,
+            relief: window.SalaryEngine.RATES_2026.personalRelief
+        };
     }
 
     function satCalc() {
