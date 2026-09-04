@@ -229,27 +229,19 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js?v=2.0"></script>
     <script>
     // ── Country Configurations ───────────────────────────────────────────────
     const COUNTRIES = {
         ke: {
             name: 'Kenya', currency: 'KES', flag: '🇰🇪',
             calc(gross) {
-                const nssfLow = 9000, nssfUp = 108000, nssfRate = 0.06;
-                const t1 = Math.min(gross, nssfLow) * nssfRate;
-                const nssf = gross > nssfLow ? t1 + (Math.min(gross, nssfUp) - nssfLow) * nssfRate : t1;
-                const shif = Math.max(gross * 0.0275, 300);
-                const levy = gross * 0.015;
-                const taxable = gross - nssf - shif - levy;
-                const bands = [[24000,0.10,0],[32333,0.25,2400],[500000,0.30,4483.25],[800000,0.325,140983.25],[Infinity,0.35,238483.25]];
-                let paye = 0;
-                for (let i = 0; i < bands.length; i++) {
-                    const lower = i === 0 ? 0 : bands[i-1][0];
-                    if (taxable > lower) paye = bands[i][2] + (taxable - lower) * bands[i][1];
-                    if (taxable <= bands[i][0]) break;
-                }
-                paye = Math.max(paye - 2400, 0);
-                const net = gross - paye - nssf - shif - levy;
+                // Delegates to the shared engine (assets/js/salary-engine.js) rather than
+                // duplicating NSSF/SHIF/PAYE constants here. This file used to carry its
+                // own copy of the tax bands, which is exactly the pattern that let the
+                // NSSF Phase 4 threshold go stale in several places at once.
+                const r = window.SalaryEngine.calculateDeductions(gross, {});
+                const { paye, nssf, shif, housingLevy: levy, netSalary: net } = r;
                 return {
                     rows: [
                         { label: 'Gross Salary', value: gross },

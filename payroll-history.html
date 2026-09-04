@@ -447,6 +447,7 @@
     <script src="assets/js/auth.js?v=2.0"></script>
     <script src="assets/js/plan-features.js?v=1.1"></script>
     <script src="/assets/js/disclaimer-banner.js"></script>
+    <script src="assets/js/salary-engine.js?v=2.0"></script>
     <script>
     // ── Helpers ───────────────────────────────────────────────────────────────
     function fmtKES(v) {
@@ -455,38 +456,14 @@
         });
     }
 
+    // Delegates to the shared engine (assets/js/salary-engine.js) instead of the
+    // page's own copy of the NSSF/SHIF/PAYE constants — this exact duplication
+    // (identical to the copy in payroll-report.html) is what let the NSSF
+    // Phase 4 threshold go stale here without anyone noticing.
     function calcDeductions(gross) {
         gross = Number(gross) || 0;
-        const nssfLower = 9000, nssfUpper = 108000, nssfRate = 0.06;
-        const shifRate = 0.0275, ahlRate = 0.015;
-        const personalRelief = 2400;
-        const payeBands = [
-            { limit: 24000,    rate: 0.10,  base: 0          },
-            { limit: 32333,    rate: 0.25,  base: 2400        },
-            { limit: 500000,   rate: 0.30,  base: 4483.25     },
-            { limit: 800000,   rate: 0.325, base: 140983.25   },
-            { limit: Infinity, rate: 0.35,  base: 238483.25   },
-        ];
-        const prev = [24000, 32333, 500000, 800000];
-
-        const tier1 = Math.min(gross, nssfLower) * nssfRate;
-        const nssf  = gross > nssfLower
-            ? tier1 + (Math.min(gross, nssfUpper) - nssfLower) * nssfRate
-            : tier1;
-        const shif  = Math.max(gross * shifRate, 300);
-        const ahl   = gross * ahlRate;
-        const taxable = gross - nssf - shif - ahl;
-
-        let rawPaye = 0;
-        if      (taxable <= prev[0]) rawPaye = taxable * payeBands[0].rate;
-        else if (taxable <= prev[1]) rawPaye = payeBands[1].base + (taxable - prev[0]) * payeBands[1].rate;
-        else if (taxable <= prev[2]) rawPaye = payeBands[2].base + (taxable - prev[1]) * payeBands[2].rate;
-        else if (taxable <= prev[3]) rawPaye = payeBands[3].base + (taxable - prev[2]) * payeBands[3].rate;
-        else                         rawPaye = payeBands[4].base + (taxable - prev[3]) * payeBands[4].rate;
-
-        const paye = Math.max(rawPaye - personalRelief, 0);
-        const net  = gross - paye - nssf - shif - ahl;
-        return { paye, nssf, shif, ahl, net };
+        const r = window.SalaryEngine.calculateDeductions(gross, {});
+        return { paye: r.paye, nssf: r.nssf, shif: r.shif, ahl: r.housingLevy, net: r.netSalary };
     }
 
     function monthLabel(ym) {
