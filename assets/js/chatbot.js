@@ -54,7 +54,7 @@
         },
         {
             tags: ['job salaries', 'salary by job', 'doctor salary', 'engineer salary', 'teacher salary', 'salary list', 'job salary'],
-            answer: "We have detailed salary pages for many Kenyan jobs! Explore them on our <a href='/salary-index.html' target='_blank'>Salary Index</a>.\n\nPopular pages:\n• <a href='/salary/doctor-kenya.html' target='_blank'>Doctor Salary in Kenya</a>\n• <a href='/salary/police-officer-kenya.html' target='_blank'>Police Officer Salary</a>\n• <a href='/salary/software-engineer-kenya.html' target='_blank'>Software Engineer Salary</a>"
+            answer: "See how gross-to-net pay breaks down across salary levels on our <a href='/salary-index.html' target='_blank'>Salary Index</a> — a sortable table covering KES 20,000 to 500,000."
         },
         {
             tags: ['salary raise', 'raise calculator', 'increment calculator', 'salary increase'],

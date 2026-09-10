@@ -52,12 +52,44 @@
 
             <h1>PAYE Calculator Kenya</h1>
 
-            <!-- AdSense Header Banner -->
+            <!-- The tool itself, immediately -->
+            <div class="input-section">
+                <div class="sat-input-row">
+                    <div class="form-group" style="flex:1; min-width:200px;">
+                        <label for="payeGross">Gross Monthly Salary (KES)</label>
+                        <input type="number" id="payeGross" placeholder="e.g. 80000" oninput="payeCalc()" min="0" autofocus>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payeResults" style="display:none;">
+                <div class="sat-summary">
+                    <div class="sat-summary-card">
+                        <div class="label">Taxable Pay</div>
+                        <div class="value" id="payeDispTaxable">—</div>
+                    </div>
+                    <div class="sat-summary-card">
+                        <div class="label">Personal Relief</div>
+                        <div class="value" id="payeDispRelief">—</div>
+                    </div>
+                    <div class="sat-summary-card net">
+                        <div class="label">PAYE Due</div>
+                        <div class="value" id="payeDispPaye">—</div>
+                    </div>
+                </div>
+                <p style="text-align:center; color:#555; font-size:0.9em;">Taxable pay here is gross salary minus NSSF, SHIF, and Housing Levy — for the full breakdown including net take-home pay, <a href="/salary-after-tax.html" style="color:#006600; font-weight:bold;">use the Salary After Tax calculator</a>.</p>
+            </div>
+
+            <p style="text-align:center; margin:6px 0 20px;">
+                <a href="/calculator.html" style="color:#006600; font-weight:bold;">
+                    <i class="fas fa-calculator"></i> Need pension, mortgage, HELB or insurance relief factored in too? Use the full calculator →
+                </a>
+            </p>
 
             <!-- Content Section -->
             <div class="intro-section">
                 <p>PAYE (Pay As You Earn) is income tax deducted from salaries in Kenya under KRA regulations. This PAYE calculator helps you accurately compute tax based on current PAYE tax bands and personal relief.</p>
-                
+
                 <p><strong>The calculator:</strong></p>
                 <ul>
                     <li>Applies progressive PAYE rates</li>
@@ -65,15 +97,8 @@
                     <li>Works for monthly salaries</li>
                     <li>Shows exact tax payable</li>
                 </ul>
-                
-                <p>This tool is ideal for employees verifying payslips and employers running payroll.</p>
-            </div>
 
-            <!-- Link to Main Calculator -->
-            <div class="info-section">
-                <h2>Calculate Your PAYE Now</h2>
-                <p>Use our comprehensive salary calculator to compute your PAYE along with other statutory deductions.</p>
-                <a href="/" class="button-link">Go to Salary Calculator</a>
+                <p>This tool is ideal for employees verifying payslips and employers running payroll.</p>
             </div>
 
             <!-- Additional Information -->
@@ -83,7 +108,9 @@
                 <ul>
                     <li>Up to KES 24,000: 10%</li>
                     <li>KES 24,001 - 32,333: 25%</li>
-                    <li>KES 32,334 and above: 30%</li>
+                    <li>KES 32,334 - 500,000: 30%</li>
+                    <li>KES 500,001 - 800,000: 32.5%</li>
+                    <li>Above KES 800,000: 35%</li>
                 </ul>
                 <p>Additionally, all employees receive a personal relief of KES 2,400 per month, which is deducted from the calculated PAYE tax.</p>
             </div>
@@ -249,6 +276,23 @@
     <script src="assets/js/nav-toggle.js?v=2.0"></script>
     <script src="assets/js/supabase-config.js?v=2.0"></script>
     <script src="assets/js/auth.js?v=2.0"></script>
+    <script src="assets/js/salary-engine.js?v=2.0"></script>
+    <script>
+    // Delegates to the shared engine (assets/js/salary-engine.js) rather than
+    // duplicating tax logic here -- this page previously had no calculator
+    // at all, just a link out to the homepage.
+    function payeFmt(n) { return 'KES ' + Math.round(n).toLocaleString('en-KE'); }
+
+    function payeCalc() {
+        const gross = parseFloat(document.getElementById('payeGross').value) || 0;
+        if (gross <= 0) { document.getElementById('payeResults').style.display = 'none'; return; }
+        const r = window.SalaryEngine.calculateDeductions(gross, {});
+        document.getElementById('payeDispTaxable').textContent = payeFmt(r.taxablePay);
+        document.getElementById('payeDispRelief').textContent  = payeFmt(window.SalaryEngine.RATES_2026.personalRelief);
+        document.getElementById('payeDispPaye').textContent    = payeFmt(r.paye);
+        document.getElementById('payeResults').style.display = 'block';
+    }
+    </script>
     <!-- Kazi Chatbot -->
     <script src="/assets/js/disclaimer-banner.js"></script>
 </body>
