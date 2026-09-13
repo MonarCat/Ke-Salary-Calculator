@@ -347,8 +347,8 @@ export async function initPayslipDownload(supabase, opts = {}) {
 
       drawWatermark(canvas);
 
-      const employeeName = document.getElementById("slipName")?.textContent?.trim() || "payslip";
-      const period       = document.getElementById("slipPeriod")?.textContent?.trim() || "";
+      const employeeName = document.getElementById("ps-emp-name")?.textContent?.trim() || "payslip";
+      const period       = document.getElementById("ps-display-period")?.textContent?.trim() || "";
       const rawFilename  = `payslip-SAMPLE-${employeeName}-${period}`
         .toLowerCase()
         .replace(/[^a-z0-9\-_.]/g, "-")

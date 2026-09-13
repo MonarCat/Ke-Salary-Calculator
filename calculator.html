@@ -901,6 +901,16 @@
                 <!-- Payslip form shown to authenticated users -->
                 <div id="payslip-form-content">
                 <div class="input-section">
+                    <div class="form-group" id="payslipEmployeeSelectGroup" style="display:none;">
+                        <label for="payslipEmployeeSelect"><i class="fas fa-users"></i> Employee</label>
+                        <select id="payslipEmployeeSelect" onchange="applySelectedPayslipEmployee()">
+                            <option value="">— Enter details manually —</option>
+                        </select>
+                    </div>
+                    <p id="payslipNoEmployeesHint" style="display:none; font-size:0.85em; color:#666; margin:-6px 0 12px;">
+                        No saved employees yet. <a href="/employees.html">Add employees</a> to pick from this list next time — or just fill in the details below.
+                    </p>
+
                     <div class="form-group">
                         <label for="employeeName">Employee Name</label>
                         <input type="text" id="employeeName" placeholder="John Doe">
@@ -914,6 +924,10 @@
                         <label for="kraPin">KRA PIN</label>
                         <input type="text" id="kraPin" placeholder="A012345678F">
                     </div>
+                    <div class="form-group">
+                        <label for="payslipDepartment">Department</label>
+                        <input type="text" id="payslipDepartment" placeholder="e.g. Finance">
+                    </div>
 
                     <div class="form-group">
                         <label for="payPeriod">Pay Period</label>
@@ -924,6 +938,36 @@
                         <label for="grossPaySlip">Gross Salary (KES)</label>
                         <input type="number" id="grossPaySlip" placeholder="e.g. 50000">
                     </div>
+
+                    <details style="margin-bottom:10px;">
+                        <summary style="cursor:pointer; color:#006600; font-weight:600; font-size:0.95em; padding:6px 0;">
+                            <i class="fas fa-building"></i> Company Details (auto-filled from your organisation profile, if saved)
+                        </summary>
+                        <div style="margin-top:8px;">
+                            <div class="form-group">
+                                <label for="logoUpload">Company Logo</label>
+                                <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="handleLogoUpload()">
+                                <button type="button" onclick="document.getElementById('logoUpload').click()">Upload Logo</button>
+                                <img id="companyLogo" src="" style="display: none; max-width: 60px; max-height: 60px; vertical-align:middle; margin-left:8px;">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyName">Organization Name</label>
+                                <input type="text" id="companyName" placeholder="Organization Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyAddress">Address</label>
+                                <input type="text" id="companyAddress" placeholder="P.O. Box, City">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyKra">Company KRA PIN</label>
+                                <input type="text" id="companyKra" placeholder="P012345678N">
+                            </div>
+                            <div class="form-group">
+                                <label for="companyContacts">Contacts</label>
+                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.co.ke">
+                            </div>
+                        </div>
+                    </details>
 
                     <details style="margin-bottom:10px;">
                         <summary style="cursor:pointer; color:#006600; font-weight:600; font-size:0.95em; padding:6px 0;">
@@ -942,153 +986,21 @@
                                 <label for="insuranceDeductionInput">Insurance Premium (KES)</label>
                                 <input type="number" id="insuranceDeductionInput" placeholder="0.00" min="0">
                             </div>
+                            <div class="form-group">
+                                <label for="loanDeductionValue">Loan Deduction (KES)</label>
+                                <input type="number" id="loanDeductionValue" placeholder="0.00" min="0">
+                            </div>
                         </div>
                     </details>
 
                     <button onclick="generatePayslip()">Generate Payslip</button>
                 </div>
 
-                <div id="payslipOutput" class="payslip-container" style="display: none;">
-                    <div class="payslip-header">
-                        <div class="company-branding">
-                            <div class="logo-placeholder">
-                                <input type="file" id="logoUpload" accept="image/*" style="display: none;" onchange="handleLogoUpload()">
-                                <button onclick="document.getElementById('logoUpload').click()">Upload<br> Logo</button>
-                                <img id="companyLogo" src="" style="display: none; max-width: 80px; max-height: 80px;">
-                            </div>
-                            <div class="company-info">
-                                <input type="text" id="companyName" placeholder="Organization Name" class="company-name-input">
-                                <input type="text" id="companyAddress" placeholder="P.O. Box, City" class="company-detail-input">
-                                <input type="text" id="companyKra" placeholder="P012345678N" class="company-detail-input">
-                                <input type="text" id="companyContacts" placeholder="Tel: 020-XXXXXXX | Email: info@org.co.ke" class="company-detail-input">
-                            </div>
-                        </div>
-                        <h2>PAYSLIP</h2>
-                        <div class="payslip-meta">
-                            <div class="meta-item">
-                                <span>Pay Period:</span>
-                                <span id="slipPeriod"></span>
-                            </div>
-                            <div class="meta-item">
-                                <span>Payslip No:</span>
-                                <span><input type="text" id="payslipNumber" placeholder="PSL-XXXX"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payslip-body">
-                        <div class="employee-details">
-                            <div class="detail-row">
-                                <span>Employee Name:</span>
-                                <span id="slipName" class="detail-value"></span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Employee No:</span>
-                                <span id="slipID" class="detail-value"></span>
-                            </div>
-                            <div class="detail-row">
-                                <span>KRA PIN:</span>
-                                <span id="slipPin" class="detail-value"></span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Department:</span>
-                                <span><input type="text" id="department" placeholder="Department" class="editable-field"></span>
-                            </div>
-                        </div>
-
-                        <div class="earnings-deductions">
-                            <div class="earnings-section">
-                                <h3>EARNINGS</h3>
-                                <table class="payslip-table">
-                                    <tr>
-                                        <th>Description</th>
-                                        <th>Amount (KES)</th>
-                                    </tr>
-                                    <tr>
-                                        <td>Basic Salary</td>
-                                        <td id="slipGross"></td>
-                                    </tr>
-                                </table>
-                            </div>
-
-                            <div class="deductions-section">
-                                <h3>DEDUCTIONS</h3>
-                                <table class="payslip-table">
-                                    <tr>
-                                        <th>Description</th>
-                                        <th>Amount (KES)</th>
-                                    </tr>
-                                    <tr>
-                                        <td>PAYE</td>
-                                        <td id="slipPAYE"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>NSSF</td>
-                                        <td id="slipNSSF"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>SHIF</td>
-                                        <td id="slipSHIF"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Housing Levy</td>
-                                        <td id="slipAHL"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Loan Deduction</td>
-                                        <td><input type="number" id="loanDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
-                                    </tr>
-                                    <tr id="saccoRow" style="display:none;">
-                                        <td>SACCO Loan</td>
-                                        <td><input type="number" id="saccoDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
-                                    </tr>
-                                    <tr id="pensionRow" style="display:none;">
-                                        <td>Pension Scheme</td>
-                                        <td><input type="number" id="pensionDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
-                                    </tr>
-                                    <tr id="insuranceRow" style="display:none;">
-                                        <td>Insurance Premium</td>
-                                        <td><input type="number" id="insuranceDeduction" placeholder="0.00" class="editable-field" onchange="updateDeductions()"></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="summary-section">
-                            <table class="summary-table">
-                                <tr>
-                                    <th>TOTAL EARNINGS</th>
-                                    <td id="slipGrossSummary"></td>
-                                </tr>
-                                <tr>
-                                    <th>TOTAL DEDUCTIONS</th>
-                                    <td id="slipDeductionsSummary"></td>
-                                </tr>
-                                <tr class="net-pay-row">
-                                    <th>NET PAY</th>
-                                    <td id="slipNet"></td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="signature-section">
-                            <div class="signature-line"></div>
-                            <div class="signature-labels">
-                                <div class="signature-input">
-                                    <input type="text" placeholder="Prepared by" class="signature-field">
-                                </div>
-                                <div class="signature-input">
-                                    <input type="text" placeholder="Approved by" class="signature-field">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="payslip-footer">
-                        <p>This is a computer generated payslip and does not require a signature</p>
-                    </div>
-
-                    <div class="payslip-actions">
+                <!-- Populated at runtime with PayslipTemplate.markup() -- the same
+                     template used by Employee Management, so both pages render an
+                     identical payslip instead of two hand-maintained copies. -->
+                <div id="payslipOutput" style="display: none;">
+                    <div class="payslip-actions" style="margin-bottom:10px;">
                         <button onclick="resetPayslip()" class="no-print">Reset</button>
                         <button id="payslip-print-btn" class="no-print">Print/Download</button>
                     </div>
@@ -1126,6 +1038,7 @@
     <script src="assets/js/auth.js?v=2.0"></script>
     <script src="assets/js/script.js?v=2.0"></script>
     <script src="assets/js/salary-engine.js"></script>
+    <script src="assets/js/payslip-template.js"></script>
     <script src="assets/js/format-utils.js"></script>
     <!-- Advanced deductions panel: compute tax savings from advanced inputs -->
     <script>
