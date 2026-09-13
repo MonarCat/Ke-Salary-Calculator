@@ -133,11 +133,63 @@
     if (activeLink) {
       var parentDropdown = activeLink.closest('.nav-dropdown');
       if (parentDropdown) {
-        parentDropdown.classList.add('open');
+        // Mark which nav section the current page belongs to, but do NOT
+        // add 'open' here -- that class also drives the dropdown's
+        // expanded/visible state (see .nav-dropdown.open in styles.css and
+        // the click-toggle logic in nav-toggle.js), so doing so was forcing
+        // the menu to render open and cover the page's own content on
+        // every load of a page nested under a dropdown (e.g. calculator.html
+        // under "Calculators"). The active leaf link itself is already
+        // highlighted via the .active class added above.
         var toggle = parentDropdown.querySelector('.nav-dropdown-toggle');
-        if (toggle) toggle.classList.add('active');
+        if (toggle) toggle.classList.add('current-section');
       }
     }
+  }
+
+  // The header's banner ad slot reserves layout space (see .sc-ad-slot in
+  // css/ads.css) for whichever ad should show there, but nothing was ever
+  // wired up to either fill it or mark it empty -- so it sat there as dead
+  // space on every single page load, pushing real content down. This fills
+  // it when a currently-active booking exists for the 'banner' slot, and
+  // collapses it (via the existing data-ad-state="empty" CSS rule) when one
+  // doesn't, instead of leaving the reserved space stranded either way.
+  function fillOrCollapseAdSlot(root) {
+    var slotEl = root.querySelector('.sc-ad-slot[data-ad-slot="banner"]');
+    if (!slotEl) return;
+
+    if (typeof supabaseClient === 'undefined' || !supabaseClient ||
+        typeof isSupabaseConfigured !== 'function' || !isSupabaseConfigured()) {
+      slotEl.setAttribute('data-ad-state', 'empty');
+      return;
+    }
+
+    supabaseClient
+      .from('ad_bookings')
+      .select('advertiser_name, creative_url, click_url')
+      .eq('slot_id', 'banner')
+      .order('weight', { ascending: false })
+      .limit(1)
+      .then(function (res) {
+        var booking = res && res.data && res.data[0];
+        if (!booking || !booking.creative_url || !booking.click_url) {
+          slotEl.setAttribute('data-ad-state', 'empty');
+          return;
+        }
+        var isVideo = /\.(mp4|webm)(\?|$)/i.test(booking.creative_url);
+        var mediaHtml = isVideo
+          ? '<video class="sc-ad-video" src="' + booking.creative_url + '" autoplay muted loop playsinline></video>'
+          : '<img class="sc-ad-image" src="' + booking.creative_url + '" alt="' + (booking.advertiser_name || 'Advertisement') + '" loading="lazy">';
+        slotEl.innerHTML =
+          '<div class="sc-ad-banner">' +
+          '<span class="sc-ad-label">Advertisement</span>' +
+          '<a class="sc-ad-link" href="' + booking.click_url + '" target="_blank" rel="noopener sponsored">' + mediaHtml + '</a>' +
+          '</div>';
+        slotEl.setAttribute('data-ad-state', 'filled');
+      })
+      .catch(function () {
+        slotEl.setAttribute('data-ad-state', 'empty');
+      });
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -146,6 +198,7 @@
       headerMount.innerHTML = HEADER_HTML;
       updateTaxYearLabels(headerMount);
       applyActiveNavState(headerMount);
+      fillOrCollapseAdSlot(headerMount);
     }
 
     var footerMount = document.getElementById('site-footer');
