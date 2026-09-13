@@ -69,7 +69,7 @@ async function prefillEmployerProfileFromSupabase() {
         if (!session) return;
         const { data, error } = await supabaseClient
             .from('employers')
-            .select('organization_name, organization_kra_pin, county, physical_address, postal_address, contact_email, contact_phone')
+            .select('organization_name, organization_kra_pin, county, physical_address, postal_address, contact_email, contact_phone, registration_number, nssf_number, nhif_number, logo_url')
             .eq('user_id', session.user.id)
             .maybeSingle();
         if (error || !data) return;
@@ -80,9 +80,14 @@ async function prefillEmployerProfileFromSupabase() {
             address: address,
             county: data.county || '',
             email: data.contact_email || '',
-            phone: data.contact_phone || ''
+            phone: data.contact_phone || '',
+            registrationNo: data.registration_number || '',
+            nssfNo: data.nssf_number || '',
+            shifNo: data.nhif_number || '',
+            logo_url: data.logo_url || ''
         };
         localStorage.setItem('employerProfile', JSON.stringify(profile));
+        window.__SC_LAST_EMPLOYER_PROFILE = profile;
         applyEmployerProfileToPayslip(profile, true);
     } catch (e) {
         // Fail silently – table may not exist
@@ -136,7 +141,12 @@ async function openPayslipTab() {
     // Attempt to load employer profile from Supabase if not already cached
     await prefillEmployerProfileFromSupabase();
     const cachedProfile = await getCachedEmployerProfile();
-    if (cachedProfile) applyEmployerProfileToPayslip(cachedProfile, true);
+    if (cachedProfile) {
+        applyEmployerProfileToPayslip(cachedProfile, true);
+        window.__SC_LAST_EMPLOYER_PROFILE = window.__SC_LAST_EMPLOYER_PROFILE || cachedProfile;
+    }
+    // Load saved employees, if any, so the user can pick one instead of typing
+    await loadPayslipEmployees();
 }
 
 // Open the Gross-Up Calculator tab with an auth check.
@@ -550,35 +560,93 @@ function getCurrentDocumentPreparer() {
     return '';
 }
 
+// ── Saved-employee picker ──────────────────────────────────────────────────
+// Lets the Payslip Generator read from Employee Management's saved records
+// when available, while still allowing a fully manual entry when it isn't.
+
+let payslipSavedEmployees = [];
+
+function _payslipEmployeeFromRow(row) {
+    return {
+        id: row.id,
+        name: row.employee_name,
+        employeeId: row.employee_id,
+        kraPin: row.kra_pin || '',
+        department: row.department || '',
+        position: row.position || '',
+        salary: row.gross_salary || 0,
+        allowances: row.allowances || 0,
+        bankName: row.bank_name || '',
+        bankBranch: row.bank_branch || '',
+        accountNumber: row.account_number || ''
+    };
+}
+
+async function loadPayslipEmployees() {
+    const selectGroup = document.getElementById('payslipEmployeeSelectGroup');
+    const select = document.getElementById('payslipEmployeeSelect');
+    const hint = document.getElementById('payslipNoEmployeesHint');
+    if (!select) return;
+
+    if (typeof supabaseClient === 'undefined' || !supabaseClient ||
+        typeof isSupabaseConfigured !== 'function' || !isSupabaseConfigured()) return;
+
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) return;
+        const { data, error } = await supabaseClient
+            .from('employees')
+            .select('*')
+            .eq('employer_id', session.user.id)
+            .order('created_at', { ascending: true });
+        if (error || !data) return;
+
+        payslipSavedEmployees = data.map(_payslipEmployeeFromRow);
+
+        while (select.options.length > 1) select.remove(1);
+        payslipSavedEmployees.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp.id;
+            opt.textContent = emp.name + (emp.employeeId ? ' (' + emp.employeeId + ')' : '');
+            select.appendChild(opt);
+        });
+
+        if (payslipSavedEmployees.length > 0) {
+            if (selectGroup) selectGroup.style.display = 'block';
+            if (hint) hint.style.display = 'none';
+        } else {
+            if (selectGroup) selectGroup.style.display = 'none';
+            if (hint) hint.style.display = 'block';
+        }
+    } catch (e) {
+        // Employees table unavailable or query failed -- leave manual entry as the only path
+    }
+}
+
+function applySelectedPayslipEmployee() {
+    const select = document.getElementById('payslipEmployeeSelect');
+    if (!select) return;
+    const emp = payslipSavedEmployees.find(e => String(e.id) === String(select.value));
+    if (!emp) return; // "Enter details manually" selected -- leave fields as-is
+
+    document.getElementById('employeeName').value = emp.name || '';
+    document.getElementById('employeeID').value = emp.employeeId || '';
+    document.getElementById('kraPin').value = emp.kraPin || '';
+    document.getElementById('payslipDepartment').value = emp.department || '';
+    document.getElementById('grossPaySlip').value = (Number(emp.salary) || 0) + (Number(emp.allowances) || 0);
+}
+
 function generatePayslip() {
     const name = document.getElementById('employeeName').value;
     const id = document.getElementById('employeeID').value;
     const pin = document.getElementById('kraPin').value;
+    const department = document.getElementById('payslipDepartment').value;
     const period = document.getElementById('payPeriod').value;
     const gross = parseFloat(document.getElementById('grossPaySlip').value) || 0;
-    const company = document.getElementById('companyName').value || "Organization Name";
-    const companyAddress = document.getElementById('companyAddress').value || "";
-    const companyKra = document.getElementById('companyKra').value || "";
-    const companyContacts = document.getElementById('companyContacts').value || "";
-    const department = document.getElementById('department').value || "";
-    const payslipNumber = document.getElementById('payslipNumber').value || "";
-    const loanDeduction = parseFloat(document.getElementById('loanDeduction').value) || 0;
-    // Read from the form input fields
+    const otherDed = parseFloat(document.getElementById('loanDeductionValue')?.value) || 0;
     const saccoDeduction = parseFloat(document.getElementById('saccoDeductionInput').value) || 0;
     const pensionDeduction = parseFloat(document.getElementById('pensionDeductionInput').value) || 0;
     const insuranceDeduction = parseFloat(document.getElementById('insuranceDeductionInput').value) || 0;
-
-    // Copy values into payslip editable fields so user can adjust on the slip
-    const saccoSlipEl = document.getElementById('saccoDeduction');
-    const pensionSlipEl = document.getElementById('pensionDeduction');
-    const insuranceSlipEl = document.getElementById('insuranceDeduction');
-    if (saccoSlipEl) saccoSlipEl.value = saccoDeduction > 0 ? saccoDeduction : '';
-    if (pensionSlipEl) pensionSlipEl.value = pensionDeduction > 0 ? pensionDeduction : '';
-    if (insuranceSlipEl) insuranceSlipEl.value = insuranceDeduction > 0 ? insuranceDeduction : '';
-
-    localStorage.setItem('employeeData', JSON.stringify({
-    name, id, pin, period, gross, department, payslipNumber
-}));
 
     const pinRegex = /^[A-Z]{1}\d{9}[A-Z]{1}$/;
     if (pin && !pinRegex.test(pin)) {
@@ -586,46 +654,53 @@ function generatePayslip() {
         return;
     }
 
-    const nssf = calculateNSSF(gross);
-    const shif = calculateSHIF(gross);
-    const ahl = calculateHousingLevy(gross);
-    const taxable = gross - nssf - shif - ahl;
-    const paye = calculatePAYE(taxable);
-    const totalDeductions = nssf + shif + ahl + paye + loanDeduction + saccoDeduction + pensionDeduction + insuranceDeduction;
-    const net = gross - totalDeductions;
+    localStorage.setItem('employeeData', JSON.stringify({ name, id, pin, period, gross, department }));
 
-    // Update display
-    document.getElementById('slipName').textContent = name;
-    document.getElementById('slipID').textContent = id;
-    document.getElementById('slipPin').textContent = pin;
-    document.getElementById('slipPeriod').textContent = period;
-    document.getElementById('slipGross').textContent = formatKES(gross);
-    document.getElementById('slipNSSF').textContent = formatKES(nssf);
-    document.getElementById('slipSHIF').textContent = formatKES(shif);
-    document.getElementById('slipAHL').textContent = formatKES(ahl);
-    document.getElementById('slipPAYE').textContent = formatKES(paye);
-    document.getElementById('slipNet').textContent = formatKES(net);
-    document.getElementById('slipGrossSummary').textContent = formatKES(gross);
-    document.getElementById('slipDeductionsSummary').textContent = formatKES(totalDeductions);
-
-    // Show/hide optional deduction rows
-    const saccoRow = document.getElementById('saccoRow');
-    const pensionRow = document.getElementById('pensionRow');
-    const insuranceRow = document.getElementById('insuranceRow');
-    if (saccoRow) saccoRow.style.display = saccoDeduction > 0 ? 'table-row' : 'none';
-    if (pensionRow) pensionRow.style.display = pensionDeduction > 0 ? 'table-row' : 'none';
-    if (insuranceRow) insuranceRow.style.display = insuranceDeduction > 0 ? 'table-row' : 'none';
-
-    // Update company header
-    const header = document.querySelector('.payslip-header h2');
-    if (header) {
-        header.textContent = company ? `${company.toUpperCase()} - PAYSLIP` : "PAYSLIP";
+    // Render the shared A4 template (same one used by Employee Management)
+    const mount = document.getElementById('payslipOutput');
+    if (!mount.querySelector('#payslip-document')) {
+        mount.insertAdjacentHTML('afterbegin', PayslipTemplate.markup());
     }
 
-    const signatureFields = document.querySelectorAll('.signature-field');
-    const autoPreparer = getCurrentDocumentPreparer();
-    if (signatureFields[0] && !signatureFields[0].value && autoPreparer) {
-        signatureFields[0].value = autoPreparer;
+    const select = document.getElementById('payslipEmployeeSelect');
+    const selectedEmp = select && payslipSavedEmployees.find(e => String(e.id) === String(select.value));
+
+    const companyProfile = {
+        name: document.getElementById('companyName').value,
+        address: document.getElementById('companyAddress').value,
+        kraPin: document.getElementById('companyKra').value,
+        // Registration/NSSF/SHIF numbers and logo come from the saved organisation
+        // profile when available (see getCachedEmployerProfile); there's no
+        // separate manual input for them here to keep this form short.
+        registrationNo: window.__SC_LAST_EMPLOYER_PROFILE?.registrationNo,
+        nssfNo: window.__SC_LAST_EMPLOYER_PROFILE?.nssfNo,
+        shifNo: window.__SC_LAST_EMPLOYER_PROFILE?.shifNo,
+        logo_url: window.__SC_LAST_EMPLOYER_PROFILE?.logo_url,
+    };
+    const contacts = document.getElementById('companyContacts').value || '';
+    const [emailPart, phonePart] = contacts.split('|').map(s => (s || '').trim());
+    companyProfile.email = emailPart && emailPart.includes('@') ? emailPart.replace(/^Email:\s*/i, '') : '';
+    companyProfile.phone = phonePart ? phonePart.replace(/^Tel:\s*/i, '') : (emailPart && !emailPart.includes('@') ? emailPart.replace(/^Tel:\s*/i, '') : '');
+    PayslipTemplate.applyProfile(companyProfile);
+
+    const payslipNo = 'PS-' + Date.now().toString().slice(-6);
+    PayslipTemplate.fillEmployee({
+        name, employeeId: id, kraPin: pin, department,
+        bankName: selectedEmp?.bankName, bankBranch: selectedEmp?.bankBranch, accountNumber: selectedEmp?.accountNumber
+    }, { period, payslipNo });
+
+    PayslipTemplate.renderPreview({
+        basic: gross, house: 0, transport: 0, otherAllow: 0,
+        sacco: saccoDeduction, pension: pensionDeduction, insurance: insuranceDeduction,
+        otherDed: otherDed, otherDedLabel: 'Loan Deduction',
+        period, payslipNo
+    });
+    document.getElementById('ps-display-period').textContent = period || '—';
+
+    const preparer = getCurrentDocumentPreparer();
+    if (preparer) {
+        const preparedCell = document.querySelector('.ps-signatures div:first-child p');
+        if (preparedCell) preparedCell.textContent = 'Prepared By: ' + preparer;
     }
 
     document.getElementById('payslipOutput').style.display = 'block';
@@ -635,14 +710,15 @@ function generatePayslip() {
 function handleLogoUpload() {
     const fileInput = document.getElementById('logoUpload');
     const file = fileInput.files[0];
-    
+
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const logoImg = document.getElementById('companyLogo');
             logoImg.src = e.target.result;
             logoImg.style.display = 'block';
-            document.querySelector('.logo-placeholder button').style.display = 'none';
+            const psLogo = document.getElementById('ps-company-logo');
+            if (psLogo) { psLogo.src = e.target.result; psLogo.style.display = 'block'; }
         };
         reader.readAsDataURL(file);
     }
@@ -651,195 +727,30 @@ function handleLogoUpload() {
 // Print Function — opens a clean new window so the print preview works correctly
 function printPayslip() {
     const payslipEl = document.getElementById('payslipOutput');
-    if (!payslipEl || payslipEl.style.display === 'none') {
+    const docEl = document.getElementById('payslip-document');
+    if (!payslipEl || payslipEl.style.display === 'none' || !docEl) {
         alert('Please generate a payslip first.');
         return;
     }
 
-    // Collect all current values
-    const company        = (document.getElementById('companyName').value        || 'Organization Name').toUpperCase();
-    const companyAddress = document.getElementById('companyAddress').value      || '';
-    const companyKra     = document.getElementById('companyKra').value          || '';
-    const companyContacts= document.getElementById('companyContacts').value     || '';
-    const payslipNumber  = document.getElementById('payslipNumber').value       || '';
-    const department     = document.getElementById('department').value          || '';
-    const sigFields      = document.querySelectorAll('.signature-field');
-    const preparedBy     = sigFields[0] ? sigFields[0].value : '';
-    const approvedBy     = sigFields[1] ? sigFields[1].value : '';
-    const logoImg        = document.getElementById('companyLogo');
-    const logoSrc        = (logoImg && logoImg.style.display !== 'none') ? logoImg.src : '';
+    const name = document.getElementById('ps-emp-name')?.textContent || 'employee';
 
-    const period         = document.getElementById('slipPeriod').textContent;
-    const name           = document.getElementById('slipName').textContent;
-    const empId          = document.getElementById('slipID').textContent;
-    const pin            = document.getElementById('slipPin').textContent;
-    const gross          = document.getElementById('slipGross').textContent;
-    const paye           = document.getElementById('slipPAYE').textContent;
-    const nssf           = document.getElementById('slipNSSF').textContent;
-    const shif           = document.getElementById('slipSHIF').textContent;
-    const ahl            = document.getElementById('slipAHL').textContent;
-    const totalEarnings  = document.getElementById('slipGrossSummary').textContent;
-    const totalDeductions= document.getElementById('slipDeductionsSummary').textContent;
-    const netPay         = document.getElementById('slipNet').textContent;
-    const generatedAt    = new Date().toLocaleString('en-KE', {
-        day: '2-digit', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
-    const preparedByLabel = preparedBy || getCurrentDocumentPreparer() || 'System Generated';
-    const approvedByLabel = approvedBy || 'Approved by';
-
-    const loanVal   = parseFloat(document.getElementById('loanDeduction').value)   || 0;
-    const saccoRow  = document.getElementById('saccoRow');
-    const saccoVal  = parseFloat(document.getElementById('saccoDeduction') ? document.getElementById('saccoDeduction').value : 0) || 0;
-    const pensionRow= document.getElementById('pensionRow');
-    const pensionVal= parseFloat(document.getElementById('pensionDeduction') ? document.getElementById('pensionDeduction').value : 0) || 0;
-    const insRow    = document.getElementById('insuranceRow');
-    const insVal    = parseFloat(document.getElementById('insuranceDeduction') ? document.getElementById('insuranceDeduction').value : 0) || 0;
-
-    function fmtRow(label, val, row) {
-        if (!val || (row && row.style.display === 'none')) return '';
-        return `<tr><td>${label}</td><td>${val.toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>`;
-    }
-
-    function esc(v) {
-        return String(v || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
+    // Print the exact same rendered node the user is looking at -- the same
+    // template Employee Management uses -- instead of maintaining a second,
+    // separately-styled print layout that can drift out of sync with it.
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Payslip – ${name}</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
-@page{size:A5 portrait;margin:10mm;}
-.wrap{width:100%;max-width:128mm;margin:0 auto;}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #006600;padding-bottom:4mm;margin-bottom:4mm;}
-.hdr-left{display:flex;align-items:flex-start;gap:6px;}
-.logo{max-width:55px;max-height:55px;}
-.co-name{color:#006600;font-size:12pt;font-weight:bold;}
-.co-sub{font-size:7.5pt;color:#555;margin-top:2px;}
-.hdr-right{text-align:right;}
-.hdr-right h1{color:#006600;font-size:15pt;letter-spacing:2px;}
-.hdr-right p{font-size:8pt;color:#666;margin-top:2px;}
-.emp-table{width:100%;border-collapse:collapse;margin-bottom:4mm;font-size:8.5pt;}
-.emp-table td{padding:1.5mm 3mm;}
-.emp-table td:nth-child(odd){font-weight:bold;color:#555;width:28%;}
-.cols{display:flex;gap:4mm;margin-bottom:4mm;}
-.col{flex:1;}
-.sec-hdr{background:#006600;color:#fff;font-size:8.5pt;font-weight:bold;padding:2mm 3mm;}
-.items{width:100%;border-collapse:collapse;font-size:8pt;}
-.items th{background:#f2f2f2;padding:1.5mm 3mm;text-align:left;}
-.items th:last-child,.items td:last-child{text-align:right;}
-.items td{padding:1.5mm 3mm;border-bottom:1px solid #f0f0f0;}
-.summary-wrap{display:flex;justify-content:flex-end;margin-bottom:6mm;}
-.summary{width:55%;border-collapse:collapse;font-size:8.5pt;}
-.summary td{padding:2mm 3mm;}
-.summary td:last-child{text-align:right;}
-.net-row{background:#006600;}
-.net-row td{color:#fff;font-weight:bold;}
-.sigs{display:flex;justify-content:space-around;margin-top:6mm;}
-.sig-box{text-align:center;}
-.sig-line{border-top:1px solid #444;width:48mm;margin:0 auto 2mm;}
-.sig-lbl{font-size:7.5pt;color:#555;}
-.footer{text-align:center;margin-top:5mm;font-size:7pt;color:#999;border-top:1px solid #ddd;padding-top:2mm;}
-.print-btn{text-align:center;margin:12px 0;}
-@media print{.print-btn{display:none;}}
+*{margin:0;padding:0;}
+body{background:#fff;font-family:Arial,sans-serif;}
+${PayslipTemplate.CSS}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hdr">
-    <div class="hdr-left">
-        ${logoSrc ? `<img src="${logoSrc}" class="logo" alt="logo">` : ''}
-      <div>
-        <div class="co-name">${esc(company)}</div>
-        ${companyAddress  ? `<div class="co-sub">${esc(companyAddress)}</div>` : ''}
-        ${companyKra      ? `<div class="co-sub">KRA PIN: ${esc(companyKra)}</div>` : ''}
-        ${companyContacts ? `<div class="co-sub">${esc(companyContacts)}</div>` : ''}
-      </div>
-    </div>
-    <div class="hdr-right">
-      <h1>PAYSLIP</h1>
-      <p>Employee Payslip Statement</p>
-      <p>Period: ${esc(period)}</p>
-      ${payslipNumber ? `<p>No: ${esc(payslipNumber)}</p>` : ''}
-      <p>Generated: ${esc(generatedAt)}</p>
-      <p>Prepared by: ${esc(preparedByLabel)}</p>
-    </div>
-  </div>
-
-  <table class="emp-table">
-    <tr>
-      <td>Employee Name:</td><td>${esc(name)}</td>
-      <td>Department:</td><td>${esc(department || '—')}</td>
-    </tr>
-    <tr>
-      <td>Employee No:</td><td>${esc(empId)}</td>
-      <td>KRA PIN:</td><td>${esc(pin || '—')}</td>
-    </tr>
-  </table>
-
-  <div class="cols">
-    <div class="col">
-      <div class="sec-hdr">EARNINGS</div>
-      <table class="items">
-        <tr><th>Description</th><th>Amount (KES)</th></tr>
-        <tr><td>Basic Salary</td><td>${gross}</td></tr>
-      </table>
-    </div>
-    <div class="col">
-      <div class="sec-hdr">DEDUCTIONS</div>
-      <table class="items">
-        <tr><th>Description</th><th>Amount (KES)</th></tr>
-        <tr><td>PAYE</td><td>${paye}</td></tr>
-        <tr><td>NSSF</td><td>${nssf}</td></tr>
-        <tr><td>SHIF</td><td>${shif}</td></tr>
-        <tr><td>Housing Levy</td><td>${ahl}</td></tr>
-        ${fmtRow('Loan Deduction', loanVal, null)}
-        ${fmtRow('SACCO Loan', saccoVal, saccoRow)}
-        ${fmtRow('Pension Scheme', pensionVal, pensionRow)}
-        ${fmtRow('Insurance Premium', insVal, insRow)}
-      </table>
-    </div>
-  </div>
-
-  <div class="summary-wrap">
-    <table class="summary">
-      <tr><td><strong>TOTAL EARNINGS</strong></td><td>${totalEarnings}</td></tr>
-      <tr><td><strong>TOTAL DEDUCTIONS</strong></td><td>${totalDeductions}</td></tr>
-      <tr class="net-row"><td><strong>NET PAY</strong></td><td><strong>${netPay}</strong></td></tr>
-    </table>
-  </div>
-
-  <div class="sigs">
-    <div class="sig-box">
-      <div class="sig-line"></div>
-      <div class="sig-lbl">${esc(preparedByLabel)}</div>
-    </div>
-    <div class="sig-box">
-      <div class="sig-line"></div>
-      <div class="sig-lbl">${esc(approvedByLabel)}</div>
-    </div>
-  </div>
-
-  <div class="footer">This is a computer-generated payslip and does not require a signature</div>
-
-  <div class="print-btn">
-    <button onclick="window.print()" style="padding:8px 24px;background:#006600;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11pt;margin-right:8px;">
-      🖨️ Print / Save as PDF
-    </button>
-    <button onclick="window.close()" style="padding:8px 18px;background:#888;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11pt;">
-      ✕ Close
-    </button>
-  </div>
-</div>
+${docEl.outerHTML}
 <script>window.onload = function(){ window.print(); };<\/script>
 </body>
 </html>`;
@@ -848,7 +759,7 @@ body{font-family:Arial,sans-serif;font-size:10pt;background:#fff;color:#222;}
     window.__SC_PREOPENED_PRINT_WINDOW = null;
     const pw = (preOpenedWindow && !preOpenedWindow.closed)
         ? preOpenedWindow
-        : window.open('', '_blank', 'width=650,height=850');
+        : window.open('', '_blank', 'width=850,height=1000');
     if (!pw) {
         alert('Pop-ups are blocked. Please allow pop-ups for this site to print the payslip, then try again.');
         return;
@@ -863,78 +774,35 @@ function resetPayslip() {
     document.getElementById('employeeName').value = '';
     document.getElementById('employeeID').value = '';
     document.getElementById('kraPin').value = '';
+    document.getElementById('payslipDepartment').value = '';
     document.getElementById('payPeriod').value = '';
     document.getElementById('grossPaySlip').value = '';
     document.getElementById('companyName').value = '';
     document.getElementById('companyAddress').value = '';
     document.getElementById('companyKra').value = '';
     document.getElementById('companyContacts').value = '';
-    document.getElementById('department').value = '';
-    document.getElementById('payslipNumber').value = '';
-    document.getElementById('loanDeduction').value = '';
-    document.getElementById('saccoDeduction').value = '';
-    document.getElementById('pensionDeduction').value = '';
-    document.getElementById('insuranceDeduction').value = '';
-
-    // Also reset form input deduction fields
+    const loanIn = document.getElementById('loanDeductionValue');
     const saccoIn = document.getElementById('saccoDeductionInput');
     const pensionIn = document.getElementById('pensionDeductionInput');
     const insuranceIn = document.getElementById('insuranceDeductionInput');
+    if (loanIn) loanIn.value = '';
     if (saccoIn) saccoIn.value = '';
     if (pensionIn) pensionIn.value = '';
     if (insuranceIn) insuranceIn.value = '';
 
-    // Hide optional deduction rows
-    const saccoRow = document.getElementById('saccoRow');
-    const pensionRow = document.getElementById('pensionRow');
-    const insuranceRow = document.getElementById('insuranceRow');
-    if (saccoRow) saccoRow.style.display = 'none';
-    if (pensionRow) pensionRow.style.display = 'none';
-    if (insuranceRow) insuranceRow.style.display = 'none';
-
-    const signatureFields = document.querySelectorAll('.signature-field');
-    signatureFields.forEach(field => field.value = '');
+    const employeeSelect = document.getElementById('payslipEmployeeSelect');
+    if (employeeSelect) employeeSelect.value = '';
 
     const logoImg = document.getElementById('companyLogo');
     if (logoImg) {
         logoImg.src = '';
         logoImg.style.display = 'none';
     }
-
-    const uploadBtn = document.querySelector('.logo-placeholder button');
-    if (uploadBtn) {
-        uploadBtn.style.display = 'block';
-    }
+    const psLogo = document.getElementById('ps-company-logo');
+    if (psLogo) { psLogo.src = ''; psLogo.style.display = 'none'; }
 
     document.getElementById('logoUpload').value = '';
     document.getElementById('payslipOutput').style.display = 'none';
-
-    const header = document.querySelector('.payslip-header h2');
-    if (header) header.textContent = 'PAYSLIP';
-
-    document.getElementById('slipGrossSummary').textContent = '';
-    document.getElementById('slipDeductionsSummary').textContent = '';
-}
-
-// Update Deductions Function
-function updateDeductions() {
-    const loanDeduction = parseFloat(document.getElementById('loanDeduction').value) || 0;
-    const saccoDeduction = parseFloat(document.getElementById('saccoDeduction').value) || 0;
-    const pensionDeduction = parseFloat(document.getElementById('pensionDeduction').value) || 0;
-    const insuranceDeduction = parseFloat(document.getElementById('insuranceDeduction').value) || 0;
-    const gross = parseFloat(document.getElementById('grossPaySlip').value) || 0;
-    
-    const nssf = calculateNSSF(gross);
-    const shif = calculateSHIF(gross);
-    const ahl = calculateHousingLevy(gross);
-    const taxable = gross - nssf - shif - ahl;
-    const paye = calculatePAYE(taxable);
-    
-    const totalDeductions = nssf + shif + ahl + paye + loanDeduction + saccoDeduction + pensionDeduction + insuranceDeduction;
-    const net = gross - totalDeductions;
-    
-    document.getElementById('slipNet').textContent = formatKES(net);
-    document.getElementById('slipDeductionsSummary').textContent = formatKES(totalDeductions);
 }
 
 // Helper Functions
@@ -955,15 +823,14 @@ window.onload = async () => {
         openPercentileTab();
     }
     
-    const saved = JSON.parse(localStorage.getItem('employeeData'));
+    const saved = JSON.parse(localStorage.getItem('employeeData') || 'null');
     if (saved) {
-        document.getElementById('employeeName').value = saved.name;
-        document.getElementById('employeeID').value = saved.id;
-        document.getElementById('kraPin').value = saved.pin;
-        document.getElementById('payPeriod').value = saved.period;
-        document.getElementById('grossPaySlip').value = saved.gross;
-        document.getElementById('department').value = saved.department;
-        document.getElementById('payslipNumber').value = saved.payslipNumber;
+        if (document.getElementById('employeeName')) document.getElementById('employeeName').value = saved.name || '';
+        if (document.getElementById('employeeID')) document.getElementById('employeeID').value = saved.id || '';
+        if (document.getElementById('kraPin')) document.getElementById('kraPin').value = saved.pin || '';
+        if (document.getElementById('payPeriod')) document.getElementById('payPeriod').value = saved.period || '';
+        if (document.getElementById('grossPaySlip')) document.getElementById('grossPaySlip').value = saved.gross || '';
+        if (document.getElementById('payslipDepartment')) document.getElementById('payslipDepartment').value = saved.department || '';
     }
 
     // Pre-fill employer / organization details from cached profile
