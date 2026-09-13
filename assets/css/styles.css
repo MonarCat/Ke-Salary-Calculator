@@ -353,6 +353,14 @@ h1::after {
     transform: rotate(180deg);
 }
 
+/* Marks which nav section the current page belongs to (e.g. "Calculators"
+   while on calculator.html), independent of the dropdown's open/closed
+   state -- see applyActiveNavState() in nav-partial.js. */
+.nav-dropdown-toggle.current-section {
+    color: #006600;
+    font-weight: 700;
+}
+
 /* Dropdown Menu */
 .nav-dropdown-menu {
     position: absolute;

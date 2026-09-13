@@ -1143,28 +1143,6 @@
       );
       initEasterGiftBanner(_sbE);
     </script>
-    <script>
-        // Dark mode
-        (function() {
-            if (localStorage.getItem('darkMode') === 'on') {
-                document.body.classList.add('dark-mode');
-            }
-        })();
-        document.addEventListener('DOMContentLoaded', function() {
-            var btn = document.getElementById('darkModeToggle');
-            if (!btn) return;
-            function updateBtn() {
-                var on = document.body.classList.contains('dark-mode');
-                btn.textContent = on ? '☀️ Light' : '🌙 Dark';
-            }
-            updateBtn();
-            btn.addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'on' : 'off');
-                updateBtn();
-            });
-        });
-    </script>
     <!-- Kazi Chatbot -->
     <script src="/assets/js/disclaimer-banner.js"></script>
 </body>

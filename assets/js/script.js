@@ -841,52 +841,15 @@ window.onload = async () => {
     loadCalculationFromURL();
 };
 
-// Navigation dropdown functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle dropdown toggles
-    const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
-    dropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const dropdown = this.closest('.nav-dropdown');
-            
-            // Close other dropdowns
-            document.querySelectorAll('.nav-dropdown').forEach(d => {
-                if (d !== dropdown) {
-                    d.classList.remove('open');
-                }
-            });
-            
-            // Toggle current dropdown
-            dropdown.classList.toggle('open');
-        });
-    });
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.nav-dropdown')) {
-            document.querySelectorAll('.nav-dropdown').forEach(d => {
-                d.classList.remove('open');
-            });
-        }
-    });
-    
-    // Mobile menu toggle
-    const mobileToggle = document.querySelector('.mobile-menu-toggle');
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', function() {
-            const nav = document.querySelector('.main-nav');
-            nav.classList.toggle('mobile-open');
-            // Toggle icon between hamburger and close
-            const icon = mobileToggle.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-bars');
-                icon.classList.toggle('fa-times');
-            }
-        });
-    }
-});
+// Navigation dropdown, outside-click close, and mobile menu toggle are
+// handled once, site-wide, by nav-toggle.js. This file used to carry its
+// own duplicate copy of the exact same wiring; both attached a 'click'
+// listener to the same .nav-dropdown-toggle elements, so a single click
+// toggled the 'open' class on, then immediately back off again in the same
+// event -- the dropdown could never actually stay open on any page that
+// loaded both files (currently just calculator.html, since script.js is
+// calculator-page-specific). Removed rather than fixed in place: there's
+// no reason for this page to have its own copy of shared nav behaviour.
 
 // Generate a shareable URL with calculation parameters
 function generateShareLink(grossPay, allowances, benefits, year, helb, sacco, pension, insurance, childCare, commuter) {
