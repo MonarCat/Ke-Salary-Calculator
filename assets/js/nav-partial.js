@@ -79,7 +79,7 @@
     '    <div id="auth-links" class="auth-links-container"></div>',
     '    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙 Dark</button>',
     '  </nav>',
-    '  <div class="sc-ad-slot" data-ad-slot="banner" aria-live="polite"></div>',
+    '  <div class="sc-ad-slot" data-ad-slot="banner" data-ad-state="empty" aria-live="polite"></div>',
     '  <div class="site-tax-year-badge" style="text-align:center;margin-top:8px;">',
     '    <span class="trust-badge" data-tax-year-label></span>',
     '  </div>',
@@ -150,10 +150,13 @@
   // The header's banner ad slot reserves layout space (see .sc-ad-slot in
   // css/ads.css) for whichever ad should show there, but nothing was ever
   // wired up to either fill it or mark it empty -- so it sat there as dead
-  // space on every single page load, pushing real content down. This fills
-  // it when a currently-active booking exists for the 'banner' slot, and
-  // collapses it (via the existing data-ad-state="empty" CSS rule) when one
-  // doesn't, instead of leaving the reserved space stranded either way.
+  // space on every single page load, pushing real content down. The slot
+  // now starts collapsed by default (data-ad-state="empty" in HEADER_HTML
+  // above) so there's no reserved gap while this runs -- it only expands
+  // if a currently-active booking is actually found for the 'banner' slot.
+  // (An earlier version defaulted to reserved-until-proven-empty instead;
+  // on a slow connection or Supabase cold start, that showed a brief flash
+  // of the same dead space this was meant to remove.)
   function fillOrCollapseAdSlot(root) {
     var slotEl = root.querySelector('.sc-ad-slot[data-ad-slot="banner"]');
     if (!slotEl) return;
