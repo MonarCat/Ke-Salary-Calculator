@@ -136,8 +136,20 @@ async function openPayslipTab() {
     openTab('payslip');
     const formContent = document.getElementById('payslip-form-content');
     const authPrompt  = document.getElementById('payslip-auth-prompt');
-    if (formContent) formContent.style.display = 'block';
-    if (authPrompt)  authPrompt.style.display = 'none';
+    if (!formContent || !authPrompt) return;
+    // This tab is meant to be gated the same way as Gross-Up, Comparison,
+    // and Percentile (see openProtectedTab) -- checked, and this function
+    // was unconditionally showing the form to everyone regardless of
+    // sign-in state, with no auth check at all. Confirmed live: a signed
+    // -out visitor got the full manual-entry payslip form immediately.
+    const isAuthenticated = await checkIsAuthenticated();
+    if (!isAuthenticated) {
+        formContent.style.display = 'none';
+        authPrompt.style.display  = 'block';
+        return;
+    }
+    formContent.style.display = 'block';
+    authPrompt.style.display  = 'none';
     // Attempt to load employer profile from Supabase if not already cached
     await prefillEmployerProfileFromSupabase();
     const cachedProfile = await getCachedEmployerProfile();
