@@ -26,7 +26,7 @@ html {
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Raleway', 'Segoe UI', Arial, sans-serif;
     margin: 0;
     padding: 0;
     color: #333;
@@ -229,6 +229,56 @@ h1::after {
     right: 25%;
     height: 3px;
     background: linear-gradient(to right, #000000, #CC0000, #006600);
+}
+
+/* Heading scale below h1: Raleway carries the rest of the hierarchy, so
+   Oswald (h1's condensed display face) stays reserved for the one biggest
+   heading on a page rather than repeating on every subheading. Nothing here
+   was previously set at this level -- h2/h3/h4 fell back to plain browser
+   defaults, or whatever one-off inline style each page happened to add. */
+h2 {
+    font-family: 'Raleway', 'Segoe UI', Arial, sans-serif;
+    font-weight: 800;
+    color: var(--sc-text);
+    font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.6em;
+}
+
+h3 {
+    font-family: 'Raleway', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--sc-text);
+    font-size: clamp(1.05rem, 1.8vw, 1.22rem);
+    line-height: 1.3;
+    margin: 0 0 0.5em;
+}
+
+h4 {
+    font-family: 'Raleway', 'Segoe UI', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--sc-text);
+    font-size: 1.02rem;
+    line-height: 1.35;
+    margin: 0 0 0.4em;
+}
+
+/* Icon chip: a small, tinted rounded backdrop behind a single icon glyph,
+   used where an icon is standing in for a category or feature (a stat, a
+   tool, a service) rather than acting as a button. Reuses the existing
+   green tokens -- no new colors introduced. */
+.sc-icon-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--sc-green-soft);
+    color: var(--sc-green-strong);
+    font-size: 1.4rem;
+    flex-shrink: 0;
 }
 
 /* Header shell */
@@ -637,19 +687,19 @@ h1::after {
 
 /* Info Sections */
 .info-section {
-    background-color: white;
+    background-color: var(--sc-surface);
     padding: 20px;
     margin: 20px 0;
-    border-radius: 8px;
-    border-left: 4px solid #CC0000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: var(--sc-radius);
+    border-left: 4px solid var(--sc-red);
+    box-shadow: var(--sc-shadow);
+    transition: box-shadow var(--sc-transition), transform var(--sc-transition);
 }
 
 .info-section h2 {
-    color: #006600;
+    color: var(--sc-green);
     margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
+    font-size: clamp(1.15rem, 2.4vw, 1.4rem);
 }
 
 .info-section ul {
