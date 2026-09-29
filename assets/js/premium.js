@@ -257,8 +257,11 @@ export async function openPaystackCheckout({ plan = "yearly", email, onSuccess, 
     },
   };
 
-  // If you've set up recurring plans in Paystack dashboard, add plan code:
-  if (planCode) config.plan = planCode;
+  // NOTE: Do NOT attach a Paystack subscription plan code here. Passing `plan`
+  // restricts checkout to card only. Access duration is granted server-side
+  // from the verified one-off payment (see /api/paystack-verify + webhook).
+  // Explicitly offer every channel enabled on the Paystack account:
+  config.channels = ["card", "mobile_money", "bank", "bank_transfer", "ussd", "qr", "apple_pay"];
 
   const handler = window.PaystackPop.setup(config);
   handler.openIframe();

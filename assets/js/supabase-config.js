@@ -33,7 +33,7 @@ function isSupabaseConfigured() {
 // Replace with your actual Paystack PUBLIC key from:
 //   Paystack Dashboard → Settings → API Keys & Webhooks → Public Key
 // Format: pk_live_xxxxx (production) or pk_test_xxxxx (test/sandbox)
-const PAYSTACK_PUBLIC_KEY = 'pk_live_598132f0ebe09cef45d6f7f7286f87db57f8429e';
+const PAYSTACK_PUBLIC_KEY = 'pk_live_aa3abafdd305e268c8f4c355e04bcb6116f1fef6';
 
 // Paystack subscription amount in the smallest currency unit (kobo/cents).
 // 9900 = KES 99 per month  (1 KES = 100 units)

@@ -84,7 +84,7 @@ const EMAIL_FOOTER = `
       <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid #e5e7eb"></td></tr></table>
     </td></tr>
     <tr><td style="padding-top:18px;font-size:11px;color:#98a2b3;line-height:1.7;text-align:center;font-family:Arial,sans-serif">
-      &copy; 2026 Salary Calculator Kenya. All rights reserved.<br>
+      &copy; 2026 Mikaju Software Solutions. All rights reserved. Nairobi, Kenya.<br>A product of Mikaju Software Solutions<br>
       You are receiving this email because you have an account at salarycalculator.co.ke.<br>
       <a href="https://salarycalculator.co.ke/account.html?unsubscribe=1" style="color:#98a2b3;text-decoration:underline">Unsubscribe</a>
       &nbsp;&middot;&nbsp;

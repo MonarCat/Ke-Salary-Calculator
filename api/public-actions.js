@@ -276,7 +276,7 @@ function buildResetEmailHtml(resetLink) {
             <a href="mailto:${FROM_EMAIL_PWRESET}" style="color:#1a6b3c;text-decoration:none">${FROM_EMAIL_PWRESET}</a>
           </td></tr>
           <tr><td style="padding-top:18px;font-size:11px;color:#98a2b3;line-height:1.7;text-align:center">
-            &copy; ${new Date().getFullYear()} Salary Calculator Kenya. All rights reserved.<br>
+            &copy; ${new Date().getFullYear()} Mikaju Software Solutions. All rights reserved. Nairobi, Kenya.<br>A product of Mikaju Software Solutions<br>
             <a href="${SITE_URL}/privacy-policy.html" style="color:#98a2b3;text-decoration:underline">Privacy Policy</a>
             &nbsp;&middot;&nbsp;
             <a href="${SITE_URL}/terms-of-service.html" style="color:#98a2b3;text-decoration:underline">Terms of Use</a>

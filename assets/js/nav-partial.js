@@ -94,7 +94,7 @@
     '    <a href="/cookie-policy.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Cookie Policy</a> |',
     '    <a href="/contact-us.html" style="color: #006600; text-decoration: none; margin: 0 10px;">Contact Us</a>',
     '  </p>',
-    '  <p>&copy; ' + new Date().getFullYear() + ' Salary Calculator, Thika Road, Nairobi</p>',
+    '  <p>&copy; ' + new Date().getFullYear() + ' Mikaju Software Solutions. All rights reserved. Nairobi, Kenya. A product of Mikaju Software Solutions</p>',
     '</footer>'
   ].join('');
 
