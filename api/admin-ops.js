@@ -25,12 +25,12 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'kesalarycalculator@gmail.com'
 
 // ─── USER LIST COLUMNS ────────────────────────────────────────────────────────
 const USER_LIST_COLUMNS = [
-  'id', 'email', 'full_name', 'premium_expires_at', 'premium_source',
+  'id', 'email', 'full_name', 'premium', 'premium_expires_at', 'premium_source',
   'p9a_access', 'payroll_access', 'calculation_count', 'payslip_count',
   'last_active_at', 'created_at', 'is_banned', 'admin_note',
 ];
 const OPTIONAL_USER_LIST_COLUMNS = new Set([
-  'full_name', 'premium_source', 'p9a_access', 'payroll_access',
+  'full_name', 'premium', 'premium_source', 'p9a_access', 'payroll_access',
   'calculation_count', 'payslip_count', 'last_active_at', 'is_banned', 'admin_note',
 ]);
 
@@ -93,7 +93,7 @@ function buildAnalytics(rows) {
     totalPayslips     += Number(row.payslip_count     || 0);
 
     const premTs    = safeParseDate(row.premium_expires_at);
-    const isPremium = Number.isFinite(premTs) && premTs > nowTs;
+    const isPremium = Number.isFinite(premTs) && premTs > nowTs && row.premium !== false;
     const isExpired = Number.isFinite(premTs) && premTs <= nowTs;
     if (isPremium) premiumUsers++;
     if (isExpired) expiredUsers++;
@@ -350,7 +350,7 @@ export default async function handler(req, res) {
         expires.setDate(expires.getDate() + Number(days));
 
         const { error } = await admin.from('user_profiles').upsert(
-          { id: target.id, email: target.email, premium_expires_at: expires.toISOString(),
+          { id: target.id, email: target.email, premium: true, premium_expires_at: expires.toISOString(),
             premium_source: 'admin', admin_note: note ?? null, p9a_access: true, payroll_access: true },
           { onConflict: 'id' }
         );
@@ -369,7 +369,7 @@ export default async function handler(req, res) {
         expires.setDate(expires.getDate() + Number(days));
 
         const upsertRows = user_ids.map(id => ({
-          id, premium_expires_at: expires.toISOString(),
+          id, premium: true, premium_expires_at: expires.toISOString(),
           premium_source: 'admin', admin_note: note ?? null,
           p9a_access: true, payroll_access: true,
         }));

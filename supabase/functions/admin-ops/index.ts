@@ -245,6 +245,7 @@ serve(async (req) => {
         {
           id: target.id,
           email: target.email,
+          premium: true,
           premium_expires_at: expires.toISOString(),
           premium_source: "admin",
           admin_note: note ?? null,
