@@ -320,6 +320,18 @@ export default async function handler(req, res) {
           result.analytics.total_poll_participants = 0;
         }
 
+        // First-party pageview analytics (views + country of origin).
+        try {
+          const { data: pv, error: pvErr } = await admin.rpc('get_pageview_stats');
+          if (pvErr) throw pvErr;
+          result.analytics.pageviews = pv || null;
+        } catch (pvErr) {
+          if (!isMissingRelationOrSchemaCacheError(pvErr)) {
+            console.error('[admin-ops] pageview stats failed:', pvErr);
+          }
+          result.analytics.pageviews = null;
+        }
+
         return res.json(result);
       }
 

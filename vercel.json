@@ -29,6 +29,7 @@
     { "source": "/api/send-welcome-email", "destination": "/api/send-welcome-email.js" },
     { "source": "/api/feedback-form",    "destination": "/api/public-actions.js?_route=feedback" },
     { "source": "/api/request-password-reset", "destination": "/api/public-actions.js?_route=password-reset" },
+    { "source": "/api/pv",               "destination": "/api/public-actions.js?_route=pageview" },
     { "source": "/ad-click/:id",        "destination": "/api/public-actions.js?_route=ad-click&id=:id" },
     { "source": "/calculator",           "destination": "/calculator.html"          },
     { "source": "/payslip",              "destination": "/payslip-generator-kenya.html" },

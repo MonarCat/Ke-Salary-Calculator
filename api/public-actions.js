@@ -416,6 +416,52 @@ async function handleAdClick(req, res) {
   }
 }
 
+
+// ============================================================
+// Pageview beacon (first-party analytics)
+// ============================================================
+// Stores only aggregate counts (day/country/path/device/referrer host).
+// Country comes from Vercel's edge header; no IP, cookie or user id is kept.
+const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|preview|facebookexternalhit|curl|wget|python-requests/i;
+
+function deviceFromUA(ua) {
+  if (/ipad|tablet/i.test(ua)) return 'tablet';
+  if (/mobi|android|iphone/i.test(ua)) return 'mobile';
+  return 'desktop';
+}
+
+async function handlePageview(req, res) {
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'POST') { res.statusCode = 405; return res.end(); }
+  try {
+    const ua = String(req.headers['user-agent'] || '');
+    if (!SVC_KEY || !ua || BOT_RE.test(ua)) { res.statusCode = 204; return res.end(); }
+
+    let body = req.body;
+    if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
+    body = body || {};
+
+    const path = String(body.p || '').split('?')[0].split('#')[0];
+    if (!path.startsWith('/') || path.length > 200 || /^\/(admin|api)/i.test(path)) {
+      res.statusCode = 204; return res.end();
+    }
+
+    let referrer = '';
+    try {
+      const host = new URL(String(body.r || '')).hostname.replace(/^www\./, '');
+      if (host && !/(^|\.)salarycalculator\.co\.ke$/i.test(host)) referrer = host;
+    } catch (_) {}
+
+    const country = String(req.headers['x-vercel-ip-country'] || 'XX');
+    const admin = createClient(SUPA_URL, SVC_KEY);
+    await admin.rpc('record_pageview', {
+      p_country: country, p_path: path, p_device: deviceFromUA(ua), p_referrer: referrer,
+    });
+  } catch (_) { /* analytics must never break the site */ }
+  res.statusCode = 204;
+  return res.end();
+}
+
 // ============================================================
 // Dispatcher
 // ============================================================
@@ -425,6 +471,7 @@ export default async function handler(req, res) {
     case 'feedback':        return handleFeedback(req, res);
     case 'password-reset':  return handlePasswordReset(req, res);
     case 'ad-click':        return handleAdClick(req, res);
+    case 'pageview':        return handlePageview(req, res);
     default:
       res.statusCode = 404;
       return res.end('Not found');

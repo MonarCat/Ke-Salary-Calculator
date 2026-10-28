@@ -195,6 +195,18 @@
       });
   }
 
+  // First-party pageview beacon (aggregate counts only; respects Do Not Track).
+  function sendPageview() {
+    try {
+      if (navigator.doNotTrack === '1' || !navigator.sendBeacon) return;
+      var path = location.pathname;
+      if (/^\/admin/i.test(path)) return;
+      navigator.sendBeacon('/api/pv', new Blob(
+        [JSON.stringify({ p: path, r: document.referrer || '' })],
+        { type: 'application/json' }));
+    } catch (_) {}
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var headerMount = document.getElementById('site-header');
     if (headerMount) {
@@ -210,5 +222,6 @@
     }
 
     updateTaxYearLabels(document);
+    sendPageview();
   });
 })();
