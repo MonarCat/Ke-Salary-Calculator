@@ -22,6 +22,7 @@ import { checkPremium } from '/assets/js/premium.js';
 
 const MONETAG_SRC = 'https://quge5.com/88/tag.min.js';
 const MONETAG_ZONE = '219979';
+const MONETAG_SMARTLINK = 'https://uplcm.com/4/10733671';
 
 function injectScript(src, attrs = {}) {
   if (document.querySelector(`script[src="${src}"]`)) return;
@@ -69,12 +70,34 @@ async function unregisterMonetagServiceWorker() {
   }
 }
 
+// Clearly labelled sponsored link (Monetag SmartLink). Free users only; opens
+// in a new tab on an explicit click. Never attached to calculator buttons.
+function renderSponsoredLink() {
+  if (document.getElementById('sc-sponsored-link')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'sc-sponsored-link';
+  wrap.style.cssText = 'max-width:1080px;margin:1.5rem auto;padding:0 1rem;text-align:center;font-size:.85rem;';
+  const label = document.createElement('span');
+  label.textContent = 'Sponsored';
+  label.style.cssText = 'text-transform:uppercase;letter-spacing:.08em;font-size:.68rem;opacity:.7;margin-right:.5rem;';
+  const a = document.createElement('a');
+  a.href = MONETAG_SMARTLINK;
+  a.target = '_blank';
+  a.rel = 'sponsored noopener noreferrer';
+  a.textContent = 'Partner offer (opens in a new tab)';
+  wrap.append(label, a);
+  const footer = document.getElementById('site-footer');
+  if (footer && footer.parentNode) footer.parentNode.insertBefore(wrap, footer);
+  else document.body.appendChild(wrap);
+}
+
 async function init() {
   if (await shouldSuppressAds()) {
     unregisterMonetagServiceWorker();
     return;
   }
   injectScript(MONETAG_SRC, { 'data-zone': MONETAG_ZONE, 'data-cfasync': 'false' });
+  renderSponsoredLink();
 }
 
 if (document.readyState === 'loading') {
