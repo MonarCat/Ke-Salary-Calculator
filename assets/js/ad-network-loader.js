@@ -48,6 +48,12 @@ async function shouldSuppressAds() {
   const client = await waitForClient();
   if (!client) return true;
   try {
+    // Logged-out visitors have no session: supabase.auth.getUser() returns an
+    // "auth session missing" error for them, which checkPremium reports as
+    // indeterminate. They are free users, so they DO get ads. Only treat the
+    // status as unknown when a session exists but premium can't be verified.
+    const { data: sessionData } = await client.auth.getSession();
+    if (!sessionData?.session) return false;
     const status = await checkPremium(client);
     if (status.premiumCheckIndeterminate) return true;
     return !!status.isPremium;

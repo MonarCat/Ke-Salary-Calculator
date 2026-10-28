@@ -198,14 +198,21 @@
   // First-party pageview beacon (aggregate counts only; respects Do Not Track).
   function sendPageview() {
     try {
-      if (navigator.doNotTrack === '1' || !navigator.sendBeacon) return;
+      if (navigator.doNotTrack === '1') return;
       var path = location.pathname;
       if (/^\/admin/i.test(path)) return;
-      navigator.sendBeacon('/api/pv', new Blob(
-        [JSON.stringify({ p: path, r: document.referrer || '' })],
-        { type: 'application/json' }));
+      var payload = JSON.stringify({ p: path, r: document.referrer || '' });
+      var sent = false;
+      if (navigator.sendBeacon) {
+        sent = navigator.sendBeacon('/api/pv', new Blob([payload], { type: 'application/json' }));
+      }
+      if (!sent && window.fetch) {
+        fetch('/api/pv', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(function () {});
+      }
     } catch (_) {}
   }
+
+  document.addEventListener('DOMContentLoaded', sendPageview);
 
   document.addEventListener('DOMContentLoaded', function () {
     var headerMount = document.getElementById('site-header');
@@ -222,6 +229,5 @@
     }
 
     updateTaxYearLabels(document);
-    sendPageview();
   });
 })();
